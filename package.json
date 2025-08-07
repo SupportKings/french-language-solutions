@@ -1,0 +1,33 @@
+{
+  "name": "french-language-solutions",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "preinstall": "node -e \"if (process.env.npm_execpath && !process.env.npm_execpath.includes('bun')) { console.error('❌ This project requires Bun. Please use \\'bun install\\' instead of npm/pnpm/yarn.'); process.exit(1); }\"",
+    "check": "biome check --write .",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F server db:push",
+    "db:studio": "turbo -F server db:studio",
+    "db:generate": "turbo -F server db:generate",
+    "db:migrate": "turbo -F server db:migrate"
+  },
+  "dependencies": {
+    "framer-motion": "^12.23.12"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "@biomejs/biome": "^2.0.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "packageManager": "bun@1.2.13"
+}
