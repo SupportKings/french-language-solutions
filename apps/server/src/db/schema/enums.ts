@@ -56,3 +56,81 @@ export const languageLevelEnum = pgEnum("language_level", [
 	"c1_plus",
 	"c2",
 ]);
+
+// Cohort enums
+export const cohortFormatEnum = pgEnum("cohort_format", [
+	"group",
+	"private",
+]);
+
+export const cohortStatusEnum = pgEnum("cohort_status", [
+	"enrollment_open",
+	"enrollment_closed",
+	"class_ended",
+]);
+
+export const roomTypeEnum = pgEnum("room_type", [
+	"for_one_to_one",
+	"medium",
+	"medium_plus",
+	"large",
+]);
+
+// Enrollment status
+export const enrollmentStatusEnum = pgEnum("enrollment_status", [
+	"declined_contract",
+	"dropped_out",
+	"interested",
+	"beginner_form_filled",
+	"contract_abandoned",
+	"contract_signed",
+	"payment_abandoned",
+	"paid",
+	"welcome_package_sent",
+]);
+
+// Assessment result status
+export const assessmentResultEnum = pgEnum("assessment_result", [
+	"requested",
+	"scheduled",
+	"session_held",
+	"level_determined",
+]);
+
+// Day of week enum
+export const dayOfWeekEnum = pgEnum("day_of_week", [
+	"monday",
+	"tuesday",
+	"wednesday",
+	"thursday",
+	"friday",
+	"saturday",
+	"sunday",
+]);
+
+// Follow-up message status
+export const followUpMessageStatusEnum = pgEnum("follow_up_message_status", [
+	"active",
+	"disabled",
+]);
+
+// Automated follow-up status
+export const automatedFollowUpStatusEnum = pgEnum("automated_follow_up_status", [
+	"activated",
+	"ongoing",
+	"answer_received",
+	"disabled",
+]);
+
+// Product enums
+export const productFormatEnum = pgEnum("product_format", [
+	"group",
+	"private",
+	"hybrid",
+]);
+
+export const productLocationEnum = pgEnum("product_location", [
+	"online",
+	"in_person",
+	"hybrid",
+]);
