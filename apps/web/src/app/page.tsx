@@ -8,6 +8,6 @@ interface PageProps {
 
 export default async function SignInPage(props: PageProps) {
   const searchParams = await props.searchParams;
-  const redirectTo = searchParams.redirectTo || "/teacher";
+  const redirectTo = searchParams.redirectTo || "/admin";
   return <SignInForm redirectTo={redirectTo} />;
 }
