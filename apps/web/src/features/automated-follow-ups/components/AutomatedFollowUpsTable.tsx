@@ -44,8 +44,8 @@ import Link from "next/link";
 import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
 
 const statusColors = {
-	activated: "default",
-	ongoing: "secondary",
+	activated: "info",
+	ongoing: "warning",
 	answer_received: "success",
 	disabled: "destructive",
 };
@@ -141,7 +141,7 @@ export function AutomatedFollowUpsTable() {
 
 	return (
 		<div className="space-y-4">
-			{/* Compact toolbar with search, filters, and action button */}
+			{/* Compact toolbar with search and action button */}
 			<div className="flex items-center gap-3">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -153,13 +153,6 @@ export function AutomatedFollowUpsTable() {
 					/>
 				</div>
 				
-				<DataTableFilter
-					columns={columns}
-					filters={filters}
-					actions={actions}
-					strategy={strategy}
-				/>
-				
 				<div className="ml-auto">
 					<Link href="/admin/automation/automated-follow-ups/new">
 						<Button size="sm" className="h-9">
@@ -170,8 +163,18 @@ export function AutomatedFollowUpsTable() {
 				</div>
 			</div>
 
-				<div className="rounded-md border">
-					<Table>
+			<div className="rounded-md border">
+				{/* Filter bar */}
+				<div className="p-4 bg-muted/30 border-b border-border/50">
+					<DataTableFilter
+						columns={columns}
+						filters={filters}
+						actions={actions}
+						strategy={strategy}
+					/>
+				</div>
+				
+				<Table>
 						<TableHeader>
 							<TableRow>
 								<TableHead>Student</TableHead>
@@ -309,10 +312,9 @@ export function AutomatedFollowUpsTable() {
 							)}
 						</TableBody>
 				</Table>
-			</div>
-
+				
 				{data && data.meta?.totalPages > 1 && (
-					<div className="mt-4 flex items-center justify-between">
+					<div className="p-4 border-t border-border/50 flex items-center justify-between">
 						<p className="text-sm text-muted-foreground">
 							Page {data.meta.page} of {data.meta.totalPages}
 						</p>
@@ -336,6 +338,7 @@ export function AutomatedFollowUpsTable() {
 						</div>
 					</div>
 				)}
+			</div>
 		</div>
 	);
 }

@@ -179,16 +179,16 @@ export function TouchpointsTable() {
 
 	const getChannelColor = (channel: string) => {
 		switch (channel) {
-			case "sms": return "default";
-			case "call": return "secondary";
+			case "sms": return "info";
+			case "call": return "warning";
 			case "whatsapp": return "success";
-			case "email": return "primary";
+			case "email": return "default";
 			default: return "outline";
 		}
 	};
 
 	const getTypeColor = (type: string) => {
-		return type === "inbound" ? "secondary" : "default";
+		return type === "inbound" ? "success" : "secondary";
 	};
 
 	if (error) {
@@ -205,7 +205,7 @@ export function TouchpointsTable() {
 
 	return (
 		<div className="space-y-4">
-			{/* Compact toolbar with search, filters, and action button */}
+			{/* Compact toolbar with search and action button */}
 			<div className="flex items-center gap-3">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -217,13 +217,6 @@ export function TouchpointsTable() {
 					/>
 				</div>
 				
-				<DataTableFilter
-					columns={columns}
-					filters={filters}
-					actions={actions}
-					strategy={strategy}
-				/>
-				
 				<div className="ml-auto">
 					<Link href="/admin/automation/touchpoints/new">
 						<Button size="sm" className="h-9">
@@ -234,8 +227,18 @@ export function TouchpointsTable() {
 				</div>
 			</div>
 
-				<div className="rounded-md border">
-					<Table>
+			<div className="rounded-md border">
+				{/* Filter bar */}
+				<div className="p-4 bg-muted/30 border-b border-border/50">
+					<DataTableFilter
+						columns={columns}
+						filters={filters}
+						actions={actions}
+						strategy={strategy}
+					/>
+				</div>
+				
+				<Table>
 						<TableHeader>
 							<TableRow>
 								<TableHead>Student</TableHead>
@@ -370,10 +373,9 @@ export function TouchpointsTable() {
 							)}
 						</TableBody>
 				</Table>
-			</div>
-
+				
 				{data && data.meta?.totalPages > 1 && (
-					<div className="mt-4 flex items-center justify-between">
+					<div className="p-4 border-t border-border/50 flex items-center justify-between">
 						<p className="text-sm text-muted-foreground">
 							Page {data.meta.page} of {data.meta.totalPages}
 						</p>
@@ -397,6 +399,7 @@ export function TouchpointsTable() {
 						</div>
 					</div>
 				)}
+			</div>
 		</div>
 	);
 }

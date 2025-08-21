@@ -135,43 +135,50 @@ export function ClassesPageClient() {
 	};
 
 	return (
-		<div className="space-y-4">
-			{/* Compact toolbar with search, filters, and action button */}
-			<div className="flex items-center gap-3">
-				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+		<div className="space-y-6">
+			{/* Search bar and action button separate from table */}
+			<div className="flex items-center gap-4">
+				<div className="relative flex-1 max-w-md">
+					<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
 					<Input
 						placeholder="Search cohorts..."
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="h-9 pl-9 bg-muted/50"
+						className="h-11 pl-10 pr-4 bg-background border-border/50 hover:border-muted-foreground/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
 					/>
 				</div>
 				
-				<DataTableFilter
-					columns={columns}
-					filters={filters}
-					actions={actions}
-					strategy={strategy}
-				/>
-				
-				<div className="ml-auto">
+				<div className="flex items-center gap-2">
 					<Button 
 						onClick={() => router.push("/admin/classes/new")} 
-						size="sm" 
-						className="h-9"
+						size="default" 
+						className="h-11 px-5 shadow-sm hover:shadow-md transition-all duration-200"
 					>
-						<Plus className="mr-1.5 h-4 w-4" />
+						<Plus className="mr-2 h-4 w-4" />
 						New Cohort
 					</Button>
 				</div>
 			</div>
 
-			{/* Cohorts Table (embedded directly as per prototype) */}
-			<CohortsTable
-				cohorts={data?.data || []}
-				isLoading={isLoading}
-			/>
+			{/* Table with integrated filter header */}
+			<div className="rounded-md border">
+				{/* Filter bar as table header */}
+				<div className="border-b bg-muted/30 px-4 py-2">
+					<DataTableFilter
+						columns={columns}
+						filters={filters}
+						actions={actions}
+						strategy={strategy}
+					/>
+				</div>
+				
+				{/* Cohorts Table content */}
+				<CohortsTable
+					cohorts={data?.data || []}
+					isLoading={isLoading}
+					hideWrapper={true}
+				/>
+			</div>
 
 			{/* Pagination */}
 			{data && data.meta.totalPages > 1 && (

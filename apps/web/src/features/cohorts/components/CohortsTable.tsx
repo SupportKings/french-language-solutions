@@ -34,17 +34,18 @@ import { format } from "date-fns";
 interface CohortsTableProps {
 	cohorts: Cohort[];
 	isLoading: boolean;
+	hideWrapper?: boolean;
 }
 
 // Status badge variant mapping
 const getStatusVariant = (status: CohortStatus) => {
 	switch (status) {
 		case "enrollment_open":
-			return "default";
+			return "success";
 		case "enrollment_closed":
-			return "secondary";
+			return "warning";
 		case "class_ended":
-			return "outline";
+			return "secondary";
 		default:
 			return "outline";
 	}
@@ -54,13 +55,13 @@ const getStatusVariant = (status: CohortStatus) => {
 const getRoomTypeVariant = (roomType: RoomType) => {
 	switch (roomType) {
 		case "for_one_to_one":
-			return "default";
+			return "info";
 		case "medium":
-			return "secondary";
+			return "default";
 		case "medium_plus":
-			return "secondary";
+			return "default";
 		case "large":
-			return "outline";
+			return "secondary";
 		default:
 			return "outline";
 	}
@@ -83,7 +84,7 @@ const formatSessionTime = (session: WeeklySession) => {
 	return `${day} ${session.start_time}-${session.end_time}`;
 };
 
-export function CohortsTable({ cohorts, isLoading }: CohortsTableProps) {
+export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: CohortsTableProps) {
 	const router = useRouter();
 	const [openCohorts, setOpenCohorts] = useState<Set<string>>(new Set());
 
@@ -97,9 +98,8 @@ export function CohortsTable({ cohorts, isLoading }: CohortsTableProps) {
 		setOpenCohorts(newOpen);
 	};
 
-	return (
-		<div className="rounded-lg border">
-			<Table>
+	const tableContent = (
+		<Table>
 				<TableHeader>
 					<TableRow>
 						<TableHead className="w-8"></TableHead>
@@ -263,7 +263,16 @@ export function CohortsTable({ cohorts, isLoading }: CohortsTableProps) {
 						})
 					)}
 				</TableBody>
-			</Table>
+		</Table>
+	);
+
+	if (hideWrapper) {
+		return tableContent;
+	}
+
+	return (
+		<div className="rounded-lg border">
+			{tableContent}
 		</div>
 	);
 }

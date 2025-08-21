@@ -57,9 +57,9 @@ export function ClassesTable({ classes, isLoading }: ClassesTableProps) {
 	const getStatusBadgeVariant = (status: string) => {
 		switch (status) {
 			case "scheduled":
-				return "default";
+				return "info";
 			case "in_progress":
-				return "secondary";
+				return "warning";
 			case "completed":
 				return "success";
 			case "cancelled":

@@ -86,21 +86,21 @@ export function StudentsList({ students }: StudentsListProps) {
     switch (status) {
       case "active":
         return (
-          <Badge className="bg-green-100 text-green-700 border-green-200">
+          <Badge variant="success">
             <CheckCircle className="h-3 w-3 mr-1" />
             Active
           </Badge>
         );
       case "at-risk":
         return (
-          <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+          <Badge variant="warning">
             <AlertCircle className="h-3 w-3 mr-1" />
             At Risk
           </Badge>
         );
       case "inactive":
         return (
-          <Badge className="bg-red-100 text-red-700 border-red-200">
+          <Badge variant="destructive">
             <XCircle className="h-3 w-3 mr-1" />
             Inactive
           </Badge>

@@ -19,7 +19,8 @@ export function FilterActions({
 }: FilterActionsProps) {
   return (
     <Button
-      className={cn("!", !hasFilters && "hidden")}
+      variant="outline"
+      className={cn("h-7", !hasFilters && "hidden")}
       onClick={actions?.removeAllFilters}
     >
       <FilterXIcon className="mr-[6px] size-3.5" />

@@ -42,8 +42,8 @@ import { toast } from "sonner";
 import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
 
 const resultColors = {
-	requested: "secondary",
-	scheduled: "default",
+	requested: "info",
+	scheduled: "warning",
 	session_held: "outline",
 	level_determined: "success",
 };
@@ -229,7 +229,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 
 	return (
 		<div className="space-y-4">
-			{/* Compact toolbar with search, filters, and action button */}
+			{/* Compact toolbar with search and action button */}
 			<div className="flex items-center gap-3">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -241,13 +241,6 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 					/>
 				</div>
 				
-				<DataTableFilter
-					columns={columns}
-					filters={filters}
-					actions={actions}
-					strategy={strategy}
-				/>
-				
 				<div className="ml-auto">
 					<Link href="/admin/students/assessments/new">
 						<Button size="sm" className="h-9">
@@ -258,8 +251,18 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 				</div>
 			</div>
 
-				<div className="rounded-md border">
-					<Table>
+			<div className="rounded-md border">
+				{/* Filter bar */}
+				<div className="p-4 bg-muted/30 border-b border-border/50">
+					<DataTableFilter
+						columns={columns}
+						filters={filters}
+						actions={actions}
+						strategy={strategy}
+					/>
+				</div>
+				
+				<Table>
 						<TableHeader>
 							<TableRow>
 								<TableHead>Student</TableHead>
@@ -372,10 +375,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 							)}
 						</TableBody>
 					</Table>
-				</div>
-
+				
 				{data?.pagination && data.pagination.totalPages > 1 && (
-					<div className="mt-4 flex items-center justify-between">
+					<div className="p-4 border-t border-border/50 flex items-center justify-between">
 						<p className="text-sm text-muted-foreground">
 							Page {data.pagination.page} of {data.pagination.totalPages}
 						</p>
@@ -399,6 +401,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 						</div>
 					</div>
 				)}
+			</div>
 		</div>
 	);
 }
