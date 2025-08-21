@@ -122,6 +122,28 @@ export const automatedFollowUpStatusEnum = pgEnum("automated_follow_up_status", 
 	"disabled",
 ]);
 
+// Touchpoint enums
+export const touchpointChannelEnum = pgEnum("touchpoint_channel", [
+	"sms",
+	"call",
+	"whatsapp",
+	"email",
+]);
+
+export const touchpointTypeEnum = pgEnum("touchpoint_type", [
+	"inbound",
+	"outbound",
+]);
+
+export const touchpointSourceEnum = pgEnum("touchpoint_source", [
+	"manual",
+	"automated",
+	"openphone",
+	"gmail",
+	"whatsapp_business",
+	"webhook",
+]);
+
 // Product enums
 export const productFormatEnum = pgEnum("product_format", [
 	"group",
@@ -130,6 +152,20 @@ export const productFormatEnum = pgEnum("product_format", [
 ]);
 
 export const productLocationEnum = pgEnum("product_location", [
+	"online",
+	"in_person",
+	"hybrid",
+]);
+
+// Class enums
+export const classStatusEnum = pgEnum("class_status", [
+	"scheduled",
+	"in_progress",
+	"completed",
+	"cancelled",
+]);
+
+export const classModeEnum = pgEnum("class_mode", [
 	"online",
 	"in_person",
 	"hybrid",

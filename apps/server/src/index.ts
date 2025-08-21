@@ -6,15 +6,23 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
+// Import API modules
+// import studentsRoutes from "./modules/students/routes"; // TODO: Add when module is created
+
 const app = new Hono();
 
-app.use(logger());
-app.use("/*", cors({
+// Debug: Check if env variable is loaded
+
+// Apply CORS globally
+const corsMiddleware = cors({
   origin: process.env.CORS_ORIGIN || "",
-  allowMethods: ["GET", "POST", "OPTIONS"],
-}));
+  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+});
 
-
+app.use("*", logger());
+app.use("*", corsMiddleware);
 
 app.use("/trpc/*", trpcServer({
   router: appRouter,
@@ -23,7 +31,8 @@ app.use("/trpc/*", trpcServer({
   },
 }));
 
-
+// Mount API routes with explicit path
+// app.route("/api/students", studentsRoutes); // TODO: Add when module is created
 
 app.get("/", (c) => {
   return c.text("OK");

@@ -103,7 +103,7 @@ export default function ExampleBarListComponent() {
       </div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="overflow-hidden p-0">
-          <div className="px-6 pt-6 pb-4">
+          <div className="px-6 py-6 pb-4">
             <div className="relative">
               <SearchIcon className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
               <Input

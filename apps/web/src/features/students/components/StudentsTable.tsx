@@ -1,0 +1,359 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useDebounce } from "@uidotdev/usehooks";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Search, Plus, Eye, Edit, Trash, GraduationCap, Users, MessageSquare, UserCheck, Calendar } from "lucide-react";
+import { useStudents, useDeleteStudent } from "../queries/students.queries";
+import type { StudentQuery } from "../schemas/student.schema";
+import { format } from "date-fns";
+import Link from "next/link";
+import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
+
+const LANGUAGE_LEVELS = {
+	a1: "A1",
+	a1_plus: "A1+",
+	a2: "A2",
+	a2_plus: "A2+",
+	b1: "B1",
+	b1_plus: "B1+",
+	b2: "B2",
+	b2_plus: "B2+",
+	c1: "C1",
+	c1_plus: "C1+",
+	c2: "C2",
+};
+
+// Define column configurations for data-table-filter
+const studentColumns = [
+	{
+		id: "desired_starting_language_level",
+		accessor: (student: any) => student.desired_starting_language_level,
+		displayName: "Language Level",
+		icon: GraduationCap,
+		type: "option" as const,
+		options: Object.entries(LANGUAGE_LEVELS).map(([value, label]) => ({
+			label,
+			value,
+		})),
+	},
+	{
+		id: "initial_channel",
+		accessor: (student: any) => student.initial_channel,
+		displayName: "Initial Channel",
+		icon: Users,
+		type: "option" as const,
+		options: [
+			{ label: "Form", value: "form" },
+			{ label: "Quiz", value: "quiz" },
+			{ label: "Call", value: "call" },
+			{ label: "Message", value: "message" },
+			{ label: "Email", value: "email" },
+			{ label: "Assessment", value: "assessment" },
+		],
+	},
+	{
+		id: "communication_channel",
+		accessor: (student: any) => student.communication_channel,
+		displayName: "Communication Preference",
+		icon: MessageSquare,
+		type: "option" as const,
+		options: [
+			{ label: "SMS & Email", value: "sms_email" },
+			{ label: "Email Only", value: "email" },
+			{ label: "SMS Only", value: "sms" },
+		],
+	},
+	{
+		id: "is_full_beginner",
+		accessor: (student: any) => student.is_full_beginner,
+		displayName: "Beginner Status",
+		icon: UserCheck,
+		type: "option" as const,
+		options: [
+			{ label: "Full Beginner", value: "true" },
+			{ label: "Has Experience", value: "false" },
+		],
+	},
+	{
+		id: "added_to_email_newsletter",
+		accessor: (student: any) => student.added_to_email_newsletter,
+		displayName: "Newsletter Status",
+		icon: MessageSquare,
+		type: "option" as const,
+		options: [
+			{ label: "Subscribed", value: "true" },
+			{ label: "Not Subscribed", value: "false" },
+		],
+	},
+	{
+		id: "is_under_16",
+		accessor: (student: any) => student.is_under_16,
+		displayName: "Age Group",
+		icon: Users,
+		type: "option" as const,
+		options: [
+			{ label: "Under 16", value: "true" },
+			{ label: "16 and Over", value: "false" },
+		],
+	},
+] as const;
+
+interface StudentsTableProps {
+	hideTitle?: boolean;
+}
+
+export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
+	const router = useRouter();
+	const [query, setQuery] = useState<StudentQuery>({
+		page: 1,
+		limit: 20,
+		sortBy: "created_at",
+		sortOrder: "desc",
+	});
+	const [searchInput, setSearchInput] = useState("");
+	const debouncedSearch = useDebounce(searchInput, 300);
+
+	// Data table filters hook
+	const {
+		columns,
+		filters,
+		actions,
+		strategy,
+	} = useDataTableFilters({
+		strategy: "server" as const,
+		data: [], // Empty for server-side filtering
+		columnsConfig: studentColumns,
+	});
+
+	// Convert filters to query params - support multiple values
+	const filterQuery = useMemo(() => {
+		const levelFilter = filters.find(f => f.columnId === "desired_starting_language_level");
+		const channelFilter = filters.find(f => f.columnId === "initial_channel");
+		const commFilter = filters.find(f => f.columnId === "communication_channel");
+		const beginnerFilter = filters.find(f => f.columnId === "is_full_beginner");
+		const newsletterFilter = filters.find(f => f.columnId === "added_to_email_newsletter");
+		const ageFilter = filters.find(f => f.columnId === "is_under_16");
+		
+		return {
+			// Pass arrays for multi-select filters
+			desired_starting_language_level: levelFilter?.values?.length ? levelFilter.values : undefined,
+			initial_channel: channelFilter?.values?.length ? channelFilter.values : undefined,
+			communication_channel: commFilter?.values?.length ? commFilter.values : undefined,
+			is_full_beginner: beginnerFilter?.values?.[0] === "true" ? true : beginnerFilter?.values?.[0] === "false" ? false : undefined,
+			added_to_email_newsletter: newsletterFilter?.values?.[0] === "true" ? true : newsletterFilter?.values?.[0] === "false" ? false : undefined,
+			is_under_16: ageFilter?.values?.[0] === "true" ? true : ageFilter?.values?.[0] === "false" ? false : undefined,
+		};
+	}, [filters]);
+
+	// Update query when debounced search changes or filters change
+	const effectiveQuery = {
+		...query,
+		...filterQuery,
+		search: debouncedSearch || undefined,
+	};
+
+	const { data, isLoading, error } = useStudents(effectiveQuery);
+	const deleteStudent = useDeleteStudent();
+
+	const handleDelete = async (id: string) => {
+		if (confirm("Are you sure you want to delete this student?")) {
+			await deleteStudent.mutateAsync(id);
+		}
+	};
+
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="py-10">
+					<p className="text-center text-muted-foreground">
+						Failed to load students
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	return (
+		<div className="space-y-6">
+			{/* Search bar and action button separate from table */}
+			<div className="flex items-center gap-4">
+				<div className="relative flex-1 max-w-md">
+					<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+					<Input
+						placeholder="Search students by name, email, or phone..."
+						value={searchInput}
+						onChange={(e) => setSearchInput(e.target.value)}
+						className="h-11 pl-10 pr-4 bg-background border-border/50 hover:border-muted-foreground/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+					/>
+				</div>
+				
+				<div className="flex items-center gap-2">
+					<Link href="/admin/students/new">
+						<Button 
+							size="default" 
+							className="h-11 px-5 shadow-sm hover:shadow-md transition-all duration-200"
+						>
+							<Plus className="mr-2 h-4 w-4" />
+							Add Student
+						</Button>
+					</Link>
+				</div>
+			</div>
+
+			{/* Table with integrated filter header */}
+			<div className="rounded-md border">
+				{/* Filter bar as table header */}
+				<div className="border-b bg-muted/30 px-4 py-2">
+					<DataTableFilter
+						columns={columns}
+						filters={filters}
+						actions={actions}
+						strategy={strategy}
+					/>
+				</div>
+				
+				<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Student</TableHead>
+								<TableHead>Contact</TableHead>
+								<TableHead>Level</TableHead>
+								<TableHead>Joined</TableHead>
+								<TableHead className="w-[70px]"></TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{isLoading ? (
+								Array.from({ length: 5 }).map((_, i) => (
+									<TableRow key={i}>
+										<TableCell><Skeleton className="h-5 w-32" /></TableCell>
+										<TableCell><Skeleton className="h-5 w-40" /></TableCell>
+										<TableCell><Skeleton className="h-5 w-20" /></TableCell>
+										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
+										<TableCell><Skeleton className="h-5 w-8" /></TableCell>
+									</TableRow>
+								))
+							) : data?.data.length === 0 ? (
+								<TableRow>
+									<TableCell colSpan={5} className="text-center text-muted-foreground">
+										No students found
+									</TableCell>
+								</TableRow>
+							) : (
+								data?.data.map((student) => (
+									<TableRow key={student.id} className="hover:bg-muted/50 transition-colors duration-150">
+										<TableCell>
+											<div>
+												<p className="font-medium">{student.full_name}</p>
+												<p className="text-sm text-muted-foreground">
+													ID: {student.id.slice(0, 8)}
+												</p>
+											</div>
+										</TableCell>
+										<TableCell>
+											<div>
+												<p className="text-sm">{student.email || "No email"}</p>
+												<p className="text-sm text-muted-foreground">
+													{student.mobile_phone_number || "No phone"}
+												</p>
+											</div>
+										</TableCell>
+										<TableCell>
+											{student.desired_starting_language_level ? (
+												<Badge variant="outline">
+													{LANGUAGE_LEVELS[student.desired_starting_language_level as keyof typeof LANGUAGE_LEVELS]}
+												</Badge>
+											) : (
+												<span className="text-muted-foreground">Not set</span>
+											)}
+										</TableCell>
+										<TableCell>
+											<p className="text-sm">
+												{format(new Date(student.created_at), "MMM d, yyyy")}
+											</p>
+										</TableCell>
+										<TableCell>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant="ghost" size="icon">
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<Link href={`/admin/students/${student.id}`}>
+														<DropdownMenuItem>
+															<Eye className="mr-2 h-4 w-4" />
+															View
+														</DropdownMenuItem>
+													</Link>
+													<Link href={`/admin/students/${student.id}/edit`}>
+														<DropdownMenuItem>
+															<Edit className="mr-2 h-4 w-4" />
+															Edit
+														</DropdownMenuItem>
+													</Link>
+													<DropdownMenuItem 
+														onClick={() => handleDelete(student.id)}
+														className="text-destructive"
+													>
+														<Trash className="mr-2 h-4 w-4" />
+														Delete
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</TableCell>
+									</TableRow>
+								))
+							)}
+						</TableBody>
+				</Table>
+				
+				{data && data.meta.totalPages > 1 && (
+					<div className="flex items-center justify-between px-4 py-3 border-t bg-muted/10">
+						<p className="text-sm text-muted-foreground">
+							Page {data.meta.page} of {data.meta.totalPages}
+						</p>
+						<div className="flex gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setQuery({ ...query, page: query.page - 1 })}
+								disabled={query.page === 1}
+							>
+								Previous
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setQuery({ ...query, page: query.page + 1 })}
+								disabled={query.page === data.meta.totalPages}
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				)}
+			</div>
+		</div>
+	);
+}
