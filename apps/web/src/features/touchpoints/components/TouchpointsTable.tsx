@@ -132,7 +132,7 @@ export function TouchpointsTable() {
 	const [query, setQuery] = useState<TouchpointQuery>({
 		search: "",
 		page: 1,
-		limit: 10,
+		limit: 20,
 	});
 
 	const deleteTouchpoint = useDeleteTouchpoint();
@@ -280,7 +280,7 @@ export function TouchpointsTable() {
 									const SourceIcon = sourceIcons[touchpoint.source];
 									
 									return (
-										<TableRow key={touchpoint.id}>
+										<TableRow key={touchpoint.id} className="hover:bg-muted/50 transition-colors duration-150">
 											<TableCell>
 												<div className="flex items-center gap-2">
 													<User className="h-4 w-4 text-muted-foreground" />

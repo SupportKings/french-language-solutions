@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import { students } from "./students";
 import { cohorts } from "./cohorts";
 import { classes } from "./classes";
+import { teachers } from "./teachers";
 
 // Attendance status enum
 export const attendanceStatusEnum = ["unset", "attended", "not_attended"] as const;
@@ -24,7 +25,7 @@ export const attendanceRecords = pgTable("attendance_records", {
   
   // Additional fields
   notes: text("notes"),
-  markedBy: uuid("marked_by"), // References users.id but we can't use .references() since users table is managed by Better Auth
+  markedBy: uuid("marked_by").references(() => teachers.id, { onDelete: "set null" }), // References teachers.id
   markedAt: timestamp("marked_at", { withTimezone: true }),
   
   // Metadata
@@ -46,7 +47,10 @@ export const attendanceRecordsRelations = relations(attendanceRecords, ({ one })
     fields: [attendanceRecords.classId],
     references: [classes.id],
   }),
-  // markedByUser relation removed since users table is managed by Better Auth
+  teacher: one(teachers, {
+    fields: [attendanceRecords.markedBy],
+    references: [teachers.id],
+  }),
 }));
 
 // Type exports

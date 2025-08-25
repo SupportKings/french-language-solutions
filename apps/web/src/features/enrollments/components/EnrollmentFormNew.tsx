@@ -62,10 +62,20 @@ type EnrollmentFormValues = z.infer<typeof enrollmentFormSchema>;
 interface EnrollmentFormNewProps {
 	enrollment?: any;
 	studentId?: string;
+	cohortId?: string;
+	cohortName?: string;
+	redirectTo?: string;
 	onSuccess?: () => void;
 }
 
-export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: EnrollmentFormNewProps) {
+export function EnrollmentFormNew({ 
+	enrollment, 
+	studentId, 
+	cohortId,
+	cohortName,
+	redirectTo,
+	onSuccess 
+}: EnrollmentFormNewProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [students, setStudents] = useState<any[]>([]);
@@ -80,7 +90,7 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 		resolver: zodResolver(enrollmentFormSchema),
 		defaultValues: {
 			student_id: enrollment?.student_id || studentId || "",
-			cohort_id: enrollment?.cohort_id || "",
+			cohort_id: enrollment?.cohort_id || cohortId || "",
 			status: enrollment?.status || "interested",
 		},
 	});
@@ -160,6 +170,9 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 			
 			if (onSuccess) {
 				onSuccess();
+			} else if (redirectTo) {
+				router.push(redirectTo);
+				router.refresh();
 			} else {
 				router.push("/admin/students/enrollments");
 				router.refresh();
@@ -173,7 +186,11 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 	}
 
 	const handleCancel = () => {
-		router.push("/admin/students/enrollments");
+		if (redirectTo) {
+			router.push(redirectTo);
+		} else {
+			router.push("/admin/students/enrollments");
+		}
 	};
 
 	const statusOptions = [
@@ -194,8 +211,8 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 	return (
 		<FormLayout>
 			<FormHeader
-				backUrl="/admin/students/enrollments"
-				backLabel="Enrollments"
+				backUrl={redirectTo || "/admin/students/enrollments"}
+				backLabel={redirectTo ? "Back" : "Enrollments"}
 				title={isEditMode ? "Edit Enrollment" : "New Enrollment"}
 				subtitle={isEditMode ? "Update enrollment details" : "Create a new student enrollment"}
 				badge={isEditMode ? { label: "Editing", variant: "warning" } : undefined}
@@ -310,10 +327,17 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 												)}
 												disabled={loadingCohorts}
 											>
-												<span className="truncate">
-													{selectedCohort
-														? `${selectedCohort.format} - ${selectedCohort.starting_level?.toUpperCase()}`
-														: "Select cohort..."}
+												<span className="truncate flex items-center gap-2">
+													{selectedCohort ? (
+														<>
+															{selectedCohort.title || (
+																<>
+																	<span className="text-muted-foreground">Title Missing</span>
+																	<AlertCircle className="h-3 w-3 text-warning" />
+																</>
+															)}
+														</>
+													) : "Select cohort..."}
 												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
@@ -341,16 +365,21 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 																		form.watch("cohort_id") === cohort.id ? "opacity-100" : "opacity-0"
 																	)}
 																/>
-																<div className="flex flex-col">
-																	<span className="font-medium">
-																		{cohort.format} - {cohort.starting_level?.toUpperCase()}
-																	</span>
-																	<span className="text-xs text-muted-foreground">
-																		{cohort.start_date 
-																			? `Starts ${new Date(cohort.start_date).toLocaleDateString()}`
-																			: "Start date TBD"}
-																		{cohort.cohort_status && ` • ${cohort.cohort_status.replace('_', ' ')}`}
-																	</span>
+																<div className="flex items-start gap-2 flex-1">
+																	<div className="flex flex-col flex-1">
+																		<span className="font-medium flex items-center gap-2">
+																			{cohort.title || (
+																				<>
+																					<span className="text-muted-foreground">Title Missing</span>
+																					<AlertCircle className="h-3 w-3 text-warning" />
+																				</>
+																			)}
+																		</span>
+																		<span className="text-xs text-muted-foreground">
+																			{cohort.format} - {cohort.starting_level?.toUpperCase()}
+																			{cohort.start_date && ` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
+																		</span>
+																	</div>
 																</div>
 															</CommandItem>
 														))
@@ -385,12 +414,27 @@ export function EnrollmentFormNew({ enrollment, studentId, onSuccess }: Enrollme
 										<div className="flex items-center gap-2 text-sm">
 											<Users className="h-4 w-4 text-muted-foreground" />
 											<span className="text-muted-foreground">Cohort:</span>
-											<span className="font-medium">
-												{selectedCohort.format} - {selectedCohort.starting_level?.toUpperCase()}
+											<span className="font-medium flex items-center gap-2">
+												{selectedCohort.title ? (
+													<>
+														{selectedCohort.title}
+														<span className="text-xs text-muted-foreground">
+															({selectedCohort.format} - {selectedCohort.starting_level?.toUpperCase()})
+														</span>
+													</>
+												) : (
+													<>
+														<span className="text-muted-foreground">Title Missing</span>
+														<AlertCircle className="h-3 w-3 text-warning" />
+														<span className="text-xs text-muted-foreground">
+															({selectedCohort.format} - {selectedCohort.starting_level?.toUpperCase()})
+														</span>
+													</>
+												)}
 											</span>
 											{selectedCohort.start_date && (
 												<span className="text-xs text-muted-foreground">
-													(Starts {new Date(selectedCohort.start_date).toLocaleDateString()})
+													• Starts {new Date(selectedCohort.start_date).toLocaleDateString()}
 												</span>
 											)}
 										</div>

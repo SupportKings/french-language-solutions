@@ -33,7 +33,8 @@ import {
 	GraduationCap,
 	ClipboardCheck,
 	DollarSign,
-	User
+	User,
+	Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -173,7 +174,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
-				limit: "10",
+				limit: "20",
 				...(debouncedSearch && { search: debouncedSearch }),
 				...(filterQuery.is_paid !== undefined && { is_paid: filterQuery.is_paid.toString() }),
 			});
@@ -299,12 +300,14 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 								data?.assessments?.map((assessment: any) => (
 									<TableRow key={assessment.id}>
 										<TableCell>
-											<div>
-												<p className="font-medium">{assessment.students?.full_name}</p>
-												<p className="text-sm text-muted-foreground">
-													{assessment.students?.email || "No email"}
-												</p>
-											</div>
+											<Link href={`/admin/students/${assessment.student_id}`} className="hover:underline">
+												<div>
+													<p className="font-medium">{assessment.students?.full_name}</p>
+													<p className="text-sm text-muted-foreground">
+														{assessment.students?.email || "No email"}
+													</p>
+												</div>
+											</Link>
 										</TableCell>
 										<TableCell>
 											{assessment.level ? (
@@ -356,10 +359,10 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
-													<Link href={`/admin/students/assessments/${assessment.id}/edit`}>
+													<Link href={`/admin/students/assessments/${assessment.id}`}>
 														<DropdownMenuItem>
-															<Edit className="mr-2 h-4 w-4" />
-															Edit
+															<Eye className="mr-2 h-4 w-4" />
+															View
 														</DropdownMenuItem>
 													</Link>
 													<DropdownMenuItem 

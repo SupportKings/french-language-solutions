@@ -86,7 +86,7 @@ export function AutomatedFollowUpsTable() {
 	const [query, setQuery] = useState<AutomatedFollowUpQuery>({
 		search: "",
 		page: 1,
-		limit: 10,
+		limit: 20,
 	});
 
 	const deleteFollowUp = useDeleteAutomatedFollowUp();
@@ -211,7 +211,7 @@ export function AutomatedFollowUpsTable() {
 								data?.data?.map((touchpoint: any) => {
 									const StatusIcon = statusIcons[touchpoint.status];
 									return (
-										<TableRow key={touchpoint.id}>
+										<TableRow key={touchpoint.id} className="hover:bg-muted/50 transition-colors duration-150">
 											<TableCell>
 												<div className="flex items-center gap-2">
 													<User className="h-4 w-4 text-muted-foreground" />

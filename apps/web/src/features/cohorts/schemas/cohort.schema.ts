@@ -30,6 +30,7 @@ export const RoomTypeEnum = z.enum([
 // Base cohort schema - using exact DB column names (snake_case)
 export const CohortSchema = z.object({
 	id: z.string().uuid(),
+	title: z.string().nullable(), // Custom cohort title
 	format: CohortFormatEnum,
 	product_id: z.string().uuid().nullable(),
 	google_drive_folder_id: z.string().nullable(),
@@ -75,7 +76,7 @@ export const CohortQuerySchema = z.object({
 	current_level: LanguageLevelEnum.optional(),
 	room_type: RoomTypeEnum.optional(),
 	page: z.number().min(1).default(1),
-	limit: z.number().min(1).max(100).default(10),
+	limit: z.number().min(1).max(100).default(20),
 });
 
 // Create/Update schemas

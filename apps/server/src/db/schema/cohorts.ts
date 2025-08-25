@@ -4,6 +4,8 @@ import {
 	timestamp,
 	uuid,
 	date,
+	integer,
+	boolean,
 } from "drizzle-orm/pg-core";
 import {
 	cohortFormatEnum,
@@ -15,6 +17,7 @@ import { products } from "./products";
 
 export const cohorts = pgTable("cohorts", {
 	id: uuid("id").primaryKey().defaultRandom(),
+	title: text("title"), // Custom title for the cohort
 	format: cohortFormatEnum("format").notNull(),
 	productId: uuid("product_id").references(() => products.id),
 	googleDriveFolderId: text("google_drive_folder_id"),
@@ -25,6 +28,8 @@ export const cohorts = pgTable("cohorts", {
 		.default("enrollment_open"),
 	currentLevel: languageLevelEnum("current_level"),
 	roomType: roomTypeEnum("room_type"),
+	maxStudents: integer("max_students").default(10),
+	setupFinalized: boolean("setup_finalized").default(false),
 	airtableRecordId: text("airtable_record_id"), // For migration tracking
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),

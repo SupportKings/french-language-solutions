@@ -58,7 +58,7 @@ export const classFiltersSchema = z.object({
 	teacher_id: z.string().uuid().optional(),
 	is_active: z.boolean().optional(),
 	page: z.number().int().positive().default(1),
-	limit: z.number().int().positive().default(10),
+	limit: z.number().int().positive().default(20),
 });
 
 export type ClassFilters = z.infer<typeof classFiltersSchema>;

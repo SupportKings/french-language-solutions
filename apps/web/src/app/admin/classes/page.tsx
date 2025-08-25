@@ -26,7 +26,7 @@ export default async function ClassesPage({
 		current_level: params.current_level as any,
 		room_type: params.room_type as any,
 		page: params.page ? parseInt(params.page as string) : 1,
-		limit: params.limit ? parseInt(params.limit as string) : 10,
+		limit: params.limit ? parseInt(params.limit as string) : 20,
 	};
 
 	// Prefetch cohorts data

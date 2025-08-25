@@ -1,0 +1,499 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EditableSection } from "@/components/inline-edit/EditableSection";
+import { InlineEditField } from "@/components/inline-edit/InlineEditField";
+import { toast } from "sonner";
+import { 
+	Phone, 
+	Calendar, 
+	Video, 
+	MapPin, 
+	Shield, 
+	Briefcase, 
+	Clock,
+	ChevronRight,
+	MoreVertical,
+	Trash2,
+	MessageSquare,
+	Plus,
+	DollarSign,
+	CreditCard,
+	User
+} from "lucide-react";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { format } from "date-fns";
+
+const onboardingStatusColors = {
+	new: "secondary",
+	training_in_progress: "default",
+	onboarded: "success",
+	offboarded: "destructive",
+} as const;
+
+const onboardingStatusLabels = {
+	new: "New",
+	training_in_progress: "Training",
+	onboarded: "Onboarded",
+	offboarded: "Offboarded",
+} as const;
+
+const contractTypeLabels = {
+	full_time: "Full Time",
+	freelancer: "Freelancer",
+} as const;
+
+const bonusTermsLabels = {
+	per_student_per_hour: "Per Student Per Hour",
+	per_hour: "Per Hour",
+} as const;
+
+interface TeacherDetailsClientProps {
+	teacher: any;
+}
+
+export default function TeacherDetailsClient({ teacher: initialTeacher }: TeacherDetailsClientProps) {
+	const router = useRouter();
+	const [teacher, setTeacher] = useState(initialTeacher);
+	
+	// Construct full name from first and last name
+	const fullName = `${teacher.first_name || ''} ${teacher.last_name || ''}`.trim();
+	
+	// Get initials for avatar
+	const initials = fullName
+		.split(' ')
+		.map((n: string) => n[0])
+		.join('')
+		.toUpperCase()
+		.slice(0, 2);
+
+	// Update teacher field
+	const updateTeacherField = async (field: string, value: any) => {
+		try {
+			const response = await fetch(`/api/teachers/${teacher.id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ [field]: value }),
+			});
+
+			if (!response.ok) throw new Error("Failed to update");
+
+			const updated = await response.json();
+			setTeacher(updated);
+			toast.success("Updated successfully");
+		} catch (error) {
+			toast.error("Failed to update");
+			throw error;
+		}
+	};
+
+	// Navigate to create forms with pre-filled data
+	const navigateToAssignClass = () => {
+		const params = new URLSearchParams({
+			teacherId: teacher.id,
+			teacherName: fullName,
+		});
+		router.push(`/admin/classes/new?${params.toString()}`);
+	};
+
+	const navigateToSetFollowUp = () => {
+		const params = new URLSearchParams({
+			teacherId: teacher.id,
+			teacherName: fullName,
+		});
+		router.push(`/admin/automation/automated-follow-ups/new?${params.toString()}`);
+	};
+
+	return (
+		<div className="min-h-screen bg-muted/30">
+			{/* Enhanced Header with Breadcrumb */}
+			<div className="border-b bg-background">
+				<div className="px-6 py-3">
+					<div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+						<Link href="/admin/teachers" className="hover:text-foreground transition-colors">
+							Teachers
+						</Link>
+						<ChevronRight className="h-3 w-3" />
+						<span>{fullName}</span>
+					</div>
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+								<span className="text-sm font-semibold text-primary">{initials}</span>
+							</div>
+							<div>
+								<h1 className="text-xl font-semibold">{fullName}</h1>
+								<div className="flex items-center gap-2 mt-0.5">
+									<Badge 
+										variant={onboardingStatusColors[teacher.onboarding_status as keyof typeof onboardingStatusColors]} 
+										className="h-4 text-[10px] px-1.5"
+									>
+										{onboardingStatusLabels[teacher.onboarding_status as keyof typeof onboardingStatusLabels]}
+									</Badge>
+									{teacher.contract_type && (
+										<Badge variant="outline" className="h-4 text-[10px] px-1.5">
+											{contractTypeLabels[teacher.contract_type as keyof typeof contractTypeLabels]}
+										</Badge>
+									)}
+								</div>
+							</div>
+						</div>
+						
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" size="sm">
+									<MoreVertical className="h-3.5 w-3.5" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" className="w-56">
+								<DropdownMenuItem onClick={navigateToAssignClass}>
+									<Calendar className="mr-2 h-3.5 w-3.5" />
+									Assign to Class
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={navigateToSetFollowUp}>
+									<MessageSquare className="mr-2 h-3.5 w-3.5" />
+									Set Follow-up
+								</DropdownMenuItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem className="text-destructive">
+									<Trash2 className="mr-2 h-3.5 w-3.5" />
+									Delete Teacher
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</div>
+			</div>
+
+			<div className="px-6 py-4 space-y-4">
+				{/* Teacher Information with inline editing */}
+				<EditableSection title="Teacher Information">
+					{(editing) => (
+						<div className="grid gap-8 lg:grid-cols-3">
+							{/* Contact Section */}
+							<div className="space-y-4">
+								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</h3>
+								<div className="space-y-3">
+									<div className="flex items-start gap-3">
+										<Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Phone:</p>
+											<InlineEditField
+												value={teacher.mobile_phone_number}
+												onSave={(value) => updateTeacherField("mobile_phone_number", value)}
+												editing={editing}
+												type="text"
+												placeholder="Enter phone"
+											/>
+										</div>
+									</div>
+									
+									<div className="flex items-start gap-3">
+										<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">First Name:</p>
+											<InlineEditField
+												value={teacher.first_name}
+												onSave={(value) => updateTeacherField("first_name", value)}
+												editing={editing}
+												type="text"
+												placeholder="Enter first name"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Last Name:</p>
+											<InlineEditField
+												value={teacher.last_name}
+												onSave={(value) => updateTeacherField("last_name", value)}
+												editing={editing}
+												type="text"
+												placeholder="Enter last name"
+											/>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Employment Details */}
+							<div className="space-y-4">
+								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Employment</h3>
+								<div className="space-y-3">
+									<div className="flex items-start gap-3">
+										<Briefcase className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Contract Type:</p>
+											{editing ? (
+												<InlineEditField
+													value={teacher.contract_type}
+													onSave={(value) => updateTeacherField("contract_type", value)}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Full Time", value: "full_time" },
+														{ label: "Freelancer", value: "freelancer" },
+													]}
+												/>
+											) : (
+												<Badge variant="outline" className="h-5 text-xs">
+													{teacher.contract_type ? contractTypeLabels[teacher.contract_type as keyof typeof contractTypeLabels] : "—"}
+												</Badge>
+											)}
+										</div>
+									</div>
+									
+									<div className="flex items-start gap-3">
+										<Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Onboarding Status:</p>
+											{editing ? (
+												<InlineEditField
+													value={teacher.onboarding_status}
+													onSave={(value) => updateTeacherField("onboarding_status", value)}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "New", value: "new" },
+														{ label: "Training", value: "training_in_progress" },
+														{ label: "Onboarded", value: "onboarded" },
+														{ label: "Offboarded", value: "offboarded" },
+													]}
+												/>
+											) : (
+												<Badge 
+													variant={onboardingStatusColors[teacher.onboarding_status as keyof typeof onboardingStatusColors]} 
+													className="h-5 text-xs"
+												>
+													{onboardingStatusLabels[teacher.onboarding_status as keyof typeof onboardingStatusLabels]}
+												</Badge>
+											)}
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Available for Booking:</p>
+											{editing ? (
+												<InlineEditField
+													value={teacher.available_for_booking ? "true" : "false"}
+													onSave={(value) => updateTeacherField("available_for_booking", value === "true")}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Available", value: "true" },
+														{ label: "Not Available", value: "false" },
+													]}
+												/>
+											) : (
+												<Badge variant={teacher.available_for_booking ? "success" : "secondary"} className="h-5 text-xs">
+													{teacher.available_for_booking ? "Available" : "Not Available"}
+												</Badge>
+											)}
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Compensation Details */}
+							<div className="space-y-4">
+								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Compensation</h3>
+								<div className="space-y-3">
+									<div className="flex items-start gap-3">
+										<Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Max Hours/Week:</p>
+											<InlineEditField
+												value={teacher.maximum_hours_per_week}
+												onSave={(value) => updateTeacherField("maximum_hours_per_week", value ? parseInt(value) : null)}
+												editing={editing}
+												type="text"
+												placeholder="Enter max hours"
+											/>
+										</div>
+									</div>
+									
+									<div className="flex items-start gap-3">
+										<Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Max Hours/Day:</p>
+											<InlineEditField
+												value={teacher.maximum_hours_per_day}
+												onSave={(value) => updateTeacherField("maximum_hours_per_day", value ? parseInt(value) : null)}
+												editing={editing}
+												type="text"
+												placeholder="Enter max hours"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<CreditCard className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Group Class Bonus Terms:</p>
+											{editing ? (
+												<InlineEditField
+													value={teacher.group_class_bonus_terms}
+													onSave={(value) => updateTeacherField("group_class_bonus_terms", value)}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Per Student Per Hour", value: "per_student_per_hour" },
+														{ label: "Per Hour", value: "per_hour" },
+													]}
+												/>
+											) : teacher.group_class_bonus_terms ? (
+												<Badge variant="outline" className="h-5 text-xs">
+													{bonusTermsLabels[teacher.group_class_bonus_terms as keyof typeof bonusTermsLabels]}
+												</Badge>
+											) : (
+												<span className="text-sm font-medium">—</span>
+											)}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					)}
+				</EditableSection>
+
+				{/* Teaching Information */}
+				<EditableSection title="Teaching Preferences">
+					{(editing) => (
+						<div className="grid gap-6 lg:grid-cols-3">
+							<div className="space-y-3">
+								<div className="flex items-start gap-3">
+									<Video className="h-4 w-4 text-muted-foreground mt-0.5" />
+									<div className="flex-1 space-y-0.5">
+										<p className="text-xs text-muted-foreground">Available for Online:</p>
+										{editing ? (
+											<InlineEditField
+												value={teacher.available_for_online_classes ? "true" : "false"}
+												onSave={(value) => updateTeacherField("available_for_online_classes", value === "true")}
+												editing={editing}
+												type="select"
+												options={[
+													{ label: "Yes", value: "true" },
+													{ label: "No", value: "false" },
+												]}
+											/>
+										) : (
+											<Badge variant={teacher.available_for_online_classes ? "success" : "secondary"} className="h-5 text-xs">
+												{teacher.available_for_online_classes ? "Yes" : "No"}
+											</Badge>
+										)}
+									</div>
+								</div>
+							</div>
+							<div className="space-y-3">
+								<div className="flex items-start gap-3">
+									<MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+									<div className="flex-1 space-y-0.5">
+										<p className="text-xs text-muted-foreground">Available for In-Person:</p>
+										{editing ? (
+											<InlineEditField
+												value={teacher.available_for_in_person_classes ? "true" : "false"}
+												onSave={(value) => updateTeacherField("available_for_in_person_classes", value === "true")}
+												editing={editing}
+												type="select"
+												options={[
+													{ label: "Yes", value: "true" },
+													{ label: "No", value: "false" },
+												]}
+											/>
+										) : (
+											<Badge variant={teacher.available_for_in_person_classes ? "success" : "secondary"} className="h-5 text-xs">
+												{teacher.available_for_in_person_classes ? "Yes" : "No"}
+											</Badge>
+										)}
+									</div>
+								</div>
+							</div>
+							<div className="space-y-3">
+								<div className="flex items-start gap-3">
+									<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+									<div className="flex-1 space-y-0.5">
+										<p className="text-xs text-muted-foreground">Qualified for Under 16:</p>
+										{editing ? (
+											<InlineEditField
+												value={teacher.qualified_for_under_16 ? "true" : "false"}
+												onSave={(value) => updateTeacherField("qualified_for_under_16", value === "true")}
+												editing={editing}
+												type="select"
+												options={[
+													{ label: "Yes", value: "true" },
+													{ label: "No", value: "false" },
+												]}
+											/>
+										) : (
+											<Badge variant={teacher.qualified_for_under_16 ? "info" : "secondary"} className="h-5 text-xs">
+												{teacher.qualified_for_under_16 ? "Yes" : "No"}
+											</Badge>
+										)}
+									</div>
+								</div>
+							</div>
+						</div>
+					)}
+				</EditableSection>
+
+				{/* Admin Notes */}
+				<EditableSection title="Admin Notes">
+					{(editing) => (
+						<div className="space-y-3">
+							<InlineEditField
+								value={teacher.admin_notes}
+								onSave={(value) => updateTeacherField("admin_notes", value)}
+								editing={editing}
+								type="textarea"
+								placeholder="Enter admin notes"
+							/>
+						</div>
+					)}
+				</EditableSection>
+
+				{/* System Information - Less prominent at the bottom */}
+				<div className="mt-8 border-t pt-6">
+					<div className="max-w-3xl mx-auto">
+						<div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground/70">
+							<div className="flex items-center gap-2">
+								<span>ID:</span>
+								<code className="bg-muted/50 px-1.5 py-0.5 rounded font-mono">{teacher.id.slice(0, 8)}</code>
+							</div>
+							{teacher.user_id && (
+								<div className="flex items-center gap-2">
+									<span>User:</span>
+									<code className="bg-muted/50 px-1.5 py-0.5 rounded font-mono">{teacher.user_id.slice(0, 8)}</code>
+								</div>
+							)}
+							<div className="flex items-center gap-2">
+								<Clock className="h-3 w-3" />
+								<span>Created:</span>
+								<span>{format(new Date(teacher.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Clock className="h-3 w-3" />
+								<span>Updated:</span>
+								<span>{format(new Date(teacher.updated_at), "MMM d, yyyy 'at' h:mm a")}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}

@@ -47,7 +47,7 @@ export function SequencesTable() {
 	const [query, setQuery] = useState<SequenceQuery>({
 		search: "",
 		page: 1,
-		limit: 10,
+		limit: 20,
 	});
 
 	const deleteSequence = useDeleteSequence();
@@ -148,7 +148,7 @@ export function SequencesTable() {
 								</TableRow>
 							) : (
 								data?.data?.map((sequence: any) => (
-									<TableRow key={sequence.id}>
+									<TableRow key={sequence.id} className="hover:bg-muted/50 transition-colors duration-150">
 										<TableCell>
 											<div className="flex items-center gap-2">
 												<MessageSquare className="h-4 w-4 text-muted-foreground" />

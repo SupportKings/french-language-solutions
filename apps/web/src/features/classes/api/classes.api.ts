@@ -35,7 +35,7 @@ export const classesApi = {
 			if (filters.teacher_id) params.append("teacher_id", filters.teacher_id);
 			if (filters.is_active !== undefined) params.append("is_active", String(filters.is_active));
 			params.append("page", String(filters.page || 1));
-			params.append("limit", String(filters.limit || 10));
+			params.append("limit", String(filters.limit || 20));
 		}
 
 		const baseUrl = getBaseUrl();

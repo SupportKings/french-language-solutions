@@ -30,7 +30,7 @@ export const automatedFollowUpQuerySchema = z.object({
 	search: z.string().optional(),
 	status: z.array(z.enum(["activated", "ongoing", "answer_received", "disabled"])).optional(),
 	page: z.number().int().positive().default(1),
-	limit: z.number().int().positive().default(10),
+	limit: z.number().int().positive().default(20),
 });
 
 export type AutomatedFollowUpQuery = z.infer<typeof automatedFollowUpQuerySchema>;

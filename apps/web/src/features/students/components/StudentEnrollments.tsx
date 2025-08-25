@@ -1,17 +1,20 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, AlertCircle, MoreHorizontal } from "lucide-react";
+import { Calendar, Users, AlertCircle, MoreHorizontal, Eye, Trash } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
+	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 const statusColors = {
@@ -43,6 +46,9 @@ interface StudentEnrollmentsProps {
 }
 
 export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	
 	const { data: enrollments, isLoading } = useQuery({
 		queryKey: ["student-enrollments", studentId],
 		queryFn: async () => {
@@ -52,6 +58,29 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 			return result.enrollments || [];
 		},
 	});
+
+	const deleteEnrollment = useMutation({
+		mutationFn: async (enrollmentId: string) => {
+			const response = await fetch(`/api/enrollments/${enrollmentId}`, {
+				method: "DELETE",
+			});
+			if (!response.ok) throw new Error("Failed to delete enrollment");
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["student-enrollments", studentId] });
+			toast.success("Enrollment removed successfully");
+		},
+		onError: () => {
+			toast.error("Failed to remove enrollment");
+		},
+	});
+
+	const handleDelete = (enrollmentId: string) => {
+		if (confirm("Are you sure you want to remove this enrollment?")) {
+			deleteEnrollment.mutate(enrollmentId);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -120,13 +149,11 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end">
-									<DropdownMenuItem>
-										View Details
-									</DropdownMenuItem>
-									<DropdownMenuItem>
-										Edit Enrollment
-									</DropdownMenuItem>
-									<DropdownMenuItem className="text-destructive">
+									<DropdownMenuItem 
+										onClick={() => handleDelete(enrollment.id)}
+										className="text-destructive"
+									>
+										<Trash className="mr-2 h-4 w-4" />
 										Remove Enrollment
 									</DropdownMenuItem>
 								</DropdownMenuContent>

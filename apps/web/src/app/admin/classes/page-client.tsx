@@ -121,7 +121,7 @@ export function ClassesPageClient() {
 		starting_level: filterParams.starting_level as LanguageLevel[] | undefined,
 		room_type: filterParams.room_type as RoomType[] | undefined,
 		page,
-		limit: 10,
+		limit: 20,
 	}), [debouncedSearch, filterParams, page]);
 
 	// Fetch cohorts data
@@ -185,7 +185,7 @@ export function ClassesPageClient() {
 			{data && data.meta.totalPages > 1 && (
 				<div className="flex items-center justify-between rounded-xl border bg-card/50 backdrop-blur-sm px-6 py-4">
 					<p className="text-sm text-muted-foreground">
-						Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, data.meta.total)} of {data.meta.total} cohorts
+						Showing {((page - 1) * 20) + 1} to {Math.min(page * 20, data.meta.total)} of {data.meta.total} cohorts
 					</p>
 					<div className="flex items-center gap-3">
 						<Button

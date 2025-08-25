@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoreHorizontal, Edit, Trash, Search, Plus, CheckCircle, Users, Calendar, GraduationCap, Building } from "lucide-react";
+import { MoreHorizontal, Edit, Trash, Search, Plus, CheckCircle, Users, Calendar, GraduationCap, Building, Eye } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -167,7 +167,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
-				limit: "10",
+				limit: "20",
 				...(debouncedSearch && { search: debouncedSearch }),
 			});
 			
@@ -294,12 +294,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 								data?.enrollments?.map((enrollment: any) => (
 									<TableRow key={enrollment.id} className="hover:bg-muted/50 transition-colors duration-150">
 										<TableCell>
-											<div>
-												<p className="font-medium">{enrollment.students?.full_name}</p>
-												<p className="text-sm text-muted-foreground">
-													{enrollment.students?.email || "No email"}
-												</p>
-											</div>
+											<Link href={`/admin/students/${enrollment.student_id}`} className="hover:underline">
+												<div>
+													<p className="font-medium">{enrollment.students?.full_name}</p>
+													<p className="text-sm text-muted-foreground">
+														{enrollment.students?.email || "No email"}
+													</p>
+												</div>
+											</Link>
 										</TableCell>
 										<TableCell>
 											<div>
@@ -331,10 +333,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
-													<Link href={`/admin/students/enrollments/${enrollment.id}/edit`}>
+													<Link href={`/admin/students/enrollments/${enrollment.id}`}>
 														<DropdownMenuItem>
-															<Edit className="mr-2 h-4 w-4" />
-															Edit
+															<Eye className="mr-2 h-4 w-4" />
+															View
 														</DropdownMenuItem>
 													</Link>
 													<DropdownMenuItem 

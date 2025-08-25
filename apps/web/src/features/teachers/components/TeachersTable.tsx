@@ -27,7 +27,6 @@ import {
 	Search, 
 	Plus, 
 	Eye, 
-	Edit, 
 	Trash, 
 	UserCheck, 
 	Briefcase, 
@@ -285,7 +284,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 								</TableRow>
 							) : (
 								data?.data?.map((teacher: any) => (
-									<TableRow key={teacher.id}>
+									<TableRow key={teacher.id} className="hover:bg-muted/50 transition-colors duration-150">
 										<TableCell>
 											<div>
 												<p className="font-medium">
@@ -361,12 +360,6 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 														<DropdownMenuItem>
 															<Eye className="mr-2 h-4 w-4" />
 															View
-														</DropdownMenuItem>
-													</Link>
-													<Link href={`/admin/teachers/${teacher.id}/edit`}>
-														<DropdownMenuItem>
-															<Edit className="mr-2 h-4 w-4" />
-															Edit
 														</DropdownMenuItem>
 													</Link>
 													<DropdownMenuItem 

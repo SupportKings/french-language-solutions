@@ -1,5 +1,7 @@
 import type { Cohort, CohortQuery, CreateCohort, UpdateCohort, WeeklySession } from "../schemas/cohort.schema";
 
+const BASE_URL = "/api/cohorts";
+
 // Response types - matching students API
 export interface PaginatedResponse<T> {
 	data: T[];

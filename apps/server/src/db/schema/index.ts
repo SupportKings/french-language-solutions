@@ -12,7 +12,14 @@ export * from "./attendance-records";
 export * from "./template-follow-up-sequences";
 export * from "./template-follow-up-messages";
 export * from "./automated-follow-ups";
-export * from "./touchpoints";
+
+// Export touchpoints table and enums explicitly to avoid conflicts
+export { touchpoints } from "./touchpoints";
+export { 
+  touchpointChannelEnum,
+  touchpointTypeEnum,
+  touchpointSourceEnum 
+} from "./touchpoints";
 
 // Export all enums
 export * from "./enums";

@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	Select,
 	SelectContent,
@@ -25,7 +26,16 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
+	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { 
 	Calendar,
 	Check,
@@ -37,7 +47,8 @@ import {
 	XCircle,
 	MinusCircle,
 	Edit,
-	FileText
+	FileText,
+	Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -107,6 +118,12 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState<string | null>(null);
 	const [filter, setFilter] = useState<"all" | "attended" | "not_attended" | "unset">("all");
+	const [noteDialog, setNoteDialog] = useState<{ open: boolean; recordId: string | null; currentNote: string }>({ 
+		open: false, 
+		recordId: null, 
+		currentNote: "" 
+	});
+	const [noteValue, setNoteValue] = useState("");
 
 	// Fetch attendance data
 	const fetchAttendance = async () => {
@@ -129,13 +146,17 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	}, [studentId]);
 
 	// Update attendance status
-	const updateAttendance = async (recordId: string, status: string, notes?: string) => {
+	const updateAttendance = async (recordId: string, status?: string, notes?: string) => {
 		setUpdating(recordId);
 		try {
+			const body: any = { recordId };
+			if (status !== undefined) body.status = status;
+			if (notes !== undefined) body.notes = notes;
+
 			const response = await fetch(`/api/students/${studentId}/attendance`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ recordId, status, notes }),
+				body: JSON.stringify(body),
 			});
 
 			if (!response.ok) throw new Error("Failed to update attendance");
@@ -149,6 +170,21 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 		} finally {
 			setUpdating(null);
 		}
+	};
+
+	// Open note dialog
+	const openNoteDialog = (record: AttendanceRecord) => {
+		setNoteValue(record.notes || "");
+		setNoteDialog({ open: true, recordId: record.id, currentNote: record.notes || "" });
+	};
+
+	// Save note
+	const saveNote = async () => {
+		if (!noteDialog.recordId) return;
+		
+		await updateAttendance(noteDialog.recordId, undefined, noteValue);
+		setNoteDialog({ open: false, recordId: null, currentNote: "" });
+		setNoteValue("");
 	};
 
 	// Filter records
@@ -370,9 +406,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 														<XCircle className="mr-2 h-4 w-4 text-red-600" />
 														Mark Absent
 													</DropdownMenuItem>
-													<DropdownMenuItem>
+													<DropdownMenuSeparator />
+													<DropdownMenuItem onClick={() => openNoteDialog(record)}>
 														<Edit className="mr-2 h-4 w-4" />
-														Add Note
+														{record.notes ? "Edit Note" : "Add Note"}
 													</DropdownMenuItem>
 												</DropdownMenuContent>
 											</DropdownMenu>
@@ -384,6 +421,55 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 					</TableBody>
 				</Table>
 			</div>
+
+			{/* Note Dialog */}
+			<Dialog open={noteDialog.open} onOpenChange={(open) => {
+				if (!open) {
+					setNoteDialog({ open: false, recordId: null, currentNote: "" });
+					setNoteValue("");
+				}
+			}}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Add Attendance Note</DialogTitle>
+						<DialogDescription>
+							Add a note for this attendance record. This can be helpful for tracking special circumstances.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<Textarea
+							value={noteValue}
+							onChange={(e) => setNoteValue(e.target.value)}
+							placeholder="Enter attendance note..."
+							className="min-h-[100px]"
+						/>
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setNoteDialog({ open: false, recordId: null, currentNote: "" });
+								setNoteValue("");
+							}}
+						>
+							Cancel
+						</Button>
+						<Button onClick={saveNote} disabled={updating === noteDialog.recordId}>
+							{updating === noteDialog.recordId ? (
+								<>
+									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									Saving...
+								</>
+							) : (
+								<>
+									<Save className="mr-2 h-4 w-4" />
+									Save Note
+								</>
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

@@ -14,7 +14,13 @@ export async function GET(
 			.from("classes")
 			.select(`
 				*,
-				cohort:cohorts(*)
+				cohort:cohorts(*),
+				teachers(
+					id,
+					first_name,
+					last_name,
+					email
+				)
 			`)
 			.eq("id", id)
 			.is("deleted_at", null)
@@ -52,16 +58,12 @@ const updateClassSchema = z.object({
 	start_time: z.string().datetime().optional(),
 	end_time: z.string().datetime().optional(),
 	status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]).optional(),
-	mode: z.enum(["online", "in_person", "hybrid"]).optional(),
 	google_calendar_event_id: z.string().optional().nullable(),
 	room: z.string().optional().nullable(),
 	meeting_link: z.string().url().optional().nullable(),
 	google_drive_folder_id: z.string().optional().nullable(),
-	materials: z.string().optional().nullable(),
-	max_students: z.number().int().positive().optional(),
 	current_enrollment: z.number().int().min(0).optional(),
 	teacher_id: z.string().uuid().optional().nullable(),
-	is_active: z.boolean().optional(),
 	notes: z.string().optional().nullable(),
 });
 
@@ -112,6 +114,54 @@ export async function PUT(
 			);
 		}
 		console.error("Error in PUT /api/classes/[id]:", error);
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 }
+		);
+	}
+}
+
+// PATCH /api/classes/[id] - Partial update a class
+export async function PATCH(
+	request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> }
+) {
+	try {
+		const { id } = await params;
+		const body = await request.json();
+		const supabase = await createClient();
+
+		const { data, error } = await supabase
+			.from("classes")
+			.update({
+				...body,
+				updated_at: new Date().toISOString(),
+			})
+			.eq("id", id)
+			.is("deleted_at", null)
+			.select(`
+				*,
+				cohort:cohorts(*),
+				teachers(
+					id,
+					first_name,
+					last_name,
+					email
+				)
+			`)
+			.single();
+
+		if (error) {
+			console.error("Error updating class:", error);
+			return NextResponse.json(
+				{ error: "Failed to update class" },
+				{ status: 500 }
+			);
+		}
+
+		return NextResponse.json(data);
+	} catch (error) {
+		console.error("Error in PATCH /api/classes/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 }

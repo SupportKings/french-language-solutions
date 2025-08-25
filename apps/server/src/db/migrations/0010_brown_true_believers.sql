@@ -1,0 +1,2 @@
+ALTER TABLE "cohorts" ADD COLUMN "title" text;--> statement-breakpoint
+ALTER TABLE "attendance_records" ADD CONSTRAINT "attendance_records_marked_by_teachers_id_fk" FOREIGN KEY ("marked_by") REFERENCES "public"."teachers"("id") ON DELETE set null ON UPDATE no action;

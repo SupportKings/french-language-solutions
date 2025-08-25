@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
 	Table,
 	TableBody,
@@ -11,22 +11,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { 
-	ChevronRight, 
-	ChevronDown, 
 	Calendar,
-	Clock,
 	Users,
 	MapPin,
-	Eye,
-	MoreHorizontal,
-	Edit
+	CheckCircle2
 } from "lucide-react";
 import type { Cohort, WeeklySession, CohortStatus, RoomType } from "../schemas/cohort.schema";
 import { format } from "date-fns";
@@ -35,6 +24,11 @@ interface CohortsTableProps {
 	cohorts: Cohort[];
 	isLoading: boolean;
 	hideWrapper?: boolean;
+}
+
+interface CohortWithStats extends Cohort {
+	activeEnrollments?: number;
+	totalEnrollments?: number;
 }
 
 // Status badge variant mapping
@@ -86,29 +80,57 @@ const formatSessionTime = (session: WeeklySession) => {
 
 export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: CohortsTableProps) {
 	const router = useRouter();
-	const [openCohorts, setOpenCohorts] = useState<Set<string>>(new Set());
+	const [cohortsWithStats, setCohortsWithStats] = useState<CohortWithStats[]>([]);
+	const [loadingStats, setLoadingStats] = useState(false);
 
-	const toggleCohort = (cohortId: string) => {
-		const newOpen = new Set(openCohorts);
-		if (newOpen.has(cohortId)) {
-			newOpen.delete(cohortId);
-		} else {
-			newOpen.add(cohortId);
+	// Fetch enrollment stats for each cohort
+	useEffect(() => {
+		async function fetchEnrollmentStats() {
+			if (!cohorts || cohorts.length === 0) return;
+			
+			setLoadingStats(true);
+			try {
+				const statsPromises = cohorts.map(async (cohort) => {
+					const response = await fetch(`/api/enrollments?cohortId=${cohort.id}&limit=100`);
+					if (response.ok) {
+						const result = await response.json();
+						const enrollments = result.enrollments || [];
+						const activeEnrollments = enrollments.filter((e: any) => 
+							e.status === 'paid' || e.status === 'welcome_package_sent'
+						).length;
+						return {
+							...cohort,
+							activeEnrollments,
+							totalEnrollments: enrollments.length,
+						};
+					}
+					return { ...cohort, activeEnrollments: 0, totalEnrollments: 0 };
+				});
+				
+				const cohortsWithStats = await Promise.all(statsPromises);
+				setCohortsWithStats(cohortsWithStats);
+			} catch (error) {
+				console.error("Error fetching enrollment stats:", error);
+				setCohortsWithStats(cohorts.map(c => ({ ...c, activeEnrollments: 0, totalEnrollments: 0 })));
+			} finally {
+				setLoadingStats(false);
+			}
 		}
-		setOpenCohorts(newOpen);
-	};
+		
+		fetchEnrollmentStats();
+	}, [cohorts]);
 
 	const tableContent = (
 		<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead className="w-8"></TableHead>
-						<TableHead>Cohort</TableHead>
+						<TableHead>Title</TableHead>
+						<TableHead>Format</TableHead>
+						<TableHead>Students</TableHead>
 						<TableHead>Level Progress</TableHead>
 						<TableHead>Status</TableHead>
-						<TableHead>Room Type</TableHead>
 						<TableHead>Start Date</TableHead>
-						<TableHead className="w-[50px]"></TableHead>
+						<TableHead>Setup</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -116,16 +138,15 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 						// Loading skeletons
 						Array.from({ length: 5 }).map((_, i) => (
 							<TableRow key={i}>
-								<TableCell><Skeleton className="h-4 w-4" /></TableCell>
-								<TableCell><Skeleton className="h-4 w-32" /></TableCell>
+								<TableCell><Skeleton className="h-4 w-40" /></TableCell>
+								<TableCell><Skeleton className="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-24" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-16" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-								<TableCell><Skeleton className="h-4 w-4" /></TableCell>
 							</TableRow>
 						))
-					) : cohorts.length === 0 ? (
+					) : cohortsWithStats.length === 0 ? (
 						// Empty state
 						<TableRow>
 							<TableCell colSpan={7} className="text-center py-12">
@@ -138,128 +159,94 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 							</TableCell>
 						</TableRow>
 					) : (
-						// Data rows with simple toggle logic
-						cohorts.flatMap((cohort) => {
-							const isOpen = openCohorts.has(cohort.id);
+						// Data rows - no expandable functionality
+						cohortsWithStats.map((cohort) => {
+							const isAtCapacity = cohort.activeEnrollments >= (cohort.max_students || 10);
+							const percentFull = ((cohort.activeEnrollments || 0) / (cohort.max_students || 10)) * 100;
 							
-							const rows = [
-								// Main cohort row
-								<TableRow key={cohort.id} className="hover:bg-muted/30">
+							return (
+								<TableRow 
+									key={cohort.id} 
+									className="hover:bg-muted/50 transition-colors duration-150 cursor-pointer"
+									onClick={() => router.push(`/admin/classes/${cohort.id}`)}
+								>
 									<TableCell>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="h-6 w-6 p-0"
-											onClick={() => toggleCohort(cohort.id)}
-										>
-											{isOpen ? (
-												<ChevronDown className="h-4 w-4 text-muted-foreground" />
-											) : (
-												<ChevronRight className="h-4 w-4 text-muted-foreground" />
-											)}
-										</Button>
-									</TableCell>
-									<TableCell className="font-medium">
-										{cohort.format.charAt(0).toUpperCase() + cohort.format.slice(1)} Cohort
+										<div className="h-12 flex items-center">
+											<p className="font-medium">
+												{cohort.title || `${cohort.format.charAt(0).toUpperCase() + cohort.format.slice(1)} Cohort`}
+											</p>
+										</div>
 									</TableCell>
 									<TableCell>
-										<span className="text-sm">
-											{formatLevel(cohort.starting_level)} → {formatLevel(cohort.current_level)}
-										</span>
+										<div className="h-12 flex items-center">
+											<p className="text-sm">
+												{cohort.format.charAt(0).toUpperCase() + cohort.format.slice(1)}
+											</p>
+										</div>
 									</TableCell>
 									<TableCell>
-										<Badge variant={getStatusVariant(cohort.cohort_status)} className="text-xs">
-											{formatStatus(cohort.cohort_status)}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										{cohort.room_type && (
-											<Badge variant={getRoomTypeVariant(cohort.room_type)} className="text-xs">
-												<MapPin className="mr-1 h-3 w-3" />
-												{cohort.room_type.replace("for_one_to_one", "1-on-1").replace("_", " ")}
-											</Badge>
-										)}
-									</TableCell>
-									<TableCell>
-										{cohort.start_date ? (
-											<span className="text-sm">
-												{format(new Date(cohort.start_date), "MMM d, yyyy")}
-											</span>
-										) : (
-											"-"
-										)}
-									</TableCell>
-									<TableCell>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" size="icon" className="h-8 w-8">
-													<MoreHorizontal className="h-4 w-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end">
-												<DropdownMenuItem
-													onClick={() => router.push(`/admin/classes/${cohort.id}`)}
-												>
-													<Eye className="mr-2 h-4 w-4" />
-													View
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => router.push(`/admin/classes/${cohort.id}/edit`)}
-												>
-													<Edit className="mr-2 h-4 w-4" />
-													Edit
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</TableCell>
-								</TableRow>
-							];
-							
-							// Add sessions row if expanded
-							if (isOpen) {
-								rows.push(
-									<TableRow key={`${cohort.id}-sessions`} className="hover:bg-transparent">
-										<TableCell colSpan={7} className="p-0 border-t-0">
-											<div className="bg-muted/20 px-6 py-4 border-l-4 border-l-primary/20">
-												<div className="mb-3 text-sm font-medium text-muted-foreground">
-													Weekly Sessions
-												</div>
-												
-												{/* Mock weekly sessions - will be replaced with real data */}
-												<div className="space-y-2">
-													<div className="flex items-center justify-between bg-background/80 border rounded-lg p-3">
-														<div className="flex items-center gap-3">
-															<Clock className="h-4 w-4 text-muted-foreground" />
-															<span className="font-medium text-sm">Monday 10:00-11:30</span>
-															<Badge variant="outline" className="text-xs">
-																Online
-															</Badge>
-														</div>
-														<Button size="sm" variant="outline" className="h-7 text-xs">
-															View Classes
-														</Button>
-													</div>
-													
-													<div className="flex items-center justify-between bg-background/80 border rounded-lg p-3">
-														<div className="flex items-center gap-3">
-															<Clock className="h-4 w-4 text-muted-foreground" />
-															<span className="font-medium text-sm">Wednesday 14:00-15:30</span>
-															<Badge variant="outline" className="text-xs">
-																Online
-															</Badge>
-														</div>
-														<Button size="sm" variant="outline" className="h-7 text-xs">
-															View Classes
-														</Button>
-													</div>
+										<div className="h-12 flex flex-col justify-center">
+											<div className="flex items-center gap-2 mb-1">
+												<Users className="h-3.5 w-3.5 text-muted-foreground" />
+												<span className={`text-sm font-medium ${isAtCapacity ? 'text-orange-600' : ''}`}>
+													{cohort.activeEnrollments || 0}/{cohort.max_students || 10}
+												</span>
+												{isAtCapacity && <Badge variant="warning" className="text-[10px] h-4 px-1">Full</Badge>}
+											</div>
+											<div className="w-20">
+												<div className="w-full bg-muted rounded-full h-1.5">
+													<div 
+														className={`h-1.5 rounded-full transition-all ${
+															percentFull >= 100 ? 'bg-orange-500' : 
+															percentFull >= 80 ? 'bg-yellow-500' : 'bg-primary'
+														}`}
+														style={{ width: `${Math.min(percentFull, 100)}%` }}
+													/>
 												</div>
 											</div>
-										</TableCell>
-									</TableRow>
-								);
-							}
-							
-							return rows;
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="h-12 flex items-center">
+											<p className="text-sm">
+												{formatLevel(cohort.starting_level)} → {formatLevel(cohort.current_level)}
+											</p>
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="h-12 flex items-center">
+											<Badge variant={getStatusVariant(cohort.cohort_status)} className="text-xs">
+												{formatStatus(cohort.cohort_status)}
+											</Badge>
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="h-12 flex items-center">
+											{cohort.start_date ? (
+												<p className="text-sm">
+													{format(new Date(cohort.start_date), "MMM d, yyyy")}
+												</p>
+											) : (
+												<span className="text-muted-foreground">-</span>
+											)}
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="h-12 flex items-center">
+											{cohort.setup_finalized ? (
+												<Badge variant="success" className="text-xs">
+													<CheckCircle2 className="mr-1 h-3 w-3" />
+													Complete
+												</Badge>
+											) : (
+												<Badge variant="outline" className="text-xs">
+													Pending
+												</Badge>
+											)}
+										</div>
+									</TableCell>
+								</TableRow>
+							);
 						})
 					)}
 				</TableBody>

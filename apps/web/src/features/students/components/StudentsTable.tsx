@@ -22,7 +22,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Search, Plus, Eye, Edit, Trash, GraduationCap, Users, MessageSquare, UserCheck, Calendar } from "lucide-react";
+import { MoreHorizontal, Search, Plus, Eye, Trash, GraduationCap, Users, MessageSquare, UserCheck, Calendar } from "lucide-react";
 import { useStudents, useDeleteStudent } from "../queries/students.queries";
 import type { StudentQuery } from "../schemas/student.schema";
 import { format } from "date-fns";
@@ -266,9 +266,6 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 										<TableCell>
 											<div>
 												<p className="font-medium">{student.full_name}</p>
-												<p className="text-sm text-muted-foreground">
-													ID: {student.id.slice(0, 8)}
-												</p>
 											</div>
 										</TableCell>
 										<TableCell>
@@ -305,12 +302,6 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 														<DropdownMenuItem>
 															<Eye className="mr-2 h-4 w-4" />
 															View
-														</DropdownMenuItem>
-													</Link>
-													<Link href={`/admin/students/${student.id}/edit`}>
-														<DropdownMenuItem>
-															<Edit className="mr-2 h-4 w-4" />
-															Edit
 														</DropdownMenuItem>
 													</Link>
 													<DropdownMenuItem 
