@@ -1,0 +1,54 @@
+import { pgTable, uuid, date, varchar, text, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { students } from "./students";
+import { cohorts } from "./cohorts";
+import { classes } from "./classes";
+
+// Attendance status enum
+export const attendanceStatusEnum = ["unset", "attended", "not_attended"] as const;
+export type AttendanceStatus = typeof attendanceStatusEnum[number];
+
+// Attendance records table
+export const attendanceRecords = pgTable("attendance_records", {
+  // Primary key
+  id: uuid("id").defaultRandom().primaryKey(),
+  
+  // Foreign keys
+  studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+  cohortId: uuid("cohort_id").notNull().references(() => cohorts.id, { onDelete: "cascade" }),
+  classId: uuid("class_id").references(() => classes.id, { onDelete: "cascade" }),
+  
+  // Attendance data
+  attendanceDate: date("attendance_date").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("unset"),
+  
+  // Additional fields
+  notes: text("notes"),
+  markedBy: uuid("marked_by"), // References users.id but we can't use .references() since users table is managed by Better Auth
+  markedAt: timestamp("marked_at", { withTimezone: true }),
+  
+  // Metadata
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// Relations
+export const attendanceRecordsRelations = relations(attendanceRecords, ({ one }) => ({
+  student: one(students, {
+    fields: [attendanceRecords.studentId],
+    references: [students.id],
+  }),
+  cohort: one(cohorts, {
+    fields: [attendanceRecords.cohortId],
+    references: [cohorts.id],
+  }),
+  class: one(classes, {
+    fields: [attendanceRecords.classId],
+    references: [classes.id],
+  }),
+  // markedByUser relation removed since users table is managed by Better Auth
+}));
+
+// Type exports
+export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
+export type NewAttendanceRecord = typeof attendanceRecords.$inferInsert;

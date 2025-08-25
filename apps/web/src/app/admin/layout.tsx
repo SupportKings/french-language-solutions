@@ -14,7 +14,7 @@ export default function AdminLayout({
 				<PageHeader />
 				
 				{/* Page Content */}
-				<div className="flex flex-1 flex-col gap-4 p-6">
+				<div className="flex flex-1 flex-col gap-4">
 					{children}
 				</div>
 			</SidebarInset>

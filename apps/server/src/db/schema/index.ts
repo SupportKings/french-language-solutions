@@ -8,6 +8,7 @@ export * from "./enrollments";
 export * from "./weekly-sessions";
 export * from "./classes";
 export * from "./student-assessments";
+export * from "./attendance-records";
 export * from "./template-follow-up-sequences";
 export * from "./template-follow-up-messages";
 export * from "./automated-follow-ups";

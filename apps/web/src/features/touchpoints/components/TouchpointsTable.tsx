@@ -205,31 +205,33 @@ export function TouchpointsTable() {
 
 	return (
 		<div className="space-y-4">
-			{/* Compact toolbar with search and action button */}
-			<div className="flex items-center gap-3">
-				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-					<Input
-						placeholder="Search by student or message..."
-						value={searchInput}
-						onChange={(e) => setSearchInput(e.target.value)}
-						className="h-9 pl-9 bg-muted/50"
-					/>
-				</div>
-				
-				<div className="ml-auto">
-					<Link href="/admin/automation/touchpoints/new">
-						<Button size="sm" className="h-9">
-							<Plus className="mr-1.5 h-4 w-4" />
-							Log Touchpoint
-						</Button>
-					</Link>
-				</div>
-			</div>
-
+			{/* Table with integrated search, filters and actions */}
 			<div className="rounded-md border">
-				{/* Filter bar */}
-				<div className="p-4 bg-muted/30 border-b border-border/50">
+				{/* Combined header with search, filters, and add button */}
+				<div className="border-b bg-muted/30 px-4 py-2 space-y-2">
+					{/* Search bar and action button */}
+					<div className="flex items-center gap-3">
+						<div className="relative flex-1 max-w-sm">
+							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+							<Input
+								placeholder="Search by student or message..."
+								value={searchInput}
+								onChange={(e) => setSearchInput(e.target.value)}
+								className="h-9 pl-9 bg-muted/50"
+							/>
+						</div>
+						
+						<div className="ml-auto">
+							<Link href="/admin/automation/touchpoints/new">
+								<Button size="sm" className="h-9">
+									<Plus className="mr-1.5 h-4 w-4" />
+									Log Touchpoint
+								</Button>
+							</Link>
+						</div>
+					</div>
+					
+					{/* Filter bar */}
 					<DataTableFilter
 						columns={columns}
 						filters={filters}

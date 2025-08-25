@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "bun run src/db/seed.ts",
-    "db:seed-touchpoints": "bun run src/db/seed-touchpoints.ts"
+    "db:seed-touchpoints": "bun run src/db/seed-touchpoints.ts",
+    "db:seed-attendance": "bun run src/db/seed-attendance.ts"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.4.0",

@@ -225,35 +225,36 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 
 	return (
 		<div className="space-y-6">
-			{/* Search bar and action button separate from table */}
-			<div className="flex items-center gap-4">
-				<div className="relative flex-1 max-w-md">
-					<Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-					<Input
-						placeholder="Search by student name or email..."
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						className="h-11 pl-10 pr-4 bg-background border-border/50 hover:border-muted-foreground/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
-					/>
-				</div>
-				
-				<div className="flex items-center gap-2">
-					<Link href="/admin/students/enrollments/new">
-						<Button 
-							size="default" 
-							className="h-11 px-5 shadow-sm hover:shadow-md transition-all duration-200"
-						>
-							<Plus className="mr-2 h-4 w-4" />
-							New Enrollment
-						</Button>
-					</Link>
-				</div>
-			</div>
-
-			{/* Table with integrated filter header */}
+			{/* Table with integrated search, filters and actions */}
 			<div className="rounded-md border">
-				{/* Filter bar as table header */}
-				<div className="border-b bg-muted/30 px-4 py-2">
+				{/* Combined header with search, filters, and add button */}
+				<div className="border-b bg-muted/30 px-4 py-2 space-y-2">
+					{/* Search bar and action button */}
+					<div className="flex items-center gap-3">
+						<div className="relative flex-1 max-w-sm">
+							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+							<Input
+								placeholder="Search by student name or email..."
+								value={search}
+								onChange={(e) => setSearch(e.target.value)}
+								className="h-9 pl-9 bg-muted/50"
+							/>
+						</div>
+						
+						<div className="ml-auto">
+							<Link href="/admin/students/enrollments/new">
+								<Button 
+									size="sm" 
+									className="h-9"
+								>
+									<Plus className="mr-1.5 h-4 w-4" />
+									New Enrollment
+								</Button>
+							</Link>
+						</div>
+					</div>
+					
+					{/* Filter bar */}
 					<DataTableFilter
 						columns={columns}
 						filters={filters}

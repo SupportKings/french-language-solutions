@@ -64,6 +64,13 @@
       "when": 1755769326571,
       "tag": "0008_rainy_imperial_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1755849381525,
+      "tag": "0009_nice_warpath",
+      "breakpoints": true
     }
   ]
 }

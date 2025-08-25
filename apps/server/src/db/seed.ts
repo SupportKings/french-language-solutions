@@ -11,7 +11,8 @@ import {
 	templateFollowUpSequences,
 	templateFollowUpMessages,
 	automatedFollowUps,
-	touchpoints
+	touchpoints,
+	attendanceRecords
 } from "./schema";
 import { faker } from "@faker-js/faker";
 
@@ -19,6 +20,7 @@ async function seed() {
 	console.log("🌱 Starting seed...");
 
 	// Clear existing data (in reverse order of dependencies)
+	await db.delete(attendanceRecords);
 	await db.delete(automatedFollowUps);
 	await db.delete(templateFollowUpMessages);
 	await db.delete(templateFollowUpSequences);

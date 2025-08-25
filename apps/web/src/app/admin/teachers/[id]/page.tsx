@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useTeacher } from "@/features/teachers/queries/teachers.queries";
-import { ArrowLeft, Edit, Phone, Calendar, Video, MapPin, Shield, Briefcase } from "lucide-react";
+import { ArrowLeft, Edit, Phone, Calendar, Video, MapPin, Shield, Briefcase, Clock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,10 +125,6 @@ export default function ViewTeacherPage() {
 							</div>
 						)}
 
-						<div>
-							<p className="text-sm font-medium text-muted-foreground">ID</p>
-							<p className="font-mono text-xs">{teacher.id}</p>
-						</div>
 					</CardContent>
 				</Card>
 
@@ -258,29 +254,26 @@ export default function ViewTeacherPage() {
 						</CardContent>
 					</Card>
 				)}
+			</div>
 
-				{/* Metadata */}
-				<Card className="md:col-span-2">
-					<CardHeader>
-						<CardTitle>System Information</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="grid gap-4 md:grid-cols-2">
-							<div>
-								<p className="text-sm font-medium text-muted-foreground">Created</p>
-								<p className="text-sm">
-									{format(new Date(teacher.created_at), "PPP 'at' p")}
-								</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-muted-foreground">Last Updated</p>
-								<p className="text-sm">
-									{format(new Date(teacher.updated_at), "PPP 'at' p")}
-								</p>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+			{/* System Information - Less prominent at the bottom */}
+			<div className="mt-8 border-t pt-6">
+				<div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground/70">
+					<div className="flex items-center gap-2">
+						<span>ID:</span>
+						<code className="bg-muted/50 px-1.5 py-0.5 rounded font-mono">{teacher.id.slice(0, 8)}</code>
+					</div>
+					<div className="flex items-center gap-2">
+						<Clock className="h-3 w-3" />
+						<span>Created:</span>
+						<span>{format(new Date(teacher.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<Clock className="h-3 w-3" />
+						<span>Updated:</span>
+						<span>{format(new Date(teacher.updated_at), "MMM d, yyyy 'at' h:mm a")}</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

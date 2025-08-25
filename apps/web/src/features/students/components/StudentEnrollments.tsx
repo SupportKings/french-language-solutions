@@ -1,29 +1,27 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { 
-	Table, 
-	TableBody, 
-	TableCell, 
-	TableHead, 
-	TableHeader, 
-	TableRow 
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus } from "lucide-react";
+import { Calendar, Users, AlertCircle, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const statusColors = {
 	declined_contract: "destructive",
 	dropped_out: "destructive",
 	interested: "secondary",
-	beginner_form_filled: "secondary",
-	contract_abandoned: "outline",
-	contract_signed: "default",
-	payment_abandoned: "outline",
+	beginner_form_filled: "warning",
+	contract_abandoned: "destructive",
+	contract_signed: "info",
+	payment_abandoned: "destructive",
 	paid: "success",
 	welcome_package_sent: "success",
 };
@@ -37,7 +35,7 @@ const statusLabels = {
 	contract_signed: "Contract Signed",
 	payment_abandoned: "Payment Abandoned",
 	paid: "Paid",
-	welcome_package_sent: "Welcome Package Sent",
+	welcome_package_sent: "Welcome Sent",
 };
 
 interface StudentEnrollmentsProps {
@@ -57,14 +55,16 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 
 	if (isLoading) {
 		return (
-			<div className="space-y-3">
-				{Array.from({ length: 3 }).map((_, i) => (
-					<div key={i} className="flex items-center justify-between rounded-lg border p-4">
-						<div className="space-y-2">
-							<Skeleton className="h-4 w-32" />
-							<Skeleton className="h-3 w-24" />
+			<div className="space-y-2">
+				{Array.from({ length: 2 }).map((_, i) => (
+					<div key={i} className="rounded-lg border bg-muted/10 p-3">
+						<div className="flex items-start justify-between">
+							<div className="space-y-1">
+								<Skeleton className="h-4 w-24" />
+								<Skeleton className="h-3 w-32" />
+							</div>
+							<Skeleton className="h-5 w-16" />
 						</div>
-						<Skeleton className="h-6 w-16" />
 					</div>
 				))}
 			</div>
@@ -73,71 +73,68 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 
 	if (!enrollments || enrollments.length === 0) {
 		return (
-			<div className="text-center py-8">
-				<p className="text-muted-foreground mb-4">No enrollments yet</p>
-				<Link href={`/admin/students/enrollments/new?studentId=${studentId}`}>
-					<Button>
-						<Plus className="mr-2 h-4 w-4" />
-						Create Enrollment
-					</Button>
-				</Link>
+			<div className="text-center py-4">
+				<AlertCircle className="h-6 w-6 text-muted-foreground/50 mx-auto mb-2" />
+				<p className="text-xs text-muted-foreground">No enrollments yet</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="space-y-4">
-			<div className="flex items-center justify-between">
-				<p className="text-sm text-muted-foreground">
-					{enrollments.length} enrollment{enrollments.length === 1 ? '' : 's'}
-				</p>
-				<Link href={`/admin/students/enrollments/new?studentId=${studentId}`}>
-					<Button size="sm">
-						<Plus className="mr-2 h-4 w-4" />
-						Add Enrollment
-					</Button>
-				</Link>
-			</div>
-
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Cohort</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead>Enrolled</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{enrollments.map((enrollment: any) => (
-							<TableRow key={enrollment.id}>
-								<TableCell>
-									<div>
-										<p className="font-medium">
-											{enrollment.cohorts?.format} - {enrollment.cohorts?.starting_level?.toUpperCase()}
-										</p>
-										{enrollment.cohorts?.start_date && (
-											<p className="text-sm text-muted-foreground">
-												Starts {format(new Date(enrollment.cohorts.start_date), "MMM d, yyyy")}
-											</p>
-										)}
-									</div>
-								</TableCell>
-								<TableCell>
-									<Badge variant={statusColors[enrollment.status] as any}>
+		<div className="space-y-2">
+			{enrollments.map((enrollment: any) => (
+				<div key={enrollment.id} className="rounded-lg border bg-muted/10 hover:bg-muted/20 transition-colors">
+					<div className="p-3">
+						<div className="flex items-start justify-between">
+							<div className="space-y-1 flex-1">
+								<div className="flex items-center gap-2">
+									<span className="font-medium text-sm">
+										{enrollment.cohorts?.format === 'group' ? 'Group' : 'Private'} - {enrollment.cohorts?.starting_level?.toUpperCase()}
+									</span>
+									<Badge variant={statusColors[enrollment.status] as any} className="h-5 text-[10px] px-1.5">
 										{statusLabels[enrollment.status]}
 									</Badge>
-								</TableCell>
-								<TableCell>
-									<p className="text-sm">
-										{format(new Date(enrollment.created_at), "MMM d, yyyy")}
-									</p>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
-			</div>
+								</div>
+								<div className="flex items-center gap-3 text-xs text-muted-foreground">
+									{enrollment.cohorts?.start_date && (
+										<div className="flex items-center gap-1">
+											<Calendar className="h-3 w-3" />
+											<span>Starts {format(new Date(enrollment.cohorts.start_date), "MMM d, yyyy")}</span>
+										</div>
+									)}
+									{enrollment.cohorts?.room_type && (
+										<div className="flex items-center gap-1">
+											<Users className="h-3 w-3" />
+											<span>{enrollment.cohorts.room_type.replace('_', ' ')}</span>
+										</div>
+									)}
+								</div>
+								<div className="text-xs text-muted-foreground">
+									Enrolled {format(new Date(enrollment.created_at), "MMM d, yyyy")}
+								</div>
+							</div>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button variant="ghost" size="icon" className="h-6 w-6">
+										<MoreHorizontal className="h-3 w-3" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end">
+									<DropdownMenuItem>
+										View Details
+									</DropdownMenuItem>
+									<DropdownMenuItem>
+										Edit Enrollment
+									</DropdownMenuItem>
+									<DropdownMenuItem className="text-destructive">
+										Remove Enrollment
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
+					</div>
+				</div>
+			))}
 		</div>
 	);
 }
