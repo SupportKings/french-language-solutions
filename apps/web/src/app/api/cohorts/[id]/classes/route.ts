@@ -11,15 +11,7 @@ export async function GET(
 
 		const { data: classes, error } = await supabase
 			.from("classes")
-			.select(`
-				*,
-				teachers(
-					id,
-					first_name,
-					last_name,
-					email
-				)
-			`)
+			.select("*")
 			.eq("cohort_id", id)
 			.order("start_time", { ascending: true });
 

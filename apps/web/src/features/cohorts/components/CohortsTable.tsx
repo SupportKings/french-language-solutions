@@ -134,7 +134,7 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{isLoading ? (
+					{isLoading || loadingStats ? (
 						// Loading skeletons
 						Array.from({ length: 5 }).map((_, i) => (
 							<TableRow key={i}>

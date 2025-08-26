@@ -39,7 +39,7 @@ export function PageHeader() {
     if (pathname.match(/^\/admin\/students\/[^\/]+$/)) {
       info = { title: "Student Details", description: "View and edit student information" }
     } else if (pathname.match(/^\/admin\/classes\/[^\/]+$/)) {
-      info = { title: "Class Details", description: "View and edit class information" }
+      info = { title: "Cohort Details", description: "View and edit class information" }
     } else if (pathname.match(/^\/admin\/teachers\/[^\/]+$/)) {
       info = { title: "Teacher Details", description: "View and edit teacher information" }
     } else if (pathname.match(/^\/admin\/team\/[^\/]+$/)) {
