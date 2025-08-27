@@ -19,7 +19,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar, Users, Clock, CheckCircle, XCircle, HelpCircle, ArrowUpDown, Plus, UserPlus, Edit2 } from "lucide-react";
+import { Calendar, Users, Clock, CheckCircle, XCircle, HelpCircle, ArrowUpDown, Plus, UserPlus, Edit2, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { AttendanceEditModal } from "./AttendanceEditModal";
@@ -38,6 +38,7 @@ interface AttendanceRecord {
 	notes?: string;
 	markedBy?: string;
 	markedAt?: string;
+	homeworkCompleted?: boolean;
 	student?: {
 		id: string;
 		full_name: string;
@@ -388,6 +389,13 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 						<HelpCircle className="h-4 w-4 text-gray-400" />
 						<span>{attendanceRecords.filter(r => r.status === "unset").length} Not Marked</span>
 					</div>
+					<div className="flex items-center gap-2">
+						<BookOpen className="h-4 w-4 text-blue-600" />
+						<span>
+							{attendanceRecords.filter(r => r.status === "attended" && r.homeworkCompleted).length}/
+							{attendanceRecords.filter(r => r.status === "attended").length} Homework
+						</span>
+					</div>
 				</div>
 			</div>
 
@@ -468,6 +476,13 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 													<span className="text-xs text-muted-foreground max-w-[200px] truncate">
 														{record.notes}
 													</span>
+												)}
+
+												{record.status === "attended" && record.homeworkCompleted && (
+													<div className="flex items-center gap-1 text-xs text-blue-600">
+														<BookOpen className="h-3 w-3" />
+														<span>HW</span>
+													</div>
 												)}
 												
 												{record.markedAt && (

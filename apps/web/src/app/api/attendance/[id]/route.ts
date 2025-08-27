@@ -14,12 +14,22 @@ export async function PATCH(
 		// Get the current user (teacher) for marking who updated the attendance
 		const { data: { user } } = await supabase.auth.getUser();
 
-		const updateData = {
-			...body,
+		const updateData: any = {
 			marked_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
 			// TODO: Add marked_by once we have teacher authentication linked
 		};
+
+		// Map camelCase fields to snake_case for database
+		if (body.status !== undefined) {
+			updateData.status = body.status;
+		}
+		if (body.notes !== undefined) {
+			updateData.notes = body.notes;
+		}
+		if (body.homeworkCompleted !== undefined) {
+			updateData.homework_completed = body.homeworkCompleted;
+		}
 
 		const { data, error } = await supabase
 			.from("attendance_records")
@@ -64,6 +74,7 @@ export async function PATCH(
 			notes: data.notes,
 			markedBy: data.marked_by,
 			markedAt: data.marked_at,
+			homeworkCompleted: data.homework_completed || false,
 			student: data.students ? {
 				id: data.students.id,
 				full_name: data.students.full_name,
@@ -149,6 +160,7 @@ export async function GET(
 			notes: data.notes,
 			markedBy: data.marked_by,
 			markedAt: data.marked_at,
+			homeworkCompleted: data.homework_completed || false,
 			student: data.students ? {
 				id: data.students.id,
 				full_name: data.students.full_name,

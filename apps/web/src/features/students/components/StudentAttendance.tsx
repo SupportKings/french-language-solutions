@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Select,
@@ -14,14 +13,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { 
 	Calendar,
 	Clock,
@@ -29,9 +20,9 @@ import {
 	XCircle,
 	MinusCircle,
 	Edit,
-	Save,
 	BookOpen
 } from "lucide-react";
+import { AttendanceEditModal } from "@/features/attendance/components/AttendanceEditModal";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -71,6 +62,12 @@ interface StudentAttendanceProps {
 	studentId: string;
 }
 
+interface StudentInfo {
+	id: string;
+	full_name: string;
+	email?: string;
+}
+
 const statusConfig = {
 	attended: {
 		label: "Present",
@@ -98,15 +95,28 @@ const statusConfig = {
 export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	const [records, setRecords] = useState<AttendanceRecord[]>([]);
 	const [stats, setStats] = useState<AttendanceStats | null>(null);
+	const [student, setStudent] = useState<StudentInfo | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState<string | null>(null);
 	const [filter, setFilter] = useState<"all" | "attended" | "not_attended" | "unset">("all");
-	const [noteDialog, setNoteDialog] = useState<{ open: boolean; recordId: string | null; currentNote: string }>({ 
-		open: false, 
-		recordId: null, 
-		currentNote: "" 
-	});
-	const [noteValue, setNoteValue] = useState("");
+	const [editModalOpen, setEditModalOpen] = useState(false);
+	const [editingRecord, setEditingRecord] = useState<any>(null);
+
+	// Fetch student information
+	const fetchStudent = async () => {
+		try {
+			const response = await fetch(`/api/students/${studentId}`);
+			if (!response.ok) throw new Error("Failed to fetch student");
+			const studentData = await response.json();
+			setStudent({
+				id: studentData.id,
+				full_name: studentData.full_name,
+				email: studentData.email,
+			});
+		} catch (error) {
+			console.error("Error fetching student:", error);
+		}
+	};
 
 	// Fetch attendance data
 	const fetchAttendance = async () => {
@@ -125,7 +135,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	};
 
 	useEffect(() => {
-		fetchAttendance();
+		const fetchData = async () => {
+			await Promise.all([fetchStudent(), fetchAttendance()]);
+		};
+		fetchData();
 	}, [studentId]);
 
 	// Update attendance status
@@ -153,19 +166,41 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 		}
 	};
 
-	// Open note dialog
-	const openNoteDialog = (record: AttendanceRecord) => {
-		setNoteValue(record.notes || "");
-		setNoteDialog({ open: true, recordId: record.id, currentNote: record.notes || "" });
+	// Open edit modal
+	const handleEditRecord = (record: AttendanceRecord) => {
+		// Transform the record to match the modal's expected format
+		const modalRecord = {
+			id: record.id,
+			studentId: record.studentId,
+			cohortId: record.cohortId,
+			classId: record.classId,
+			attendanceDate: record.attendanceDate,
+			status: record.status,
+			notes: record.notes,
+			markedBy: record.markedBy,
+			markedAt: record.markedAt,
+			homeworkCompleted: record.homeworkCompleted,
+			student: student ? {
+				id: student.id,
+				full_name: student.full_name,
+				email: student.email,
+				phone: undefined,
+			} : undefined,
+			class: record.classStartTime ? {
+				id: record.classId || "",
+				start_time: record.classStartTime,
+				end_time: record.classStartTime, // Approximate
+			} : undefined,
+			teacher: undefined,
+		};
+		setEditingRecord(modalRecord);
+		setEditModalOpen(true);
 	};
 
-	// Save note
-	const saveNote = async () => {
-		if (!noteDialog.recordId) return;
-		
-		await updateAttendance(noteDialog.recordId, { notes: noteValue });
-		setNoteDialog({ open: false, recordId: null, currentNote: "" });
-		setNoteValue("");
+	// Handle record update from modal
+	const handleUpdateRecord = (updatedRecord: any) => {
+		// Refresh the attendance data
+		fetchAttendance();
 	};
 
 	// Filter records
@@ -309,7 +344,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 											<div
 												key={record.id}
 												className="px-4 py-3 hover:bg-muted/10 transition-colors cursor-pointer group"
-												onClick={() => openNoteDialog(record)}
+												onClick={() => handleEditRecord(record)}
 											>
 												<div className="flex items-center justify-between">
 													<div className="flex items-center gap-3 flex-1">
@@ -373,7 +408,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 																className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
 																onClick={(e) => {
 																	e.stopPropagation();
-																	openNoteDialog(record);
+																	handleEditRecord(record);
 																}}
 																disabled={isUpdating}
 															>
@@ -442,54 +477,16 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 				)}
 			</div>
 
-			{/* Note Dialog */}
-			<Dialog open={noteDialog.open} onOpenChange={(open) => {
-				if (!open) {
-					setNoteDialog({ open: false, recordId: null, currentNote: "" });
-					setNoteValue("");
-				}
-			}}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Add Attendance Note</DialogTitle>
-						<DialogDescription>
-							Add a note for this attendance record. This can be helpful for tracking special circumstances.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="py-4">
-						<Textarea
-							value={noteValue}
-							onChange={(e) => setNoteValue(e.target.value)}
-							placeholder="Enter attendance note..."
-							className="min-h-[100px]"
-						/>
-					</div>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => {
-								setNoteDialog({ open: false, recordId: null, currentNote: "" });
-								setNoteValue("");
-							}}
-						>
-							Cancel
-						</Button>
-						<Button onClick={saveNote} disabled={updating === noteDialog.recordId}>
-							{updating === noteDialog.recordId ? (
-								<>
-									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-									Saving...
-								</>
-							) : (
-								<>
-									<Save className="mr-2 h-4 w-4" />
-									Save Note
-								</>
-							)}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			{/* Attendance Edit Modal */}
+			<AttendanceEditModal
+				open={editModalOpen}
+				onClose={() => {
+					setEditModalOpen(false);
+					setEditingRecord(null);
+				}}
+				record={editingRecord}
+				onUpdate={handleUpdateRecord}
+			/>
 		</div>
 	);
 }

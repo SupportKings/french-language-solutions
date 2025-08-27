@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Select,
 	SelectContent,
@@ -20,7 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Calendar, User, Clock, CheckCircle, XCircle, HelpCircle, Save } from "lucide-react";
+import { Calendar, User, Clock, CheckCircle, XCircle, HelpCircle, Save, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -34,6 +35,7 @@ interface AttendanceRecord {
 	notes?: string;
 	markedBy?: string;
 	markedAt?: string;
+	homeworkCompleted?: boolean;
 	student?: {
 		id: string;
 		full_name: string;
@@ -67,6 +69,7 @@ export function AttendanceEditModal({
 }: AttendanceEditModalProps) {
 	const [status, setStatus] = useState(record?.status || "unset");
 	const [notes, setNotes] = useState(record?.notes || "");
+	const [homeworkCompleted, setHomeworkCompleted] = useState(record?.homeworkCompleted || false);
 	const [saving, setSaving] = useState(false);
 
 	// Update state when record changes
@@ -74,6 +77,7 @@ export function AttendanceEditModal({
 		if (record) {
 			setStatus(record.status);
 			setNotes(record.notes || "");
+			setHomeworkCompleted(record.homeworkCompleted || false);
 		}
 	}, [record]);
 
@@ -85,7 +89,7 @@ export function AttendanceEditModal({
 			const response = await fetch(`/api/attendance/${record.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ status, notes }),
+				body: JSON.stringify({ status, notes, homeworkCompleted }),
 			});
 
 			if (!response.ok) throw new Error("Failed to update attendance");
@@ -200,6 +204,53 @@ export function AttendanceEditModal({
 							</Button>
 						</div>
 					</div>
+
+					{/* Homework Completion (only shown when attended) */}
+					{status === "attended" && (
+						<div className="space-y-3">
+							<Label className="flex items-center gap-2">
+								<BookOpen className="h-4 w-4 text-blue-600" />
+								Homework Status
+							</Label>
+							<div 
+								className={`p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+									homeworkCompleted 
+										? "border-blue-200 bg-blue-50/50 hover:bg-blue-50/80" 
+										: "border-gray-200 bg-muted/30 hover:bg-muted/50"
+								}`}
+								onClick={() => setHomeworkCompleted(!homeworkCompleted)}
+							>
+								<div className="flex items-center gap-3">
+									<Checkbox
+										id="homework-completed"
+										checked={homeworkCompleted}
+										onCheckedChange={(checked) => setHomeworkCompleted(checked as boolean)}
+										className="h-5 w-5"
+									/>
+									<div className="flex-1">
+										<label 
+											htmlFor="homework-completed" 
+											className="text-sm font-medium cursor-pointer block"
+										>
+											Homework completed
+										</label>
+										<p className="text-xs text-muted-foreground mt-0.5">
+											{homeworkCompleted 
+												? "Student has completed their homework for this class" 
+												: "Mark if the student has completed their homework"
+											}
+										</p>
+									</div>
+									{homeworkCompleted && (
+										<div className="flex items-center gap-1 text-blue-600">
+											<div className="h-2 w-2 rounded-full bg-blue-600" />
+											<span className="text-xs font-medium">Completed</span>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					)}
 
 					{/* Notes */}
 					<div className="space-y-2">

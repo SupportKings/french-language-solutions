@@ -51,6 +51,7 @@ export async function GET(
 			notes: record.notes,
 			markedBy: record.marked_by,
 			markedAt: record.marked_at,
+			homeworkCompleted: record.homework_completed || false,
 			student: record.students ? {
 				id: record.students.id,
 				full_name: record.students.full_name,

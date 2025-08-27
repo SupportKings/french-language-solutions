@@ -1,4 +1,4 @@
-import { pgTable, uuid, date, varchar, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, date, varchar, text, timestamp, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { students } from "./students";
 import { cohorts } from "./cohorts";
@@ -25,6 +25,7 @@ export const attendanceRecords = pgTable("attendance_records", {
   
   // Additional fields
   notes: text("notes"),
+  homeworkCompleted: boolean("homework_completed").default(false),
   markedBy: uuid("marked_by").references(() => teachers.id, { onDelete: "set null" }), // References teachers.id
   markedAt: timestamp("marked_at", { withTimezone: true }),
   
