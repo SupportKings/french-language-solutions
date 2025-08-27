@@ -107,6 +107,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			attendanceDate: record.attendance_date,
 			status: record.status,
 			notes: record.notes,
+			homeworkCompleted: record.homework_completed || false,
 			markedBy: record.marked_by,
 			markedAt: record.marked_at,
 			createdAt: record.created_at,
@@ -133,26 +134,38 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id: studentId } = await params;
 		const body = await request.json();
-		const { recordId, status, notes } = body;
+		const { recordId, status, notes, homeworkCompleted } = body;
 
-		if (!recordId || !status) {
+		if (!recordId) {
 			return NextResponse.json(
-				{ error: "Record ID and status are required" },
+				{ error: "Record ID is required" },
 				{ status: 400 }
 			);
 		}
 
 		const supabase = await createClient();
 
+		// Build update object
+		const updateData: any = {
+			updated_at: new Date().toISOString(),
+		};
+
+		// Only update fields that are provided
+		if (status !== undefined) {
+			updateData.status = status;
+			updateData.marked_at = new Date().toISOString();
+		}
+		if (notes !== undefined) {
+			updateData.notes = notes;
+		}
+		if (homeworkCompleted !== undefined) {
+			updateData.homework_completed = homeworkCompleted;
+		}
+
 		// Update the attendance record
 		const { data, error } = await supabase
 			.from("attendance_records")
-			.update({
-				status,
-				notes,
-				marked_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			})
+			.update(updateData)
 			.eq("id", recordId)
 			.eq("student_id", studentId)
 			.select()

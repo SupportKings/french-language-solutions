@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Select,
 	SelectContent,
@@ -28,7 +29,8 @@ import {
 	XCircle,
 	MinusCircle,
 	Edit,
-	Save
+	Save,
+	BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -41,6 +43,7 @@ interface AttendanceRecord {
 	attendanceDate: string;
 	status: "attended" | "not_attended" | "unset";
 	notes: string | null;
+	homeworkCompleted: boolean;
 	markedBy: string | null;
 	markedAt: string | null;
 	className: string | null;
@@ -126,12 +129,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	}, [studentId]);
 
 	// Update attendance status
-	const updateAttendance = async (recordId: string, status?: string, notes?: string) => {
+	const updateAttendance = async (recordId: string, updates: { status?: string; notes?: string; homeworkCompleted?: boolean }) => {
 		setUpdating(recordId);
 		try {
-			const body: any = { recordId };
-			if (status !== undefined) body.status = status;
-			if (notes !== undefined) body.notes = notes;
+			const body: any = { recordId, ...updates };
 
 			const response = await fetch(`/api/students/${studentId}/attendance`, {
 				method: "PATCH",
@@ -162,7 +163,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	const saveNote = async () => {
 		if (!noteDialog.recordId) return;
 		
-		await updateAttendance(noteDialog.recordId, undefined, noteValue);
+		await updateAttendance(noteDialog.recordId, { notes: noteValue });
 		setNoteDialog({ open: false, recordId: null, currentNote: "" });
 		setNoteValue("");
 	};
@@ -258,6 +259,13 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 						<MinusCircle className="h-4 w-4 text-gray-400" />
 						<span>{filteredRecords.filter(r => r.status === "unset").length} Not Marked</span>
 					</div>
+					<div className="flex items-center gap-2">
+						<BookOpen className="h-4 w-4 text-blue-600" />
+						<span>
+							{filteredRecords.filter(r => r.status === "attended" && r.homeworkCompleted).length}/
+							{filteredRecords.filter(r => r.status === "attended").length} Homework
+						</span>
+					</div>
 				</div>
 			</div>
 
@@ -336,6 +344,28 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 															</div>
 														)}
 
+														{/* Homework Checkbox */}
+														{record.status === "attended" && (
+															<div className="flex items-center gap-1.5">
+																<Checkbox
+																	id={`homework-${record.id}`}
+																	checked={record.homeworkCompleted}
+																	onCheckedChange={(checked) => {
+																		updateAttendance(record.id, { homeworkCompleted: checked as boolean });
+																	}}
+																	disabled={isUpdating}
+																	className="h-4 w-4"
+																/>
+																<label 
+																	htmlFor={`homework-${record.id}`}
+																	className="text-xs font-medium cursor-pointer flex items-center gap-1"
+																>
+																	<BookOpen className="h-3 w-3" />
+																	Homework
+																</label>
+															</div>
+														)}
+
 														<div className="flex items-center gap-1">
 															<Button
 																variant="ghost"
@@ -355,7 +385,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 																className="h-7 px-2"
 																onClick={(e) => {
 																	e.stopPropagation();
-																	updateAttendance(record.id, "attended", record.notes || undefined);
+																	updateAttendance(record.id, { status: "attended" });
 																}}
 																disabled={isUpdating}
 															>
@@ -371,7 +401,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 																className="h-7 px-2"
 																onClick={(e) => {
 																	e.stopPropagation();
-																	updateAttendance(record.id, "not_attended", record.notes || undefined);
+																	updateAttendance(record.id, { status: "not_attended" });
 																}}
 																disabled={isUpdating}
 															>
@@ -388,7 +418,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 																	className="h-7 px-2"
 																	onClick={(e) => {
 																		e.stopPropagation();
-																		updateAttendance(record.id, "unset", record.notes || undefined);
+																		updateAttendance(record.id, { status: "unset" });
 																	}}
 																	disabled={isUpdating}
 																>
