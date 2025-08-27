@@ -67,7 +67,7 @@ const cohortFormSchema = z.object({
 	
 	// Schedule
 	start_date: z.date().optional(),
-	cohort_status: z.enum(["enrollment_open", "enrollment_closed", "class_ended"]).default("enrollment_open"),
+	cohort_status: z.enum(["enrollment_open", "enrollment_closed", "class_ended"]),
 	
 	// Location
 	room_type: z.enum(["for_one_to_one", "medium", "medium_plus", "large"]).optional(),
@@ -85,7 +85,7 @@ const cohortFormSchema = z.object({
 		end_time: z.string(),
 		teacher_id: z.string().optional(),
 		google_calendar_event_id: z.string().optional(),
-	})).default([]),
+	})),
 	
 	// External IDs
 	airtable_record_id: z.string().optional(),
@@ -144,12 +144,12 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			starting_level: cohort?.starting_level || "a1",
 			current_level: cohort?.current_level || cohort?.starting_level,
 			start_date: cohort?.start_date ? new Date(cohort.start_date) : undefined,
-			cohort_status: cohort?.cohort_status || "enrollment_open",
+			cohort_status: cohort?.cohort_status ?? "enrollment_open",
 			room_type: cohort?.room_type,
 			room: cohort?.room || "",
 			product_id: cohort?.product_id || "",
 			google_drive_folder_id: cohort?.google_drive_folder_id || "",
-			weekly_sessions: cohort?.weekly_sessions || [],
+			weekly_sessions: cohort?.weekly_sessions ?? [],
 			airtable_record_id: cohort?.airtable_record_id || "",
 		},
 	});

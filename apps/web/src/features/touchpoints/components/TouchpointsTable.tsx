@@ -275,9 +275,9 @@ export function TouchpointsTable() {
 								</TableRow>
 							) : (
 								data?.data?.map((touchpoint: any) => {
-									const ChannelIcon = channelIcons[touchpoint.channel];
-									const TypeIcon = typeIcons[touchpoint.type];
-									const SourceIcon = sourceIcons[touchpoint.source];
+									const ChannelIcon = (channelIcons as any)[touchpoint.channel];
+									const TypeIcon = (typeIcons as any)[touchpoint.type];
+									const SourceIcon = (sourceIcons as any)[touchpoint.source];
 									
 									return (
 										<TableRow key={touchpoint.id} className="hover:bg-muted/50 transition-colors duration-150">
@@ -305,13 +305,13 @@ export function TouchpointsTable() {
 											<TableCell>
 												<Badge variant={getChannelColor(touchpoint.channel) as any} className="gap-1">
 													<ChannelIcon className="h-3 w-3" />
-													{channelLabels[touchpoint.channel]}
+													{(channelLabels as any)[touchpoint.channel]}
 												</Badge>
 											</TableCell>
 											<TableCell>
 												<Badge variant={getTypeColor(touchpoint.type) as any} className="gap-1">
 													<TypeIcon className="h-3 w-3" />
-													{typeLabels[touchpoint.type]}
+													{(typeLabels as any)[touchpoint.type]}
 												</Badge>
 											</TableCell>
 											<TableCell className="max-w-xs">
@@ -323,7 +323,7 @@ export function TouchpointsTable() {
 												<div className="flex items-center gap-1">
 													<SourceIcon className="h-4 w-4 text-muted-foreground" />
 													<span className="text-sm">
-														{sourceLabels[touchpoint.source]}
+														{(sourceLabels as any)[touchpoint.source]}
 													</span>
 												</div>
 											</TableCell>

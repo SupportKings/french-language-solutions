@@ -195,8 +195,8 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 										<h1 className="text-3xl font-bold tracking-tight">
 											{assessment.students?.full_name || 'Assessment Details'}
 										</h1>
-										<Badge variant={resultColors[assessment.result] as any} className="px-3 py-1">
-											{resultLabels[assessment.result]}
+										<Badge variant={(resultColors as any)[assessment.result] || "default"} className="px-3 py-1">
+											{(resultLabels as any)[assessment.result] || assessment.result}
 										</Badge>
 										{assessment.is_paid && (
 											<Badge variant="success" className="px-3 py-1">
@@ -255,8 +255,8 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 									<div className="space-y-1">
 										<p className="text-xs text-muted-foreground">Result Status</p>
-										<Badge variant={resultColors[assessment.result] as any}>
-											{resultLabels[assessment.result]}
+										<Badge variant={(resultColors as any)[assessment.result] || "default"}>
+											{(resultLabels as any)[assessment.result] || assessment.result}
 										</Badge>
 									</div>
 									<div className="space-y-1">
@@ -306,18 +306,19 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 														<ClipboardCheck className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Result Status:</p>
-															<InlineEditField
-																value={assessment.result}
-																onSave={(value) => handleUpdate("result", value)}
-																editing={editing}
-																type="select"
-																options={resultOptions}
-																renderValue={(value) => (
-																	<Badge variant={resultColors[value] as any} className="mt-1">
-																		{resultLabels[value]}
-																	</Badge>
-																)}
-															/>
+															{editing ? (
+																<InlineEditField
+																	value={assessment.result}
+																	onSave={(value) => handleUpdate("result", value)}
+																	editing={editing}
+																	type="select"
+																	options={resultOptions}
+																/>
+															) : (
+																<Badge variant={(resultColors as any)[assessment.result] || "default"} className="mt-1">
+																	{(resultLabels as any)[assessment.result] || assessment.result}
+																</Badge>
+															)}
 														</div>
 													</div>
 
@@ -325,23 +326,22 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 														<GraduationCap className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Level:</p>
-															<InlineEditField
-																value={assessment.level || ""}
-																onSave={(value) => handleUpdate("level", value || null)}
-																editing={editing}
-																type="select"
-																options={levelOptions}
-																placeholder="Select level"
-																renderValue={(value) => 
-																	value ? (
-																		<Badge variant="outline" className="mt-1">
-																			{value.toUpperCase()}
-																		</Badge>
-																	) : (
-																		<span className="text-sm text-muted-foreground">Not determined</span>
-																	)
-																}
-															/>
+															{editing ? (
+																<InlineEditField
+																	value={assessment.level || ""}
+																	onSave={(value) => handleUpdate("level", value || null)}
+																	editing={editing}
+																	type="select"
+																	options={levelOptions}
+																	placeholder="Select level"
+																/>
+															) : assessment.level ? (
+																<Badge variant="outline" className="mt-1">
+																	{assessment.level.toUpperCase()}
+																</Badge>
+															) : (
+																<span className="text-sm text-muted-foreground">Not determined</span>
+															)}
 														</div>
 													</div>
 
@@ -349,21 +349,20 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 														<Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Scheduled For:</p>
-															<InlineEditField
-																value={assessment.scheduled_for || ""}
-																onSave={(value) => handleUpdate("scheduledFor", value || null)}
-																editing={editing}
-																type="date"
-																renderValue={(value) => 
-																	value ? (
-																		<p className="text-sm font-medium">
-																			{format(new Date(value), "MMMM d, yyyy")}
-																		</p>
-																	) : (
-																		<span className="text-sm text-muted-foreground">Not scheduled</span>
-																	)
-																}
-															/>
+															{editing ? (
+																<InlineEditField
+																	value={assessment.scheduled_for || ""}
+																	onSave={(value) => handleUpdate("scheduledFor", value || null)}
+																	editing={editing}
+																	type="date"
+																/>
+															) : assessment.scheduled_for ? (
+																<p className="text-sm font-medium">
+																	{format(new Date(assessment.scheduled_for), "MMMM d, yyyy")}
+																</p>
+															) : (
+																<span className="text-sm text-muted-foreground">Not scheduled</span>
+															)}
 														</div>
 													</div>
 
@@ -371,25 +370,27 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 														<DollarSign className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Payment Status:</p>
-															<InlineEditField
-																value={assessment.is_paid}
-																onSave={(value) => handleUpdate("isPaid", value)}
-																editing={editing}
-																type="switch"
-																renderValue={(value) => 
-																	value ? (
-																		<Badge variant="success" className="mt-1">
-																			<CheckCircle className="mr-1 h-3 w-3" />
-																			Paid
-																		</Badge>
-																	) : (
-																		<Badge variant="secondary" className="mt-1">
-																			<XCircle className="mr-1 h-3 w-3" />
-																			Unpaid
-																		</Badge>
-																	)
-																}
-															/>
+															{editing ? (
+																<div className="flex items-center gap-2">
+																	<Switch
+																		checked={assessment.is_paid}
+																		onCheckedChange={(checked) => handleUpdate("isPaid", checked)}
+																	/>
+																	<span className="text-sm">
+																		{assessment.is_paid ? "Paid" : "Unpaid"}
+																	</span>
+																</div>
+															) : assessment.is_paid ? (
+																<Badge variant="success" className="mt-1">
+																	<CheckCircle className="mr-1 h-3 w-3" />
+																	Paid
+																</Badge>
+															) : (
+																<Badge variant="secondary" className="mt-1">
+																	<XCircle className="mr-1 h-3 w-3" />
+																	Unpaid
+																</Badge>
+															)}
 														</div>
 													</div>
 												</div>
@@ -404,28 +405,27 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 														<Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Calendar Event:</p>
-															<InlineEditField
-																value={assessment.calendar_event_url || ""}
-																onSave={(value) => handleUpdate("calendarEventUrl", value || null)}
-																editing={editing}
-																type="url"
-																placeholder="https://calendar.google.com/..."
-																renderValue={(value) => 
-																	value ? (
-																		<a 
-																			href={value} 
-																			target="_blank" 
-																			rel="noopener noreferrer"
-																			className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-																		>
-																			<ExternalLink className="h-3 w-3" />
-																			View Calendar Event
-																		</a>
-																	) : (
-																		<span className="text-sm text-muted-foreground">No calendar event</span>
-																	)
-																}
-															/>
+															{editing ? (
+																<InlineEditField
+																	value={assessment.calendar_event_url || ""}
+																	onSave={(value) => handleUpdate("calendarEventUrl", value || null)}
+																	editing={editing}
+																	type="text"
+																	placeholder="https://calendar.google.com/..."
+																/>
+															) : assessment.calendar_event_url ? (
+																<a 
+																	href={assessment.calendar_event_url} 
+																	target="_blank" 
+																	rel="noopener noreferrer"
+																	className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+																>
+																	<ExternalLink className="h-3 w-3" />
+																	View Calendar Event
+																</a>
+															) : (
+																<span className="text-sm text-muted-foreground">No calendar event</span>
+															)}
 														</div>
 													</div>
 
@@ -433,28 +433,27 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 														<Video className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Meeting Recording:</p>
-															<InlineEditField
-																value={assessment.meeting_recording_url || ""}
-																onSave={(value) => handleUpdate("meetingRecordingUrl", value || null)}
-																editing={editing}
-																type="url"
-																placeholder="https://zoom.us/rec/..."
-																renderValue={(value) => 
-																	value ? (
-																		<a 
-																			href={value} 
-																			target="_blank" 
-																			rel="noopener noreferrer"
-																			className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-																		>
-																			<Video className="h-3 w-3" />
-																			View Recording
-																		</a>
-																	) : (
-																		<span className="text-sm text-muted-foreground">No recording available</span>
-																	)
-																}
-															/>
+															{editing ? (
+																<InlineEditField
+																	value={assessment.meeting_recording_url || ""}
+																	onSave={(value) => handleUpdate("meetingRecordingUrl", value || null)}
+																	editing={editing}
+																	type="text"
+																	placeholder="https://zoom.us/rec/..."
+																/>
+															) : assessment.meeting_recording_url ? (
+																<a 
+																	href={assessment.meeting_recording_url} 
+																	target="_blank" 
+																	rel="noopener noreferrer"
+																	className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+																>
+																	<Video className="h-3 w-3" />
+																	View Recording
+																</a>
+															) : (
+																<span className="text-sm text-muted-foreground">No recording available</span>
+															)}
 														</div>
 													</div>
 												</div>
@@ -467,20 +466,19 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 								<EditableSection title="Assessment Notes">
 									{(editing) => (
 										<div className="space-y-2">
-											<InlineEditField
-												value={assessment.notes || ""}
-												onSave={(value) => handleUpdate("notes", value || null)}
-												editing={editing}
-												type="textarea"
-												placeholder="Add assessment notes..."
-												renderValue={(value) => 
-													value ? (
-														<p className="text-sm whitespace-pre-wrap">{value}</p>
-													) : (
-														<p className="text-sm text-muted-foreground italic">No notes added</p>
-													)
-												}
-											/>
+											{editing ? (
+												<InlineEditField
+													value={assessment.notes || ""}
+													onSave={(value) => handleUpdate("notes", value || null)}
+													editing={editing}
+													type="textarea"
+													placeholder="Add assessment notes..."
+												/>
+											) : assessment.notes ? (
+												<p className="text-sm whitespace-pre-wrap">{assessment.notes}</p>
+											) : (
+												<p className="text-sm text-muted-foreground italic">No notes added</p>
+											)}
 										</div>
 									)}
 								</EditableSection>

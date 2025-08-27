@@ -129,7 +129,7 @@ const teacherColumns = [
 			{ label: "Not Available", value: "false" },
 		],
 	},
-] as const;
+];
 
 interface TeachersTableProps {
 	hideTitle?: boolean;
@@ -169,8 +169,8 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 		
 		return {
 			// Pass arrays for multi-select filters
-			onboarding_status: onboardingFilter?.values?.length ? onboardingFilter.values : undefined,
-			contract_type: contractFilter?.values?.length ? contractFilter.values : undefined,
+			onboarding_status: onboardingFilter?.values?.length ? onboardingFilter.values[0] as any : undefined,
+			contract_type: contractFilter?.values?.length ? contractFilter.values[0] as any : undefined,
 			available_for_booking: bookingFilter?.values?.[0] === "true" ? true : bookingFilter?.values?.[0] === "false" ? false : undefined,
 			qualified_for_under_16: under16Filter?.values?.[0] === "true" ? true : under16Filter?.values?.[0] === "false" ? false : undefined,
 			available_for_online_classes: onlineFilter?.values?.[0] === "true" ? true : onlineFilter?.values?.[0] === "false" ? false : undefined,
@@ -296,14 +296,14 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 											</div>
 										</TableCell>
 										<TableCell>
-											<Badge variant={onboardingStatusColors[teacher.onboarding_status] as any}>
-												{onboardingStatusLabels[teacher.onboarding_status]}
+											<Badge variant={(onboardingStatusColors as any)[teacher.onboarding_status]}>
+												{(onboardingStatusLabels as any)[teacher.onboarding_status]}
 											</Badge>
 										</TableCell>
 										<TableCell>
 											{teacher.contract_type ? (
 												<Badge variant="outline">
-													{contractTypeLabels[teacher.contract_type]}
+													{(contractTypeLabels as any)[teacher.contract_type]}
 												</Badge>
 											) : (
 												<span className="text-muted-foreground">Not set</span>

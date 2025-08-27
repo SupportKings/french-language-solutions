@@ -70,11 +70,11 @@ export const WeeklySessionSchema = z.object({
 // Query schemas
 export const CohortQuerySchema = z.object({
 	search: z.string().optional(),
-	format: CohortFormatEnum.optional(),
-	cohort_status: CohortStatusEnum.optional(),
-	starting_level: LanguageLevelEnum.optional(),
-	current_level: LanguageLevelEnum.optional(),
-	room_type: RoomTypeEnum.optional(),
+	format: z.union([CohortFormatEnum, z.array(CohortFormatEnum)]).optional(),
+	cohort_status: z.union([CohortStatusEnum, z.array(CohortStatusEnum)]).optional(),
+	starting_level: z.union([LanguageLevelEnum, z.array(LanguageLevelEnum)]).optional(),
+	current_level: z.union([LanguageLevelEnum, z.array(LanguageLevelEnum)]).optional(),
+	room_type: z.union([RoomTypeEnum, z.array(RoomTypeEnum)]).optional(),
 	page: z.number().min(1).default(1),
 	limit: z.number().min(1).max(100).default(20),
 });

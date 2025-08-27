@@ -130,8 +130,8 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 									)}
 								</TableCell>
 								<TableCell>
-									<Badge variant={resultColors[assessment.result] as any}>
-										{resultLabels[assessment.result]}
+									<Badge variant={(resultColors as any)[assessment.result]}>
+										{(resultLabels as any)[assessment.result]}
 									</Badge>
 								</TableCell>
 								<TableCell>

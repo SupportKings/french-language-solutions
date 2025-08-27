@@ -42,7 +42,6 @@ interface AttendanceRecord {
 	};
 	class?: {
 		id: string;
-		name: string;
 		start_time: string;
 		end_time: string;
 	};
@@ -163,7 +162,7 @@ export function AttendanceEditModal({
 							<Label className="text-xs text-muted-foreground">Class</Label>
 							<div className="flex items-center gap-2 text-sm">
 								<Calendar className="h-4 w-4 text-muted-foreground" />
-								<span>{record.class.name}</span>
+								<span>Class {record.class.id}</span>
 								<span className="text-muted-foreground">•</span>
 								<span>{format(new Date(record.class.start_time), "MMM d, yyyy 'at' h:mm a")}</span>
 							</div>

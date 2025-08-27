@@ -51,7 +51,7 @@ const enrollmentFormSchema = z.object({
 		"payment_abandoned",
 		"paid",
 		"welcome_package_sent",
-	]).default("interested"),
+	]),
 });
 
 type EnrollmentFormValues = z.infer<typeof enrollmentFormSchema>;
@@ -75,7 +75,7 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 		defaultValues: {
 			student_id: enrollment?.student_id || studentId || "",
 			cohort_id: enrollment?.cohort_id || "",
-			status: enrollment?.status || "interested",
+			status: enrollment?.status ?? "interested",
 		},
 	});
 

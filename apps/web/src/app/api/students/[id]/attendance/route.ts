@@ -76,10 +76,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				},
 			};
 		} else if (stats) {
-			const total = Number(stats.total_classes) || 0;
-			const presentCount = Number(stats.present_count) || 0;
-			const absentCount = Number(stats.absent_count) || 0;
-			const unsetCount = Number(stats.unset_count) || 0;
+			const total = Number((stats as any).total_classes) || 0;
+			const presentCount = Number((stats as any).present_count) || 0;
+			const absentCount = Number((stats as any).absent_count) || 0;
+			const unsetCount = Number((stats as any).unset_count) || 0;
 
 			attendanceStats = {
 				totalClasses: total,

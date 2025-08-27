@@ -151,7 +151,7 @@ const studentColumns = [
 			{ label: "16 and Over", value: "false" },
 		],
 	},
-] as const;
+];
 
 interface StudentsTableProps {
 	hideTitle?: boolean;
@@ -192,10 +192,10 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 		
 		return {
 			// Pass arrays for multi-select filters
-			enrollment_status: enrollmentFilter?.values?.length ? enrollmentFilter.values : undefined,
-			desired_starting_language_level: levelFilter?.values?.length ? levelFilter.values : undefined,
-			initial_channel: channelFilter?.values?.length ? channelFilter.values : undefined,
-			communication_channel: commFilter?.values?.length ? commFilter.values : undefined,
+			enrollment_status: enrollmentFilter?.values?.length ? enrollmentFilter.values as any : undefined,
+			desired_starting_language_level: levelFilter?.values?.length ? levelFilter.values as any : undefined,
+			initial_channel: channelFilter?.values?.length ? channelFilter.values as any : undefined,
+			communication_channel: commFilter?.values?.length ? commFilter.values as any : undefined,
 			is_full_beginner: beginnerFilter?.values?.[0] === "true" ? true : beginnerFilter?.values?.[0] === "false" ? false : undefined,
 			added_to_email_newsletter: newsletterFilter?.values?.[0] === "true" ? true : newsletterFilter?.values?.[0] === "false" ? false : undefined,
 			is_under_16: ageFilter?.values?.[0] === "true" ? true : ageFilter?.values?.[0] === "false" ? false : undefined,

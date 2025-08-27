@@ -209,7 +209,7 @@ export function AutomatedFollowUpsTable() {
 								</TableRow>
 							) : (
 								data?.data?.map((touchpoint: any) => {
-									const StatusIcon = statusIcons[touchpoint.status];
+									const StatusIcon = (statusIcons as any)[touchpoint.status];
 									return (
 										<TableRow key={touchpoint.id} className="hover:bg-muted/50 transition-colors duration-150">
 											<TableCell>
@@ -237,9 +237,9 @@ export function AutomatedFollowUpsTable() {
 												</div>
 											</TableCell>
 											<TableCell>
-												<Badge variant={statusColors[touchpoint.status] as any} className="gap-1">
+												<Badge variant={(statusColors as any)[touchpoint.status]} className="gap-1">
 													<StatusIcon className="h-3 w-3" />
-													{statusLabels[touchpoint.status]}
+													{(statusLabels as any)[touchpoint.status]}
 												</Badge>
 											</TableCell>
 											<TableCell>

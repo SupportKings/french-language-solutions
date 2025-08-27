@@ -46,13 +46,13 @@ const studentFormSchema = z.object({
 		"b2", "b2_plus", "c1", "c1_plus", "c2"
 	]).optional(),
 	website_quiz_submission_date: z.date().optional(),
-	added_to_email_newsletter: z.boolean().default(false),
+	added_to_email_newsletter: z.boolean(),
 	initial_channel: z.enum([
 		"form", "quiz", "call", "message", "email", "assessment"
 	]).optional(),
-	communication_channel: z.enum(["sms_email", "email", "sms"]).default("sms_email"),
-	is_full_beginner: z.boolean().default(false),
-	is_under_16: z.boolean().default(false),
+	communication_channel: z.enum(["sms_email", "email", "sms"]),
+	is_full_beginner: z.boolean(),
+	is_under_16: z.boolean(),
 	subjective_deadline_for_student: z.date().optional(),
 	purpose_to_learn: z.string().optional().or(z.literal("")),
 	// External IDs
@@ -86,11 +86,11 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 			website_quiz_submission_date: student?.website_quiz_submission_date 
 				? new Date(student.website_quiz_submission_date) 
 				: undefined,
-			added_to_email_newsletter: student?.added_to_email_newsletter || false,
+			added_to_email_newsletter: student?.added_to_email_newsletter ?? false,
 			initial_channel: student?.initial_channel,
-			communication_channel: student?.communication_channel || "sms_email",
-			is_full_beginner: student?.is_full_beginner || false,
-			is_under_16: student?.is_under_16 || false,
+			communication_channel: student?.communication_channel ?? "sms_email",
+			is_full_beginner: student?.is_full_beginner ?? false,
+			is_under_16: student?.is_under_16 ?? false,
 			subjective_deadline_for_student: student?.subjective_deadline_for_student
 				? new Date(student.subjective_deadline_for_student)
 				: undefined,

@@ -70,7 +70,7 @@ const cohortColumns = [
 			{ label: "Large", value: "large" },
 		],
 	},
-] as const;
+];
 
 export function ClassesPageClient() {
 	console.log("🔥 ClassesPageClient component mounted");
@@ -78,10 +78,12 @@ export function ClassesPageClient() {
 	
 	// URL state management for search
 	const [search, setSearch] = useQueryState("search", { defaultValue: "" });
-	const [page, setPage] = useQueryState("page", {
+	const [pageState, setPageState] = useQueryState("page", {
 		parse: (value) => parseInt(value) || 1,
 		serialize: (value) => value.toString(),
+		defaultValue: 1,
 	});
+	const page = pageState ?? 1;
 
 	const debouncedSearch = useDebounce(search, 300);
 
@@ -130,7 +132,7 @@ export function ClassesPageClient() {
 	console.log("📊 Cohorts query result:", { data, isLoading, error });
 
 	const handlePageChange = (newPage: number) => {
-		setPage(newPage);
+		setPageState(newPage);
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 

@@ -1,12 +1,12 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
 	ArrowLeft, 
 	Edit, 
-	MoreVertical,
-	LucideIcon
+	MoreVertical
 } from "lucide-react";
 import {
 	DropdownMenu,

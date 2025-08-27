@@ -121,7 +121,7 @@ const enrollmentColumns = [
 			{ label: "Large", value: "large" },
 		],
 	},
-] as const;
+];
 
 interface EnrollmentsTableProps {
 	hideTitle?: boolean;
@@ -316,8 +316,8 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 											</div>
 										</TableCell>
 										<TableCell>
-											<Badge variant={statusColors[enrollment.status] as any}>
-												{statusLabels[enrollment.status]}
+											<Badge variant={(statusColors as any)[enrollment.status]}>
+												{(statusLabels as any)[enrollment.status]}
 											</Badge>
 										</TableCell>
 										<TableCell>

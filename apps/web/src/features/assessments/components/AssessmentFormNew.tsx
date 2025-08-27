@@ -57,10 +57,10 @@ const assessmentFormSchema = z.object({
 		"b2", "b2_plus", "c1", "c1_plus", "c2"
 	]).optional(),
 	scheduled_for: z.date().optional(),
-	is_paid: z.boolean().default(false),
+	is_paid: z.boolean(),
 	result: z.enum([
 		"requested", "scheduled", "session_held", "level_determined"
-	]).default("requested"),
+	]),
 	notes: z.string().optional().or(z.literal("")),
 	interview_held_by: z.string().optional().or(z.literal("")),
 	level_checked_by: z.string().optional().or(z.literal("")),
@@ -96,8 +96,8 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 			scheduled_for: assessment?.scheduled_for
 				? new Date(assessment.scheduled_for)
 				: undefined,
-			is_paid: assessment?.is_paid || false,
-			result: assessment?.result || "requested",
+			is_paid: assessment?.is_paid ?? false,
+			result: assessment?.result ?? "requested",
 			notes: assessment?.notes || "",
 			interview_held_by: assessment?.interview_held_by || "",
 			level_checked_by: assessment?.level_checked_by || "",
@@ -333,7 +333,7 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 											>
 												<CalendarIcon className="mr-2 h-4 w-4" />
 												{form.watch("scheduled_for") ? (
-													format(form.watch("scheduled_for"), "PPP")
+													format(form.watch("scheduled_for")!, "PPP")
 												) : (
 													<span>Pick a date</span>
 												)}

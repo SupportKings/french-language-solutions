@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,8 +13,7 @@ import {
 	Save,
 	Loader2,
 	AlertCircle,
-	Info,
-	LucideIcon
+	Info
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

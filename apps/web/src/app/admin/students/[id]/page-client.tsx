@@ -172,10 +172,10 @@ export default function StudentDetailsClient({
 								{enrollmentStatus && (
 									<div className="flex items-center gap-2 mt-0.5">
 										<Badge 
-											variant={ENROLLMENT_STATUS_COLORS[enrollmentStatus as keyof typeof ENROLLMENT_STATUS_COLORS] as any} 
+											variant={(ENROLLMENT_STATUS_COLORS as any)[enrollmentStatus] || "default"} 
 											className="h-4 text-[10px] px-1.5"
 										>
-											{ENROLLMENT_STATUS_LABELS[enrollmentStatus as keyof typeof ENROLLMENT_STATUS_LABELS] || enrollmentStatus}
+											{(ENROLLMENT_STATUS_LABELS as any)[enrollmentStatus] || enrollmentStatus}
 										</Badge>
 									</div>
 								)}
@@ -452,11 +452,7 @@ export default function StudentDetailsClient({
 								<TabsTrigger value="enrollments" className="flex items-center gap-2">
 									<BookOpen className="h-3.5 w-3.5" />
 									Enrollments
-									{enrollmentCount > 0 && (
-										<Badge variant="secondary" className="h-4 px-1 text-[10px]">
-											{enrollmentCount}
-										</Badge>
-									)}
+								
 								</TabsTrigger>
 								<TabsTrigger value="assessments" className="flex items-center gap-2">
 									<ClipboardCheck className="h-3.5 w-3.5" />
@@ -481,9 +477,7 @@ export default function StudentDetailsClient({
 									<div className="flex items-center justify-between">
 										<div>
 											<CardTitle className="text-base font-semibold">Course Enrollments</CardTitle>
-											<p className="text-xs text-muted-foreground mt-0.5">
-												{enrollmentCount} active enrollment{enrollmentCount !== 1 ? 's' : ''}
-											</p>
+											
 										</div>
 										<Button size="sm" onClick={navigateToCreateEnrollment}>
 											<Plus className="mr-1.5 h-3.5 w-3.5" />

@@ -54,9 +54,9 @@ const studentFormSchema = z.object({
 	initial_channel: z.enum([
 		"form", "quiz", "call", "message", "email", "assessment"
 	]).optional(),
-	communication_channel: z.enum(["sms_email", "email", "sms"]).default("sms_email"),
-	is_full_beginner: z.boolean().default(false),
-	is_under_16: z.boolean().default(false),
+	communication_channel: z.enum(["sms_email", "email", "sms"]),
+	is_full_beginner: z.boolean(),
+	is_under_16: z.boolean(),
 	subjective_deadline_for_student: z.date().optional(),
 	purpose_to_learn: z.string().optional().or(z.literal("")),
 	// External IDs
@@ -89,9 +89,9 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			city: student?.city || "",
 			desired_starting_language_level: student?.desired_starting_language_level,
 			initial_channel: student?.initial_channel,
-			communication_channel: student?.communication_channel || "sms_email",
-			is_full_beginner: student?.is_full_beginner || false,
-			is_under_16: student?.is_under_16 || false,
+			communication_channel: student?.communication_channel ?? "sms_email",
+			is_full_beginner: student?.is_full_beginner ?? false,
+			is_under_16: student?.is_under_16 ?? false,
 			subjective_deadline_for_student: student?.subjective_deadline_for_student
 				? new Date(student.subjective_deadline_for_student)
 				: undefined,
@@ -293,7 +293,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 											>
 												<CalendarIcon className="mr-2 h-4 w-4" />
 												{form.watch("subjective_deadline_for_student") ? (
-													format(form.watch("subjective_deadline_for_student"), "PPP")
+													format(form.watch("subjective_deadline_for_student")!, "PPP")
 												) : (
 													<span>Pick a date</span>
 												)}

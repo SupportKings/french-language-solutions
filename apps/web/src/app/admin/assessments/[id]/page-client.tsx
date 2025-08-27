@@ -160,10 +160,10 @@ export default function AssessmentDetailsClient({
 								</h1>
 								<div className="flex items-center gap-2 mt-0.5">
 									<Badge
-										variant={RESULT_COLORS[assessment.result as keyof typeof RESULT_COLORS] as any}
+										variant={(RESULT_COLORS as any)[assessment.result] || "default"}
 										className="h-4 text-[10px] px-1.5"
 									>
-										{RESULT_LABELS[assessment.result as keyof typeof RESULT_LABELS] || assessment.result}
+										{(RESULT_LABELS as any)[assessment.result] || assessment.result}
 									</Badge>
 									{assessment.level && (
 										<Badge variant="outline" className="h-4 text-[10px] px-1.5">
@@ -235,8 +235,8 @@ export default function AssessmentDetailsClient({
 													]}
 												/>
 											) : (
-												<Badge variant={RESULT_COLORS[assessment.result] as any}>
-													{RESULT_LABELS[assessment.result]}
+												<Badge variant={(RESULT_COLORS as any)[assessment.result] || "default"}>
+													{(RESULT_LABELS as any)[assessment.result] || assessment.result}
 												</Badge>
 											)}
 										</div>

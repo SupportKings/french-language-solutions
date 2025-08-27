@@ -181,8 +181,8 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 										<h1 className="text-3xl font-bold tracking-tight">
 											{enrollment.students?.full_name || 'Enrollment Details'}
 										</h1>
-										<Badge variant={statusColors[enrollment.status] as any} className="px-3 py-1">
-											{statusLabels[enrollment.status]}
+										<Badge variant={(statusColors as any)[enrollment.status]} className="px-3 py-1">
+											{(statusLabels as any)[enrollment.status]}
 										</Badge>
 									</div>
 									<p className="text-muted-foreground">
@@ -274,18 +274,19 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 														<CheckCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
 														<div className="flex-1 space-y-0.5">
 															<p className="text-xs text-muted-foreground">Enrollment Status:</p>
-															<InlineEditField
-																value={enrollment.status}
-																onSave={(value) => handleUpdate("status", value)}
-																editing={editing}
-																type="select"
-																options={statusOptions}
-																renderValue={(value) => (
-																	<Badge variant={statusColors[value] as any} className="mt-1">
-																		{statusLabels[value]}
-																	</Badge>
-																)}
-															/>
+															{editing ? (
+																<InlineEditField
+																	value={enrollment.status}
+																	onSave={(value) => handleUpdate("status", value)}
+																	editing={editing}
+																	type="select"
+																	options={statusOptions}
+																/>
+															) : (
+																<Badge variant={(statusColors as any)[enrollment.status]} className="mt-1">
+																	{(statusLabels as any)[enrollment.status]}
+																</Badge>
+															)}
 														</div>
 													</div>
 

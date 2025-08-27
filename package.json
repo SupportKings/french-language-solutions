@@ -20,6 +20,7 @@
     "db:migrate": "turbo -F server db:migrate"
   },
   "dependencies": {
+    "@uidotdev/usehooks": "^2.4.1",
     "framer-motion": "^12.23.12"
   },
   "devDependencies": {

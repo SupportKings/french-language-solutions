@@ -47,7 +47,7 @@ const followUpFormSchema = z.object({
 		"ongoing",
 		"answer_received",
 		"disabled"
-	]).default("activated"),
+	]),
 });
 
 type FollowUpFormValues = z.infer<typeof followUpFormSchema>;
@@ -79,7 +79,7 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 		defaultValues: {
 			student_id: followUp?.student_id || searchParams?.studentId || "",
 			sequence_id: followUp?.sequence_id || "",
-			status: followUp?.status || "activated",
+			status: followUp?.status ?? "activated",
 		},
 	});
 
@@ -192,9 +192,8 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 					{/* Pre-filled info from search params */}
 					{searchParams?.studentName && (
 						<InfoBanner
-							icon={UserCheck}
 							title="Student Pre-selected"
-							description={`Setting up follow-up for ${searchParams.studentName}`}
+							message={`Setting up follow-up for ${searchParams.studentName}`}
 						/>
 					)}
 
@@ -202,7 +201,7 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 						<FormRow>
 							<FormField
 								label="Student"
-								description="Select the student for this follow-up"
+								hint="Select the student for this follow-up"
 								required
 								error={form.formState.errors.student_id?.message}
 							>
@@ -269,7 +268,7 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 
 							<FormField
 								label="Sequence"
-								description="Select the follow-up sequence to use"
+								hint="Select the follow-up sequence to use"
 								required
 								error={form.formState.errors.sequence_id?.message}
 							>
@@ -338,19 +337,14 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 					</FormSection>
 				</FormContent>
 
-				<FormActions>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => router.push("/admin/automation/automated-follow-ups")}
-						disabled={isLoading}
-					>
-						Cancel
-					</Button>
-					<Button type="submit" disabled={isLoading}>
-						{isLoading ? "Saving..." : isEditMode ? "Update Follow-up" : "Create Follow-up"}
-					</Button>
-				</FormActions>
+				<FormActions
+					primaryLabel={isLoading ? "Saving..." : isEditMode ? "Update Follow-up" : "Create Follow-up"}
+					primaryType="submit"
+					primaryLoading={isLoading}
+					primaryDisabled={isLoading}
+					secondaryLabel="Cancel"
+					onSecondaryClick={() => router.push("/admin/automation/automated-follow-ups")}
+				/>
 			</form>
 		</FormLayout>
 	);

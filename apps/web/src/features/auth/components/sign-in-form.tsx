@@ -242,7 +242,7 @@ export function SignInForm({ redirectTo = "/" }: SignInFormProps) {
         <div className="text-center">
           <Logo className="mx-auto h-12 w-auto" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
-            Sign in to {siteConfig.title}
+            Sign in to {siteConfig.name}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Enter your email to receive a sign-in code

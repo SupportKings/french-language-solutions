@@ -128,7 +128,7 @@ const assessmentColumns = [
 			{ label: "Overdue", value: "overdue" },
 		],
 	},
-] as const;
+];
 
 interface AssessmentsTableProps {
 	hideTitle?: boolean;
@@ -339,8 +339,8 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 											)}
 										</TableCell>
 										<TableCell>
-											<Badge variant={resultColors[assessment.result] as any}>
-												{resultLabels[assessment.result]}
+											<Badge variant={(resultColors as any)[assessment.result] || "default"}>
+												{(resultLabels as any)[assessment.result] || assessment.result}
 											</Badge>
 										</TableCell>
 										<TableCell>

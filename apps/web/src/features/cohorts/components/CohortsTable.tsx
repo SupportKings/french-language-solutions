@@ -161,8 +161,7 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 					) : (
 						// Data rows - no expandable functionality
 						cohortsWithStats.map((cohort) => {
-							const isAtCapacity = cohort.activeEnrollments >= (cohort.max_students || 10);
-							const percentFull = ((cohort.activeEnrollments || 0) / (cohort.max_students || 10)) * 100;
+							const enrollmentCount = cohort.activeEnrollments || 0;
 							
 							return (
 								<TableRow 
@@ -188,19 +187,15 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 										<div className="h-12 flex flex-col justify-center">
 											<div className="flex items-center gap-2 mb-1">
 												<Users className="h-3.5 w-3.5 text-muted-foreground" />
-												<span className={`text-sm font-medium ${isAtCapacity ? 'text-orange-600' : ''}`}>
-													{cohort.activeEnrollments || 0}/{cohort.max_students || 10}
+												<span className="text-sm font-medium">
+													{enrollmentCount} enrolled
 												</span>
-												{isAtCapacity && <Badge variant="warning" className="text-[10px] h-4 px-1">Full</Badge>}
 											</div>
 											<div className="w-20">
 												<div className="w-full bg-muted rounded-full h-1.5">
 													<div 
-														className={`h-1.5 rounded-full transition-all ${
-															percentFull >= 100 ? 'bg-orange-500' : 
-															percentFull >= 80 ? 'bg-yellow-500' : 'bg-primary'
-														}`}
-														style={{ width: `${Math.min(percentFull, 100)}%` }}
+														className="h-1.5 rounded-full transition-all bg-primary"
+														style={{ width: enrollmentCount > 0 ? "100%" : "0%" }}
 													/>
 												</div>
 											</div>
@@ -233,16 +228,9 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 									</TableCell>
 									<TableCell>
 										<div className="h-12 flex items-center">
-											{cohort.setup_finalized ? (
-												<Badge variant="success" className="text-xs">
-													<CheckCircle2 className="mr-1 h-3 w-3" />
-													Complete
-												</Badge>
-											) : (
-												<Badge variant="outline" className="text-xs">
-													Pending
-												</Badge>
-											)}
+											<Badge variant="outline" className="text-xs">
+												Setup
+											</Badge>
 										</div>
 									</TableCell>
 								</TableRow>
