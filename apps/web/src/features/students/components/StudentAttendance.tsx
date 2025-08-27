@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	Select,
 	SelectContent,
@@ -13,6 +14,22 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { 
 	Calendar,
 	Clock,
@@ -20,9 +37,9 @@ import {
 	XCircle,
 	MinusCircle,
 	Edit,
-	BookOpen
+	BookOpen,
+	Save
 } from "lucide-react";
-import { AttendanceEditModal } from "@/features/attendance/components/AttendanceEditModal";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -99,8 +116,12 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState<string | null>(null);
 	const [filter, setFilter] = useState<"all" | "attended" | "not_attended" | "unset">("all");
-	const [editModalOpen, setEditModalOpen] = useState(false);
-	const [editingRecord, setEditingRecord] = useState<any>(null);
+	const [notesDialog, setNotesDialog] = useState<{ 
+		open: boolean; 
+		recordId: string | null; 
+		currentNotes: string 
+	}>({ open: false, recordId: null, currentNotes: "" });
+	const [noteValue, setNoteValue] = useState("");
 
 	// Fetch student information
 	const fetchStudent = async () => {
@@ -166,41 +187,23 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 		}
 	};
 
-	// Open edit modal
-	const handleEditRecord = (record: AttendanceRecord) => {
-		// Transform the record to match the modal's expected format
-		const modalRecord = {
-			id: record.id,
-			studentId: record.studentId,
-			cohortId: record.cohortId,
-			classId: record.classId,
-			attendanceDate: record.attendanceDate,
-			status: record.status,
-			notes: record.notes,
-			markedBy: record.markedBy,
-			markedAt: record.markedAt,
-			homeworkCompleted: record.homeworkCompleted,
-			student: student ? {
-				id: student.id,
-				full_name: student.full_name,
-				email: student.email,
-				phone: undefined,
-			} : undefined,
-			class: record.classStartTime ? {
-				id: record.classId || "",
-				start_time: record.classStartTime,
-				end_time: record.classStartTime, // Approximate
-			} : undefined,
-			teacher: undefined,
-		};
-		setEditingRecord(modalRecord);
-		setEditModalOpen(true);
+	// Open notes dialog
+	const openNotesDialog = (record: AttendanceRecord) => {
+		setNoteValue(record.notes || "");
+		setNotesDialog({ 
+			open: true, 
+			recordId: record.id, 
+			currentNotes: record.notes || "" 
+		});
 	};
 
-	// Handle record update from modal
-	const handleUpdateRecord = (updatedRecord: any) => {
-		// Refresh the attendance data
-		fetchAttendance();
+	// Save note
+	const saveNote = async () => {
+		if (!notesDialog.recordId) return;
+		
+		await updateAttendance(notesDialog.recordId, { notes: noteValue });
+		setNotesDialog({ open: false, recordId: null, currentNotes: "" });
+		setNoteValue("");
 	};
 
 	// Filter records
@@ -239,28 +242,6 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 		);
 	}
 
-	// Group records by month
-	const groupedRecords = filteredRecords.reduce((acc, record) => {
-		const date = new Date(record.attendanceDate);
-		const monthKey = format(date, "MMMM yyyy");
-		if (!acc[monthKey]) {
-			acc[monthKey] = [];
-		}
-		acc[monthKey].push(record);
-		return acc;
-	}, {} as Record<string, AttendanceRecord[]>);
-
-	// Sort months (newest first)
-	const sortedMonths = Object.keys(groupedRecords).sort((a, b) => {
-		return new Date(b).getTime() - new Date(a).getTime();
-	});
-
-	// Helper to get status icon
-	const getStatusIcon = (status: string) => {
-		const config = statusConfig[status as keyof typeof statusConfig];
-		const Icon = config.icon;
-		return <Icon className={cn("h-4 w-4", config.textColor)} />;
-	};
 
 	return (
 		<div className="space-y-4">
@@ -304,189 +285,259 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 				</div>
 			</div>
 
-			{/* Grouped Attendance Records */}
-			<div className="space-y-4">
-				{sortedMonths.length === 0 ? (
-					<div className="border rounded-lg p-8 text-center">
-						<p className="text-muted-foreground">No records found for the selected filter</p>
-					</div>
-				) : (
-					sortedMonths.map((month) => {
-						const monthRecords = groupedRecords[month];
-						const attendedCount = monthRecords.filter(r => r.status === "attended").length;
-						const totalCount = monthRecords.length;
-						const attendanceRate = totalCount > 0 ? (attendedCount / totalCount * 100).toFixed(0) : 0;
+			{/* Attendance Table */}
+			<div className="border rounded-lg overflow-hidden">
+				<Table>
+					<TableHeader>
+						<TableRow className="bg-muted/30">
+							<TableHead className="w-[120px]">Date</TableHead>
+							<TableHead className="w-[100px]">Time</TableHead>
+							<TableHead className="w-[120px]">Cohort</TableHead>
+							<TableHead className="w-[100px]">Status</TableHead>
+							<TableHead className="w-[120px]">Homework</TableHead>
+							<TableHead className="min-w-[200px]">Notes</TableHead>
+							<TableHead className="w-[180px]">Actions</TableHead>
+							<TableHead className="w-[100px]">Marked</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{loading ? (
+							// Loading skeleton rows
+							[...Array(5)].map((_, i) => (
+								<TableRow key={i}>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+								</TableRow>
+							))
+						) : filteredRecords.length === 0 ? (
+							<TableRow>
+								<TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+									No attendance records found
+								</TableCell>
+							</TableRow>
+						) : (
+							filteredRecords.map((record) => {
+								const isUpdating = updating === record.id;
+								const config = statusConfig[record.status as keyof typeof statusConfig];
 
-						return (
-							<div key={month} className="border rounded-lg overflow-hidden">
-								<div className="bg-muted/30 px-4 py-3 border-b">
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-3">
-											<Calendar className="h-4 w-4 text-muted-foreground" />
-											<h3 className="font-medium">{month}</h3>
-										</div>
-										<div className="flex items-center gap-3">
-											<span className="text-sm text-muted-foreground">
-												{attendedCount}/{totalCount} attended
-											</span>
-											<Badge variant="outline" className="text-xs">
-												{attendanceRate}% attendance
-											</Badge>
-										</div>
-									</div>
-								</div>
-
-								<div className="divide-y">
-									{monthRecords.map((record) => {
-										const isUpdating = updating === record.id;
-
-										return (
-											<div
-												key={record.id}
-												className="px-4 py-3 hover:bg-muted/10 transition-colors cursor-pointer group"
-												onClick={() => handleEditRecord(record)}
-											>
-												<div className="flex items-center justify-between">
-													<div className="flex items-center gap-3 flex-1">
-														{getStatusIcon(record.status)}
-														<div className="flex-1">
-															<div className="flex items-center gap-2">
-																<span className="font-medium text-sm">
-																	{format(new Date(record.attendanceDate), "EEEE, MMM d")}
-																</span>
-																{record.classStartTime && (
-																	<span className="text-xs text-muted-foreground">
-																		at {format(new Date(record.classStartTime), "h:mm a")}
-																	</span>
-																)}
-															</div>
-															<div className="text-xs text-muted-foreground mt-0.5">
-																{record.cohortName || "No cohort info"}
-															</div>
-														</div>
-													</div>
-
-													<div className="flex items-center gap-3">
-														{record.notes && (
-															<span className="text-xs text-muted-foreground max-w-[200px] truncate">
-																{record.notes}
-															</span>
-														)}
-
-														{record.markedAt && (
-															<div className="text-xs text-muted-foreground">
-																Marked {format(new Date(record.markedAt), "MMM d")}
-															</div>
-														)}
-
-														{/* Homework Checkbox */}
-														{record.status === "attended" && (
-															<div className="flex items-center gap-1.5">
-																<Checkbox
-																	id={`homework-${record.id}`}
-																	checked={record.homeworkCompleted}
-																	onCheckedChange={(checked) => {
-																		updateAttendance(record.id, { homeworkCompleted: checked as boolean });
-																	}}
-																	disabled={isUpdating}
-																	className="h-4 w-4"
-																/>
-																<label 
-																	htmlFor={`homework-${record.id}`}
-																	className="text-xs font-medium cursor-pointer flex items-center gap-1"
-																>
-																	<BookOpen className="h-3 w-3" />
-																	Homework
-																</label>
-															</div>
-														)}
-
-														<div className="flex items-center gap-1">
-															<Button
-																variant="ghost"
-																size="sm"
-																className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	handleEditRecord(record);
-																}}
-																disabled={isUpdating}
-															>
-																<Edit className="h-3.5 w-3.5" />
-															</Button>
-															<Button
-																variant={record.status === "attended" ? "default" : "outline"}
-																size="sm"
-																className="h-7 px-2"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	updateAttendance(record.id, { status: "attended" });
-																}}
-																disabled={isUpdating}
-															>
-																{isUpdating ? (
-																	<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-																) : (
-																	<CheckCircle className="h-3.5 w-3.5" />
-																)}
-															</Button>
-															<Button
-																variant={record.status === "not_attended" ? "destructive" : "outline"}
-																size="sm"
-																className="h-7 px-2"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	updateAttendance(record.id, { status: "not_attended" });
-																}}
-																disabled={isUpdating}
-															>
-																{isUpdating ? (
-																	<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-																) : (
-																	<XCircle className="h-3.5 w-3.5" />
-																)}
-															</Button>
-															{record.status !== "unset" && (
-																<Button
-																	variant="ghost"
-																	size="sm"
-																	className="h-7 px-2"
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		updateAttendance(record.id, { status: "unset" });
-																	}}
-																	disabled={isUpdating}
-																>
-																	{isUpdating ? (
-																		<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-																	) : (
-																		<MinusCircle className="h-3.5 w-3.5" />
-																	)}
-																</Button>
-															)}
-														</div>
-													</div>
-												</div>
+								return (
+									<TableRow key={record.id} className="hover:bg-muted/5">
+										{/* Date */}
+										<TableCell className="font-medium">
+											<div className="text-sm">
+												{format(new Date(record.attendanceDate), "MMM d")}
 											</div>
-										);
-									})}
-								</div>
-							</div>
-						);
-					})
-				)}
+											<div className="text-xs text-muted-foreground">
+												{format(new Date(record.attendanceDate), "yyyy")}
+											</div>
+										</TableCell>
+
+										{/* Time */}
+										<TableCell>
+											{record.classStartTime ? (
+												<div className="text-sm">
+													{format(new Date(record.classStartTime), "h:mm a")}
+												</div>
+											) : (
+												<span className="text-muted-foreground text-xs">—</span>
+											)}
+										</TableCell>
+
+										{/* Cohort */}
+										<TableCell>
+											<div className="text-sm">
+												{record.cohortName || "—"}
+											</div>
+										</TableCell>
+
+										{/* Status */}
+										<TableCell>
+											<Badge variant="outline" className={cn("text-xs", config.color)}>
+												{config.label}
+											</Badge>
+										</TableCell>
+
+										{/* Homework */}
+										<TableCell>
+											{record.status === "attended" ? (
+												<div 
+													className="flex items-center gap-2"
+													onClick={(e) => e.stopPropagation()}
+												>
+													<Checkbox
+														id={`homework-${record.id}`}
+														checked={record.homeworkCompleted}
+														onCheckedChange={(checked) => {
+															updateAttendance(record.id, { homeworkCompleted: checked as boolean });
+														}}
+														disabled={isUpdating}
+														className="h-4 w-4"
+													/>
+													<label 
+														htmlFor={`homework-${record.id}`}
+														className={cn(
+															"flex items-center gap-1 text-xs cursor-pointer",
+															record.homeworkCompleted ? "text-blue-600" : "text-muted-foreground"
+														)}
+													>
+														<BookOpen className="h-3 w-3" />
+														{record.homeworkCompleted ? "Done" : "Pending"}
+													</label>
+													{isUpdating && (
+														<div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+													)}
+												</div>
+											) : (
+												<span className="text-muted-foreground text-xs">—</span>
+											)}
+										</TableCell>
+
+										{/* Notes */}
+										<TableCell>
+											{record.notes ? (
+												<Button
+													variant="ghost"
+													size="sm"
+													className="h-auto p-1 text-left justify-start max-w-[200px]"
+													onClick={() => openNotesDialog(record)}
+												>
+													<span className="text-xs truncate block">
+														{record.notes}
+													</span>
+												</Button>
+											) : (
+												<Button
+													variant="ghost"
+													size="sm"
+													className="h-8 px-2 text-muted-foreground"
+													onClick={() => openNotesDialog(record)}
+												>
+													<Edit className="h-3 w-3 mr-1" />
+													<span className="text-xs">Add note</span>
+												</Button>
+											)}
+										</TableCell>
+
+										{/* Action Buttons */}
+										<TableCell>
+											<div className="flex items-center gap-1">
+												<Button
+													variant={record.status === "attended" ? "default" : "outline"}
+													size="sm"
+													className="h-7 px-2"
+													onClick={() => updateAttendance(record.id, { status: "attended" })}
+													disabled={isUpdating}
+													title="Mark as Present"
+												>
+													{isUpdating && record.status === "attended" ? (
+														<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+													) : (
+														<CheckCircle className="h-3.5 w-3.5" />
+													)}
+												</Button>
+												<Button
+													variant={record.status === "not_attended" ? "destructive" : "outline"}
+													size="sm"
+													className="h-7 px-2"
+													onClick={() => updateAttendance(record.id, { status: "not_attended" })}
+													disabled={isUpdating}
+													title="Mark as Absent"
+												>
+													{isUpdating && record.status === "not_attended" ? (
+														<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+													) : (
+														<XCircle className="h-3.5 w-3.5" />
+													)}
+												</Button>
+												<Button
+													variant={record.status === "unset" ? "secondary" : "outline"}
+													size="sm"
+													className="h-7 px-2"
+													onClick={() => updateAttendance(record.id, { status: "unset" })}
+													disabled={isUpdating}
+													title="Clear Status"
+												>
+													{isUpdating && record.status === "unset" ? (
+														<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+													) : (
+														<MinusCircle className="h-3.5 w-3.5" />
+													)}
+												</Button>
+											</div>
+										</TableCell>
+
+										{/* Marked At */}
+										<TableCell>
+											{record.markedAt ? (
+												<div className="text-xs text-muted-foreground">
+													{format(new Date(record.markedAt), "MMM d")}
+												</div>
+											) : (
+												<span className="text-muted-foreground text-xs">—</span>
+											)}
+										</TableCell>
+									</TableRow>
+								);
+							})
+						)}
+					</TableBody>
+				</Table>
 			</div>
 
-			{/* Attendance Edit Modal */}
-			<AttendanceEditModal
-				open={editModalOpen}
-				onClose={() => {
-					setEditModalOpen(false);
-					setEditingRecord(null);
-				}}
-				record={editingRecord}
-				onUpdate={handleUpdateRecord}
-			/>
+			{/* Notes Dialog */}
+			<Dialog open={notesDialog.open} onOpenChange={(open) => {
+				if (!open) {
+					setNotesDialog({ open: false, recordId: null, currentNotes: "" });
+					setNoteValue("");
+				}
+			}}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Edit Attendance Note</DialogTitle>
+						<DialogDescription>
+							Add or edit notes for this attendance record.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<Textarea
+							value={noteValue}
+							onChange={(e) => setNoteValue(e.target.value)}
+							placeholder="Enter attendance note..."
+							className="min-h-[100px]"
+						/>
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setNotesDialog({ open: false, recordId: null, currentNotes: "" });
+								setNoteValue("");
+							}}
+						>
+							Cancel
+						</Button>
+						<Button onClick={saveNote} disabled={updating === notesDialog.recordId}>
+							{updating === notesDialog.recordId ? (
+								<>
+									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									Saving...
+								</>
+							) : (
+								<>
+									<Save className="mr-2 h-4 w-4" />
+									Save Note
+								</>
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

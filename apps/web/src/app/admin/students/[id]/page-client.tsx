@@ -28,7 +28,9 @@ import {
 	Zap,
 	UserCircle,
 	Plus,
-	Trash2
+	Trash2,
+	Users,
+	Hand
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -42,6 +44,8 @@ import { format } from "date-fns";
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentAssessments } from "@/features/students/components/StudentAssessments";
 import { StudentAttendance } from "@/features/students/components/StudentAttendance";
+import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
+import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { cn } from "@/lib/utils";
 import { CopyButton, CopyButtonSmall } from "@/features/students/components/StudentDetailsClient";
 
@@ -189,11 +193,6 @@ export default function StudentDetailsClient({
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-56">
-								<DropdownMenuItem onClick={navigateToSetFollowUp}>
-									<Calendar className="mr-2 h-3.5 w-3.5" />
-									Set Follow-up
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
 								<DropdownMenuItem className="text-destructive">
 									<Trash2 className="mr-2 h-3.5 w-3.5" />
 									Delete Student
@@ -448,11 +447,10 @@ export default function StudentDetailsClient({
 				<div className="mt-6">
 					<Tabs defaultValue="enrollments" className="w-full">
 						<div className="flex items-center justify-between mb-4 w-full">
-							<TabsList className="grid grid-cols-3 w-full">
+							<TabsList className="grid grid-cols-5 w-full">
 								<TabsTrigger value="enrollments" className="flex items-center gap-2">
 									<BookOpen className="h-3.5 w-3.5" />
 									Enrollments
-								
 								</TabsTrigger>
 								<TabsTrigger value="assessments" className="flex items-center gap-2">
 									<ClipboardCheck className="h-3.5 w-3.5" />
@@ -466,6 +464,14 @@ export default function StudentDetailsClient({
 								<TabsTrigger value="attendance" className="flex items-center gap-2">
 									<Calendar className="h-3.5 w-3.5" />
 									Attendance
+								</TabsTrigger>
+								<TabsTrigger value="followups" className="flex items-center gap-2">
+									<Users className="h-3.5 w-3.5" />
+									Follow-ups
+								</TabsTrigger>
+								<TabsTrigger value="touchpoints" className="flex items-center gap-2">
+									<Hand className="h-3.5 w-3.5" />
+									Touchpoints
 								</TabsTrigger>
 							</TabsList>
 						</div>
@@ -529,6 +535,58 @@ export default function StudentDetailsClient({
 								</CardHeader>
 								<CardContent>
 									<StudentAttendance studentId={student.id} />
+								</CardContent>
+							</Card>
+						</TabsContent>
+
+						{/* Follow-ups Tab */}
+						<TabsContent value="followups" className="mt-4">
+							<Card className="bg-background">
+								<CardHeader className="pb-3">
+									<div className="flex items-center justify-between">
+										<div>
+											<CardTitle className="text-base font-semibold">Follow-ups</CardTitle>
+											<p className="text-xs text-muted-foreground mt-0.5">
+												View and manage follow-ups linked to this student
+											</p>
+										</div>
+										<Button size="sm" onClick={navigateToSetFollowUp}>
+											<Plus className="mr-1.5 h-3.5 w-3.5" />
+											Set Follow-up
+										</Button>
+									</div>
+								</CardHeader>
+								<CardContent>
+									<StudentFollowUps studentId={student.id} />
+								</CardContent>
+							</Card>
+						</TabsContent>
+
+						{/* Touchpoints Tab */}
+						<TabsContent value="touchpoints" className="mt-4">
+							<Card className="bg-background">
+								<CardHeader className="pb-3">
+									<div className="flex items-center justify-between">
+										<div>
+											<CardTitle className="text-base font-semibold">Touchpoints</CardTitle>
+											<p className="text-xs text-muted-foreground mt-0.5">
+												View all touchpoints and interactions for this student
+											</p>
+										</div>
+										<Button size="sm" onClick={() => {
+											const params = new URLSearchParams({
+												studentId: student.id,
+												studentName: student.full_name,
+											});
+											window.location.href = `/admin/touchpoints/new?${params.toString()}`;
+										}}>
+											<Plus className="mr-1.5 h-3.5 w-3.5" />
+											Log Touchpoint
+										</Button>
+									</div>
+								</CardHeader>
+								<CardContent>
+									<StudentTouchpoints studentId={student.id} />
 								</CardContent>
 							</Card>
 						</TabsContent>

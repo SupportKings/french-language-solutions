@@ -91,12 +91,12 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 		}
 	};
 
-	const updateAttendance = async (recordId: string, status: string) => {
+	const updateAttendance = async (recordId: string, updates: { status?: string; homeworkCompleted?: boolean }) => {
 		try {
 			const response = await fetch(`/api/attendance/${recordId}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ status }),
+				body: JSON.stringify(updates),
 			});
 			if (!response.ok) throw new Error("Failed to update attendance");
 			
@@ -478,10 +478,26 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 													</span>
 												)}
 
-												{record.status === "attended" && record.homeworkCompleted && (
-													<div className="flex items-center gap-1 text-xs text-blue-600">
+												{record.status === "attended" && (
+													<div 
+														className={`flex items-center gap-1.5 px-2 py-1 rounded border text-xs transition-all duration-200 cursor-pointer hover:opacity-80 ${
+															record.homeworkCompleted 
+																? "border-blue-200 bg-blue-50/50 text-blue-700" 
+																: "border-gray-200 bg-muted/30 text-muted-foreground hover:bg-muted/50"
+														}`}
+														onClick={(e) => {
+															e.stopPropagation();
+															updateAttendance(record.id, { homeworkCompleted: !record.homeworkCompleted });
+														}}
+														title={record.homeworkCompleted ? "Mark homework as incomplete" : "Mark homework as complete"}
+													>
 														<BookOpen className="h-3 w-3" />
-														<span>HW</span>
+														<span className="font-medium">
+															{record.homeworkCompleted ? "HW Done" : "HW Pending"}
+														</span>
+														{record.homeworkCompleted && (
+															<div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+														)}
 													</div>
 												)}
 												
@@ -514,7 +530,7 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 														className="h-7 px-2"
 														onClick={(e) => {
 															e.stopPropagation();
-															updateAttendance(record.id, "attended");
+															updateAttendance(record.id, { status: "attended" });
 														}}
 													>
 														<CheckCircle className="h-3.5 w-3.5" />
@@ -525,7 +541,7 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 														className="h-7 px-2"
 														onClick={(e) => {
 															e.stopPropagation();
-															updateAttendance(record.id, "not_attended");
+															updateAttendance(record.id, { status: "not_attended" });
 														}}
 													>
 														<XCircle className="h-3.5 w-3.5" />
@@ -537,7 +553,7 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 															className="h-7 px-2"
 															onClick={(e) => {
 																e.stopPropagation();
-																updateAttendance(record.id, "unset");
+																updateAttendance(record.id, { status: "unset" });
 															}}
 														>
 															<HelpCircle className="h-3.5 w-3.5" />
