@@ -43,8 +43,43 @@ const LANGUAGE_LEVELS = {
 	c2: "C2",
 };
 
+const ENROLLMENT_STATUS_LABELS = {
+	declined_contract: "Declined",
+	dropped_out: "Dropped Out",
+	interested: "Interested",
+	beginner_form_filled: "Form Filled",
+	contract_abandoned: "Contract Abandoned",
+	contract_signed: "Contract Signed",
+	payment_abandoned: "Payment Abandoned",
+	paid: "Paid",
+	welcome_package_sent: "Welcome Package Sent",
+};
+
+const ENROLLMENT_STATUS_COLORS = {
+	declined_contract: "destructive",
+	dropped_out: "destructive",
+	interested: "secondary",
+	beginner_form_filled: "warning",
+	contract_abandoned: "destructive",
+	contract_signed: "info",
+	payment_abandoned: "destructive",
+	paid: "success",
+	welcome_package_sent: "success",
+};
+
 // Define column configurations for data-table-filter
 const studentColumns = [
+	{
+		id: "enrollment_status",
+		accessor: (student: any) => student.enrollment_status,
+		displayName: "Enrollment Status",
+		icon: UserCheck,
+		type: "option" as const,
+		options: Object.entries(ENROLLMENT_STATUS_LABELS).map(([value, label]) => ({
+			label,
+			value,
+		})),
+	},
 	{
 		id: "desired_starting_language_level",
 		accessor: (student: any) => student.desired_starting_language_level,
@@ -147,6 +182,7 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 
 	// Convert filters to query params - support multiple values
 	const filterQuery = useMemo(() => {
+		const enrollmentFilter = filters.find(f => f.columnId === "enrollment_status");
 		const levelFilter = filters.find(f => f.columnId === "desired_starting_language_level");
 		const channelFilter = filters.find(f => f.columnId === "initial_channel");
 		const commFilter = filters.find(f => f.columnId === "communication_channel");
@@ -156,6 +192,7 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 		
 		return {
 			// Pass arrays for multi-select filters
+			enrollment_status: enrollmentFilter?.values?.length ? enrollmentFilter.values : undefined,
 			desired_starting_language_level: levelFilter?.values?.length ? levelFilter.values : undefined,
 			initial_channel: channelFilter?.values?.length ? channelFilter.values : undefined,
 			communication_channel: commFilter?.values?.length ? commFilter.values : undefined,
@@ -239,7 +276,8 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 								<TableHead>Student</TableHead>
 								<TableHead>Contact</TableHead>
 								<TableHead>Level</TableHead>
-								<TableHead>Joined</TableHead>
+								<TableHead>Enrollment Status</TableHead>
+								<TableHead>Created at</TableHead>
 								<TableHead className="w-[70px]"></TableHead>
 							</TableRow>
 						</TableHeader>
@@ -250,13 +288,14 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 										<TableCell><Skeleton className="h-5 w-32" /></TableCell>
 										<TableCell><Skeleton className="h-5 w-40" /></TableCell>
 										<TableCell><Skeleton className="h-5 w-20" /></TableCell>
+										<TableCell><Skeleton className="h-5 w-28" /></TableCell>
 										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
 										<TableCell><Skeleton className="h-5 w-8" /></TableCell>
 									</TableRow>
 								))
 							) : data?.data.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={5} className="text-center text-muted-foreground">
+									<TableCell colSpan={6} className="text-center text-muted-foreground">
 										No students found
 									</TableCell>
 								</TableRow>
@@ -264,9 +303,14 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 								data?.data.map((student) => (
 									<TableRow key={student.id} className="hover:bg-muted/50 transition-colors duration-150">
 										<TableCell>
-											<div>
-												<p className="font-medium">{student.full_name}</p>
-											</div>
+											<Link 
+												href={`/admin/students/${student.id}`}
+												className="hover:underline"
+											>
+												<p className="font-medium hover:text-primary transition-colors cursor-pointer">
+													{student.full_name}
+												</p>
+											</Link>
 										</TableCell>
 										<TableCell>
 											<div>
@@ -283,6 +327,15 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 												</Badge>
 											) : (
 												<span className="text-muted-foreground">Not set</span>
+											)}
+										</TableCell>
+										<TableCell>
+											{(student as any).enrollment_status ? (
+												<Badge variant={ENROLLMENT_STATUS_COLORS[(student as any).enrollment_status as keyof typeof ENROLLMENT_STATUS_COLORS] as any}>
+													{ENROLLMENT_STATUS_LABELS[(student as any).enrollment_status as keyof typeof ENROLLMENT_STATUS_LABELS]}
+												</Badge>
+											) : (
+												<span className="text-muted-foreground">No enrollment</span>
 											)}
 										</TableCell>
 										<TableCell>

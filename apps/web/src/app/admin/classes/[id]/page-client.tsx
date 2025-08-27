@@ -1141,16 +1141,17 @@ export function CohortDetailPageClient({
                                   </div>
 
                                   <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
                                     onClick={() =>
                                       router.push(
                                         `/admin/students/enrollments/${enrollment.id}/edit`
                                       )
                                     }
                                   >
-                                    <ChevronRight className="h-4 w-4" />
+                                    <Edit2 className="h-3.5 w-3.5 mr-1" />
+                                    Edit
                                   </Button>
                                 </div>
                               </div>
@@ -1329,33 +1330,30 @@ export function CohortDetailPageClient({
               </div>
               <div className="space-y-4">
                 {loadingClasses ? (
-                  <div className="grid gap-3">
+                  <div className="grid gap-2">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="group relative overflow-hidden rounded-lg border bg-card animate-pulse">
-                        <div className="p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className="h-10 w-10 rounded-lg bg-muted" />
-                                <div className="flex-1">
-                                  <div className="h-5 w-48 bg-muted rounded mb-2" />
+                        <div className="p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="h-9 w-9 rounded-full bg-muted flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="space-y-2">
+                                  <div className="h-4 w-32 bg-muted rounded" />
                                   <div className="flex items-center gap-3">
-                                    <div className="h-3 w-32 bg-muted rounded" />
+                                    <div className="h-3 w-40 bg-muted rounded" />
                                     <div className="h-3 w-24 bg-muted rounded" />
+                                  </div>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className="h-5 w-20 bg-muted rounded" />
+                                      <div className="h-4 w-16 bg-muted rounded" />
+                                    </div>
+                                    <div className="h-7 w-16 bg-muted rounded" />
                                   </div>
                                 </div>
                               </div>
-                              <div className="ml-13 space-y-2">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-3 w-24 bg-muted rounded" />
-                                  <div className="h-3 w-20 bg-muted rounded" />
-                                  <div className="h-5 w-16 bg-muted rounded" />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <div className="h-8 w-20 bg-muted rounded" />
-                              <div className="h-8 w-24 bg-muted rounded" />
+                              <div className="h-8 w-8 bg-muted rounded" />
                             </div>
                           </div>
                         </div>
@@ -1374,7 +1372,7 @@ export function CohortDetailPageClient({
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-3">
+                  <div className="grid gap-2">
                     {classes.map((classItem) => {
                       const classDate = new Date(classItem.start_time);
                       const startTime = new Date(classItem.start_time);
@@ -1392,6 +1390,21 @@ export function CohortDetailPageClient({
                         statusColors[
                           classItem.status as keyof typeof statusColors
                         ] || "bg-gray-500/10 text-gray-700 border-gray-200";
+                      
+                      // Calculate duration
+                      const duration = (() => {
+                        const start = classItem.start_time.split("T")[1]?.split(":");
+                        const end = classItem.end_time.split("T")[1]?.split(":");
+                        if (start && end) {
+                          const startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]);
+                          const endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]);
+                          const diff = endMinutes - startMinutes;
+                          const hours = Math.floor(diff / 60);
+                          const minutes = diff % 60;
+                          return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}` : `${minutes}m`;
+                        }
+                        return "";
+                      })();
 
                       return (
                         <div
@@ -1399,83 +1412,51 @@ export function CohortDetailPageClient({
                           className="group relative overflow-hidden rounded-lg border bg-card hover:shadow-md transition-all duration-200 cursor-pointer"
                           onClick={() => handleClassClick(classItem)}
                         >
-                          <div className="p-4">
-                            <div className="flex items-start justify-between gap-4">
-                              {/* Class Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Calendar className="h-5 w-5 text-primary" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <h3 className="font-medium">
-                                      {classItem.name || `Class - ${format(classDate, "EEEE, MMM d")}`}
-                                    </h3>
-                                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                                      <div className="flex items-center gap-1">
-                                        <Calendar className="h-3 w-3" />
-                                        <span>
-                                          {classDate.toLocaleDateString(
-                                            "en-US",
-                                            {
-                                              weekday: "long",
-                                              month: "short",
-                                              day: "numeric",
-                                              year: "numeric",
-                                            }
-                                          )}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <Clock className="h-3 w-3" />
-                                        <span>
-                                          {startTime.toLocaleTimeString(
-                                            "en-US",
-                                            {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            }
-                                          )}{" "}
-                                          -
-                                          {endTime.toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          })}
-                                        </span>
+                          <div className="p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <Calendar className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="font-medium text-sm">
+                                        {format(classDate, "EEEE, MMMM d")}
+                                      </h3>
+                                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
+                                        <div className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          <span>
+                                            {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
+                                          </span>
+                                        </div>
+                                        {duration && (
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-muted-foreground/60">•</span>
+                                            <span>{duration}</span>
+                                          </div>
+                                        )}
+                                        {classItem.teachers && (
+                                          <div className="flex items-center gap-1">
+                                            <Users className="h-3 w-3" />
+                                            <span>
+                                              {classItem.teachers.first_name} {classItem.teachers.last_name}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {classItem.attendance_count !== undefined && (
+                                          <div className="flex items-center gap-1">
+                                            <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                            <span>{classItem.attendance_count} attended</span>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
-                                </div>
 
-                                {/* Additional Details */}
-                                <div className="ml-13 space-y-2">
-                                  <div className="flex flex-wrap items-center gap-3 text-sm">
-                                      {classItem.teachers && (
-                                        <div className="flex items-center gap-1.5">
-                                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                          <span>
-                                            {classItem.teachers.first_name}{" "}
-                                            {classItem.teachers.last_name}
-                                          </span>
-                                        </div>
-                                      )}
-                                      {classItem.room && (
-                                        <div className="flex items-center gap-1.5">
-                                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                                          <span>{classItem.room}</span>
-                                        </div>
-                                      )}
-                                      {classItem.meeting_link && (
-                                        <a
-                                          href={classItem.meeting_link}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-1.5 text-primary hover:underline"
-                                        >
-                                          <Video className="h-3.5 w-3.5" />
-                                          <span>Join Meeting</span>
-                                        </a>
-                                      )}
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="flex items-center gap-2">
                                       <Badge
                                         variant="outline"
                                         className={`text-[10px] h-5 px-2 font-medium ${statusColor}`}
@@ -1486,52 +1467,60 @@ export function CohortDetailPageClient({
                                             l.toUpperCase()
                                           )}
                                       </Badge>
-                                      {classItem.current_enrollment !==
-                                        undefined && (
-                                        <div className="flex items-center gap-1.5">
-                                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                          <span>
-                                            {classItem.current_enrollment}{" "}
-                                            attending
-                                          </span>
+                                      
+                                      {cohort?.format === "online" && classItem.meeting_link && (
+                                        <a
+                                          href={classItem.meeting_link}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                        >
+                                          <Video className="h-3 w-3" />
+                                          <span>Meeting Link</span>
+                                        </a>
+                                      )}
+                                      
+                                      {cohort?.format === "in-person" && cohort?.room && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                          <MapPin className="h-3 w-3" />
+                                          <span>{cohort.room}</span>
                                         </div>
                                       )}
                                     </div>
-                                  {classItem.notes && (
-                                    <p className="text-sm text-muted-foreground ml-0 mt-2">
-                                      {classItem.notes}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
 
-                              {/* Actions */}
-                              <div className="flex items-start gap-2">
-                                {classItem.google_drive_folder_id && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      window.open(`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`, '_blank');
-                                    }}
-                                  >
-                                    <FolderOpen className="h-3.5 w-3.5 mr-1.5" />
-                                    Drive
-                                    <ExternalLink className="h-3 w-3 ml-1" />
-                                  </Button>
-                                )}
+                                    {/* Drive Button - Always visible */}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className={`h-7 px-2 text-xs ${!classItem.google_drive_folder_id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted'}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (classItem.google_drive_folder_id) {
+                                          window.open(`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`, '_blank');
+                                        }
+                                      }}
+                                      disabled={!classItem.google_drive_folder_id}
+                                    >
+                                      <FolderOpen className="h-3.5 w-3.5 mr-1" />
+                                      Drive
+                                      {classItem.google_drive_folder_id && (
+                                        <ExternalLink className="h-2.5 w-2.5 ml-1" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
+
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                  size="icon"
+                                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleClassClick(classItem);
                                   }}
                                 >
-                                  <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                                  View Details
+                                  <ChevronRight className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>

@@ -33,7 +33,7 @@ const data = {
       icon: GraduationCap,
       items: [
         {
-          title: "All Students",
+          title: "Students/Leads",
           url: "/admin/students",
         },
         {

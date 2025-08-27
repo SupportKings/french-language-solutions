@@ -87,12 +87,6 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 				<p className="text-sm text-muted-foreground">
 					{assessments.length} assessment{assessments.length === 1 ? '' : 's'}
 				</p>
-				<Link href={`/admin/students/assessments/new?studentId=${studentId}`}>
-					<Button size="sm">
-						<Plus className="mr-2 h-4 w-4" />
-						Add Assessment
-					</Button>
-				</Link>
 			</div>
 
 			<div className="rounded-md border">
@@ -109,7 +103,11 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 					</TableHeader>
 					<TableBody>
 						{assessments.map((assessment: any) => (
-							<TableRow key={assessment.id}>
+							<TableRow 
+								key={assessment.id}
+								className="cursor-pointer hover:bg-muted/50 transition-colors"
+								onClick={() => window.location.href = `/admin/assessments/${assessment.id}`}
+							>
 								<TableCell>
 									{assessment.level ? (
 										<Badge variant="outline">
@@ -144,13 +142,7 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 									)}
 								</TableCell>
 								<TableCell>
-									<p className="text-sm">
-										{assessment.interview_held_by ? 
-											`${assessment.interview_held_by.first_name} ${assessment.interview_held_by.last_name}`.trim() :
-										 assessment.level_checked_by ? 
-											`${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`.trim() :
-										 "-"}
-									</p>
+									<p className="text-sm">-</p>
 								</TableCell>
 								<TableCell>
 									<div className="flex gap-1">

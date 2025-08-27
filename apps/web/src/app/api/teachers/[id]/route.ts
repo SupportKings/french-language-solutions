@@ -5,11 +5,11 @@ import { teacherFormSchema } from "@/features/teachers/schemas/teacher.schema";
 // GET /api/teachers/[id] - Get a single teacher
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const supabase = await createClient();
-		const { id } = params;
+		const { id } = await params;
 		
 		const { data, error } = await supabase
 			.from("teachers")
@@ -64,11 +64,11 @@ export async function GET(
 // PATCH /api/teachers/[id] - Update a teacher
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const supabase = await createClient();
-		const { id } = params;
+		const { id } = await params;
 		const body = await request.json();
 		
 		// Validate request body (partial update)
@@ -131,11 +131,11 @@ export async function PATCH(
 // DELETE /api/teachers/[id] - Delete a teacher (soft delete)
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const supabase = await createClient();
-		const { id } = params;
+		const { id } = await params;
 		
 		// For now, we'll do a hard delete. 
 		// In production, you might want to implement soft delete with a deleted_at field

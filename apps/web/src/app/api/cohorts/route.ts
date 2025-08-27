@@ -83,3 +83,41 @@ export async function GET(request: NextRequest) {
 		);
 	}
 }
+
+// POST /api/cohorts - Create a new cohort
+export async function POST(request: NextRequest) {
+	try {
+		const supabase = await createClient();
+		const body = await request.json();
+		
+		// Remove weekly_sessions from body as they need to be handled separately
+		const { weekly_sessions, ...cohortData } = body;
+		
+		// Insert the cohort
+		const { data: cohort, error } = await supabase
+			.from("cohorts")
+			.insert({
+				...cohortData,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			})
+			.select()
+			.single();
+		
+		if (error) {
+			console.error("Error creating cohort:", error);
+			return NextResponse.json(
+				{ error: "Failed to create cohort" },
+				{ status: 500 }
+			);
+		}
+		
+		return NextResponse.json(cohort);
+	} catch (error) {
+		console.error("Error in POST /api/cohorts:", error);
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 }
+		);
+	}
+}

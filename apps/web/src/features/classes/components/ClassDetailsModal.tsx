@@ -26,7 +26,6 @@ import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { 
 	Calendar, 
 	Clock, 
-	MapPin, 
 	Users, 
 	Video, 
 	FolderOpen,
@@ -40,21 +39,25 @@ import { toast } from "sonner";
 
 interface ClassDetails {
 	id: string;
-	name?: string; // Optional - only if exists in DB
 	cohort_id: string;
 	start_time: string;
 	end_time: string;
 	status: "scheduled" | "in_progress" | "completed" | "cancelled";
-	room?: string;
 	meeting_link?: string;
 	notes?: string;
 	current_enrollment?: number;
+	attendance_count?: number;
 	google_drive_folder_id?: string;
 	teacher_id?: string;
-	teachers?: {
+	teacher?: {
 		id: string;
 		first_name: string;
 		last_name: string;
+	};
+	cohort?: {
+		id: string;
+		format: "online" | "in-person" | "hybrid";
+		room?: string;
 	};
 }
 
@@ -80,9 +83,9 @@ export function ClassDetailsModal({
 		if (classItem) {
 			setFormData({
 				status: classItem.status,
-				room: classItem.room || "",
 				meeting_link: classItem.meeting_link || "",
 				notes: classItem.notes || "",
+				google_drive_folder_id: classItem.google_drive_folder_id || "",
 			});
 		}
 	}, [classItem]);
@@ -132,8 +135,8 @@ export function ClassDetailsModal({
 	const startTime = new Date(classItem.start_time);
 	const endTime = new Date(classItem.end_time);
 	
-	// Generate a display name if class doesn't have a name
-	const displayName = classItem.name || `Class - ${format(classDate, "EEEE, MMM d")}`;
+	// Generate a display name for the class based on its date
+	const displayName = `Class - ${format(classDate, "EEEE, MMM d")}`;
 
 	const statusColors = {
 		scheduled: "bg-blue-500/10 text-blue-700 border-blue-200",
@@ -245,7 +248,7 @@ export function ClassDetailsModal({
 					</div>
 
 					{/* Teacher */}
-					{classItem.teachers && (
+					{classItem.teacher && (
 						<div className="space-y-2">
 							<Label>Teacher</Label>
 							<div className="flex items-center gap-2">
@@ -253,31 +256,11 @@ export function ClassDetailsModal({
 									<Users className="h-4 w-4 text-primary" />
 								</div>
 								<span className="text-sm">
-									{classItem.teachers.first_name} {classItem.teachers.last_name}
+									{classItem.teacher.first_name} {classItem.teacher.last_name}
 								</span>
 							</div>
 						</div>
 					)}
-
-					{/* Location */}
-					<div className="space-y-2">
-						<Label>Room/Location</Label>
-						{editing ? (
-							<Input
-								value={formData.room || ""}
-								onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-								onBlur={() => updateField("room", formData.room)}
-								placeholder="Enter room or location"
-							/>
-						) : classItem.room ? (
-							<div className="flex items-center gap-2 text-sm">
-								<MapPin className="h-4 w-4 text-muted-foreground" />
-								<span>{classItem.room}</span>
-							</div>
-						) : (
-							<span className="text-sm text-muted-foreground">Not specified</span>
-						)}
-					</div>
 
 					{/* Meeting Link */}
 					<div className="space-y-2">
@@ -325,20 +308,32 @@ export function ClassDetailsModal({
 					</div>
 
 					{/* Enrollment Info */}
-					{classItem.current_enrollment !== undefined && (
+					{(classItem.attendance_count !== undefined || classItem.current_enrollment !== undefined) && (
 						<div className="space-y-2">
 							<Label>Attendance</Label>
 							<div className="flex items-center gap-2 text-sm">
 								<Users className="h-4 w-4 text-muted-foreground" />
-								<span>{classItem.current_enrollment} students attending</span>
+								<span>{classItem.attendance_count ?? classItem.current_enrollment ?? 0} students attended</span>
 							</div>
 						</div>
 					)}
 
 					{/* Google Drive */}
-					{classItem.google_drive_folder_id && (
-						<div className="space-y-2">
-							<Label>Resources</Label>
+					<div className="space-y-2">
+						<Label>Google Drive Folder</Label>
+						{editing ? (
+							<div className="space-y-2">
+								<Input
+									value={formData.google_drive_folder_id || ""}
+									onChange={(e) => setFormData({ ...formData, google_drive_folder_id: e.target.value })}
+									onBlur={() => updateField("google_drive_folder_id", formData.google_drive_folder_id)}
+									placeholder="Google Drive folder ID"
+								/>
+								<p className="text-xs text-muted-foreground">
+									Enter the folder ID from the Google Drive URL (the part after /folders/)
+								</p>
+							</div>
+						) : classItem.google_drive_folder_id ? (
 							<a
 								href={`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`}
 								target="_blank"
@@ -349,8 +344,10 @@ export function ClassDetailsModal({
 								<span>Open Google Drive Folder</span>
 								<ExternalLink className="h-3 w-3" />
 							</a>
-						</div>
-					)}
+						) : (
+							<span className="text-sm text-muted-foreground">No folder linked</span>
+						)}
+					</div>
 
 					{/* System Info */}
 					<div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">

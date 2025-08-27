@@ -20,7 +20,6 @@ export async function GET(
 				),
 				classes(
 					id,
-					name,
 					start_time,
 					end_time
 				),
@@ -60,7 +59,6 @@ export async function GET(
 			} : undefined,
 			class: record.classes ? {
 				id: record.classes.id,
-				name: record.classes.name,
 				start_time: record.classes.start_time,
 				end_time: record.classes.end_time,
 			} : undefined,

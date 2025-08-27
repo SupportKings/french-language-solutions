@@ -46,7 +46,6 @@ interface AttendanceRecord {
 	};
 	class?: {
 		id: string;
-		name: string;
 		start_time: string;
 		end_time: string;
 	};
@@ -241,7 +240,7 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 	const groupedRecords = attendanceRecords.reduce((acc, record) => {
 		const key = groupBy === "student" 
 			? record.student?.full_name || "Unknown Student"
-			: record.class?.name || record.attendanceDate;
+			: record.attendanceDate; // Use date as grouping key for classes
 		
 		if (!acc[key]) {
 			acc[key] = [];
@@ -452,7 +451,7 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 													) : (
 														<>
 															<span className="font-medium text-sm">
-																{record.class?.name || format(new Date(record.attendanceDate), "MMM d, yyyy")}
+																{format(new Date(record.attendanceDate), "MMM d, yyyy")}
 															</span>
 															{record.class && (
 																<span className="text-xs text-muted-foreground ml-2">
@@ -567,7 +566,7 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 										return (
 											<SelectItem key={cls.id} value={cls.id}>
 												<div className="flex flex-col">
-													<span>{cls.name} - {format(classDate, "MMM d, yyyy 'at' h:mm a")}</span>
+													<span>{format(classDate, "MMM d, yyyy 'at' h:mm a")}</span>
 													{remainingStudents < enrolledStudents.length && (
 														<span className="text-xs text-muted-foreground">
 															{remainingStudents} students need attendance
@@ -600,7 +599,10 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 											<div className="flex items-center gap-2 text-sm text-muted-foreground">
 												<Calendar className="h-4 w-4" />
 												<span>
-													{classes.find(c => c.id === selectedClassId)?.name}
+													{(() => {
+														const selectedClass = classes.find(c => c.id === selectedClassId);
+														return selectedClass ? format(new Date(selectedClass.start_time), "MMM d, yyyy 'at' h:mm a") : "";
+													})()}
 												</span>
 											</div>
 										</>

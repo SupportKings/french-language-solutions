@@ -34,7 +34,6 @@ export async function PATCH(
 				),
 				classes(
 					id,
-					name,
 					start_time,
 					end_time
 				),
@@ -73,7 +72,6 @@ export async function PATCH(
 			} : undefined,
 			class: data.classes ? {
 				id: data.classes.id,
-				name: data.classes.name,
 				start_time: data.classes.start_time,
 				end_time: data.classes.end_time,
 			} : undefined,
@@ -114,7 +112,6 @@ export async function GET(
 				),
 				classes(
 					id,
-					name,
 					start_time,
 					end_time
 				),
@@ -160,7 +157,6 @@ export async function GET(
 			} : undefined,
 			class: data.classes ? {
 				id: data.classes.id,
-				name: data.classes.name,
 				start_time: data.classes.start_time,
 				end_time: data.classes.end_time,
 			} : undefined,

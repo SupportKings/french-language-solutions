@@ -187,7 +187,7 @@ export default async function TeacherDetailPage({
 										/>
 										<InfoField label="Max Hours/Week" value={`${teacher.maximum_hours_per_week}h`} icon={Clock} />
 										<InfoField label="Max Hours/Day" value={`${teacher.maximum_hours_per_day}h`} icon={Clock} />
-									</InfoField>
+									</InfoSection>
 								</div>
 
 								{/* Qualifications Section */}

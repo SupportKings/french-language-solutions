@@ -17,14 +17,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				*,
 				classes (
 					id,
-					name,
 					start_time,
 					end_time
 				),
 				cohorts (
 					id,
 					format,
-					current_level
+					current_level,
+					starting_level
 				)
 			`)
 			.eq("student_id", studentId)
@@ -110,9 +110,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			markedBy: record.marked_by,
 			markedAt: record.marked_at,
 			createdAt: record.created_at,
-			className: record.classes?.name || null,
+			className: null, // Classes don't have names anymore
 			classStartTime: record.classes?.start_time || null,
-			cohortName: record.cohorts ? `${record.cohorts.format} - Level ${record.cohorts.current_level}` : null,
+			cohortName: record.cohorts ? `${record.cohorts.format === 'group' ? 'Group' : 'Private'} - ${record.cohorts.current_level || record.cohorts.starting_level}`.toUpperCase() : null,
 		})) || [];
 
 		return NextResponse.json({

@@ -6,6 +6,7 @@ import {
 	integer,
 } from "drizzle-orm/pg-core";
 import { cohorts } from "./cohorts";
+import { teachers } from "./teachers";
 import { classStatusEnum } from "./enums";
 
 export const classes = pgTable("classes", {
@@ -13,15 +14,12 @@ export const classes = pgTable("classes", {
 	cohortId: uuid("cohort_id")
 		.notNull()
 		.references(() => cohorts.id, { onDelete: "cascade" }),
-	name: text("name").notNull(),
-	description: text("description"),
 	startTime: timestamp("start_time").notNull(), // Date and time
 	endTime: timestamp("end_time").notNull(), // Date and time
 	status: classStatusEnum("status").notNull().default("scheduled"),
 	
-	// Location & Resources
+	// Resources
 	googleCalendarEventId: text("google_calendar_event_id"),
-	room: text("room"),
 	meetingLink: text("meeting_link"),
 	googleDriveFolderId: text("google_drive_folder_id"),
 	
@@ -29,7 +27,8 @@ export const classes = pgTable("classes", {
 	currentEnrollment: integer("current_enrollment").default(0),
 	
 	// Teacher assignment
-	teacherId: uuid("teacher_id"), // FK to teachers table (when created)
+	teacherId: uuid("teacher_id")
+		.references(() => teachers.id, { onDelete: "set null" }),
 	
 	// Metadata
 	notes: text("notes"),

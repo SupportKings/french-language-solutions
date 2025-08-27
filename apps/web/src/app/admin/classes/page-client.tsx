@@ -154,7 +154,7 @@ export function ClassesPageClient() {
 						
 						<div className="ml-auto">
 							<Button 
-								onClick={() => router.push("/admin/classes/new")} 
+								onClick={() => router.push("/admin/cohorts/new")} 
 								size="sm" 
 								className="h-9"
 							>

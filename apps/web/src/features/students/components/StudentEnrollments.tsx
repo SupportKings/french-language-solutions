@@ -4,41 +4,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, AlertCircle, MoreHorizontal, Eye, Trash } from "lucide-react";
+import { 
+	Calendar, 
+	Users, 
+	AlertCircle, 
+	Edit2, 
+	Mail, 
+	Phone,
+	School,
+	MapPin,
+	Clock
+} from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-	DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 
 const statusColors = {
-	declined_contract: "destructive",
-	dropped_out: "destructive",
-	interested: "secondary",
-	beginner_form_filled: "warning",
-	contract_abandoned: "destructive",
-	contract_signed: "info",
-	payment_abandoned: "destructive",
-	paid: "success",
-	welcome_package_sent: "success",
-};
-
-const statusLabels = {
-	declined_contract: "Declined",
-	dropped_out: "Dropped Out",
-	interested: "Interested",
-	beginner_form_filled: "Form Filled",
-	contract_abandoned: "Contract Abandoned",
-	contract_signed: "Contract Signed",
-	payment_abandoned: "Payment Abandoned",
-	paid: "Paid",
-	welcome_package_sent: "Welcome Sent",
+	paid: "bg-green-500/10 text-green-700 border-green-200",
+	welcome_package_sent: "bg-blue-500/10 text-blue-700 border-blue-200",
+	contract_signed: "bg-purple-500/10 text-purple-700 border-purple-200",
+	interested: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
+	beginner_form_filled: "bg-indigo-500/10 text-indigo-700 border-indigo-200",
+	dropped_out: "bg-red-500/10 text-red-700 border-red-200",
+	declined_contract: "bg-red-500/10 text-red-700 border-red-200",
+	contract_abandoned: "bg-orange-500/10 text-orange-700 border-orange-200",
+	payment_abandoned: "bg-orange-500/10 text-orange-700 border-orange-200",
 };
 
 interface StudentEnrollmentsProps {
@@ -59,40 +50,31 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 		},
 	});
 
-	const deleteEnrollment = useMutation({
-		mutationFn: async (enrollmentId: string) => {
-			const response = await fetch(`/api/enrollments/${enrollmentId}`, {
-				method: "DELETE",
-			});
-			if (!response.ok) throw new Error("Failed to delete enrollment");
-			return response.json();
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["student-enrollments", studentId] });
-			toast.success("Enrollment removed successfully");
-		},
-		onError: () => {
-			toast.error("Failed to remove enrollment");
-		},
-	});
-
-	const handleDelete = (enrollmentId: string) => {
-		if (confirm("Are you sure you want to remove this enrollment?")) {
-			deleteEnrollment.mutate(enrollmentId);
-		}
-	};
-
 	if (isLoading) {
 		return (
-			<div className="space-y-2">
-				{Array.from({ length: 2 }).map((_, i) => (
-					<div key={i} className="rounded-lg border bg-muted/10 p-3">
-						<div className="flex items-start justify-between">
-							<div className="space-y-1">
-								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-3 w-32" />
+			<div className="grid gap-2">
+				{[1, 2, 3].map((i) => (
+					<div key={i} className="group relative overflow-hidden rounded-lg border bg-card animate-pulse">
+						<div className="p-3">
+							<div className="flex items-start justify-between gap-3">
+								<div className="flex items-start gap-3 flex-1 min-w-0">
+									<div className="h-9 w-9 rounded-full bg-muted flex-shrink-0" />
+									<div className="flex-1 min-w-0">
+										<div className="space-y-2">
+											<div className="h-4 w-32 bg-muted rounded" />
+											<div className="flex items-center gap-3">
+												<div className="h-3 w-40 bg-muted rounded" />
+												<div className="h-3 w-24 bg-muted rounded" />
+											</div>
+											<div className="flex items-center gap-2 mt-2">
+												<div className="h-5 w-20 bg-muted rounded" />
+												<div className="h-4 w-16 bg-muted rounded" />
+											</div>
+										</div>
+									</div>
+									<div className="h-8 w-8 bg-muted rounded" />
+								</div>
 							</div>
-							<Skeleton className="h-5 w-16" />
 						</div>
 					</div>
 				))}
@@ -102,66 +84,148 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 
 	if (!enrollments || enrollments.length === 0) {
 		return (
-			<div className="text-center py-4">
-				<AlertCircle className="h-6 w-6 text-muted-foreground/50 mx-auto mb-2" />
-				<p className="text-xs text-muted-foreground">No enrollments yet</p>
+			<div className="text-center py-8 bg-muted/30 rounded-lg">
+				<School className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+				<p className="text-muted-foreground">No enrollments yet</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="space-y-2">
-			{enrollments.map((enrollment: any) => (
-				<div key={enrollment.id} className="rounded-lg border bg-muted/10 hover:bg-muted/20 transition-colors">
-					<div className="p-3">
-						<div className="flex items-start justify-between">
-							<div className="space-y-1 flex-1">
-								<div className="flex items-center gap-2">
-									<span className="font-medium text-sm">
-										{enrollment.cohorts?.format === 'group' ? 'Group' : 'Private'} - {enrollment.cohorts?.starting_level?.toUpperCase()}
-									</span>
-									<Badge variant={statusColors[enrollment.status] as any} className="h-5 text-[10px] px-1.5">
-										{statusLabels[enrollment.status]}
-									</Badge>
-								</div>
-								<div className="flex items-center gap-3 text-xs text-muted-foreground">
-									{enrollment.cohorts?.start_date && (
-										<div className="flex items-center gap-1">
-											<Calendar className="h-3 w-3" />
-											<span>Starts {format(new Date(enrollment.cohorts.start_date), "MMM d, yyyy")}</span>
+		<div className="grid gap-2">
+			{enrollments.map((enrollment: any) => {
+				const enrollmentDate = enrollment.created_at
+					? new Date(enrollment.created_at)
+					: null;
+				const statusColor =
+					statusColors[enrollment.status as keyof typeof statusColors] || 
+					"bg-gray-500/10 text-gray-700 border-gray-200";
+
+				// Get cohort initials
+				const cohortInitials = enrollment.cohorts?.format === 'group' ? 'GC' : 'PC';
+
+				return (
+					<div
+						key={enrollment.id}
+						className="group relative overflow-hidden rounded-lg border bg-card hover:shadow-md transition-all duration-200"
+					>
+						<div className="p-3">
+							<div className="flex items-start justify-between gap-3">
+								<div className="flex items-start gap-3 flex-1 min-w-0">
+									<div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+										<span className="text-xs font-semibold text-primary">
+											{cohortInitials}
+										</span>
+									</div>
+									<div className="flex-1 min-w-0">
+										<div className="flex items-start justify-between gap-2">
+											<div className="flex-1 min-w-0">
+												<Link
+													href={`/admin/classes/${enrollment.cohort_id}`}
+													className="font-medium text-sm hover:text-primary hover:underline transition-colors truncate block"
+												>
+													{enrollment.cohorts?.format === 'group' ? 'Group' : 'Private'} - {enrollment.cohorts?.starting_level?.replace('_plus', '+').toUpperCase() || 'N/A'}
+												</Link>
+												<div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
+													{enrollment.cohorts?.start_date && (
+														<div className="flex items-center gap-1">
+															<Calendar className="h-3 w-3" />
+															<span>
+																Starts {format(new Date(enrollment.cohorts.start_date), "MMM d, yyyy")}
+															</span>
+														</div>
+													)}
+													{enrollment.cohorts?.room_type && (
+														<div className="flex items-center gap-1">
+															<MapPin className="h-3 w-3" />
+															<span className="capitalize">
+																{enrollment.cohorts.room_type.replace(/_/g, ' ').replace('for one to one', 'One-to-One')}
+															</span>
+														</div>
+													)}
+													{enrollmentDate && (
+														<div className="flex items-center gap-1">
+															<Clock className="h-3 w-3" />
+															<span>
+																Enrolled {enrollmentDate.toLocaleDateString("en-US", {
+																	month: "short",
+																	day: "numeric",
+																	year: "numeric",
+																})}
+															</span>
+														</div>
+													)}
+												</div>
+											</div>
 										</div>
-									)}
-									{enrollment.cohorts?.room_type && (
-										<div className="flex items-center gap-1">
-											<Users className="h-3 w-3" />
-											<span>{enrollment.cohorts.room_type.replace('_', ' ')}</span>
+
+										<div className="flex items-center gap-2 mt-2">
+											<Badge
+												variant="outline"
+												className={`text-[10px] h-5 px-2 font-medium ${statusColor}`}
+											>
+												{enrollment.status
+													?.replace(/_/g, " ")
+													.replace(/\b\w/g, (l: string) =>
+														l.toUpperCase()
+													)}
+											</Badge>
+
+											{enrollment.status && (
+												<div className="flex items-center gap-1">
+													<div className="flex gap-0.5">
+														{[
+															"interested",
+															"beginner_form_filled",
+															"contract_signed",
+															"paid",
+															"welcome_package_sent",
+														].map((step, index) => {
+															const currentIndex = [
+																"interested",
+																"beginner_form_filled",
+																"contract_signed",
+																"paid",
+																"welcome_package_sent",
+															].indexOf(enrollment.status);
+															const isCompleted =
+																index <= currentIndex;
+															return (
+																<div
+																	key={step}
+																	className={`h-1 w-3 rounded-full transition-colors ${
+																		isCompleted
+																			? "bg-primary"
+																			: "bg-muted"
+																	}`}
+																/>
+															);
+														})}
+													</div>
+												</div>
+											)}
 										</div>
-									)}
-								</div>
-								<div className="text-xs text-muted-foreground">
-									Enrolled {format(new Date(enrollment.created_at), "MMM d, yyyy")}
+									</div>
+
+									<Button
+										variant="outline"
+										size="sm"
+										className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+										onClick={() =>
+											router.push(
+												`/admin/students/enrollments/${enrollment.id}/edit`
+											)
+										}
+									>
+										<Edit2 className="h-3.5 w-3.5 mr-1" />
+										Edit
+									</Button>
 								</div>
 							</div>
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="ghost" size="icon" className="h-6 w-6">
-										<MoreHorizontal className="h-3 w-3" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									<DropdownMenuItem 
-										onClick={() => handleDelete(enrollment.id)}
-										className="text-destructive"
-									>
-										<Trash className="mr-2 h-4 w-4" />
-										Remove Enrollment
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
 						</div>
 					</div>
-				</div>
-			))}
+				);
+			})}
 		</div>
 	);
 }

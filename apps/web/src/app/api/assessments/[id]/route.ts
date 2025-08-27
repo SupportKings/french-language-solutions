@@ -5,23 +5,27 @@ interface RouteParams {
 	params: Promise<{ id: string }>;
 }
 
-// GET /api/assessments/[id] - Get a single assessment
+// GET /api/assessments/[id] - Get single assessment details
 export async function GET(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
-		
+
 		const { data, error } = await supabase
 			.from("student_assessments")
 			.select(`
 				*,
-				students(id, full_name, email),
-				interview_held_by:teachers!interview_held_by(id, first_name, last_name),
-				level_checked_by:teachers!level_checked_by(id, first_name, last_name)
+				students (
+					id,
+					full_name,
+					email,
+					mobile_phone_number,
+					desired_starting_language_level
+				)
 			`)
 			.eq("id", id)
 			.single();
-		
+
 		if (error) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
@@ -35,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				{ status: 500 }
 			);
 		}
-		
+
 		return NextResponse.json(data);
 	} catch (error) {
 		console.error("Error in GET /api/assessments/[id]:", error);
@@ -46,40 +50,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 	}
 }
 
-// PATCH /api/assessments/[id] - Update an assessment
+// PATCH /api/assessments/[id] - Update assessment
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
 		const body = await request.json();
-		
-		const updateData = {
-			level: body.level,
-			scheduled_for: body.scheduledFor,
-			is_paid: body.isPaid,
-			result: body.result,
-			notes: body.notes,
-			interview_held_by: body.interviewHeldBy,
-			level_checked_by: body.levelCheckedBy,
-			meeting_recording_url: body.meetingRecordingUrl,
-			calendar_event_url: body.calendarEventUrl,
-			updated_at: new Date().toISOString(),
-		};
-		
-		// Remove undefined values
-		Object.keys(updateData).forEach(key => {
-			if (updateData[key] === undefined) {
-				delete updateData[key];
-			}
-		});
-		
+
+		// Remove id from update data if present
+		const { id: _, ...updateData } = body;
+
+		// Add updated_at timestamp
+		updateData.updated_at = new Date().toISOString();
+
 		const { data, error } = await supabase
 			.from("student_assessments")
 			.update(updateData)
 			.eq("id", id)
-			.select()
+			.select(`
+				*,
+				students (
+					id,
+					full_name,
+					email,
+					mobile_phone_number,
+					desired_starting_language_level
+				)
+			`)
 			.single();
-		
+
 		if (error) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
@@ -93,7 +92,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 				{ status: 500 }
 			);
 		}
-		
+
 		return NextResponse.json(data);
 	} catch (error) {
 		console.error("Error in PATCH /api/assessments/[id]:", error);
@@ -104,26 +103,32 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	}
 }
 
-// DELETE /api/assessments/[id] - Delete an assessment
+// DELETE /api/assessments/[id] - Delete assessment
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
-		
+
 		const { error } = await supabase
 			.from("student_assessments")
 			.delete()
 			.eq("id", id);
-		
+
 		if (error) {
+			if (error.code === "PGRST116") {
+				return NextResponse.json(
+					{ error: "Assessment not found" },
+					{ status: 404 }
+				);
+			}
 			console.error("Error deleting assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete assessment" },
 				{ status: 500 }
 			);
 		}
-		
-		return NextResponse.json({ message: "Assessment deleted successfully" });
+
+		return NextResponse.json({ success: true });
 	} catch (error) {
 		console.error("Error in DELETE /api/assessments/[id]:", error);
 		return NextResponse.json(

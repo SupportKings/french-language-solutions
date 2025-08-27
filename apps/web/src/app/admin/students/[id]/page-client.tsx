@@ -51,6 +51,31 @@ interface StudentDetailsClientProps {
 	assessmentCount: number;
 }
 
+// Enrollment status configuration
+const ENROLLMENT_STATUS_LABELS = {
+	declined_contract: "Declined",
+	dropped_out: "Dropped Out",
+	interested: "Interested",
+	beginner_form_filled: "Form Filled",
+	contract_abandoned: "Contract Abandoned",
+	contract_signed: "Contract Signed",
+	payment_abandoned: "Payment Abandoned",
+	paid: "Paid",
+	welcome_package_sent: "Welcome Package Sent",
+};
+
+const ENROLLMENT_STATUS_COLORS = {
+	declined_contract: "destructive",
+	dropped_out: "destructive",
+	interested: "secondary",
+	beginner_form_filled: "warning",
+	contract_abandoned: "destructive",
+	contract_signed: "info",
+	payment_abandoned: "destructive",
+	paid: "success",
+	welcome_package_sent: "success",
+};
+
 export default function StudentDetailsClient({ 
 	student: initialStudent, 
 	enrollmentCount, 
@@ -58,7 +83,9 @@ export default function StudentDetailsClient({
 }: StudentDetailsClientProps) {
 	const router = useRouter();
 	const [student, setStudent] = useState(initialStudent);
-	const isActive = true; // Would be calculated from enrollment status
+	
+	// Get enrollment status from the student data
+	const enrollmentStatus = (student as any).enrollment_status;
 	
 	// Get initials for avatar
 	const initials = student.full_name
@@ -142,15 +169,16 @@ export default function StudentDetailsClient({
 							</div>
 							<div>
 								<h1 className="text-xl font-semibold">{student.full_name}</h1>
-								<div className="flex items-center gap-2 mt-0.5">
-									<Badge variant={isActive ? "success" : "secondary"} className="h-4 text-[10px] px-1.5">
-										{isActive ? "Active" : "Inactive"}
-									</Badge>
-									<span className="text-xs text-muted-foreground">
-										{enrollmentCount} enrollment{enrollmentCount !== 1 ? 's' : ''} • 
-										{assessmentCount} assessment{assessmentCount !== 1 ? 's' : ''}
-									</span>
-								</div>
+								{enrollmentStatus && (
+									<div className="flex items-center gap-2 mt-0.5">
+										<Badge 
+											variant={ENROLLMENT_STATUS_COLORS[enrollmentStatus as keyof typeof ENROLLMENT_STATUS_COLORS] as any} 
+											className="h-4 text-[10px] px-1.5"
+										>
+											{ENROLLMENT_STATUS_LABELS[enrollmentStatus as keyof typeof ENROLLMENT_STATUS_LABELS] || enrollmentStatus}
+										</Badge>
+									</div>
+								)}
 							</div>
 						</div>
 						
@@ -371,34 +399,25 @@ export default function StudentDetailsClient({
 										<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-xs text-muted-foreground">Newsletter:</p>
-											{editing ? (
-												<InlineEditField
-													value={student.added_to_email_newsletter ? "true" : "false"}
-													onSave={(value) => updateStudentField("added_to_email_newsletter", value === "true")}
-													editing={editing}
-													type="select"
-													options={[
-														{ label: "Subscribed", value: "true" },
-														{ label: "Not Subscribed", value: "false" },
-													]}
-												/>
-											) : (
-												<Badge variant={student.added_to_email_newsletter ? "success" : "secondary"} className="h-5 text-xs">
-													{student.added_to_email_newsletter ? "Subscribed" : "Not Subscribed"}
-												</Badge>
-											)}
+											<Badge variant={student.added_to_email_newsletter ? "success" : "secondary"} className="h-5 text-xs">
+												{student.added_to_email_newsletter ? "Subscribed" : "Not Subscribed"}
+											</Badge>
 										</div>
 									</div>
 									
-									{student.initial_channel && (
-										<div className="flex items-start gap-3">
-											<Zap className="h-4 w-4 text-muted-foreground mt-0.5" />
-											<div className="flex-1 space-y-0.5">
-												<p className="text-xs text-muted-foreground">Initial Channel:</p>
-												<p className="text-sm font-medium">{student.initial_channel}</p>
-											</div>
+									<div className="flex items-start gap-3">
+										<Zap className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-xs text-muted-foreground">Initial Channel:</p>
+											<InlineEditField
+												value={student.initial_channel || ""}
+												onSave={(value) => updateStudentField("initial_channel", value || null)}
+												editing={editing}
+												type="text"
+												placeholder="Enter initial channel"
+											/>
 										</div>
-									)}
+									</div>
 								</div>
 
 								{/* External Integrations - Read only */}
@@ -428,8 +447,8 @@ export default function StudentDetailsClient({
 				{/* Academic & Progress Tabs */}
 				<div className="mt-6">
 					<Tabs defaultValue="enrollments" className="w-full">
-						<div className="flex items-center justify-between mb-4">
-							<TabsList className="grid grid-cols-3 w-[400px]">
+						<div className="flex items-center justify-between mb-4 w-full">
+							<TabsList className="grid grid-cols-3 w-full">
 								<TabsTrigger value="enrollments" className="flex items-center gap-2">
 									<BookOpen className="h-3.5 w-3.5" />
 									Enrollments
@@ -496,15 +515,7 @@ export default function StudentDetailsClient({
 									</div>
 								</CardHeader>
 								<CardContent className="pt-0">
-									{assessmentCount === 0 ? (
-										<div className="text-center py-8 text-muted-foreground">
-											<ClipboardCheck className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-											<p className="text-sm font-medium mb-1">No assessments yet</p>
-											<p className="text-xs">Schedule an assessment to evaluate the student's language level</p>
-										</div>
-									) : (
-										<StudentAssessments studentId={student.id} />
-									)}
+									<StudentAssessments studentId={student.id} />
 								</CardContent>
 							</Card>
 						</TabsContent>

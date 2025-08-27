@@ -23,9 +23,7 @@ export async function GET(request: NextRequest) {
 			.from("student_assessments")
 			.select(`
 				*,
-				students!inner(id, full_name, email),
-				interview_held_by:teachers!interview_held_by(id, first_name, last_name),
-				level_checked_by:teachers!level_checked_by(id, first_name, last_name)
+				students(id, full_name, email)
 			`, { count: "exact" });
 		
 		// Apply filters

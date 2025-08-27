@@ -51,8 +51,6 @@ const studentFormSchema = z.object({
 		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
 		"b2", "b2_plus", "c1", "c1_plus", "c2"
 	]).optional(),
-	website_quiz_submission_date: z.date().optional(),
-	added_to_email_newsletter: z.boolean().default(false),
 	initial_channel: z.enum([
 		"form", "quiz", "call", "message", "email", "assessment"
 	]).optional(),
@@ -90,10 +88,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			mobile_phone_number: student?.mobile_phone_number || "",
 			city: student?.city || "",
 			desired_starting_language_level: student?.desired_starting_language_level,
-			website_quiz_submission_date: student?.website_quiz_submission_date 
-				? new Date(student.website_quiz_submission_date) 
-				: undefined,
-			added_to_email_newsletter: student?.added_to_email_newsletter || false,
 			initial_channel: student?.initial_channel,
 			communication_channel: student?.communication_channel || "sms_email",
 			is_full_beginner: student?.is_full_beginner || false,
@@ -124,9 +118,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			// Format dates for API
 			const payload = {
 				...values,
-				website_quiz_submission_date: values.website_quiz_submission_date
-					? format(values.website_quiz_submission_date, "yyyy-MM-dd")
-					: null,
 				subjective_deadline_for_student: values.subjective_deadline_for_student
 					? format(values.subjective_deadline_for_student, "yyyy-MM-dd")
 					: null,
@@ -377,48 +368,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 										options={initialChannels}
 									/>
 								</FormField>
-							</FormRow>
-
-							<FormRow>
-								<FormField 
-									label="Quiz Submission Date"
-									error={form.formState.errors.website_quiz_submission_date?.message}
-								>
-									<Popover>
-										<PopoverTrigger asChild>
-											<Button
-												variant="outline"
-												className={cn(
-													"w-full h-9 justify-start text-left font-normal",
-													!form.watch("website_quiz_submission_date") && "text-muted-foreground"
-												)}
-											>
-												<CalendarIcon className="mr-2 h-4 w-4" />
-												{form.watch("website_quiz_submission_date") ? (
-													format(form.watch("website_quiz_submission_date"), "PPP")
-												) : (
-													<span>Pick a date</span>
-												)}
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent className="w-auto p-0" align="start">
-											<Calendar
-												mode="single"
-												selected={form.watch("website_quiz_submission_date")}
-												onSelect={(date) => form.setValue("website_quiz_submission_date", date)}
-												initialFocus
-											/>
-										</PopoverContent>
-									</Popover>
-								</FormField>
-								<div className="flex items-end">
-									<SwitchField
-										label="Email Newsletter"
-										description="Subscribed to marketing emails"
-										checked={form.watch("added_to_email_newsletter")}
-										onCheckedChange={(checked) => form.setValue("added_to_email_newsletter", checked)}
-									/>
-								</div>
 							</FormRow>
 						</FormSection>
 

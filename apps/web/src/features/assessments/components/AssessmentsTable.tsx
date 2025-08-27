@@ -298,9 +298,17 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 								</TableRow>
 							) : (
 								data?.assessments?.map((assessment: any) => (
-									<TableRow key={assessment.id}>
+									<TableRow 
+										key={assessment.id}
+										className="cursor-pointer hover:bg-muted/50 transition-colors"
+										onClick={() => window.location.href = `/admin/assessments/${assessment.id}`}
+									>
 										<TableCell>
-											<Link href={`/admin/students/${assessment.student_id}`} className="hover:underline">
+											<Link 
+												href={`/admin/students/${assessment.student_id}`} 
+												className="hover:underline"
+												onClick={(e) => e.stopPropagation()}
+											>
 												<div>
 													<p className="font-medium">{assessment.students?.full_name}</p>
 													<p className="text-sm text-muted-foreground">

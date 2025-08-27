@@ -5,7 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 
 const pageInfo: Record<string, { title: string; description?: string }> = {
   "/admin": { title: "Dashboard", description: "Welcome to your admin dashboard" },
-  "/admin/students": { title: "All Students", description: "Manage your student database" },
+  "/admin/students": { title: "Students/Leads", description: "Manage your student database" },
   "/admin/students/new": { title: "New Student", description: "Add a new student to the system" },
   "/admin/students/enrollments": { title: "Enrollments", description: "Manage student class enrollments" },
   "/admin/students/assessments": { title: "Assessments", description: "Manage student language assessments" },

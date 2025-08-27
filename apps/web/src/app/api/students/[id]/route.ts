@@ -13,7 +13,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		
 		const { data, error } = await supabase
 			.from("students")
-			.select("*")
+			.select(`
+				*,
+				enrollments (
+					id,
+					status,
+					cohort_id,
+					created_at,
+					updated_at
+				)
+			`)
 			.eq("id", id)
 			.is("deleted_at", null)
 			.single();
@@ -32,8 +41,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 		
-		// No transformation needed - pass data as-is!
-		return NextResponse.json(data);
+		// Add enrollment status from the latest enrollment
+		const processedData = {
+			...data,
+			enrollment_status: null as string | null,
+			latest_enrollment: null as any
+		};
+		
+		if (data.enrollments && data.enrollments.length > 0) {
+			// Sort enrollments by created_at to get the latest one
+			const sortedEnrollments = data.enrollments.sort((a: any, b: any) => 
+				new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+			);
+			const latestEnrollment = sortedEnrollments[0];
+			processedData.enrollment_status = latestEnrollment.status;
+			processedData.latest_enrollment = latestEnrollment;
+		}
+		
+		return NextResponse.json(processedData);
 	} catch (error) {
 		console.error("Error in GET /api/students/[id]:", error);
 		return NextResponse.json(

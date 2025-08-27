@@ -10,24 +10,19 @@ export async function GET(
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
-		const { data, error } = await supabase
+		// First get the class with cohort
+		const { data: classData, error } = await supabase
 			.from("classes")
 			.select(`
 				*,
-				cohort:cohorts(*),
-				teachers(
-					id,
-					first_name,
-					last_name,
-					email
-				)
+				cohort:cohorts(*)
 			`)
 			.eq("id", id)
 			.is("deleted_at", null)
 			.single();
 
-		if (error) {
-			if (error.code === "PGRST116") {
+		if (error || !classData) {
+			if (error?.code === "PGRST116" || !classData) {
 				return NextResponse.json(
 					{ error: "Class not found" },
 					{ status: 404 }
@@ -39,6 +34,23 @@ export async function GET(
 				{ status: 500 }
 			);
 		}
+
+		// If there's a teacher_id, fetch teacher separately
+		let teacher = null;
+		if (classData.teacher_id) {
+			const { data: teacherData } = await supabase
+				.from("teachers")
+				.select("id, first_name, last_name, email")
+				.eq("id", classData.teacher_id)
+				.single();
+			
+			teacher = teacherData;
+		}
+
+		const data = {
+			...classData,
+			teacher
+		};
 
 		return NextResponse.json(data);
 	} catch (error) {
@@ -53,13 +65,10 @@ export async function GET(
 // PUT /api/classes/[id] - Update a class
 const updateClassSchema = z.object({
 	cohort_id: z.string().uuid().optional(),
-	name: z.string().min(1, "Name is required").optional(),
-	description: z.string().optional().nullable(),
 	start_time: z.string().datetime().optional(),
 	end_time: z.string().datetime().optional(),
 	status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]).optional(),
 	google_calendar_event_id: z.string().optional().nullable(),
-	room: z.string().optional().nullable(),
 	meeting_link: z.string().url().optional().nullable(),
 	google_drive_folder_id: z.string().optional().nullable(),
 	current_enrollment: z.number().int().min(0).optional(),
@@ -131,7 +140,8 @@ export async function PATCH(
 		const body = await request.json();
 		const supabase = await createClient();
 
-		const { data, error } = await supabase
+		// Update the class
+		const { data: updatedClass, error } = await supabase
 			.from("classes")
 			.update({
 				...body,
@@ -141,13 +151,7 @@ export async function PATCH(
 			.is("deleted_at", null)
 			.select(`
 				*,
-				cohort:cohorts(*),
-				teachers(
-					id,
-					first_name,
-					last_name,
-					email
-				)
+				cohort:cohorts(*)
 			`)
 			.single();
 
@@ -158,6 +162,23 @@ export async function PATCH(
 				{ status: 500 }
 			);
 		}
+
+		// If there's a teacher_id, fetch teacher separately
+		let teacher = null;
+		if (updatedClass?.teacher_id) {
+			const { data: teacherData } = await supabase
+				.from("teachers")
+				.select("id, first_name, last_name, email")
+				.eq("id", updatedClass.teacher_id)
+				.single();
+			
+			teacher = teacherData;
+		}
+
+		const data = {
+			...updatedClass,
+			teacher
+		};
 
 		return NextResponse.json(data);
 	} catch (error) {

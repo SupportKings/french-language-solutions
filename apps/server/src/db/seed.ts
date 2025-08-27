@@ -12,11 +12,7 @@ import {
 	templateFollowUpMessages,
 	automatedFollowUps,
 	touchpoints,
-	attendanceRecords,
-	user,
-	session,
-	account,
-	verification
+	attendanceRecords
 } from "./schema";
 import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
@@ -24,13 +20,7 @@ import { eq } from "drizzle-orm";
 async function seed() {
 	console.log("🌱 Starting seed...");
 
-	// Check if we should preserve user data
-	const existingUsers = await db.select().from(user);
-	const preserveUserData = existingUsers.length > 0;
-	
-	if (preserveUserData) {
-		console.log("📌 Preserving existing user data...");
-	}
+	// No need to check for user data as Better Auth manages users separately
 
 	// Clear non-user data (in reverse order of dependencies)
 	console.log("🗑️ Clearing existing non-user data...");
@@ -48,14 +38,7 @@ async function seed() {
 	await db.delete(teachers);
 	await db.delete(students);
 	
-	// Clear BetterAuth tables only if not preserving user data
-	if (!preserveUserData) {
-		console.log("🗑️ Clearing auth tables...");
-		await db.delete(verification);
-		await db.delete(session);
-		await db.delete(account);
-		await db.delete(user);
-	}
+	// Note: Better Auth tables are managed separately
 
 	// Seed Students (50)
 	console.log("👥 Seeding students...");
@@ -113,37 +96,37 @@ async function seed() {
 	const productsData = [
 		{
 			displayName: "Beginner French Intensive",
-			location: "online",
+			location: "online" as const,
 			format: "group" as const,
 			signupLinkForSelfCheckout: "https://checkout.example.com/beginner-intensive",
 		},
 		{
 			displayName: "Business French Professional",
-			location: "in_person",
+			location: "in_person" as const,
 			format: "group" as const,
 			signupLinkForSelfCheckout: "https://checkout.example.com/business-pro",
 		},
 		{
 			displayName: "Private French Tutoring",
-			location: "online",
+			location: "online" as const,
 			format: "private" as const,
 			signupLinkForSelfCheckout: "https://checkout.example.com/private-tutoring",
 		},
 		{
 			displayName: "Conversational French",
-			location: "hybrid",
+			location: "hybrid" as const,
 			format: "group" as const,
 			signupLinkForSelfCheckout: "https://checkout.example.com/conversational",
 		},
 		{
 			displayName: "DELF/DALF Preparation",
-			location: "online",
+			location: "online" as const,
 			format: "group" as const,
 			signupLinkForSelfCheckout: "https://checkout.example.com/delf-prep",
 		},
 		{
 			displayName: "Kids French Fun",
-			location: "in_person",
+			location: "in_person" as const,
 			format: "group" as const,
 			signupLinkForSelfCheckout: "https://checkout.example.com/kids-french",
 		},
@@ -300,7 +283,7 @@ async function seed() {
 			enrollmentsData.push({
 				studentId: student.id,
 				cohortId: cohort.id,
-				status: status.value,
+				status: status as any,
 				enrollmentDate: faker.date.between({ 
 					from: '2024-01-01', 
 					to: '2024-03-01' 
@@ -316,34 +299,29 @@ async function seed() {
 	console.log("📧 Seeding follow-up sequences...");
 	const sequencesData = [
 		{
-			name: "New Student Welcome Series",
-			description: "Automated welcome emails for new students",
-			triggerEvent: "enrollment_created" as const,
-			isActive: true,
+			displayName: "New Student Welcome Series",
+			subject: "Welcome to French Language Solutions!",
+			firstFollowUpDelayMinutes: 30,
 		},
 		{
-			name: "Payment Reminder Sequence",
-			description: "Gentle reminders for pending payments",
-			triggerEvent: "contract_signed" as const,
-			isActive: true,
+			displayName: "Payment Reminder Sequence",
+			subject: "Gentle Payment Reminder",
+			firstFollowUpDelayMinutes: 1440, // 24 hours
 		},
 		{
-			name: "Re-engagement Campaign",
-			description: "Win back dropped students",
-			triggerEvent: "custom" as const,
-			isActive: true,
+			displayName: "Re-engagement Campaign",
+			subject: "We Miss You!",
+			firstFollowUpDelayMinutes: 2880, // 48 hours
 		},
 		{
-			name: "Birthday Wishes",
-			description: "Automated birthday greetings",
-			triggerEvent: "custom" as const,
-			isActive: true,
+			displayName: "Birthday Wishes",
+			subject: "Happy Birthday from FLS!",
+			firstFollowUpDelayMinutes: 0,
 		},
 		{
-			name: "Class Reminder Series",
-			description: "Weekly class reminders",
-			triggerEvent: "custom" as const,
-			isActive: true,
+			displayName: "Class Reminder Series",
+			subject: "Upcoming Class Reminder",
+			firstFollowUpDelayMinutes: 60,
 		},
 	];
 	
@@ -360,11 +338,10 @@ async function seed() {
 		for (let i = 0; i < messageCount; i++) {
 			messagesData.push({
 				sequenceId: sequence.id,
-				orderInSequence: i + 1,
-				delayDays: i * 3,
-				subject: faker.lorem.sentence(5),
-				content: faker.lorem.paragraphs(2),
-				channel: faker.helpers.arrayElement(["email", "sms", "both"] as const),
+				stepIndex: i + 1,
+				timeDelayHours: i * 24 * 3, // Every 3 days
+				messageContent: faker.lorem.paragraphs(2),
+				status: "active" as const,
 			});
 		}
 	}
@@ -375,8 +352,8 @@ async function seed() {
 	// Seed Touchpoints
 	console.log("🤝 Seeding touchpoints...");
 	const touchpointsData = [];
-	const touchpointTypes = ["call", "email", "sms", "meeting", "note"] as const;
-	const directions = ["inbound", "outbound"] as const;
+	const touchpointChannels = ["call", "email", "sms", "whatsapp"] as const;
+	const touchpointTypes = ["inbound", "outbound"] as const;
 	
 	// Create touchpoints for a subset of students
 	const studentsWithTouchpoints = faker.helpers.arrayElements(insertedStudents, 30);
@@ -385,20 +362,14 @@ async function seed() {
 		const touchpointCount = faker.number.int({ min: 2, max: 8 });
 		
 		for (let i = 0; i < touchpointCount; i++) {
+			const channel = faker.helpers.arrayElement(touchpointChannels);
 			touchpointsData.push({
 				studentId: student.id,
+				channel: channel,
 				type: faker.helpers.arrayElement(touchpointTypes),
-				direction: faker.helpers.arrayElement(directions),
-				date: faker.date.recent({ days: 60 }).toISOString().split('T')[0],
-				time: faker.date.recent().toTimeString().split(' ')[0],
-				notes: faker.lorem.sentence(),
-				followUpRequired: faker.datatype.boolean(),
-				followUpDate: faker.datatype.boolean() 
-					? faker.date.soon({ days: 7 }).toISOString().split('T')[0]
-					: null,
-				createdBy: preserveUserData && existingUsers[0] 
-					? existingUsers[0].id 
-					: null,
+				message: faker.lorem.sentence(),
+				source: "manual" as const,
+				occurredAt: faker.date.recent({ days: 60 }),
 			});
 		}
 	}
@@ -489,14 +460,18 @@ async function seed() {
 		);
 		
 		for (const enrollment of attendingStudents) {
+			const statusOptions = faker.helpers.weightedArrayElement([
+				{ weight: 7, value: "attended" },
+				{ weight: 2, value: "not_attended" },
+				{ weight: 1, value: "unset" },
+			]);
+			
 			attendanceData.push({
 				classId: classItem.id,
 				studentId: enrollment.studentId,
-				status: faker.helpers.weightedArrayElement([
-					{ weight: 7, value: "present" },
-					{ weight: 2, value: "absent" },
-					{ weight: 1, value: "late" },
-				]).value as "present" | "absent" | "late" | "excused",
+				cohortId: classItem.cohortId,
+				attendanceDate: classItem.startTime.toISOString().split('T')[0],
+				status: statusOptions as any,
 				notes: faker.datatype.boolean() ? faker.lorem.sentence() : null,
 			});
 		}
@@ -520,7 +495,7 @@ async function seed() {
 - ${insertedAssessments.length} student assessments
 - ${insertedClasses.length} classes
 - ${insertedAttendance.length} attendance records
-${preserveUserData ? "- User data preserved" : "- Fresh seed (no existing users)"}
+- Fresh seed completed
 	`);
 }
 

@@ -13,16 +13,26 @@ export async function GET(request: NextRequest) {
 		const search = searchParams.get("search") || "";
 		const desired_starting_language_level = searchParams.get("desired_starting_language_level");
 		const initial_channel = searchParams.get("initial_channel");
+		const enrollmentStatus = searchParams.getAll("enrollment_status"); // Get all values for multi-select
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 		
 		// Calculate offset
 		const offset = (page - 1) * limit;
 		
-		// Build query
+		// Build query with latest enrollment status
 		let query = supabase
 			.from("students")
-			.select("*", { count: "exact" })
+			.select(`
+				*,
+				enrollments (
+					id,
+					status,
+					cohort_id,
+					created_at,
+					updated_at
+				)
+			`, { count: "exact" })
 			.is("deleted_at", null) // Exclude soft deleted
 			.range(offset, offset + limit - 1)
 			.order(sortBy, { ascending: sortOrder === "asc" });
@@ -52,14 +62,35 @@ export async function GET(request: NextRequest) {
 			);
 		}
 		
-		// No transformation needed - pass data as-is!
+		// Process data to add latest enrollment status
+		const processedData = (data || []).map(student => {
+			// Find the latest enrollment
+			const latestEnrollment = student.enrollments?.sort((a: any, b: any) => 
+				new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+			)[0];
+			
+			return {
+				...student,
+				enrollment_status: latestEnrollment?.status || null,
+				latest_enrollment: latestEnrollment || null
+			};
+		});
+		
+		// Filter by enrollment status if specified (supports multiple statuses)
+		let finalData = processedData;
+		if (enrollmentStatus && enrollmentStatus.length > 0) {
+			finalData = processedData.filter(student => 
+				enrollmentStatus.includes(student.enrollment_status)
+			);
+		}
+		
 		return NextResponse.json({
-			data: data || [],
+			data: finalData,
 			meta: {
-				total: count || 0,
+				total: enrollmentStatus && enrollmentStatus.length > 0 ? finalData.length : (count || 0),
 				page,
 				limit,
-				totalPages: Math.ceil((count || 0) / limit),
+				totalPages: Math.ceil((enrollmentStatus && enrollmentStatus.length > 0 ? finalData.length : (count || 0)) / limit),
 			},
 		});
 	} catch (error) {
