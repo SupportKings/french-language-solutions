@@ -54,11 +54,11 @@ const assessmentFormSchema = z.object({
 	result: z.enum([
 		"requested", "scheduled", "session_held", "level_determined"
 	]),
-	notes: z.string().optional().or(z.literal("")),
-	interview_held_by: z.string().optional().or(z.literal("")),
-	level_checked_by: z.string().optional().or(z.literal("")),
-	meeting_recording_url: z.string().url().optional().or(z.literal("")),
-	calendar_event_url: z.string().url().optional().or(z.literal("")),
+	notes: z.union([z.string(), z.literal("")]).optional(),
+	interview_held_by: z.union([z.string(), z.literal("")]).optional(),
+	level_checked_by: z.union([z.string(), z.literal("")]).optional(),
+	meeting_recording_url: z.union([z.string().url(), z.literal("")]).optional(),
+	calendar_event_url: z.union([z.string().url(), z.literal("")]).optional(),
 });
 
 type AssessmentFormValues = z.infer<typeof assessmentFormSchema>;
