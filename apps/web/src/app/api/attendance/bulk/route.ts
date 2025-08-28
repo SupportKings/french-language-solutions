@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 		const recordsWithTimestamps = records.map(record => ({
 			...record,
 			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 			// TODO: Add created_by once we have teacher authentication linked
 		}));
 

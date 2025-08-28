@@ -90,6 +90,17 @@ const data = {
         },
       ],
     },
+    {
+      title: "Configuration",
+      url: "#",
+      icon: Settings,
+      items: [
+        {
+          title: "Language Levels",
+          url: "/admin/configuration/language-levels",
+        },
+      ],
+    },
   ],
 }
 

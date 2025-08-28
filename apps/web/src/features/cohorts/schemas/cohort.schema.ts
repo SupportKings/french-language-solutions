@@ -17,7 +17,6 @@ export const RoomTypeEnum = z.enum([
 // Base cohort schema - using exact DB column names (snake_case)
 export const CohortSchema = z.object({
 	id: z.string().uuid(),
-	title: z.string().nullable(), // Custom cohort title
 	product_id: z.string().uuid().nullable(),
 	google_drive_folder_id: z.string().nullable(),
 	starting_level_id: z.string().uuid().nullable(),

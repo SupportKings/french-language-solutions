@@ -330,12 +330,9 @@ export function EnrollmentFormNew({
 												<span className="truncate flex items-center gap-2">
 													{selectedCohort ? (
 														<>
-															{selectedCohort.title || (
-																<>
-																	<span className="text-muted-foreground">Title Missing</span>
-																	<AlertCircle className="h-3 w-3 text-warning" />
-																</>
-															)}
+															{selectedCohort.products?.format ? 
+																`${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort` : 
+																'Cohort'}
 														</>
 													) : "Select cohort..."}
 												</span>
@@ -353,7 +350,7 @@ export function EnrollmentFormNew({
 														cohorts.map((cohort, index) => (
 															<CommandItem
 																key={`cohort-${cohort.id}-${index}`}
-																value={`${cohort.title || 'No Title'} ${cohort.format || ''} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ''}`.toLowerCase()}
+																value={`${cohort.products?.format || 'cohort'} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ''}`.toLowerCase()}
 																onSelect={() => {
 																	form.setValue("cohort_id", cohort.id);
 																	setCohortPopoverOpen(false);
@@ -369,15 +366,12 @@ export function EnrollmentFormNew({
 																<div className="flex items-start gap-2 flex-1">
 																	<div className="flex flex-col flex-1">
 																		<span className="font-medium flex items-center gap-2">
-																			{cohort.title || (
-																				<>
-																					<span className="text-muted-foreground">Title Missing</span>
-																					<AlertCircle className="h-3 w-3 text-warning" />
-																				</>
-																			)}
+																			{cohort.products?.format ? 
+																				`${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Cohort` : 
+																				'Cohort'}
 																		</span>
 																		<span className="text-xs text-muted-foreground">
-																			{cohort.products?.format || 'N/A'} - {cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || 'N/A'}
+																			{cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || 'N/A'}
 																			{cohort.start_date && ` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
 																		</span>
 																	</div>
@@ -416,22 +410,12 @@ export function EnrollmentFormNew({
 											<Users className="h-4 w-4 text-muted-foreground" />
 											<span className="text-muted-foreground">Cohort:</span>
 											<span className="font-medium flex items-center gap-2">
-												{selectedCohort.title ? (
-													<>
-														{selectedCohort.title}
-														<span className="text-xs text-muted-foreground">
-															({selectedCohort.format} - {selectedCohort.starting_level?.display_name || selectedCohort.starting_level?.code?.toUpperCase() || 'N/A'})
-														</span>
-													</>
-												) : (
-													<>
-														<span className="text-muted-foreground">Title Missing</span>
-														<AlertCircle className="h-3 w-3 text-warning" />
-														<span className="text-xs text-muted-foreground">
-															({selectedCohort.format} - {selectedCohort.starting_level?.display_name || selectedCohort.starting_level?.code?.toUpperCase() || 'N/A'})
-														</span>
-													</>
-												)}
+												{selectedCohort.products?.format ? 
+													`${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort` : 
+													'Cohort'}
+												<span className="text-xs text-muted-foreground">
+													({selectedCohort.starting_level?.display_name || selectedCohort.starting_level?.code?.toUpperCase() || 'N/A'})
+												</span>
 											</span>
 											{selectedCohort.start_date && (
 												<span className="text-xs text-muted-foreground">

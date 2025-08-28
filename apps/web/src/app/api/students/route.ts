@@ -43,8 +43,7 @@ export async function GET(request: NextRequest) {
 					id,
 					code,
 					display_name,
-					level_group,
-					level_number
+					level_group
 				),
 				enrollments (
 					id,

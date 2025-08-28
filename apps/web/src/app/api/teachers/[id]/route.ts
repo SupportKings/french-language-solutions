@@ -92,7 +92,7 @@ export async function PATCH(
 				...(validatedData.available_for_in_person_classes !== undefined && { available_for_in_person_classes: validatedData.available_for_in_person_classes }),
 				...(validatedData.mobile_phone_number !== undefined && { mobile_phone_number: validatedData.mobile_phone_number }),
 				...(validatedData.admin_notes !== undefined && { admin_notes: validatedData.admin_notes }),
-				updated_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 			.eq("id", id)
 			.select()

@@ -69,7 +69,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		const updateData = {
 			...(body.status && { status: body.status }),
 			...(body.cohortId && { cohort_id: body.cohortId }),
-			updated_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 		};
 		
 		const { data, error } = await supabase

@@ -36,15 +36,24 @@ export async function GET(request: NextRequest) {
 					id,
 					code,
 					display_name,
-					level_group,
-					level_number
+					level_group
 				),
 				current_level:language_levels!current_level_id (
 					id,
 					code,
 					display_name,
-					level_group,
-					level_number
+					level_group
+				),
+				weekly_sessions (
+					id,
+					day_of_week,
+					start_time,
+					end_time,
+					teacher:teachers (
+						id,
+						first_name,
+						last_name
+					)
 				)
 			`, { count: "exact" })
 			.range(offset, offset + limit - 1)
@@ -120,7 +129,7 @@ export async function POST(request: NextRequest) {
 			.insert({
 				...cohortData,
 				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 			.select()
 			.single();

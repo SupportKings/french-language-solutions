@@ -273,13 +273,7 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 							{/* Tabs for Student Information */}
 							<div className="mt-6">
 								<Tabs defaultValue="student" className="w-full">
-									<TabsList className="grid grid-cols-1 w-[150px]">
-										<TabsTrigger value="student" className="flex items-center gap-2">
-											<UserCircle className="h-3.5 w-3.5" />
-											Student Info
-										</TabsTrigger>
-									</TabsList>
-
+							
 									{/* Student Information Tab */}
 									<TabsContent value="student" className="mt-4">
 										<Card className="border-border/50">

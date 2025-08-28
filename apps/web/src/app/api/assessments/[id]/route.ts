@@ -25,16 +25,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 						id,
 						code,
 						display_name,
-						level_group,
-						level_number
+						level_group
 					)
 				),
 				language_level:language_levels!level_id (
 					id,
 					code,
 					display_name,
-					level_group,
-					level_number
+					level_group
 				),
 				interview_held_by_teacher:teachers!interview_held_by (
 					id,
@@ -103,16 +101,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 						id,
 						code,
 						display_name,
-						level_group,
-						level_number
+						level_group
 					)
 				),
 				language_level:language_levels!level_id (
 					id,
 					code,
 					display_name,
-					level_group,
-					level_number
+					level_group
 				),
 				interview_held_by_teacher:teachers!interview_held_by (
 					id,

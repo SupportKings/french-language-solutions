@@ -16,7 +16,7 @@ export async function PATCH(
 
 		const updateData: any = {
 			marked_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 			// TODO: Add marked_by once we have teacher authentication linked
 		};
 

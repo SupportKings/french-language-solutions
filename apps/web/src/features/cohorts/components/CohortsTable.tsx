@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
 	Table,
 	TableBody,
@@ -15,7 +16,9 @@ import {
 	Calendar,
 	Users,
 	MapPin,
-	CheckCircle2
+	CheckCircle2,
+	Clock,
+	User
 } from "lucide-react";
 import type { Cohort, WeeklySession, CohortStatus, RoomType } from "../schemas/cohort.schema";
 import { format } from "date-fns";
@@ -149,6 +152,8 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 						<TableHead>Format</TableHead>
 						<TableHead>Students</TableHead>
 						<TableHead>Level Progress</TableHead>
+						<TableHead>Weekly Sessions</TableHead>
+						<TableHead>Teachers</TableHead>
 						<TableHead>Status</TableHead>
 						<TableHead>Start Date</TableHead>
 					</TableRow>
@@ -162,6 +167,8 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 								<TableCell><Skeleton className="h-4 w-20" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-24" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-20" /></TableCell>
+								<TableCell><Skeleton className="h-4 w-24" /></TableCell>
+								<TableCell><Skeleton className="h-4 w-24" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-16" /></TableCell>
 								<TableCell><Skeleton className="h-4 w-20" /></TableCell>
 							</TableRow>
@@ -169,7 +176,7 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 					) : cohortsWithStats.length === 0 ? (
 						// Empty state
 						<TableRow>
-							<TableCell colSpan={6} className="text-center py-12">
+							<TableCell colSpan={8} className="text-center py-12">
 								<Users className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
 								<h3 className="text-lg font-semibold mb-2">No cohorts found</h3>
 								<p className="text-muted-foreground mb-4">Create your first cohort to get started.</p>
@@ -194,7 +201,7 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 									<TableCell>
 										<div className="h-12 flex items-center">
 											<p className="font-medium">
-												{cohort.title || `${cohort.products?.format ? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1) : ''} Cohort`}
+												{cohort.products?.format ? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Cohort` : 'Cohort'}
 											</p>
 										</div>
 									</TableCell>
@@ -230,6 +237,45 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 											<p className="text-sm">
 												{formatLevel(cohort.starting_level)} → {formatLevel(cohort.current_level)}
 											</p>
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="h-12 flex flex-col justify-center gap-0.5 overflow-hidden">
+											{cohort.weekly_sessions && cohort.weekly_sessions.length > 0 ? (
+												cohort.weekly_sessions.slice(0, 2).map((session: any) => (
+													<Badge key={session.id} variant="outline" className="w-fit text-xs">
+														<Clock className="h-3 w-3 mr-1" />
+														{session.day_of_week.slice(0, 3).charAt(0).toUpperCase() + session.day_of_week.slice(1, 3)}, {session.start_time?.slice(0, 5) || 'N/A'}
+													</Badge>
+												))
+											) : (
+												<span className="text-xs text-muted-foreground">No sessions</span>
+											)}
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="h-12 flex flex-col justify-center gap-0.5 overflow-hidden">
+											{cohort.weekly_sessions && cohort.weekly_sessions.length > 0 ? (
+												[...new Map(cohort.weekly_sessions.map((session: any) => 
+													[session.teacher?.id, session.teacher]
+												)).values()].filter(Boolean).slice(0, 2).map((teacher: any) => (
+													<Link
+														key={teacher.id}
+														href={`/admin/teachers/${teacher.id}`}
+														className="inline-flex items-center"
+														onClick={(e) => e.stopPropagation()}
+													>
+														<Badge variant="secondary" className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs">
+															<User className="h-3 w-3 mr-1" />
+															{teacher.first_name && teacher.last_name ? 
+																`${teacher.first_name} ${teacher.last_name}` : 
+																teacher.first_name || teacher.last_name || 'Unknown'}
+														</Badge>
+													</Link>
+												))
+											) : (
+												<span className="text-xs text-muted-foreground">No teachers</span>
+											)}
 										</div>
 									</TableCell>
 									<TableCell>

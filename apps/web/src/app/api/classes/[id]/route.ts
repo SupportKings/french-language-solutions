@@ -89,7 +89,7 @@ export async function PUT(
 		// Add updated_at timestamp
 		const updateData = {
 			...validatedData,
-			updated_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 		};
 
 		const { data, error } = await supabase
@@ -145,7 +145,7 @@ export async function PATCH(
 			.from("classes")
 			.update({
 				...body,
-				updated_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 			.eq("id", id)
 			.is("deleted_at", null)
@@ -202,7 +202,7 @@ export async function DELETE(
 			.from("classes")
 			.update({ 
 				deleted_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 			.eq("id", id)
 			.is("deleted_at", null)

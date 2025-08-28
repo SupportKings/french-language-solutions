@@ -56,7 +56,6 @@ import Link from "next/link";
 // Schema for the cohort form
 const cohortFormSchema = z.object({
 	// Basic Information
-	title: z.string().optional(),
 	format: z.enum(["group", "private"]),
 	starting_level_id: z.string(),
 	current_level_id: z.string().optional(),
@@ -126,7 +125,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
 		defaultValues: {
-			title: cohort?.title || "",
 			format: cohort?.format || "group",
 			starting_level_id: cohort?.starting_level_id || "",
 			current_level_id: cohort?.current_level_id || cohort?.starting_level_id,
@@ -286,27 +284,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							</CardHeader>
 							<CardContent className="space-y-4">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="title"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Cohort Title (Optional)</FormLabel>
-											<FormControl>
-												<Input 
-													placeholder="e.g., Spring 2024 A1 Group" 
-													{...field}
-													value={field.value || ""}
-												/>
-											</FormControl>
-											<FormDescription>
-												A custom title to easily identify this cohort
-											</FormDescription>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
 								<FormField
 									control={form.control}
 									name="format"

@@ -22,8 +22,7 @@ export async function GET(
 						id,
 						code,
 						display_name,
-						level_group,
-						level_number
+						level_group
 					)
 				),
 				sequences:template_follow_up_sequences!sequence_id (
@@ -81,7 +80,7 @@ export async function PATCH(
 			.from("automated_follow_ups")
 			.update({
 				...body,
-				updated_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 			.eq("id", id)
 			.select()

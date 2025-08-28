@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
 			.from("language_levels")
 			.select("*")
 			.order("level_group", { ascending: true })
-			.order("level_number", { ascending: true, nullsFirst: true });
 
 		if (error) {
 			console.error("Error fetching language levels:", error);

@@ -75,7 +75,7 @@ export async function PUT(
 				external_id: body.external_id,
 				external_metadata: body.external_metadata,
 				occurred_at: body.occurred_at,
-				updated_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 			.eq("id", id)
 			.select()
@@ -111,7 +111,7 @@ export async function PATCH(
 		// For PATCH, we only update the fields that are provided
 		const updateData = {
 			...body,
-			updated_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 		};
 
 		const { data, error } = await supabase

@@ -138,10 +138,9 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 													href={`/admin/classes/${enrollment.cohort_id}`}
 													className="font-medium text-sm hover:text-primary hover:underline transition-colors truncate block"
 												>
-													{enrollment.cohorts?.title ? 
-														enrollment.cohorts.title :
-														`${enrollment.cohorts?.products?.format === 'group' ? 'Group' : 'Private'} - ${enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || 'N/A'}`
-													}
+													{enrollment.cohorts?.products?.format ? 
+														`${enrollment.cohorts.products.format.charAt(0).toUpperCase() + enrollment.cohorts.products.format.slice(1)} Cohort` : 
+														'Cohort'} - {enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || 'N/A'}
 												</Link>
 												<div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
 													{enrollment.cohorts?.start_date && (

@@ -47,7 +47,7 @@ async function getTeacher(id: string) {
 		maximum_hours_per_week: 35,
 		maximum_hours_per_day: 8,
 		created_at: new Date().toISOString(),
-		updated_at: new Date().toISOString(),
+		updated_at: new Date().toISOString()
 	};
 	return teacher;
 }

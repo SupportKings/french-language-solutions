@@ -158,7 +158,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 		// Build update object
 		const updateData: any = {
-			updated_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
 		};
 
 		// Only update fields that are provided

@@ -235,7 +235,6 @@ async function seed() {
 	console.log("🎓 Seeding cohorts...");
 	const cohortsData = [
 		{
-			title: "Spring 2024 Beginner French",
 			productId: insertedProducts[0].id,
 			startingLevelId: insertedLanguageLevels.find(l => l.code === 'a1.1')?.id,
 			currentLevelId: insertedLanguageLevels.find(l => l.code === 'a1.6')?.id,
@@ -246,7 +245,6 @@ async function seed() {
 			setupFinalized: true,
 		},
 		{
-			title: "Advanced Business French - Q2 2024",
 			productId: insertedProducts[1].id,
 			startingLevelId: insertedLanguageLevels.find(l => l.code === 'b2.1')?.id,
 			currentLevelId: insertedLanguageLevels.find(l => l.code === 'b2.6')?.id,
@@ -257,7 +255,6 @@ async function seed() {
 			setupFinalized: true,
 		},
 		{
-			title: "Summer Intensive 2024",
 			productId: insertedProducts[3].id,
 			startingLevelId: insertedLanguageLevels.find(l => l.code === 'a2.1')?.id,
 			currentLevelId: insertedLanguageLevels.find(l => l.code === 'a2.1')?.id,
@@ -268,7 +265,6 @@ async function seed() {
 			setupFinalized: false,
 		},
 		{
-			title: "Private Tutoring - Sarah M.",
 			productId: insertedProducts[2].id,
 			startingLevelId: insertedLanguageLevels.find(l => l.code === 'b1.1')?.id,
 			currentLevelId: insertedLanguageLevels.find(l => l.code === 'b1.6')?.id,
@@ -279,7 +275,6 @@ async function seed() {
 			setupFinalized: true,
 		},
 		{
-			title: "Kids Saturday Morning French",
 			productId: insertedProducts[5].id,
 			startingLevelId: insertedLanguageLevels.find(l => l.code === 'a1.1')?.id,
 			currentLevelId: insertedLanguageLevels.find(l => l.code === 'a1.1')?.id,
@@ -290,7 +285,6 @@ async function seed() {
 			setupFinalized: false,
 		},
 		{
-			title: "DELF B2 Preparation Fall 2024",
 			productId: insertedProducts[4].id,
 			startingLevelId: insertedLanguageLevels.find(l => l.code === 'b2.1')?.id,
 			currentLevelId: insertedLanguageLevels.find(l => l.code === 'b2.1')?.id,
@@ -519,7 +513,7 @@ async function seed() {
 			
 			classesData.push({
 				cohortId: cohort.id,
-				name: `Class ${i + 1} - ${cohort.title}`,
+				name: `Class ${i + 1} - Cohort`,
 				description: faker.lorem.sentence(),
 				startTime: startTime,
 				endTime: endTime,

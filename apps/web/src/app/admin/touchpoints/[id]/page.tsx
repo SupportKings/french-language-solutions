@@ -24,8 +24,7 @@ export default async function TouchpointDetailsPage({ params }: TouchpointPagePr
 					id,
 					code,
 					display_name,
-					level_group,
-					level_number
+					level_group
 				)
 			),
 			automated_follow_up:automated_follow_ups!automated_follow_up_id (
