@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
+
 import { z } from "zod";
 
 // GET /api/classes/[id] - Get a single class by ID
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -23,15 +25,12 @@ export async function GET(
 
 		if (error || !classData) {
 			if (error?.code === "PGRST116" || !classData) {
-				return NextResponse.json(
-					{ error: "Class not found" },
-					{ status: 404 }
-				);
+				return NextResponse.json({ error: "Class not found" }, { status: 404 });
 			}
 			console.error("Error fetching class:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch class" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -43,13 +42,13 @@ export async function GET(
 				.select("id, first_name, last_name, email")
 				.eq("id", classData.teacher_id)
 				.single();
-			
+
 			teacher = teacherData;
 		}
 
 		const data = {
 			...classData,
-			teacher
+			teacher,
 		};
 
 		return NextResponse.json(data);
@@ -57,7 +56,7 @@ export async function GET(
 		console.error("Error in GET /api/classes/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -67,7 +66,9 @@ const updateClassSchema = z.object({
 	cohort_id: z.string().uuid().optional(),
 	start_time: z.string().datetime().optional(),
 	end_time: z.string().datetime().optional(),
-	status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]).optional(),
+	status: z
+		.enum(["scheduled", "in_progress", "completed", "cancelled"])
+		.optional(),
 	google_calendar_event_id: z.string().optional().nullable(),
 	meeting_link: z.string().url().optional().nullable(),
 	google_drive_folder_id: z.string().optional().nullable(),
@@ -78,7 +79,7 @@ const updateClassSchema = z.object({
 
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -89,7 +90,7 @@ export async function PUT(
 		// Add updated_at timestamp
 		const updateData = {
 			...validatedData,
-			updated_at: new Date().toISOString()
+			updated_at: new Date().toISOString(),
 		};
 
 		const { data, error } = await supabase
@@ -102,15 +103,12 @@ export async function PUT(
 
 		if (error) {
 			if (error.code === "PGRST116") {
-				return NextResponse.json(
-					{ error: "Class not found" },
-					{ status: 404 }
-				);
+				return NextResponse.json({ error: "Class not found" }, { status: 404 });
 			}
 			console.error("Error updating class:", error);
 			return NextResponse.json(
 				{ error: "Failed to update class" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -119,13 +117,13 @@ export async function PUT(
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: "Validation error", details: error.issues },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 		console.error("Error in PUT /api/classes/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -133,7 +131,7 @@ export async function PUT(
 // PATCH /api/classes/[id] - Partial update a class
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -145,7 +143,7 @@ export async function PATCH(
 			.from("classes")
 			.update({
 				...body,
-				updated_at: new Date().toISOString()
+				updated_at: new Date().toISOString(),
 			})
 			.eq("id", id)
 			.is("deleted_at", null)
@@ -159,7 +157,7 @@ export async function PATCH(
 			console.error("Error updating class:", error);
 			return NextResponse.json(
 				{ error: "Failed to update class" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -171,13 +169,13 @@ export async function PATCH(
 				.select("id, first_name, last_name, email")
 				.eq("id", updatedClass.teacher_id)
 				.single();
-			
+
 			teacher = teacherData;
 		}
 
 		const data = {
 			...updatedClass,
-			teacher
+			teacher,
 		};
 
 		return NextResponse.json(data);
@@ -185,7 +183,7 @@ export async function PATCH(
 		console.error("Error in PATCH /api/classes/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -193,16 +191,16 @@ export async function PATCH(
 // DELETE /api/classes/[id] - Soft delete a class
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
 		const { data, error } = await supabase
 			.from("classes")
-			.update({ 
+			.update({
 				deleted_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
+				updated_at: new Date().toISOString(),
 			})
 			.eq("id", id)
 			.is("deleted_at", null)
@@ -211,15 +209,12 @@ export async function DELETE(
 
 		if (error) {
 			if (error.code === "PGRST116") {
-				return NextResponse.json(
-					{ error: "Class not found" },
-					{ status: 404 }
-				);
+				return NextResponse.json({ error: "Class not found" }, { status: 404 });
 			}
 			console.error("Error deleting class:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete class" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -228,7 +223,7 @@ export async function DELETE(
 		console.error("Error in DELETE /api/classes/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

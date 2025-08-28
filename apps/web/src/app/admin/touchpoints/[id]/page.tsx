@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
+
 import { TouchpointDetailsClient } from "@/features/touchpoints/components/TouchpointDetailsClient";
 
 interface TouchpointPageProps {
 	params: Promise<{ id: string }>;
 }
 
-export default async function TouchpointDetailsPage({ params }: TouchpointPageProps) {
+export default async function TouchpointDetailsPage({
+	params,
+}: TouchpointPageProps) {
 	const { id } = await params;
 	const supabase = await createClient();
 
@@ -48,12 +52,15 @@ export default async function TouchpointDetailsPage({ params }: TouchpointPagePr
 	const transformedTouchpoint = {
 		...touchpoint,
 		student: touchpoint.students,
-		automated_follow_up: touchpoint.automated_follow_up ? {
-			...touchpoint.automated_follow_up,
-			sequence_name: touchpoint.automated_follow_up.sequences?.display_name || 'Unknown Sequence'
-		} : null
+		automated_follow_up: touchpoint.automated_follow_up
+			? {
+					...touchpoint.automated_follow_up,
+					sequence_name:
+						touchpoint.automated_follow_up.sequences?.display_name ||
+						"Unknown Sequence",
+				}
+			: null,
 	};
 
 	return <TouchpointDetailsClient touchpoint={transformedTouchpoint} />;
 }
-

@@ -1,24 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useEffect, useState } from "react";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-	Calendar,
-	Clock,
-	User,
-	ExternalLink,
+
+import { format } from "date-fns";
+import {
 	AlertCircle,
+	Calendar,
 	CheckCircle2,
+	Clock,
+	ExternalLink,
+	User,
+	Users,
 	XCircle,
-	Users
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
 
 interface AutomatedFollowUp {
 	id: string;
@@ -70,7 +74,7 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 	const [loading, setLoading] = useState(true);
 	const router = useRouter();
 	const pathname = usePathname();
-	
+
 	// Get current URL for redirectTo
 	const currentUrl = `${pathname}?tab=followups`;
 
@@ -92,11 +96,11 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 	useEffect(() => {
 		fetchFollowUps();
 	}, [studentId]);
-	
+
 	// Refresh data when returning from forms
 	useEffect(() => {
 		const searchParams = new URLSearchParams(window.location.search);
-		if (searchParams.get('tab') === 'followups') {
+		if (searchParams.get("tab") === "followups") {
 			fetchFollowUps();
 		}
 	}, [pathname]);
@@ -105,7 +109,7 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 		return (
 			<div className="space-y-3">
 				{[...Array(3)].map((_, i) => (
-					<div key={i} className="border rounded-lg p-4">
+					<div key={i} className="rounded-lg border p-4">
 						<div className="flex items-start gap-4">
 							<Skeleton className="h-10 w-10 rounded" />
 							<div className="flex-1 space-y-2">
@@ -125,86 +129,111 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 
 	if (followUps.length === 0) {
 		return (
-			<div className="text-center py-8 bg-muted/30 rounded-lg">
-				<Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-				<p className="text-muted-foreground mb-1">No follow-ups yet</p>
-				<p className="text-xs text-muted-foreground">Follow-ups will appear here once created</p>
+			<div className="rounded-lg bg-muted/30 py-8 text-center">
+				<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
+				<p className="mb-1 text-muted-foreground">No follow-ups yet</p>
+				<p className="text-muted-foreground text-xs">
+					Follow-ups will appear here once created
+				</p>
 			</div>
 		);
 	}
 
 	// Sort follow-ups by started date (newest first)
-	const sortedFollowUps = followUps.sort((a, b) => 
-		new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+	const sortedFollowUps = followUps.sort(
+		(a, b) =>
+			new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
 	);
 
 	return (
 		<div className="space-y-3">
 			{sortedFollowUps.map((followUp) => {
-				const statusInfo = statusConfig[followUp.status] || statusConfig.activated; // Default to activated if status not found
+				const statusInfo =
+					statusConfig[followUp.status] || statusConfig.activated; // Default to activated if status not found
 				const StatusIcon = statusInfo.icon;
-				const isOngoing = followUp.status === 'ongoing';
+				const isOngoing = followUp.status === "ongoing";
 
 				return (
 					<div
 						key={followUp.id}
 						className={cn(
-							"border rounded-lg p-4 transition-all duration-200 hover:shadow-md",
-							isOngoing && "border-yellow-200 bg-yellow-50/30"
+							"rounded-lg border p-4 transition-all duration-200 hover:shadow-md",
+							isOngoing && "border-yellow-200 bg-yellow-50/30",
 						)}
 					>
 						<div className="flex items-start gap-4">
-							<div className={cn(
-								"h-10 w-10 rounded-lg flex items-center justify-center",
-								isOngoing ? "bg-yellow-100 text-yellow-600" : "bg-muted/50 text-muted-foreground"
-							)}>
+							<div
+								className={cn(
+									"flex h-10 w-10 items-center justify-center rounded-lg",
+									isOngoing
+										? "bg-yellow-100 text-yellow-600"
+										: "bg-muted/50 text-muted-foreground",
+								)}
+							>
 								<StatusIcon className="h-5 w-5" />
 							</div>
 
-							<div className="flex-1 min-w-0">
+							<div className="min-w-0 flex-1">
 								<div className="flex items-start justify-between gap-3">
 									<div className="flex-1">
-										<h3 className="font-medium text-sm leading-tight mb-1">
+										<h3 className="mb-1 font-medium text-sm leading-tight">
 											{followUp.sequence.display_name}
 										</h3>
-										<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+										<p className="mb-2 line-clamp-2 text-muted-foreground text-xs">
 											{followUp.sequence.subject}
 										</p>
 									</div>
-									
+
 									<Button
 										asChild
 										variant="ghost"
 										size="sm"
-										className="h-8 px-2 flex-shrink-0"
+										className="h-8 flex-shrink-0 px-2"
 									>
-										<Link href={`/admin/follow-ups/${followUp.id}?redirectTo=${encodeURIComponent(currentUrl)}`}>
+										<Link
+											href={`/admin/follow-ups/${followUp.id}?redirectTo=${encodeURIComponent(currentUrl)}`}
+										>
 											<ExternalLink className="h-3.5 w-3.5" />
 										</Link>
 									</Button>
 								</div>
 
-								<div className="flex items-center gap-2 flex-wrap mt-2">
-									<Badge variant="outline" className={cn("text-xs", statusInfo.color)}>
+								<div className="mt-2 flex flex-wrap items-center gap-2">
+									<Badge
+										variant="outline"
+										className={cn("text-xs", statusInfo.color)}
+									>
 										{statusInfo.label}
 									</Badge>
 
-									<div className="flex items-center gap-1 text-xs text-muted-foreground">
+									<div className="flex items-center gap-1 text-muted-foreground text-xs">
 										<Calendar className="h-3 w-3" />
-										<span>Started: {format(new Date(followUp.started_at), "MMM d, yyyy")}</span>
+										<span>
+											Started:{" "}
+											{format(new Date(followUp.started_at), "MMM d, yyyy")}
+										</span>
 									</div>
 
 									{followUp.last_message_sent_at && (
-										<div className="flex items-center gap-1 text-xs text-muted-foreground">
+										<div className="flex items-center gap-1 text-muted-foreground text-xs">
 											<Clock className="h-3 w-3" />
-											<span>Last message: {format(new Date(followUp.last_message_sent_at), "MMM d, yyyy")}</span>
+											<span>
+												Last message:{" "}
+												{format(
+													new Date(followUp.last_message_sent_at),
+													"MMM d, yyyy",
+												)}
+											</span>
 										</div>
 									)}
 
 									{followUp.completed_at && (
-										<div className="flex items-center gap-1 text-xs text-muted-foreground">
+										<div className="flex items-center gap-1 text-muted-foreground text-xs">
 											<CheckCircle2 className="h-3 w-3" />
-											<span>Completed: {format(new Date(followUp.completed_at), "MMM d, yyyy")}</span>
+											<span>
+												Completed:{" "}
+												{format(new Date(followUp.completed_at), "MMM d, yyyy")}
+											</span>
 										</div>
 									)}
 								</div>

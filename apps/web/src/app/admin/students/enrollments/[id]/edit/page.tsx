@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+
 import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
 
 async function getEnrollment(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 	const response = await fetch(`${baseUrl}/api/enrollments/${id}`, {
 		cache: "no-store",
 	});
@@ -29,10 +30,5 @@ export default async function EditEnrollmentPage({
 		notFound();
 	}
 
-	return (
-		<EnrollmentFormNew 
-			enrollment={enrollment} 
-			redirectTo={redirectTo}
-		/>
-	);
+	return <EnrollmentFormNew enrollment={enrollment} redirectTo={redirectTo} />;
 }

@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
+
 import { Card, CardContent } from "@/components/ui/card";
+
 import { AssessmentForm } from "@/features/assessments/components/AssessmentForm";
 
 async function getAssessment(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 	const response = await fetch(`${baseUrl}/api/assessments/${id}`, {
 		cache: "no-store",
 	});
@@ -30,10 +32,10 @@ export default async function EditAssessmentPage({
 	return (
 		<div className="p-6">
 			<div className="mb-6">
-				<h1 className="text-2xl font-bold">Edit Assessment</h1>
+				<h1 className="font-bold text-2xl">Edit Assessment</h1>
 				<p className="text-muted-foreground">Update assessment information</p>
 			</div>
-			
+
 			<Card>
 				<CardContent className="pt-6">
 					<AssessmentForm assessment={assessment} />

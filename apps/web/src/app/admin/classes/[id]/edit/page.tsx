@@ -1,11 +1,18 @@
-import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getUser } from "@/queries/getUser";
+
+import { classesApi } from "@/features/classes/api/classes.api";
 import { ClassForm } from "@/features/classes/components/ClassForm";
 import { classesQueries } from "@/features/classes/queries/classes.queries";
-import { classesApi } from "@/features/classes/api/classes.api";
+
+import { getUser } from "@/queries/getUser";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
 
 export default async function EditClassPage({
 	params,
@@ -37,15 +44,15 @@ export default async function EditClassPage({
 				<div className="flex items-center gap-4">
 					<Link
 						href={`/admin/classes/${id}`}
-						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+						className="inline-flex items-center text-muted-foreground text-sm transition-colors hover:text-foreground"
 					>
 						<ChevronLeft className="mr-1 h-4 w-4" />
 						Back to Class Details
 					</Link>
 				</div>
-				
+
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Edit Class</h1>
+					<h1 className="font-bold text-2xl tracking-tight">Edit Class</h1>
 					<p className="text-muted-foreground">
 						Update class information and schedule
 					</p>

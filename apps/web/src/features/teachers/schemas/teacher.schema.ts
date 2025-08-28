@@ -13,10 +13,7 @@ export const onboardingStatusEnum = z.enum([
 	"offboarded",
 ]);
 
-export const contractTypeEnum = z.enum([
-	"full_time",
-	"freelancer",
-]);
+export const contractTypeEnum = z.enum(["full_time", "freelancer"]);
 
 // Teacher schema for forms
 export const teacherFormSchema = z.object({

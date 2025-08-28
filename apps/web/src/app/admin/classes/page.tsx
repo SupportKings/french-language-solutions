@@ -1,8 +1,15 @@
-import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { getUser } from "@/queries/getUser";
 import { redirect } from "next/navigation";
-import { ClassesPageClient } from "./page-client";
+
 import { cohortsQueries } from "@/features/cohorts/queries/cohorts.queries";
+
+import { getUser } from "@/queries/getUser";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import { ClassesPageClient } from "./page-client";
 
 export default async function ClassesPage({
 	searchParams,
@@ -25,8 +32,8 @@ export default async function ClassesPage({
 		starting_level: params.starting_level as any,
 		current_level: params.current_level as any,
 		room_type: params.room_type as any,
-		page: params.page ? parseInt(params.page as string) : 1,
-		limit: params.limit ? parseInt(params.limit as string) : 20,
+		page: params.page ? Number.parseInt(params.page as string) : 1,
+		limit: params.limit ? Number.parseInt(params.limit as string) : 20,
 	};
 
 	// Prefetch cohorts data

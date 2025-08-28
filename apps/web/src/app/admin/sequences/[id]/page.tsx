@@ -1,39 +1,41 @@
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import {
+	DetailViewContent,
+	DetailViewHeader,
+	DetailViewLayout,
+	InfoField,
+	InfoSection,
+	OverviewCard,
+	RelatedDataCard,
+	SystemInfoCard,
+} from "@/components/detail-view/DetailViewLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	DetailViewLayout,
-	DetailViewHeader,
-	DetailViewContent,
-	RelatedDataCard,
-	InfoSection,
-	InfoField,
-	OverviewCard,
-	SystemInfoCard
-} from "@/components/detail-view/DetailViewLayout";
-import { 
-	Layers,
-	MessageSquare,
-	Clock,
-	Calendar,
-	Users,
-	Play,
-	Edit,
-	Copy,
-	Trash2,
-	Plus,
-	Bot,
-	Zap,
-	Activity,
-	Target,
-	Mail,
-	FileText,
-	ChevronRight,
-	Hash,
-	AlertCircle
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { format } from "date-fns";
+import {
+	Activity,
+	AlertCircle,
+	Bot,
+	Calendar,
+	ChevronRight,
+	Clock,
+	Copy,
+	Edit,
+	FileText,
+	Hash,
+	Layers,
+	Mail,
+	MessageSquare,
+	Play,
+	Plus,
+	Target,
+	Trash2,
+	Users,
+	Zap,
+} from "lucide-react";
 
 // Mock data fetcher - replace with actual API call
 async function getSequence(id: string) {
@@ -51,42 +53,47 @@ async function getSequence(id: string) {
 				id: "msg-1",
 				order: 1,
 				title: "Welcome Message",
-				content: "Welcome to French Language Solutions! We're thrilled to have you join our community of learners.",
+				content:
+					"Welcome to French Language Solutions! We're thrilled to have you join our community of learners.",
 				delay_minutes: 0,
-				channel: "email"
+				channel: "email",
 			},
 			{
 				id: "msg-2",
 				order: 2,
 				title: "Learning Materials",
-				content: "Here are your personalized learning materials for Week 1. Let's start with the basics!",
+				content:
+					"Here are your personalized learning materials for Week 1. Let's start with the basics!",
 				delay_minutes: 1440, // 24 hours
-				channel: "email"
+				channel: "email",
 			},
 			{
 				id: "msg-3",
 				order: 3,
 				title: "Check-in",
-				content: "How's your first week going? Do you have any questions about the materials?",
+				content:
+					"How's your first week going? Do you have any questions about the materials?",
 				delay_minutes: 10080, // 7 days
-				channel: "sms"
+				channel: "sms",
 			},
 			{
 				id: "msg-4",
 				order: 4,
 				title: "Tips & Tricks",
-				content: "Here are some proven tips to accelerate your French learning journey.",
+				content:
+					"Here are some proven tips to accelerate your French learning journey.",
 				delay_minutes: 20160, // 14 days
-				channel: "email"
+				channel: "email",
 			},
 			{
 				id: "msg-5",
 				order: 5,
 				title: "Progress Review",
-				content: "Let's schedule a call to review your progress and adjust your learning plan.",
+				content:
+					"Let's schedule a call to review your progress and adjust your learning plan.",
 				delay_minutes: 43200, // 30 days
-				channel: "sms"
-			}
+				channel: "sms",
+			},
 		],
 		active_follow_ups: 12,
 		completed_follow_ups: 28,
@@ -97,8 +104,8 @@ async function getSequence(id: string) {
 			total_messages_sent: 156,
 			open_rate: 68,
 			response_rate: 42,
-			completion_rate: 70
-		}
+			completion_rate: 70,
+		},
 	};
 	return sequence;
 }
@@ -106,13 +113,13 @@ async function getSequence(id: string) {
 // Format delay for display
 function formatDelay(minutes: number): string {
 	if (minutes === 0) return "Immediately";
-	if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+	if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""}`;
 	if (minutes < 1440) {
 		const hours = Math.floor(minutes / 60);
-		return `${hours} hour${hours !== 1 ? 's' : ''}`;
+		return `${hours} hour${hours !== 1 ? "s" : ""}`;
 	}
 	const days = Math.floor(minutes / 1440);
-	return `${days} day${days !== 1 ? 's' : ''}`;
+	return `${days} day${days !== 1 ? "s" : ""}`;
 }
 
 // Channel colors
@@ -120,7 +127,7 @@ const channelColors = {
 	email: "secondary",
 	sms: "info",
 	whatsapp: "success",
-	call: "warning"
+	call: "warning",
 } as const;
 
 export default async function SequenceDetailPage({
@@ -135,7 +142,8 @@ export default async function SequenceDetailPage({
 		notFound();
 	}
 
-	const totalFollowUps = sequence.active_follow_ups + sequence.completed_follow_ups;
+	const totalFollowUps =
+		sequence.active_follow_ups + sequence.completed_follow_ups;
 
 	return (
 		<DetailViewLayout>
@@ -147,38 +155,38 @@ export default async function SequenceDetailPage({
 				subtitle={sequence.subject}
 				avatar={{ initials: "SQ" }}
 				badges={[
-					{ 
+					{
 						label: `${sequence.messages.length} Messages`,
-						variant: "info"
+						variant: "info",
 					},
-					{ 
+					{
 						label: `${sequence.active_follow_ups} Active`,
-						variant: "success"
-					}
+						variant: "success",
+					},
 				]}
 				stats={`${sequence.total_students_enrolled} students enrolled • ${sequence.average_completion_rate}% completion rate`}
 				actions={[
 					{
 						icon: Copy,
 						label: "Duplicate Sequence",
-						onClick: () => console.log("Duplicate")
+						onClick: () => console.log("Duplicate"),
 					},
 					{
 						icon: Plus,
 						label: "Add Message",
-						onClick: () => console.log("Add message")
+						onClick: () => console.log("Add message"),
 					},
 					{
 						icon: Users,
 						label: "View Enrollments",
-						href: `/admin/automation/automated-follow-ups?sequence_id=${sequence.id}`
+						href: `/admin/automation/automated-follow-ups?sequence_id=${sequence.id}`,
 					},
 					{
 						icon: Trash2,
 						label: "Delete Sequence",
 						onClick: () => console.log("Delete"),
-						destructive: true
-					}
+						destructive: true,
+					},
 				]}
 				editUrl={`/admin/automation/sequences/${sequence.id}/edit`}
 			/>
@@ -196,32 +204,42 @@ export default async function SequenceDetailPage({
 					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-4">
 							<div className="rounded-lg border bg-muted/10 p-3">
-								<div className="flex items-center gap-2 mb-1">
+								<div className="mb-1 flex items-center gap-2">
 									<Mail className="h-3.5 w-3.5 text-muted-foreground" />
-									<p className="text-xs text-muted-foreground">Messages Sent</p>
+									<p className="text-muted-foreground text-xs">Messages Sent</p>
 								</div>
-								<p className="text-lg font-semibold">{sequence.stats.total_messages_sent}</p>
+								<p className="font-semibold text-lg">
+									{sequence.stats.total_messages_sent}
+								</p>
 							</div>
 							<div className="rounded-lg border bg-muted/10 p-3">
-								<div className="flex items-center gap-2 mb-1">
+								<div className="mb-1 flex items-center gap-2">
 									<Target className="h-3.5 w-3.5 text-muted-foreground" />
-									<p className="text-xs text-muted-foreground">Open Rate</p>
+									<p className="text-muted-foreground text-xs">Open Rate</p>
 								</div>
-								<p className="text-lg font-semibold">{sequence.stats.open_rate}%</p>
+								<p className="font-semibold text-lg">
+									{sequence.stats.open_rate}%
+								</p>
 							</div>
 							<div className="rounded-lg border bg-muted/10 p-3">
-								<div className="flex items-center gap-2 mb-1">
+								<div className="mb-1 flex items-center gap-2">
 									<MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-									<p className="text-xs text-muted-foreground">Response Rate</p>
+									<p className="text-muted-foreground text-xs">Response Rate</p>
 								</div>
-								<p className="text-lg font-semibold">{sequence.stats.response_rate}%</p>
+								<p className="font-semibold text-lg">
+									{sequence.stats.response_rate}%
+								</p>
 							</div>
 							<div className="rounded-lg border bg-muted/10 p-3">
-								<div className="flex items-center gap-2 mb-1">
+								<div className="mb-1 flex items-center gap-2">
 									<Zap className="h-3.5 w-3.5 text-muted-foreground" />
-									<p className="text-xs text-muted-foreground">Completion Rate</p>
+									<p className="text-muted-foreground text-xs">
+										Completion Rate
+									</p>
 								</div>
-								<p className="text-lg font-semibold">{sequence.stats.completion_rate}%</p>
+								<p className="font-semibold text-lg">
+									{sequence.stats.completion_rate}%
+								</p>
 							</div>
 						</div>
 					</CardContent>
@@ -247,43 +265,62 @@ export default async function SequenceDetailPage({
 								<div key={message.id} className="relative">
 									{/* Connection line */}
 									{index < sequence.messages.length - 1 && (
-										<div className="absolute left-4 top-10 bottom-0 w-px bg-border" />
+										<div className="absolute top-10 bottom-0 left-4 w-px bg-border" />
 									)}
-									
+
 									<div className="flex gap-3">
 										{/* Step indicator */}
 										<div className="flex-shrink-0">
-											<div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-												<span className="text-xs font-semibold text-primary">{message.order}</span>
+											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+												<span className="font-semibold text-primary text-xs">
+													{message.order}
+												</span>
 											</div>
 										</div>
 
 										{/* Message content */}
-										<div className="flex-1 rounded-lg border bg-muted/10 hover:bg-muted/20 transition-colors p-4">
-											<div className="flex items-start justify-between mb-2">
+										<div className="flex-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:bg-muted/20">
+											<div className="mb-2 flex items-start justify-between">
 												<div>
-													<h4 className="text-sm font-medium">{message.title}</h4>
-													<div className="flex items-center gap-2 mt-1">
-														<Badge variant={channelColors[message.channel as keyof typeof channelColors]} className="h-5 text-[10px] px-1.5">
+													<h4 className="font-medium text-sm">
+														{message.title}
+													</h4>
+													<div className="mt-1 flex items-center gap-2">
+														<Badge
+															variant={
+																channelColors[
+																	message.channel as keyof typeof channelColors
+																]
+															}
+															className="h-5 px-1.5 text-[10px]"
+														>
 															{message.channel.toUpperCase()}
 														</Badge>
-														<span className="text-xs text-muted-foreground">
-															<Clock className="inline h-3 w-3 mr-1" />
+														<span className="text-muted-foreground text-xs">
+															<Clock className="mr-1 inline h-3 w-3" />
 															{formatDelay(message.delay_minutes)}
 															{index > 0 && " after previous"}
 														</span>
 													</div>
 												</div>
 												<div className="flex gap-1">
-													<Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+													<Button
+														size="sm"
+														variant="ghost"
+														className="h-7 w-7 p-0"
+													>
 														<Edit className="h-3.5 w-3.5" />
 													</Button>
-													<Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive">
+													<Button
+														size="sm"
+														variant="ghost"
+														className="h-7 w-7 p-0 text-destructive"
+													>
 														<Trash2 className="h-3.5 w-3.5" />
 													</Button>
 												</div>
 											</div>
-											<p className="text-xs text-muted-foreground line-clamp-2">
+											<p className="line-clamp-2 text-muted-foreground text-xs">
 												{message.content}
 											</p>
 										</div>
@@ -296,7 +333,7 @@ export default async function SequenceDetailPage({
 
 				<div className="grid gap-4 lg:grid-cols-3">
 					{/* Main Content - 2 columns */}
-					<div className="lg:col-span-2 space-y-4">
+					<div className="space-y-4 lg:col-span-2">
 						{/* Active Follow-ups */}
 						<RelatedDataCard
 							title="Active Follow-ups"
@@ -310,10 +347,12 @@ export default async function SequenceDetailPage({
 									<div className="rounded-lg border bg-muted/10 p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Marie Dubois</p>
-												<p className="text-xs text-muted-foreground">Started 2 days ago</p>
+												<p className="font-medium text-sm">Marie Dubois</p>
+												<p className="text-muted-foreground text-xs">
+													Started 2 days ago
+												</p>
 											</div>
-											<Badge variant="info" className="h-5 text-[10px] px-1.5">
+											<Badge variant="info" className="h-5 px-1.5 text-[10px]">
 												Message 2/5
 											</Badge>
 										</div>
@@ -321,10 +360,12 @@ export default async function SequenceDetailPage({
 									<div className="rounded-lg border bg-muted/10 p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Pierre Martin</p>
-												<p className="text-xs text-muted-foreground">Started 5 days ago</p>
+												<p className="font-medium text-sm">Pierre Martin</p>
+												<p className="text-muted-foreground text-xs">
+													Started 5 days ago
+												</p>
 											</div>
-											<Badge variant="info" className="h-5 text-[10px] px-1.5">
+											<Badge variant="info" className="h-5 px-1.5 text-[10px]">
 												Message 3/5
 											</Badge>
 										</div>
@@ -332,19 +373,26 @@ export default async function SequenceDetailPage({
 									<div className="rounded-lg border bg-muted/10 p-3">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-sm font-medium">Sophie Laurent</p>
-												<p className="text-xs text-muted-foreground">Started 1 week ago</p>
+												<p className="font-medium text-sm">Sophie Laurent</p>
+												<p className="text-muted-foreground text-xs">
+													Started 1 week ago
+												</p>
 											</div>
-											<Badge variant="warning" className="h-5 text-[10px] px-1.5">
+											<Badge
+												variant="warning"
+												className="h-5 px-1.5 text-[10px]"
+											>
 												Message 4/5
 											</Badge>
 										</div>
 									</div>
 								</div>
 							) : (
-								<div className="text-center py-4">
-									<AlertCircle className="h-5 w-5 text-muted-foreground/50 mx-auto mb-2" />
-									<p className="text-xs text-muted-foreground">No active follow-ups</p>
+								<div className="py-4 text-center">
+									<AlertCircle className="mx-auto mb-2 h-5 w-5 text-muted-foreground/50" />
+									<p className="text-muted-foreground text-xs">
+										No active follow-ups
+									</p>
 								</div>
 							)}
 						</RelatedDataCard>
@@ -358,19 +406,19 @@ export default async function SequenceDetailPage({
 								{
 									label: "Total Enrollments",
 									value: sequence.total_students_enrolled,
-									icon: Users
+									icon: Users,
 								},
 								{
 									label: "Active",
 									value: sequence.active_follow_ups,
 									icon: Play,
-									badge: { label: "Running", variant: "success" }
+									badge: { label: "Running", variant: "success" },
 								},
 								{
 									label: "Completed",
 									value: sequence.completed_follow_ups,
-									icon: Zap
-								}
+									icon: Zap,
+								},
 							]}
 						/>
 
@@ -381,20 +429,34 @@ export default async function SequenceDetailPage({
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<div>
-									<p className="text-xs text-muted-foreground mb-1">First Follow-up Delay</p>
-									<p className="text-sm font-medium">
+									<p className="mb-1 text-muted-foreground text-xs">
+										First Follow-up Delay
+									</p>
+									<p className="font-medium text-sm">
 										{formatDelay(sequence.first_follow_up_delay_minutes)}
 									</p>
 								</div>
 								<div>
-									<p className="text-xs text-muted-foreground mb-1">Total Messages</p>
-									<p className="text-sm font-medium">{sequence.messages.length}</p>
+									<p className="mb-1 text-muted-foreground text-xs">
+										Total Messages
+									</p>
+									<p className="font-medium text-sm">
+										{sequence.messages.length}
+									</p>
 								</div>
 								<div>
-									<p className="text-xs text-muted-foreground mb-1">Channels Used</p>
-									<div className="flex gap-1 mt-1">
-										{Array.from(new Set(sequence.messages.map(m => m.channel))).map(channel => (
-											<Badge key={channel} variant="outline" className="h-5 text-[10px] px-1.5">
+									<p className="mb-1 text-muted-foreground text-xs">
+										Channels Used
+									</p>
+									<div className="mt-1 flex gap-1">
+										{Array.from(
+											new Set(sequence.messages.map((m) => m.channel)),
+										).map((channel) => (
+											<Badge
+												key={channel}
+												variant="outline"
+												className="h-5 px-1.5 text-[10px]"
+											>
 												{channel}
 											</Badge>
 										))}

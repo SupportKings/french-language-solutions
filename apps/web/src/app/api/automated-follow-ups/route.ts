@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -7,15 +8,14 @@ export async function GET(request: NextRequest) {
 		const supabase = await createClient();
 
 		// Parse query parameters
-		const page = parseInt(searchParams.get("page") || "1");
-		const limit = parseInt(searchParams.get("limit") || "10");
+		const page = Number.parseInt(searchParams.get("page") || "1");
+		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search");
 		const status = searchParams.getAll("status");
 
 		// Build the query
-		let query = supabase
-			.from("automated_follow_ups")
-			.select(`
+		let query = supabase.from("automated_follow_ups").select(
+			`
 				*,
 				students (
 					id,
@@ -28,11 +28,15 @@ export async function GET(request: NextRequest) {
 					display_name,
 					subject
 				)
-			`, { count: "exact" });
+			`,
+			{ count: "exact" },
+		);
 
 		// Apply filters
 		if (search) {
-			query = query.or(`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%,template_follow_up_sequences.display_name.ilike.%${search}%`);
+			query = query.or(
+				`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%,template_follow_up_sequences.display_name.ilike.%${search}%`,
+			);
 		}
 
 		if (status.length > 0) {
@@ -53,7 +57,7 @@ export async function GET(request: NextRequest) {
 			console.error("Error fetching automated follow-ups:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch automated follow-ups" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -72,7 +76,7 @@ export async function GET(request: NextRequest) {
 		console.error("Automated follow-ups API error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -96,7 +100,7 @@ export async function POST(request: NextRequest) {
 			console.error("Error creating automated follow-up:", error);
 			return NextResponse.json(
 				{ error: "Failed to create automated follow-up" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -105,7 +109,7 @@ export async function POST(request: NextRequest) {
 		console.error("Automated follow-up creation error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

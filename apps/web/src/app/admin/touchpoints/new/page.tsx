@@ -3,16 +3,18 @@ import { TouchpointFormNew } from "@/features/touchpoints/components/TouchpointF
 export default async function NewTouchpointPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ 
+	searchParams: Promise<{
 		studentId?: string;
 		studentName?: string;
 		redirectTo?: string;
 	}>;
 }) {
 	const params = await searchParams;
-	return <TouchpointFormNew 
-		studentId={params.studentId}
-		studentName={params.studentName}
-		redirectTo={params.redirectTo}
-	/>;
+	return (
+		<TouchpointFormNew
+			studentId={params.studentId}
+			studentName={params.studentName}
+			redirectTo={params.redirectTo}
+		/>
+	);
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import { TeacherFormNew } from "@/features/teachers/components/TeacherFormNew";
 import { useTeacher } from "@/features/teachers/queries/teachers.queries";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function EditTeacherPage() {
 	const params = useParams();

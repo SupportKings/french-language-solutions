@@ -1,10 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useDebounce } from "@uidotdev/usehooks";
-import { useQuery } from "@tanstack/react-query";
-import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import {
+	DataTableFilter,
+	useDataTableFilters,
+} from "@/components/data-table-filter";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
 	TableBody,
@@ -13,23 +28,26 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Search, Plus, Eye, Trash, GraduationCap, Users, MessageSquare, UserCheck, Calendar } from "lucide-react";
-import { useStudents, useDeleteStudent } from "../queries/students.queries";
-import type { StudentQuery } from "../schemas/student.schema";
+
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
-import Link from "next/link";
-import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
+import {
+	Calendar,
+	Eye,
+	GraduationCap,
+	MessageSquare,
+	MoreHorizontal,
+	Plus,
+	Search,
+	Trash,
+	UserCheck,
+	Users,
+} from "lucide-react";
+import { useDeleteStudent, useStudents } from "../queries/students.queries";
+import type { StudentQuery } from "../schemas/student.schema";
 
 // This will be replaced with dynamic data from the database
 
@@ -76,7 +94,7 @@ const studentColumns = [
 		displayName: "Language Level",
 		icon: GraduationCap,
 		type: "option" as const,
-		options: [],  // Will be populated dynamically
+		options: [], // Will be populated dynamically
 	},
 	{
 		id: "initial_channel",
@@ -146,7 +164,7 @@ interface StudentsTableProps {
 
 export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	const router = useRouter();
-	
+
 	// Fetch language levels for filter options
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
 	const [query, setQuery] = useState<StudentQuery>({
@@ -162,26 +180,23 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	const dynamicStudentColumns = useMemo(() => {
 		const columns = [...studentColumns];
 		// Find and update the language level column with dynamic options
-		const levelColumnIndex = columns.findIndex(col => col.id === "desired_starting_language_level");
+		const levelColumnIndex = columns.findIndex(
+			(col) => col.id === "desired_starting_language_level",
+		);
 		if (levelColumnIndex !== -1 && languageLevels) {
 			columns[levelColumnIndex] = {
 				...columns[levelColumnIndex],
 				options: languageLevels.map((level: any) => ({
-					label: level.display_name || level.code?.toUpperCase() || 'Unknown',
+					label: level.display_name || level.code?.toUpperCase() || "Unknown",
 					value: level.id,
 				})),
 			};
 		}
 		return columns;
 	}, [languageLevels]);
-	
+
 	// Data table filters hook
-	const {
-		columns,
-		filters,
-		actions,
-		strategy,
-	} = useDataTableFilters({
+	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: dynamicStudentColumns,
@@ -189,20 +204,38 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 
 	// Convert filters to query params - support multiple values
 	const filterQuery = useMemo(() => {
-		const enrollmentFilter = filters.find(f => f.columnId === "enrollment_status");
-		const levelFilter = filters.find(f => f.columnId === "desired_starting_language_level");
-		const channelFilter = filters.find(f => f.columnId === "initial_channel");
-		const commFilter = filters.find(f => f.columnId === "communication_channel");
-		const beginnerFilter = filters.find(f => f.columnId === "is_full_beginner");
-		const newsletterFilter = filters.find(f => f.columnId === "added_to_email_newsletter");
-		const ageFilter = filters.find(f => f.columnId === "is_under_16");
-		
+		const enrollmentFilter = filters.find(
+			(f) => f.columnId === "enrollment_status",
+		);
+		const levelFilter = filters.find(
+			(f) => f.columnId === "desired_starting_language_level",
+		);
+		const channelFilter = filters.find((f) => f.columnId === "initial_channel");
+		const commFilter = filters.find(
+			(f) => f.columnId === "communication_channel",
+		);
+		const beginnerFilter = filters.find(
+			(f) => f.columnId === "is_full_beginner",
+		);
+		const newsletterFilter = filters.find(
+			(f) => f.columnId === "added_to_email_newsletter",
+		);
+		const ageFilter = filters.find((f) => f.columnId === "is_under_16");
+
 		return {
 			// Pass arrays for multi-select filters
-			enrollment_status: enrollmentFilter?.values?.length ? enrollmentFilter.values as any : undefined,
-			desired_starting_language_level_id: levelFilter?.values?.length ? levelFilter.values as any : undefined,
-			initial_channel: channelFilter?.values?.length ? channelFilter.values as any : undefined,
-			communication_channel: commFilter?.values?.length ? commFilter.values as any : undefined,
+			enrollment_status: enrollmentFilter?.values?.length
+				? (enrollmentFilter.values as any)
+				: undefined,
+			desired_starting_language_level_id: levelFilter?.values?.length
+				? (levelFilter.values as any)
+				: undefined,
+			initial_channel: channelFilter?.values?.length
+				? (channelFilter.values as any)
+				: undefined,
+			communication_channel: commFilter?.values?.length
+				? (commFilter.values as any)
+				: undefined,
 			is_full_beginner: beginnerFilter?.values?.[0] || undefined,
 			added_to_email_newsletter: newsletterFilter?.values?.[0] || undefined,
 			is_under_16: ageFilter?.values?.[0] || undefined,
@@ -242,32 +275,29 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 			{/* Table with integrated search, filters and actions */}
 			<div className="rounded-md border">
 				{/* Combined header with search, filters, and add button */}
-				<div className="border-b bg-muted/30 px-4 py-2 space-y-2">
+				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
 					{/* Search bar and action button */}
 					<div className="flex items-center gap-3">
-						<div className="relative flex-1 max-w-sm">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+						<div className="relative max-w-sm flex-1">
+							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search students by name, email, or phone..."
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
-								className="h-9 pl-9 bg-muted/50"
+								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
-						
+
 						<div className="ml-auto">
 							<Link href="/admin/students/new">
-								<Button 
-									size="sm" 
-									className="h-9"
-								>
+								<Button size="sm" className="h-9">
 									<Plus className="mr-1.5 h-4 w-4" />
 									Add Student
 								</Button>
 							</Link>
 						</div>
 					</div>
-					
+
 					{/* Filter bar */}
 					<DataTableFilter
 						columns={columns}
@@ -276,113 +306,149 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 						strategy={strategy}
 					/>
 				</div>
-				
+
 				<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Student</TableHead>
-								<TableHead>Contact</TableHead>
-								<TableHead>Level</TableHead>
-								<TableHead>Enrollment Status</TableHead>
-								<TableHead>Created at</TableHead>
-								<TableHead className="w-[70px]"></TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{isLoading ? (
-								Array.from({ length: 5 }).map((_, i) => (
-									<TableRow key={i}>
-										<TableCell><Skeleton className="h-5 w-32" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-40" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-20" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-28" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-8" /></TableCell>
-									</TableRow>
-								))
-							) : data?.data.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={6} className="text-center text-muted-foreground">
-										No students found
+					<TableHeader>
+						<TableRow>
+							<TableHead>Student</TableHead>
+							<TableHead>Contact</TableHead>
+							<TableHead>Level</TableHead>
+							<TableHead>Enrollment Status</TableHead>
+							<TableHead>Created at</TableHead>
+							<TableHead className="w-[70px]" />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{isLoading ? (
+							Array.from({ length: 5 }).map((_, i) => (
+								<TableRow key={i}>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-40" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-28" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-8" />
 									</TableCell>
 								</TableRow>
-							) : (
-								data?.data.map((student) => (
-									<TableRow key={student.id} className="hover:bg-muted/50 transition-colors duration-150">
-										<TableCell>
-											<Link 
-												href={`/admin/students/${student.id}`}
-												className="hover:underline"
-											>
-												<p className="font-medium hover:text-primary transition-colors cursor-pointer">
-													{student.full_name}
-												</p>
-											</Link>
-										</TableCell>
-										<TableCell>
-											<div>
-												<p className="text-sm">{student.email || "No email"}</p>
-												<p className="text-sm text-muted-foreground">
-													{student.mobile_phone_number || "No phone"}
-												</p>
-											</div>
-										</TableCell>
-										<TableCell>
-											{(student as any).desired_language_level ? (
-												<Badge variant="outline">
-													{(student as any).desired_language_level.display_name || (student as any).desired_language_level.code?.toUpperCase() || 'N/A'}
-												</Badge>
-											) : (
-												<span className="text-muted-foreground">Not set</span>
-											)}
-										</TableCell>
-										<TableCell>
-											{(student as any).enrollment_status ? (
-												<Badge variant={ENROLLMENT_STATUS_COLORS[(student as any).enrollment_status as keyof typeof ENROLLMENT_STATUS_COLORS] as any}>
-													{ENROLLMENT_STATUS_LABELS[(student as any).enrollment_status as keyof typeof ENROLLMENT_STATUS_LABELS]}
-												</Badge>
-											) : (
-												<span className="text-muted-foreground">No enrollment</span>
-											)}
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">
-												{format(new Date(student.created_at), "MMM d, yyyy")}
+							))
+						) : data?.data.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={6}
+									className="text-center text-muted-foreground"
+								>
+									No students found
+								</TableCell>
+							</TableRow>
+						) : (
+							data?.data.map((student) => (
+								<TableRow
+									key={student.id}
+									className="transition-colors duration-150 hover:bg-muted/50"
+								>
+									<TableCell>
+										<Link
+											href={`/admin/students/${student.id}`}
+											className="hover:underline"
+										>
+											<p className="cursor-pointer font-medium transition-colors hover:text-primary">
+												{student.full_name}
 											</p>
-										</TableCell>
-										<TableCell>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<Link href={`/admin/students/${student.id}`}>
-														<DropdownMenuItem>
-															<Eye className="mr-2 h-4 w-4" />
-															View
-														</DropdownMenuItem>
-													</Link>
-													<DropdownMenuItem 
-														onClick={() => handleDelete(student.id)}
-														className="text-destructive"
-													>
-														<Trash className="mr-2 h-4 w-4" />
-														Delete
+										</Link>
+									</TableCell>
+									<TableCell>
+										<div>
+											<p className="text-sm">{student.email || "No email"}</p>
+											<p className="text-muted-foreground text-sm">
+												{student.mobile_phone_number || "No phone"}
+											</p>
+										</div>
+									</TableCell>
+									<TableCell>
+										{(student as any).desired_language_level ? (
+											<Badge variant="outline">
+												{(student as any).desired_language_level.display_name ||
+													(
+														student as any
+													).desired_language_level.code?.toUpperCase() ||
+													"N/A"}
+											</Badge>
+										) : (
+											<span className="text-muted-foreground">Not set</span>
+										)}
+									</TableCell>
+									<TableCell>
+										{(student as any).enrollment_status ? (
+											<Badge
+												variant={
+													ENROLLMENT_STATUS_COLORS[
+														(student as any)
+															.enrollment_status as keyof typeof ENROLLMENT_STATUS_COLORS
+													] as any
+												}
+											>
+												{
+													ENROLLMENT_STATUS_LABELS[
+														(student as any)
+															.enrollment_status as keyof typeof ENROLLMENT_STATUS_LABELS
+													]
+												}
+											</Badge>
+										) : (
+											<span className="text-muted-foreground">
+												No enrollment
+											</span>
+										)}
+									</TableCell>
+									<TableCell>
+										<p className="text-sm">
+											{format(new Date(student.created_at), "MMM d, yyyy")}
+										</p>
+									</TableCell>
+									<TableCell>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button variant="ghost" size="icon">
+													<MoreHorizontal className="h-4 w-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end">
+												<Link href={`/admin/students/${student.id}`}>
+													<DropdownMenuItem>
+														<Eye className="mr-2 h-4 w-4" />
+														View
 													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</TableCell>
-									</TableRow>
-								))
-							)}
-						</TableBody>
+												</Link>
+												<DropdownMenuItem
+													onClick={() => handleDelete(student.id)}
+													className="text-destructive"
+												>
+													<Trash className="mr-2 h-4 w-4" />
+													Delete
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</TableCell>
+								</TableRow>
+							))
+						)}
+					</TableBody>
 				</Table>
-				
+
 				{data && data.meta.totalPages > 1 && (
-					<div className="flex items-center justify-between px-4 py-3 border-t bg-muted/10">
-						<p className="text-sm text-muted-foreground">
+					<div className="flex items-center justify-between border-t bg-muted/10 px-4 py-3">
+						<p className="text-muted-foreground text-sm">
 							Page {data.meta.page} of {data.meta.totalPages}
 						</p>
 						<div className="flex gap-2">

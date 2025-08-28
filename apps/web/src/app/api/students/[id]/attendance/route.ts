@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteParams {
@@ -46,15 +47,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			console.error("Error fetching attendance records:", recordsError);
 			return NextResponse.json(
 				{ error: "Failed to fetch attendance records" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		// Calculate statistics using raw SQL query
-		const { data: stats, error: statsError } = await supabase.rpc(
-			"get_attendance_stats",
-			{ student_id_param: studentId }
-		).single();
+		const { data: stats, error: statsError } = await supabase
+			.rpc("get_attendance_stats", { student_id_param: studentId })
+			.single();
 
 		// If the RPC doesn't exist, calculate manually
 		let attendanceStats = {
@@ -67,9 +67,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		if (statsError) {
 			// Manual calculation if RPC fails
 			const total = records?.length || 0;
-			const present = records?.filter(r => r.status === "attended").length || 0;
-			const absent = records?.filter(r => r.status === "not_attended").length || 0;
-			const unset = records?.filter(r => r.status === "unset").length || 0;
+			const present =
+				records?.filter((r) => r.status === "attended").length || 0;
+			const absent =
+				records?.filter((r) => r.status === "not_attended").length || 0;
+			const unset = records?.filter((r) => r.status === "unset").length || 0;
 
 			attendanceStats = {
 				totalClasses: total,
@@ -110,22 +112,27 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		}
 
 		// Format records for frontend
-		const formattedRecords = records?.map(record => ({
-			id: record.id,
-			studentId: record.student_id,
-			cohortId: record.cohort_id,
-			classId: record.class_id,
-			attendanceDate: record.classes?.start_time ? new Date(record.classes.start_time).toISOString().split('T')[0] : null,
-			status: record.status,
-			notes: record.notes,
-			homeworkCompleted: record.homework_completed || false,
-			markedBy: record.marked_by,
-			markedAt: record.marked_at,
-			createdAt: record.created_at,
-			className: null, // Classes don't have names anymore
-			classStartTime: record.classes?.start_time || null,
-			cohortName: record.cohorts ? `${record.cohorts.products?.format === 'group' ? 'Group' : 'Private'} - ${record.cohorts.current_level?.display_name || record.cohorts.starting_level?.display_name || 'N/A'}` : null,
-		})) || [];
+		const formattedRecords =
+			records?.map((record) => ({
+				id: record.id,
+				studentId: record.student_id,
+				cohortId: record.cohort_id,
+				classId: record.class_id,
+				attendanceDate: record.classes?.start_time
+					? new Date(record.classes.start_time).toISOString().split("T")[0]
+					: null,
+				status: record.status,
+				notes: record.notes,
+				homeworkCompleted: record.homework_completed || false,
+				markedBy: record.marked_by,
+				markedAt: record.marked_at,
+				createdAt: record.created_at,
+				className: null, // Classes don't have names anymore
+				classStartTime: record.classes?.start_time || null,
+				cohortName: record.cohorts
+					? `${record.cohorts.products?.format === "group" ? "Group" : "Private"} - ${record.cohorts.current_level?.display_name || record.cohorts.starting_level?.display_name || "N/A"}`
+					: null,
+			})) || [];
 
 		return NextResponse.json({
 			records: formattedRecords,
@@ -135,7 +142,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		console.error("Error fetching attendance:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch attendance records" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -150,7 +157,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		if (!recordId) {
 			return NextResponse.json(
 				{ error: "Record ID is required" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -158,7 +165,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 		// Build update object
 		const updateData: any = {
-			updated_at: new Date().toISOString()
+			updated_at: new Date().toISOString(),
 		};
 
 		// Only update fields that are provided
@@ -186,13 +193,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Attendance record not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error updating attendance:", error);
 			return NextResponse.json(
 				{ error: "Failed to update attendance record" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -201,7 +208,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		console.error("Error updating attendance:", error);
 		return NextResponse.json(
 			{ error: "Failed to update attendance record" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

@@ -1,5 +1,8 @@
-import type { Class, ClassFormValues, ClassFilters } from "../schemas/class.schema";
-
+import type {
+	Class,
+	ClassFilters,
+	ClassFormValues,
+} from "../schemas/class.schema";
 
 // Get the base URL from environment or use localhost as fallback
 const getBaseUrl = () => {
@@ -26,25 +29,29 @@ export const classesApi = {
 	// Get all classes with filters and pagination
 	async getClasses(filters?: ClassFilters): Promise<PaginatedResponse<Class>> {
 		const params = new URLSearchParams();
-		
+
 		if (filters) {
 			if (filters.search) params.append("search", filters.search);
 			if (filters.status) params.append("status", filters.status);
 			if (filters.mode) params.append("mode", filters.mode);
 			if (filters.cohort_id) params.append("cohort_id", filters.cohort_id);
 			if (filters.teacher_id) params.append("teacher_id", filters.teacher_id);
-			if (filters.is_active !== undefined) params.append("is_active", String(filters.is_active));
+			if (filters.is_active !== undefined)
+				params.append("is_active", String(filters.is_active));
 			params.append("page", String(filters.page || 1));
 			params.append("limit", String(filters.limit || 20));
 		}
 
 		const baseUrl = getBaseUrl();
-		const response = await fetch(`${baseUrl}/api/classes?${params.toString()}`, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
+		const response = await fetch(
+			`${baseUrl}/api/classes?${params.toString()}`,
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
 			},
-		});
+		);
 
 		if (!response.ok) {
 			const error = await response.json();
@@ -92,7 +99,10 @@ export const classesApi = {
 	},
 
 	// Update a class
-	async updateClass(id: string, data: Partial<ClassFormValues>): Promise<Class> {
+	async updateClass(
+		id: string,
+		data: Partial<ClassFormValues>,
+	): Promise<Class> {
 		const baseUrl = getBaseUrl();
 		const response = await fetch(`${baseUrl}/api/classes/${id}`, {
 			method: "PUT",

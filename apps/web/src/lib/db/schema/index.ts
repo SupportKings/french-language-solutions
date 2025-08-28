@@ -1,21 +1,19 @@
 // Export all tables
 export * from "./auth";
-export * from "./teachers";
-export * from "./students";
-export * from "./products";
+export * from "./automated-follow-ups";
+export * from "./classes";
 export * from "./cohorts";
 export * from "./enrollments";
-export * from "./weekly-sessions";
-export * from "./classes";
-export * from "./student-assessments";
-export * from "./template-follow-up-sequences";
-export * from "./template-follow-up-messages";
-export * from "./automated-follow-ups";
-export * from "./language-levels";
-export * from "./touchpoints";
-
 // Export all enums
 export * from "./enums";
-
+export * from "./language-levels";
+export * from "./products";
 // Export relations
 export * from "./relations";
+export * from "./student-assessments";
+export * from "./students";
+export * from "./teachers";
+export * from "./template-follow-up-messages";
+export * from "./template-follow-up-sequences";
+export * from "./touchpoints";
+export * from "./weekly-sessions";

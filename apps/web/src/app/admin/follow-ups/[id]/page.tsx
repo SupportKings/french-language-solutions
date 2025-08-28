@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
+
 import { FollowUpDetailsClient } from "@/features/follow-ups/components/FollowUpDetailsClient";
 
 interface FollowUpPageProps {
 	params: Promise<{ id: string }>;
 }
 
-export default async function FollowUpDetailsPage({ params }: FollowUpPageProps) {
+export default async function FollowUpDetailsPage({
+	params,
+}: FollowUpPageProps) {
 	const { id } = await params;
 	const supabase = await createClient();
 
@@ -56,11 +60,10 @@ export default async function FollowUpDetailsPage({ params }: FollowUpPageProps)
 			...followUp.sequences,
 			// Calculate message counts from touchpoints
 			total_messages: followUp.touchpoints?.length || 0,
-			messages_sent: followUp.touchpoints?.length || 0
+			messages_sent: followUp.touchpoints?.length || 0,
 		},
-		touchpoints: followUp.touchpoints || []
+		touchpoints: followUp.touchpoints || [],
 	};
 
 	return <FollowUpDetailsClient followUp={transformedFollowUp} />;
 }
-

@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { studentsApi } from "../api/students.api";
-import type { StudentQuery, CreateStudent, UpdateStudent } from "../schemas/student.schema";
+import type {
+	CreateStudent,
+	StudentQuery,
+	UpdateStudent,
+} from "../schemas/student.schema";
 
 // Query keys factory
 export const studentsKeys = {

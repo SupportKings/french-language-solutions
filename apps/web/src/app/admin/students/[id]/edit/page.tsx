@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+
 import { StudentFormNew } from "@/features/students/components/StudentFormNew";
 
 async function getStudent(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 	const response = await fetch(`${baseUrl}/api/students/${id}`, {
 		cache: "no-store",
 	});

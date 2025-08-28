@@ -1,13 +1,7 @@
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-	integer,
-} from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { cohorts } from "./cohorts";
-import { teachers } from "./teachers";
 import { classStatusEnum } from "./enums";
+import { teachers } from "./teachers";
 
 export const classes = pgTable("classes", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -17,22 +11,23 @@ export const classes = pgTable("classes", {
 	startTime: timestamp("start_time").notNull(), // Date and time
 	endTime: timestamp("end_time").notNull(), // Date and time
 	status: classStatusEnum("status").notNull().default("scheduled"),
-	
+
 	// Resources
 	googleCalendarEventId: text("google_calendar_event_id"),
 	meetingLink: text("meeting_link"),
 	googleDriveFolderId: text("google_drive_folder_id"),
-	
+
 	// Capacity
 	currentEnrollment: integer("current_enrollment").default(0),
-	
+
 	// Teacher assignment
-	teacherId: uuid("teacher_id")
-		.references(() => teachers.id, { onDelete: "set null" }),
-	
+	teacherId: uuid("teacher_id").references(() => teachers.id, {
+		onDelete: "set null",
+	}),
+
 	// Metadata
 	notes: text("notes"),
-	
+
 	// Timestamps
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),

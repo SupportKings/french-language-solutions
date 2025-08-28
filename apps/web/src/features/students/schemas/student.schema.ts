@@ -10,12 +10,7 @@ export const initialChannelEnum = z.enum([
 	"assessment",
 ]);
 
-export const communicationChannelEnum = z.enum([
-	"sms_email",
-	"email",
-	"sms",
-]);
-
+export const communicationChannelEnum = z.enum(["sms_email", "email", "sms"]);
 
 // Student schema matching Supabase database exactly
 export const studentSchema = z.object({

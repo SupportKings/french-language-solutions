@@ -1,19 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { 
-	UserCheck, 
-	Users, 
-	Check, 
-	ChevronsUpDown,
-	BookOpen,
-	AlertCircle,
-	Calendar
-} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import {
+	FormActions,
+	FormContent,
+	FormField,
+	FormHeader,
+	FormLayout,
+	FormRow,
+	FormSection,
+	InfoBanner,
+	SelectField,
+} from "@/components/form-layout/FormLayout";
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -27,19 +30,20 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-	FormLayout,
-	FormHeader,
-	FormContent,
-	FormSection,
-	FormField,
-	FormRow,
-	FormActions,
-	InfoBanner,
-	SelectField
-} from "@/components/form-layout/FormLayout";
+	AlertCircle,
+	BookOpen,
+	Calendar,
+	Check,
+	ChevronsUpDown,
+	UserCheck,
+	Users,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const enrollmentFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
@@ -68,13 +72,13 @@ interface EnrollmentFormNewProps {
 	onSuccess?: () => void;
 }
 
-export function EnrollmentFormNew({ 
-	enrollment, 
-	studentId, 
+export function EnrollmentFormNew({
+	enrollment,
+	studentId,
 	cohortId,
 	cohortName,
 	redirectTo,
-	onSuccess 
+	onSuccess,
 }: EnrollmentFormNewProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
@@ -141,14 +145,14 @@ export function EnrollmentFormNew({
 
 	async function onSubmit(values: EnrollmentFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = enrollment 
+			const url = enrollment
 				? `/api/enrollments/${enrollment.id}`
 				: "/api/enrollments";
-			
+
 			const method = enrollment ? "PATCH" : "POST";
-			
+
 			const payload = {
 				studentId: values.student_id,
 				cohortId: values.cohort_id,
@@ -166,8 +170,12 @@ export function EnrollmentFormNew({
 				throw new Error(error.error || "Failed to save enrollment");
 			}
 
-			toast.success(enrollment ? "Enrollment updated successfully" : "Enrollment created successfully");
-			
+			toast.success(
+				enrollment
+					? "Enrollment updated successfully"
+					: "Enrollment created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else if (redirectTo) {
@@ -205,8 +213,10 @@ export function EnrollmentFormNew({
 		{ label: "Dropped Out", value: "dropped_out" },
 	];
 
-	const selectedStudent = students.find(s => s.id === form.watch("student_id"));
-	const selectedCohort = cohorts.find(c => c.id === form.watch("cohort_id"));
+	const selectedStudent = students.find(
+		(s) => s.id === form.watch("student_id"),
+	);
+	const selectedCohort = cohorts.find((c) => c.id === form.watch("cohort_id"));
 
 	return (
 		<FormLayout>
@@ -214,8 +224,14 @@ export function EnrollmentFormNew({
 				backUrl={redirectTo || "/admin/students/enrollments"}
 				backLabel={redirectTo ? "Back" : "Enrollments"}
 				title={isEditMode ? "Edit Enrollment" : "New Enrollment"}
-				subtitle={isEditMode ? "Update enrollment details" : "Create a new student enrollment"}
-				badge={isEditMode ? { label: "Editing", variant: "warning" } : undefined}
+				subtitle={
+					isEditMode
+						? "Update enrollment details"
+						: "Create a new student enrollment"
+				}
+				badge={
+					isEditMode ? { label: "Editing", variant: "warning" } : undefined
+				}
 			/>
 
 			<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -231,28 +247,31 @@ export function EnrollmentFormNew({
 						)}
 
 						{/* Enrollment Details */}
-						<FormSection 
-							title="Enrollment Details" 
+						<FormSection
+							title="Enrollment Details"
 							description="Select the student and cohort for this enrollment"
 							icon={BookOpen}
 							required
 						>
 							<FormRow>
-								<FormField 
-									label="Student" 
+								<FormField
+									label="Student"
 									required
 									error={form.formState.errors.student_id?.message}
 									hint={studentId ? "Pre-selected student" : undefined}
 								>
-									<Popover open={studentPopoverOpen} onOpenChange={setStudentPopoverOpen}>
+									<Popover
+										open={studentPopoverOpen}
+										onOpenChange={setStudentPopoverOpen}
+									>
 										<PopoverTrigger asChild>
 											<Button
 												variant="outline"
 												role="combobox"
 												aria-expanded={studentPopoverOpen}
 												className={cn(
-													"w-full h-9 justify-between font-normal",
-													!form.watch("student_id") && "text-muted-foreground"
+													"h-9 w-full justify-between font-normal",
+													!form.watch("student_id") && "text-muted-foreground",
 												)}
 												disabled={!!studentId || loadingStudents}
 											>
@@ -261,7 +280,9 @@ export function EnrollmentFormNew({
 														? selectedStudent.full_name
 														: "Select student..."}
 												</span>
-												{!studentId && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+												{!studentId && (
+													<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+												)}
 											</Button>
 										</PopoverTrigger>
 										{!studentId && (
@@ -269,40 +290,45 @@ export function EnrollmentFormNew({
 												<Command>
 													<CommandInput placeholder="Search students..." />
 													<CommandEmpty>
-														{loadingStudents ? "Loading students..." : "No student found."}
+														{loadingStudents
+															? "Loading students..."
+															: "No student found."}
 													</CommandEmpty>
 													<CommandGroup className="max-h-64 overflow-auto">
-														{students.length > 0 ? (
-															students.map((student) => (
-																<CommandItem
-																	key={student.id}
-																	value={student.full_name?.toLowerCase()}
-																	onSelect={() => {
-																		form.setValue("student_id", student.id);
-																		setStudentPopoverOpen(false);
-																	}}
-																>
-																	<Check
-																		className={cn(
-																			"mr-2 h-4 w-4",
-																			form.watch("student_id") === student.id ? "opacity-100" : "opacity-0"
-																		)}
-																	/>
-																	<div className="flex flex-col">
-																		<span>{student.full_name}</span>
-																		{student.email && (
-																			<span className="text-xs text-muted-foreground">{student.email}</span>
-																		)}
+														{students.length > 0
+															? students.map((student) => (
+																	<CommandItem
+																		key={student.id}
+																		value={student.full_name?.toLowerCase()}
+																		onSelect={() => {
+																			form.setValue("student_id", student.id);
+																			setStudentPopoverOpen(false);
+																		}}
+																	>
+																		<Check
+																			className={cn(
+																				"mr-2 h-4 w-4",
+																				form.watch("student_id") === student.id
+																					? "opacity-100"
+																					: "opacity-0",
+																			)}
+																		/>
+																		<div className="flex flex-col">
+																			<span>{student.full_name}</span>
+																			{student.email && (
+																				<span className="text-muted-foreground text-xs">
+																					{student.email}
+																				</span>
+																			)}
+																		</div>
+																	</CommandItem>
+																))
+															: !loadingStudents && (
+																	<div className="p-2 text-muted-foreground text-sm">
+																		No students available. Please create
+																		students first.
 																	</div>
-																</CommandItem>
-															))
-														) : (
-															!loadingStudents && (
-																<div className="p-2 text-sm text-muted-foreground">
-																	No students available. Please create students first.
-																</div>
-															)
-														)}
+																)}
 													</CommandGroup>
 												</Command>
 											</PopoverContent>
@@ -310,31 +336,36 @@ export function EnrollmentFormNew({
 									</Popover>
 								</FormField>
 
-								<FormField 
-									label="Cohort" 
+								<FormField
+									label="Cohort"
 									required
 									error={form.formState.errors.cohort_id?.message}
 								>
-									<Popover open={cohortPopoverOpen} onOpenChange={setCohortPopoverOpen}>
+									<Popover
+										open={cohortPopoverOpen}
+										onOpenChange={setCohortPopoverOpen}
+									>
 										<PopoverTrigger asChild>
 											<Button
 												variant="outline"
 												role="combobox"
 												aria-expanded={cohortPopoverOpen}
 												className={cn(
-													"w-full h-9 justify-between font-normal",
-													!form.watch("cohort_id") && "text-muted-foreground"
+													"h-9 w-full justify-between font-normal",
+													!form.watch("cohort_id") && "text-muted-foreground",
 												)}
 												disabled={loadingCohorts}
 											>
-												<span className="truncate flex items-center gap-2">
+												<span className="flex items-center gap-2 truncate">
 													{selectedCohort ? (
 														<>
-															{selectedCohort.products?.format ? 
-																`${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort` : 
-																'Cohort'}
+															{selectedCohort.products?.format
+																? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort`
+																: "Cohort"}
 														</>
-													) : "Select cohort..."}
+													) : (
+														"Select cohort..."
+													)}
 												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
@@ -343,48 +374,54 @@ export function EnrollmentFormNew({
 											<Command className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground">
 												<CommandInput placeholder="Search cohorts..." />
 												<CommandEmpty>
-													{loadingCohorts ? "Loading cohorts..." : "No cohort found."}
+													{loadingCohorts
+														? "Loading cohorts..."
+														: "No cohort found."}
 												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto [&_[cmdk-item]]:cursor-pointer">
-													{cohorts.length > 0 ? (
-														cohorts.map((cohort, index) => (
-															<CommandItem
-																key={`cohort-${cohort.id}-${index}`}
-																value={`${cohort.products?.format || 'cohort'} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ''}`.toLowerCase()}
-																onSelect={() => {
-																	form.setValue("cohort_id", cohort.id);
-																	setCohortPopoverOpen(false);
-																}}
-																className="cursor-pointer"
-															>
-																<Check
-																	className={cn(
-																		"mr-2 h-4 w-4",
-																		form.watch("cohort_id") === cohort.id ? "opacity-100" : "opacity-0"
-																	)}
-																/>
-																<div className="flex items-start gap-2 flex-1">
-																	<div className="flex flex-col flex-1">
-																		<span className="font-medium flex items-center gap-2">
-																			{cohort.products?.format ? 
-																				`${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Cohort` : 
-																				'Cohort'}
-																		</span>
-																		<span className="text-xs text-muted-foreground">
-																			{cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || 'N/A'}
-																			{cohort.start_date && ` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
-																		</span>
+													{cohorts.length > 0
+														? cohorts.map((cohort, index) => (
+																<CommandItem
+																	key={`cohort-${cohort.id}-${index}`}
+																	value={`${cohort.products?.format || "cohort"} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ""}`.toLowerCase()}
+																	onSelect={() => {
+																		form.setValue("cohort_id", cohort.id);
+																		setCohortPopoverOpen(false);
+																	}}
+																	className="cursor-pointer"
+																>
+																	<Check
+																		className={cn(
+																			"mr-2 h-4 w-4",
+																			form.watch("cohort_id") === cohort.id
+																				? "opacity-100"
+																				: "opacity-0",
+																		)}
+																	/>
+																	<div className="flex flex-1 items-start gap-2">
+																		<div className="flex flex-1 flex-col">
+																			<span className="flex items-center gap-2 font-medium">
+																				{cohort.products?.format
+																					? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Cohort`
+																					: "Cohort"}
+																			</span>
+																			<span className="text-muted-foreground text-xs">
+																				{cohort.starting_level?.display_name ||
+																					cohort.starting_level?.code?.toUpperCase() ||
+																					"N/A"}
+																				{cohort.start_date &&
+																					` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
+																			</span>
+																		</div>
 																	</div>
+																</CommandItem>
+															))
+														: !loadingCohorts && (
+																<div className="p-2 text-muted-foreground text-sm">
+																	No cohorts available. Please create cohorts
+																	first.
 																</div>
-															</CommandItem>
-														))
-													) : (
-														!loadingCohorts && (
-															<div className="p-2 text-sm text-muted-foreground">
-																No cohorts available. Please create cohorts first.
-															</div>
-														)
-													)}
+															)}
 												</CommandGroup>
 											</Command>
 										</PopoverContent>
@@ -394,14 +431,18 @@ export function EnrollmentFormNew({
 
 							{/* Show selected details */}
 							{(selectedStudent || selectedCohort) && (
-								<div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+								<div className="space-y-2 rounded-lg border bg-muted/30 p-3">
 									{selectedStudent && (
 										<div className="flex items-center gap-2 text-sm">
 											<UserCheck className="h-4 w-4 text-muted-foreground" />
 											<span className="text-muted-foreground">Student:</span>
-											<span className="font-medium">{selectedStudent.full_name}</span>
+											<span className="font-medium">
+												{selectedStudent.full_name}
+											</span>
 											{selectedStudent.email && (
-												<span className="text-xs text-muted-foreground">({selectedStudent.email})</span>
+												<span className="text-muted-foreground text-xs">
+													({selectedStudent.email})
+												</span>
 											)}
 										</div>
 									)}
@@ -409,17 +450,24 @@ export function EnrollmentFormNew({
 										<div className="flex items-center gap-2 text-sm">
 											<Users className="h-4 w-4 text-muted-foreground" />
 											<span className="text-muted-foreground">Cohort:</span>
-											<span className="font-medium flex items-center gap-2">
-												{selectedCohort.products?.format ? 
-													`${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort` : 
-													'Cohort'}
-												<span className="text-xs text-muted-foreground">
-													({selectedCohort.starting_level?.display_name || selectedCohort.starting_level?.code?.toUpperCase() || 'N/A'})
+											<span className="flex items-center gap-2 font-medium">
+												{selectedCohort.products?.format
+													? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort`
+													: "Cohort"}
+												<span className="text-muted-foreground text-xs">
+													(
+													{selectedCohort.starting_level?.display_name ||
+														selectedCohort.starting_level?.code?.toUpperCase() ||
+														"N/A"}
+													)
 												</span>
 											</span>
 											{selectedCohort.start_date && (
-												<span className="text-xs text-muted-foreground">
-													• Starts {new Date(selectedCohort.start_date).toLocaleDateString()}
+												<span className="text-muted-foreground text-xs">
+													• Starts{" "}
+													{new Date(
+														selectedCohort.start_date,
+													).toLocaleDateString()}
 												</span>
 											)}
 										</div>
@@ -429,35 +477,46 @@ export function EnrollmentFormNew({
 						</FormSection>
 
 						{/* Enrollment Status */}
-						<FormSection 
-							title="Status" 
+						<FormSection
+							title="Status"
 							description="Track the enrollment progress"
 							icon={AlertCircle}
 						>
-							<FormField 
+							<FormField
 								label="Enrollment Status"
 								hint="Update as the student progresses through the enrollment process"
 								error={form.formState.errors.status?.message}
 							>
 								<SelectField
 									value={form.watch("status")}
-									onValueChange={(value) => form.setValue("status", value as any)}
+									onValueChange={(value) =>
+										form.setValue("status", value as any)
+									}
 									options={statusOptions}
 								/>
 							</FormField>
 
 							{/* Status helper text */}
 							<div className="rounded-lg border bg-muted/30 p-3">
-								<p className="text-xs text-muted-foreground">
-									{form.watch("status") === "interested" && "Student has shown interest but hasn't started the enrollment process."}
-									{form.watch("status") === "beginner_form_filled" && "Student has completed the initial assessment form."}
-									{form.watch("status") === "contract_signed" && "Student has signed the enrollment contract."}
-									{form.watch("status") === "paid" && "Payment has been received for this enrollment."}
-									{form.watch("status") === "welcome_package_sent" && "Welcome materials have been sent to the student."}
-									{form.watch("status") === "dropped_out" && "Student has discontinued their enrollment."}
-									{form.watch("status") === "declined_contract" && "Student decided not to proceed with the enrollment."}
-									{form.watch("status") === "contract_abandoned" && "Student started but didn't complete the contract process."}
-									{form.watch("status") === "payment_abandoned" && "Student signed the contract but didn't complete payment."}
+								<p className="text-muted-foreground text-xs">
+									{form.watch("status") === "interested" &&
+										"Student has shown interest but hasn't started the enrollment process."}
+									{form.watch("status") === "beginner_form_filled" &&
+										"Student has completed the initial assessment form."}
+									{form.watch("status") === "contract_signed" &&
+										"Student has signed the enrollment contract."}
+									{form.watch("status") === "paid" &&
+										"Payment has been received for this enrollment."}
+									{form.watch("status") === "welcome_package_sent" &&
+										"Welcome materials have been sent to the student."}
+									{form.watch("status") === "dropped_out" &&
+										"Student has discontinued their enrollment."}
+									{form.watch("status") === "declined_contract" &&
+										"Student decided not to proceed with the enrollment."}
+									{form.watch("status") === "contract_abandoned" &&
+										"Student started but didn't complete the contract process."}
+									{form.watch("status") === "payment_abandoned" &&
+										"Student signed the contract but didn't complete payment."}
 								</p>
 							</div>
 						</FormSection>
@@ -467,7 +526,9 @@ export function EnrollmentFormNew({
 				<FormActions
 					primaryLabel={isEditMode ? "Update Enrollment" : "Create Enrollment"}
 					primaryLoading={isLoading}
-					primaryDisabled={!form.formState.isValid && form.formState.isSubmitted}
+					primaryDisabled={
+						!form.formState.isValid && form.formState.isSubmitted
+					}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}

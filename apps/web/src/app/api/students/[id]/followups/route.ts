@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteParams {
@@ -36,12 +37,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			console.error("Error fetching follow-ups:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch follow-ups" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		// Transform the data to match component expectations
-		const transformedFollowUps = (followUps || []).map(followUp => ({
+		const transformedFollowUps = (followUps || []).map((followUp) => ({
 			id: followUp.id,
 			student_id: followUp.student_id,
 			sequence_id: (followUp.template_follow_up_sequences as any)?.id,
@@ -53,10 +54,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			updated_at: followUp.updated_at,
 			sequence: {
 				id: (followUp.template_follow_up_sequences as any)?.id || "",
-				display_name: (followUp.template_follow_up_sequences as any)?.display_name || "Follow-up Sequence",
+				display_name:
+					(followUp.template_follow_up_sequences as any)?.display_name ||
+					"Follow-up Sequence",
 				subject: (followUp.template_follow_up_sequences as any)?.subject || "",
-				first_follow_up_delay_minutes: (followUp.template_follow_up_sequences as any)?.first_follow_up_delay_minutes || 0,
-			}
+				first_follow_up_delay_minutes:
+					(followUp.template_follow_up_sequences as any)
+						?.first_follow_up_delay_minutes || 0,
+			},
 		}));
 
 		return NextResponse.json(transformedFollowUps);
@@ -64,7 +69,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in GET /api/students/[id]/followups:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

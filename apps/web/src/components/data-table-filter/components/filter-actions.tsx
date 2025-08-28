@@ -7,24 +7,24 @@ import type { DataTableFilterActions } from "../core/types";
 import { type Locale, t } from "../lib/i18n";
 
 interface FilterActionsProps {
-  hasFilters: boolean;
-  actions?: DataTableFilterActions;
-  locale?: Locale;
+	hasFilters: boolean;
+	actions?: DataTableFilterActions;
+	locale?: Locale;
 }
 
 export function FilterActions({
-  hasFilters,
-  actions,
-  locale = "en",
+	hasFilters,
+	actions,
+	locale = "en",
 }: FilterActionsProps) {
-  return (
-    <Button
-      variant="outline"
-      className={cn("h-7", !hasFilters && "hidden")}
-      onClick={actions?.removeAllFilters}
-    >
-      <FilterXIcon className="mr-[6px] size-3.5" />
-      <span className="hidden md:block">{t("clear", locale)}</span>
-    </Button>
-  );
+	return (
+		<Button
+			variant="outline"
+			className={cn("h-7", !hasFilters && "hidden")}
+			onClick={actions?.removeAllFilters}
+		>
+			<FilterXIcon className="mr-[6px] size-3.5" />
+			<span className="hidden md:block">{t("clear", locale)}</span>
+		</Button>
+	);
 }

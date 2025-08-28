@@ -1,26 +1,29 @@
 "use client";
 
 import { useState } from "react";
+
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQueryState } from "nuqs";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
-import { 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { format } from "date-fns";
+import {
+	ArrowLeft,
+	Clock,
+	Inbox,
+	Mail,
 	MessageSquare,
 	Phone,
-	Mail,
-	User,
-	Clock,
 	Send,
-	Inbox,
-	ArrowLeft
+	User,
 } from "lucide-react";
-import Link from "next/link";
+import { useQueryState } from "nuqs";
+import { toast } from "sonner";
 
 const channelOptions = [
 	{ value: "sms", label: "SMS" },
@@ -47,38 +50,41 @@ const channelColors = {
 	sms: "info",
 	call: "warning",
 	whatsapp: "success",
-	email: "secondary"
+	email: "secondary",
 } as const;
 
 const typeColors = {
 	inbound: "success",
-	outbound: "info"
+	outbound: "info",
 } as const;
 
 const channelIcons = {
 	sms: Phone,
 	call: Phone,
 	whatsapp: MessageSquare,
-	email: Mail
+	email: Mail,
 };
 
 interface TouchpointDetailsClientProps {
 	touchpoint: any;
 }
 
-export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: TouchpointDetailsClientProps) {
+export function TouchpointDetailsClient({
+	touchpoint: initialTouchpoint,
+}: TouchpointDetailsClientProps) {
 	const router = useRouter();
 	const [touchpoint, setTouchpoint] = useState(initialTouchpoint);
-	
+
 	// Get redirectTo param from URL
 	const [redirectTo] = useQueryState("redirectTo", {
-		defaultValue: "/admin/automation/touchpoints"
+		defaultValue: "/admin/automation/touchpoints",
 	});
 
 	const handleUpdate = async (field: string, value: any) => {
 		try {
-			const apiField = field.includes('_') ? field : 
-				field.replace(/([A-Z])/g, '_$1').toLowerCase();
+			const apiField = field.includes("_")
+				? field
+				: field.replace(/([A-Z])/g, "_$1").toLowerCase();
 
 			const response = await fetch(`/api/touchpoints/${touchpoint.id}`, {
 				method: "PATCH",
@@ -98,12 +104,14 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 		}
 	};
 
-	const ChannelIcon = channelIcons[touchpoint.channel as keyof typeof channelIcons] || MessageSquare;
-	const TypeIcon = touchpoint.type === 'inbound' ? Inbox : Send;
+	const ChannelIcon =
+		channelIcons[touchpoint.channel as keyof typeof channelIcons] ||
+		MessageSquare;
+	const TypeIcon = touchpoint.type === "inbound" ? Inbox : Send;
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-			<div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl">
+			<div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="mb-8">
 					<Link href={redirectTo}>
@@ -112,30 +120,48 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 							Back
 						</Button>
 					</Link>
-					
+
 					<div className="flex items-start justify-between">
 						<div className="flex items-start gap-4">
-							<div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
 								<ChannelIcon className="h-8 w-8 text-primary" />
 							</div>
-							
+
 							<div className="space-y-1">
 								<div className="flex items-center gap-3">
-									<h1 className="text-3xl font-bold tracking-tight">
+									<h1 className="font-bold text-3xl tracking-tight">
 										Touchpoint Details
 									</h1>
-									<Badge variant={channelColors[touchpoint.channel as keyof typeof channelColors] as any} className="px-3 py-1">
+									<Badge
+										variant={
+											channelColors[
+												touchpoint.channel as keyof typeof channelColors
+											] as any
+										}
+										className="px-3 py-1"
+									>
 										<ChannelIcon className="mr-1 h-3 w-3" />
 										{touchpoint.channel?.toUpperCase()}
 									</Badge>
-									<Badge variant={typeColors[touchpoint.type as keyof typeof typeColors] as any} className="px-3 py-1">
+									<Badge
+										variant={
+											typeColors[
+												touchpoint.type as keyof typeof typeColors
+											] as any
+										}
+										className="px-3 py-1"
+									>
 										<TypeIcon className="mr-1 h-3 w-3" />
-										{touchpoint.type?.charAt(0).toUpperCase() + touchpoint.type?.slice(1)}
+										{touchpoint.type?.charAt(0).toUpperCase() +
+											touchpoint.type?.slice(1)}
 									</Badge>
 								</div>
 								<p className="text-muted-foreground">
-									{touchpoint.student?.full_name || 'Unknown Student'} • 
-									{' '}{format(new Date(touchpoint.occurred_at), "MMM d, yyyy 'at' h:mm a")}
+									{touchpoint.student?.full_name || "Unknown Student"} •{" "}
+									{format(
+										new Date(touchpoint.occurred_at),
+										"MMM d, yyyy 'at' h:mm a",
+									)}
 								</p>
 							</div>
 						</div>
@@ -152,34 +178,47 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 				</div>
 
 				{/* Main Content Card */}
-				<Card className="bg-card/95 backdrop-blur-sm border-border/50 shadow-xl">
+				<Card className="border-border/50 bg-card/95 shadow-xl backdrop-blur-sm">
 					<CardContent className="p-0">
 						{/* Quick Stats */}
-						<div className="border-b border-border/50 bg-muted/30 px-6 py-4">
-							<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+						<div className="border-border/50 border-b bg-muted/30 px-6 py-4">
+							<div className="grid grid-cols-2 gap-6 md:grid-cols-4">
 								<div className="space-y-1">
-									<p className="text-xs text-muted-foreground">Channel</p>
-									<Badge variant={channelColors[touchpoint.channel as keyof typeof channelColors] as any}>
+									<p className="text-muted-foreground text-xs">Channel</p>
+									<Badge
+										variant={
+											channelColors[
+												touchpoint.channel as keyof typeof channelColors
+											] as any
+										}
+									>
 										<ChannelIcon className="mr-1 h-3 w-3" />
 										{touchpoint.channel?.toUpperCase()}
 									</Badge>
 								</div>
 								<div className="space-y-1">
-									<p className="text-xs text-muted-foreground">Type</p>
-									<Badge variant={typeColors[touchpoint.type as keyof typeof typeColors] as any}>
+									<p className="text-muted-foreground text-xs">Type</p>
+									<Badge
+										variant={
+											typeColors[
+												touchpoint.type as keyof typeof typeColors
+											] as any
+										}
+									>
 										<TypeIcon className="mr-1 h-3 w-3" />
-										{touchpoint.type?.charAt(0).toUpperCase() + touchpoint.type?.slice(1)}
+										{touchpoint.type?.charAt(0).toUpperCase() +
+											touchpoint.type?.slice(1)}
 									</Badge>
 								</div>
 								<div className="space-y-1">
-									<p className="text-xs text-muted-foreground">Source</p>
-									<p className="text-sm font-medium">
-										{touchpoint.source?.replace('_', ' ')?.toUpperCase()}
+									<p className="text-muted-foreground text-xs">Source</p>
+									<p className="font-medium text-sm">
+										{touchpoint.source?.replace("_", " ")?.toUpperCase()}
 									</p>
 								</div>
 								<div className="space-y-1">
-									<p className="text-xs text-muted-foreground">Occurred</p>
-									<p className="text-sm font-medium">
+									<p className="text-muted-foreground text-xs">Occurred</p>
+									<p className="font-medium text-sm">
 										{format(new Date(touchpoint.occurred_at), "MMM d, h:mm a")}
 									</p>
 								</div>
@@ -187,42 +226,53 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 						</div>
 
 						{/* Message Content */}
-						<div className="px-6 py-4 border-b border-border/50">
-							<div className="flex items-center gap-2 mb-4">
+						<div className="border-border/50 border-b px-6 py-4">
+							<div className="mb-4 flex items-center gap-2">
 								<MessageSquare className="h-4 w-4 text-muted-foreground" />
-								<h3 className="text-base font-semibold">Message Content</h3>
+								<h3 className="font-semibold text-base">Message Content</h3>
 							</div>
 							<div className="rounded-lg bg-muted/50 p-4">
-								<p className="text-sm leading-relaxed whitespace-pre-wrap">
-									{touchpoint.message || 'No message content available'}
+								<p className="whitespace-pre-wrap text-sm leading-relaxed">
+									{touchpoint.message || "No message content available"}
 								</p>
 							</div>
 						</div>
 
-						<div className="px-6 py-4 space-y-4">
+						<div className="space-y-4 px-6 py-4">
 							{/* Touchpoint Information Section */}
 							<EditableSection title="Touchpoint Information">
 								{(editing) => (
 									<div className="grid gap-8 lg:grid-cols-2">
 										<div className="space-y-4">
-											<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+											<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 												Communication Details
 											</h3>
 											<div className="space-y-3">
 												<div className="flex items-start gap-3">
-													<ChannelIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
+													<ChannelIcon className="mt-0.5 h-4 w-4 text-muted-foreground" />
 													<div className="flex-1 space-y-0.5">
-														<p className="text-xs text-muted-foreground">Channel:</p>
+														<p className="text-muted-foreground text-xs">
+															Channel:
+														</p>
 														{editing ? (
 															<InlineEditField
 																value={touchpoint.channel}
-																onSave={(value) => handleUpdate("channel", value)}
+																onSave={(value) =>
+																	handleUpdate("channel", value)
+																}
 																editing={editing}
 																type="select"
 																options={channelOptions}
 															/>
 														) : (
-															<Badge variant={channelColors[touchpoint.channel as keyof typeof channelColors] as any} className="mt-1">
+															<Badge
+																variant={
+																	channelColors[
+																		touchpoint.channel as keyof typeof channelColors
+																	] as any
+																}
+																className="mt-1"
+															>
 																<ChannelIcon className="mr-1 h-3 w-3" />
 																{touchpoint.channel?.toUpperCase()}
 															</Badge>
@@ -231,9 +281,11 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 												</div>
 
 												<div className="flex items-start gap-3">
-													<TypeIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
+													<TypeIcon className="mt-0.5 h-4 w-4 text-muted-foreground" />
 													<div className="flex-1 space-y-0.5">
-														<p className="text-xs text-muted-foreground">Type:</p>
+														<p className="text-muted-foreground text-xs">
+															Type:
+														</p>
 														{editing ? (
 															<InlineEditField
 																value={touchpoint.type}
@@ -243,29 +295,55 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 																options={typeOptions}
 															/>
 														) : (
-															<Badge variant={typeColors[touchpoint.type as keyof typeof typeColors] as any} className="mt-1">
+															<Badge
+																variant={
+																	typeColors[
+																		touchpoint.type as keyof typeof typeColors
+																	] as any
+																}
+																className="mt-1"
+															>
 																<TypeIcon className="mr-1 h-3 w-3" />
-																{touchpoint.type?.charAt(0).toUpperCase() + touchpoint.type?.slice(1)}
+																{touchpoint.type?.charAt(0).toUpperCase() +
+																	touchpoint.type?.slice(1)}
 															</Badge>
 														)}
 													</div>
 												</div>
 
 												<div className="flex items-start gap-3">
-													<Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+													<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 													<div className="flex-1 space-y-0.5">
-														<p className="text-xs text-muted-foreground">Occurred At:</p>
+														<p className="text-muted-foreground text-xs">
+															Occurred At:
+														</p>
 														{editing ? (
 															<InlineEditField
-																value={touchpoint.occurred_at ? new Date(touchpoint.occurred_at).toISOString().slice(0, 16) : ""}
-																onSave={(value) => handleUpdate("occurredAt", value ? new Date(value).toISOString() : null)}
+																value={
+																	touchpoint.occurred_at
+																		? new Date(touchpoint.occurred_at)
+																				.toISOString()
+																				.slice(0, 16)
+																		: ""
+																}
+																onSave={(value) =>
+																	handleUpdate(
+																		"occurredAt",
+																		value
+																			? new Date(value).toISOString()
+																			: null,
+																	)
+																}
 																editing={editing}
 																type="text"
 																placeholder="YYYY-MM-DDTHH:MM"
 															/>
 														) : (
-															<p className="text-sm font-medium">
-																{format(new Date(touchpoint.occurred_at), "MMMM d, yyyy 'at' h:mm a")}
+															<p className="font-medium text-sm">
+																{format(
+																	new Date(touchpoint.occurred_at),
+																	"MMMM d, yyyy 'at' h:mm a",
+																)}
 															</p>
 														)}
 													</div>
@@ -274,22 +352,24 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 										</div>
 
 										<div className="space-y-4">
-											<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+											<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 												Message Content
 											</h3>
 											<div className="space-y-3">
 												{editing ? (
 													<InlineEditField
 														value={touchpoint.message || ""}
-														onSave={(value) => handleUpdate("message", value || null)}
+														onSave={(value) =>
+															handleUpdate("message", value || null)
+														}
 														editing={editing}
 														type="textarea"
 														placeholder="Enter message content..."
 													/>
 												) : (
 													<div className="rounded-lg border bg-muted/10 p-3">
-														<p className="text-sm whitespace-pre-wrap">
-															{touchpoint.message || 'No message content'}
+														<p className="whitespace-pre-wrap text-sm">
+															{touchpoint.message || "No message content"}
 														</p>
 													</div>
 												)}
@@ -302,26 +382,32 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 							{/* Student Information */}
 							<Card className="border-border/50">
 								<CardHeader className="pb-3">
-									<CardTitle className="text-base">Student Information</CardTitle>
+									<CardTitle className="text-base">
+										Student Information
+									</CardTitle>
 								</CardHeader>
 								<CardContent>
 									<div className="grid gap-6 lg:grid-cols-2">
 										<div className="space-y-3">
 											<div className="flex items-start gap-3">
-												<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+												<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 												<div className="flex-1 space-y-0.5">
-													<p className="text-xs text-muted-foreground">Full Name:</p>
-													<p className="text-sm font-medium">
-														{touchpoint.student?.full_name || 'Unknown Student'}
+													<p className="text-muted-foreground text-xs">
+														Full Name:
+													</p>
+													<p className="font-medium text-sm">
+														{touchpoint.student?.full_name || "Unknown Student"}
 													</p>
 												</div>
 											</div>
-											
+
 											<div className="flex items-start gap-3">
-												<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+												<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 												<div className="flex-1 space-y-0.5">
-													<p className="text-xs text-muted-foreground">Email:</p>
-													<p className="text-sm font-medium">
+													<p className="text-muted-foreground text-xs">
+														Email:
+													</p>
+													<p className="font-medium text-sm">
 														{touchpoint.student?.email || "Not provided"}
 													</p>
 												</div>
@@ -330,11 +416,14 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 
 										<div className="space-y-3">
 											<div className="flex items-start gap-3">
-												<Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+												<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 												<div className="flex-1 space-y-0.5">
-													<p className="text-xs text-muted-foreground">Phone:</p>
-													<p className="text-sm font-medium">
-														{touchpoint.student?.mobile_phone_number || "Not provided"}
+													<p className="text-muted-foreground text-xs">
+														Phone:
+													</p>
+													<p className="font-medium text-sm">
+														{touchpoint.student?.mobile_phone_number ||
+															"Not provided"}
 													</p>
 												</div>
 											</div>
@@ -346,26 +435,39 @@ export function TouchpointDetailsClient({ touchpoint: initialTouchpoint }: Touch
 							{/* System Information */}
 							<Card className="border-border/50 bg-muted/10">
 								<CardHeader className="pb-3">
-									<CardTitle className="text-sm text-muted-foreground">System Information</CardTitle>
+									<CardTitle className="text-muted-foreground text-sm">
+										System Information
+									</CardTitle>
 								</CardHeader>
 								<CardContent>
-									<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+									<div className="grid grid-cols-2 gap-4 md:grid-cols-3">
 										<div className="space-y-1">
-											<p className="text-xs text-muted-foreground">Touchpoint ID</p>
-											<p className="text-xs font-mono text-muted-foreground">
+											<p className="text-muted-foreground text-xs">
+												Touchpoint ID
+											</p>
+											<p className="font-mono text-muted-foreground text-xs">
 												{touchpoint.id}
 											</p>
 										</div>
 										<div className="space-y-1">
-											<p className="text-xs text-muted-foreground">Created Date</p>
+											<p className="text-muted-foreground text-xs">
+												Created Date
+											</p>
 											<p className="text-sm">
 												{format(new Date(touchpoint.created_at), "MMM d, yyyy")}
 											</p>
 										</div>
 										<div className="space-y-1">
-											<p className="text-xs text-muted-foreground">Last Updated</p>
+											<p className="text-muted-foreground text-xs">
+												Last Updated
+											</p>
 											<p className="text-sm">
-												{format(new Date(touchpoint.updated_at || touchpoint.created_at), "MMM d, yyyy")}
+												{format(
+													new Date(
+														touchpoint.updated_at || touchpoint.created_at,
+													),
+													"MMM d, yyyy",
+												)}
 											</p>
 										</div>
 									</div>

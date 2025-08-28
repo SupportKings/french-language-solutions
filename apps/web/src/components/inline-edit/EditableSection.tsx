@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Edit, Save, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Edit, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface EditableSectionProps {
@@ -20,7 +23,7 @@ export function EditableSection({
 	children,
 	onSave,
 	className,
-	cardClassName
+	cardClassName,
 }: EditableSectionProps) {
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -50,7 +53,7 @@ export function EditableSection({
 		<Card className={cn("bg-background", cardClassName)}>
 			<CardHeader className="pb-4">
 				<div className="flex items-center justify-between">
-					<CardTitle className="text-base font-medium">{title}</CardTitle>
+					<CardTitle className="font-medium text-base">{title}</CardTitle>
 					<div className="flex items-center gap-2">
 						{editing ? (
 							<>
@@ -61,7 +64,7 @@ export function EditableSection({
 									disabled={saving}
 									className="h-8"
 								>
-									<X className="h-3.5 w-3.5 mr-1" />
+									<X className="mr-1 h-3.5 w-3.5" />
 									Cancel
 								</Button>
 								<Button
@@ -71,9 +74,9 @@ export function EditableSection({
 									className="h-8"
 								>
 									{saving ? (
-										<Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+										<Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
 									) : (
-										<Save className="h-3.5 w-3.5 mr-1" />
+										<Save className="mr-1 h-3.5 w-3.5" />
 									)}
 									Save
 								</Button>
@@ -85,16 +88,14 @@ export function EditableSection({
 								onClick={() => setEditing(true)}
 								className="h-8"
 							>
-								<Edit className="h-3.5 w-3.5 mr-1" />
+								<Edit className="mr-1 h-3.5 w-3.5" />
 								Edit
 							</Button>
 						)}
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className={className}>
-				{children(editing)}
-			</CardContent>
+			<CardContent className={className}>{children(editing)}</CardContent>
 		</Card>
 	);
 }

@@ -1,26 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
-import { 
-	CalendarIcon, 
-	Check, 
-	ChevronsUpDown,
-	UserCheck,
-	ClipboardCheck,
-	CreditCard,
-	Video,
-	Link as LinkIcon,
-	FileText,
-	GraduationCap,
-	Users
-} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import {
+	FormActions,
+	FormContent,
+	FormField,
+	FormHeader,
+	FormLayout,
+	FormRow,
+	FormSection,
+	InfoBanner,
+	InputField,
+	SelectField,
+	SwitchField,
+	TextareaField,
+} from "@/components/form-layout/FormLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -35,22 +34,28 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
-	FormLayout,
-	FormHeader,
-	FormContent,
-	FormSection,
-	FormField,
-	FormRow,
-	FormActions,
-	InfoBanner,
-	SwitchField,
-	SelectField,
-	InputField,
-	TextareaField
-} from "@/components/form-layout/FormLayout";
+	CalendarIcon,
+	Check,
+	ChevronsUpDown,
+	ClipboardCheck,
+	CreditCard,
+	FileText,
+	GraduationCap,
+	Link as LinkIcon,
+	UserCheck,
+	Users,
+	Video,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const assessmentFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
@@ -58,7 +63,10 @@ const assessmentFormSchema = z.object({
 	scheduled_for: z.date().optional(),
 	is_paid: z.boolean(),
 	result: z.enum([
-		"requested", "scheduled", "session_held", "level_determined"
+		"requested",
+		"scheduled",
+		"session_held",
+		"level_determined",
 	]),
 	notes: z.string().optional().or(z.literal("")),
 	interview_held_by: z.string().optional().or(z.literal("")),
@@ -76,7 +84,12 @@ interface AssessmentFormNewProps {
 	onSuccess?: () => void;
 }
 
-export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess }: AssessmentFormNewProps) {
+export function AssessmentFormNew({
+	assessment,
+	studentId,
+	redirectTo,
+	onSuccess,
+}: AssessmentFormNewProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [students, setStudents] = useState<any[]>([]);
@@ -87,9 +100,11 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 	const [interviewerPopoverOpen, setInterviewerPopoverOpen] = useState(false);
 	const [checkerPopoverOpen, setCheckerPopoverOpen] = useState(false);
 	const isEditMode = !!assessment;
-	
+
 	// Fetch language levels
-	const { data: languageLevels, isLoading: isLoadingLevels } = useQuery(languageLevelQueries.list());
+	const { data: languageLevels, isLoading: isLoadingLevels } = useQuery(
+		languageLevelQueries.list(),
+	);
 	const levelOptions = languageLevels || [];
 
 	const form = useForm<AssessmentFormValues>({
@@ -140,21 +155,27 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 				if (response.ok) {
 					const result = await response.json();
 					console.log("Fetched teachers data:", result); // Debug log
-					
+
 					// The API returns { data: [...], meta: {...} }
 					const teachersList = result.data || result.teachers || [];
 					console.log("Teachers list:", teachersList); // Debug log
-					
+
 					// Filter for onboarded teachers on the client side if needed
-					const onboardedTeachers = teachersList.filter((teacher: any) => 
-						teacher.onboarding_status === 'onboarded'
+					const onboardedTeachers = teachersList.filter(
+						(teacher: any) => teacher.onboarding_status === "onboarded",
 					);
 					console.log("Onboarded teachers:", onboardedTeachers); // Debug log
-					
+
 					// Use all teachers if no onboarded ones, otherwise use onboarded only
-					setTeachers(onboardedTeachers.length > 0 ? onboardedTeachers : teachersList);
+					setTeachers(
+						onboardedTeachers.length > 0 ? onboardedTeachers : teachersList,
+					);
 				} else {
-					console.error("Failed to fetch teachers:", response.status, response.statusText);
+					console.error(
+						"Failed to fetch teachers:",
+						response.status,
+						response.statusText,
+					);
 				}
 			} catch (error) {
 				console.error("Error fetching teachers:", error);
@@ -167,14 +188,14 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 
 	async function onSubmit(values: AssessmentFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = assessment 
+			const url = assessment
 				? `/api/assessments/${assessment.id}`
 				: "/api/assessments";
-			
+
 			const method = assessment ? "PATCH" : "POST";
-			
+
 			const payload = {
 				studentId: values.student_id,
 				levelId: values.level_id || null,
@@ -201,8 +222,12 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 				throw new Error(error.error || "Failed to save assessment");
 			}
 
-			toast.success(assessment ? "Assessment updated successfully" : "Assessment created successfully");
-			
+			toast.success(
+				assessment
+					? "Assessment updated successfully"
+					: "Assessment created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else if (redirectTo) {
@@ -229,9 +254,9 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 	};
 
 	// Transform language levels for select options
-	const languageLevelOptions = levelOptions.map(level => ({
+	const languageLevelOptions = levelOptions.map((level) => ({
 		label: level.display_name,
-		value: level.id
+		value: level.id,
 	}));
 
 	const assessmentStatuses = [
@@ -241,7 +266,9 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 		{ label: "Level Determined", value: "level_determined" },
 	];
 
-	const selectedStudent = students.find(s => s.id === form.watch("student_id"));
+	const selectedStudent = students.find(
+		(s) => s.id === form.watch("student_id"),
+	);
 
 	return (
 		<FormLayout>
@@ -249,8 +276,14 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 				backUrl={redirectTo || "/admin/students/assessments"}
 				backLabel={redirectTo ? "Back" : "Assessments"}
 				title={isEditMode ? "Edit Assessment" : "New Assessment"}
-				subtitle={isEditMode ? "Update assessment details" : "Schedule a new student assessment"}
-				badge={isEditMode ? { label: "Editing", variant: "warning" } : undefined}
+				subtitle={
+					isEditMode
+						? "Update assessment details"
+						: "Schedule a new student assessment"
+				}
+				badge={
+					isEditMode ? { label: "Editing", variant: "warning" } : undefined
+				}
 			/>
 
 			<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -266,28 +299,31 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 						)}
 
 						{/* Assessment Details */}
-						<FormSection 
-							title="Assessment Details" 
+						<FormSection
+							title="Assessment Details"
 							description="Basic information about the assessment"
 							icon={ClipboardCheck}
 							required
 						>
 							<FormRow>
-								<FormField 
-									label="Student" 
+								<FormField
+									label="Student"
 									required
 									error={form.formState.errors.student_id?.message}
 									hint={studentId ? "Pre-selected student" : undefined}
 								>
-									<Popover open={studentPopoverOpen} onOpenChange={setStudentPopoverOpen}>
+									<Popover
+										open={studentPopoverOpen}
+										onOpenChange={setStudentPopoverOpen}
+									>
 										<PopoverTrigger asChild>
 											<Button
 												variant="outline"
 												role="combobox"
 												aria-expanded={studentPopoverOpen}
 												className={cn(
-													"w-full h-9 justify-between font-normal",
-													!form.watch("student_id") && "text-muted-foreground"
+													"h-9 w-full justify-between font-normal",
+													!form.watch("student_id") && "text-muted-foreground",
 												)}
 												disabled={!!studentId || loadingStudents}
 											>
@@ -296,7 +332,9 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 														? selectedStudent.full_name
 														: "Select student..."}
 												</span>
-												{!studentId && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+												{!studentId && (
+													<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+												)}
 											</Button>
 										</PopoverTrigger>
 										{!studentId && (
@@ -308,7 +346,7 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 														{students.map((student) => (
 															<CommandItem
 																key={student.id}
-																value={`${student.full_name} ${student.email || ''}`}
+																value={`${student.full_name} ${student.email || ""}`}
 																onSelect={() => {
 																	form.setValue("student_id", student.id);
 																	setStudentPopoverOpen(false);
@@ -317,13 +355,17 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 																<Check
 																	className={cn(
 																		"mr-2 h-4 w-4",
-																		form.watch("student_id") === student.id ? "opacity-100" : "opacity-0"
+																		form.watch("student_id") === student.id
+																			? "opacity-100"
+																			: "opacity-0",
 																	)}
 																/>
 																<div className="flex flex-col">
 																	<span>{student.full_name}</span>
 																	{student.email && (
-																		<span className="text-xs text-muted-foreground">{student.email}</span>
+																		<span className="text-muted-foreground text-xs">
+																			{student.email}
+																		</span>
 																	)}
 																</div>
 															</CommandItem>
@@ -335,7 +377,7 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 									</Popover>
 								</FormField>
 
-								<FormField 
+								<FormField
 									label="Scheduled Date"
 									hint="When is the assessment scheduled?"
 									error={form.formState.errors.scheduled_for?.message}
@@ -345,8 +387,9 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 											<Button
 												variant="outline"
 												className={cn(
-													"w-full h-9 justify-start text-left font-normal",
-													!form.watch("scheduled_for") && "text-muted-foreground"
+													"h-9 w-full justify-start text-left font-normal",
+													!form.watch("scheduled_for") &&
+														"text-muted-foreground",
 												)}
 											>
 												<CalendarIcon className="mr-2 h-4 w-4" />
@@ -361,7 +404,9 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 											<Calendar
 												mode="single"
 												selected={form.watch("scheduled_for")}
-												onSelect={(date) => form.setValue("scheduled_for", date)}
+												onSelect={(date) =>
+													form.setValue("scheduled_for", date)
+												}
 												initialFocus
 											/>
 										</PopoverContent>
@@ -370,18 +415,20 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 							</FormRow>
 
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Assessment Status"
 									error={form.formState.errors.result?.message}
 								>
 									<SelectField
 										value={form.watch("result")}
-										onValueChange={(value) => form.setValue("result", value as any)}
+										onValueChange={(value) =>
+											form.setValue("result", value as any)
+										}
 										options={assessmentStatuses}
 									/>
 								</FormField>
 
-								<FormField 
+								<FormField
 									label="Determined Level"
 									hint="Language level after assessment"
 									error={form.formState.errors.level_id?.message}
@@ -405,34 +452,43 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 						</FormSection>
 
 						{/* Assessment Team */}
-						<FormSection 
-							title="Assessment Team" 
+						<FormSection
+							title="Assessment Team"
 							description="Teachers involved in the assessment process"
 							icon={Users}
 						>
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Interview Held By"
 									hint="Teacher who conducted the interview"
 								>
-									<Popover open={interviewerPopoverOpen} onOpenChange={setInterviewerPopoverOpen}>
+									<Popover
+										open={interviewerPopoverOpen}
+										onOpenChange={setInterviewerPopoverOpen}
+									>
 										<PopoverTrigger asChild>
 											<Button
 												variant="outline"
 												role="combobox"
 												aria-expanded={interviewerPopoverOpen}
 												className={cn(
-													"w-full h-9 justify-between font-normal",
-													!form.watch("interview_held_by") && "text-muted-foreground"
+													"h-9 w-full justify-between font-normal",
+													!form.watch("interview_held_by") &&
+														"text-muted-foreground",
 												)}
 												disabled={loadingTeachers}
 											>
 												<span className="truncate">
 													{form.watch("interview_held_by")
 														? (() => {
-															const teacher = teachers.find(t => t.id === form.watch("interview_held_by"));
-															return teacher ? `${teacher.first_name} ${teacher.last_name}` : form.watch("interview_held_by");
-														})()
+																const teacher = teachers.find(
+																	(t) =>
+																		t.id === form.watch("interview_held_by"),
+																);
+																return teacher
+																	? `${teacher.first_name} ${teacher.last_name}`
+																	: form.watch("interview_held_by");
+															})()
 														: "Select teacher..."}
 												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -442,65 +498,84 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 											<Command>
 												<CommandInput placeholder="Search teachers..." />
 												<CommandEmpty>
-													{loadingTeachers ? "Loading teachers..." : 
-													 teachers.length === 0 ? "No teachers available. Please create teachers first." : "No teacher found."}
+													{loadingTeachers
+														? "Loading teachers..."
+														: teachers.length === 0
+															? "No teachers available. Please create teachers first."
+															: "No teacher found."}
 												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto">
-													{teachers.length > 0 ? teachers.map((teacher) => {
-														const teacherName = `${teacher.first_name} ${teacher.last_name}`;
-														return (
-															<CommandItem
-																key={teacher.id}
-																value={teacherName}
-																onSelect={() => {
-																	form.setValue("interview_held_by", teacher.id);
-																	setInterviewerPopoverOpen(false);
-																}}
-															>
-																<Check
-																	className={cn(
-																		"mr-2 h-4 w-4",
-																		form.watch("interview_held_by") === teacher.id ? "opacity-100" : "opacity-0"
-																	)}
-																/>
-																{teacherName}
-															</CommandItem>
-														);
-													}) : (
-														!loadingTeachers && (
-															<div className="p-2 text-sm text-muted-foreground">
-																No teachers available. Please create teachers first.
-															</div>
-														)
-													)}
+													{teachers.length > 0
+														? teachers.map((teacher) => {
+																const teacherName = `${teacher.first_name} ${teacher.last_name}`;
+																return (
+																	<CommandItem
+																		key={teacher.id}
+																		value={teacherName}
+																		onSelect={() => {
+																			form.setValue(
+																				"interview_held_by",
+																				teacher.id,
+																			);
+																			setInterviewerPopoverOpen(false);
+																		}}
+																	>
+																		<Check
+																			className={cn(
+																				"mr-2 h-4 w-4",
+																				form.watch("interview_held_by") ===
+																					teacher.id
+																					? "opacity-100"
+																					: "opacity-0",
+																			)}
+																		/>
+																		{teacherName}
+																	</CommandItem>
+																);
+															})
+														: !loadingTeachers && (
+																<div className="p-2 text-muted-foreground text-sm">
+																	No teachers available. Please create teachers
+																	first.
+																</div>
+															)}
 												</CommandGroup>
 											</Command>
 										</PopoverContent>
 									</Popover>
 								</FormField>
 
-								<FormField 
+								<FormField
 									label="Level Checked By"
 									hint="Teacher who verified the level"
 								>
-									<Popover open={checkerPopoverOpen} onOpenChange={setCheckerPopoverOpen}>
+									<Popover
+										open={checkerPopoverOpen}
+										onOpenChange={setCheckerPopoverOpen}
+									>
 										<PopoverTrigger asChild>
 											<Button
 												variant="outline"
 												role="combobox"
 												aria-expanded={checkerPopoverOpen}
 												className={cn(
-													"w-full h-9 justify-between font-normal",
-													!form.watch("level_checked_by") && "text-muted-foreground"
+													"h-9 w-full justify-between font-normal",
+													!form.watch("level_checked_by") &&
+														"text-muted-foreground",
 												)}
 												disabled={loadingTeachers}
 											>
 												<span className="truncate">
 													{form.watch("level_checked_by")
 														? (() => {
-															const teacher = teachers.find(t => t.id === form.watch("level_checked_by"));
-															return teacher ? `${teacher.first_name} ${teacher.last_name}` : form.watch("level_checked_by");
-														})()
+																const teacher = teachers.find(
+																	(t) =>
+																		t.id === form.watch("level_checked_by"),
+																);
+																return teacher
+																	? `${teacher.first_name} ${teacher.last_name}`
+																	: form.watch("level_checked_by");
+															})()
 														: "Select teacher..."}
 												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -510,37 +585,47 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 											<Command>
 												<CommandInput placeholder="Search teachers..." />
 												<CommandEmpty>
-													{loadingTeachers ? "Loading teachers..." : 
-													 teachers.length === 0 ? "No teachers available. Please create teachers first." : "No teacher found."}
+													{loadingTeachers
+														? "Loading teachers..."
+														: teachers.length === 0
+															? "No teachers available. Please create teachers first."
+															: "No teacher found."}
 												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto">
-													{teachers.length > 0 ? teachers.map((teacher) => {
-														const teacherName = `${teacher.first_name} ${teacher.last_name}`;
-														return (
-															<CommandItem
-																key={teacher.id}
-																value={teacherName}
-																onSelect={() => {
-																	form.setValue("level_checked_by", teacher.id);
-																	setCheckerPopoverOpen(false);
-																}}
-															>
-																<Check
-																	className={cn(
-																		"mr-2 h-4 w-4",
-																		form.watch("level_checked_by") === teacher.id ? "opacity-100" : "opacity-0"
-																	)}
-																/>
-																{teacherName}
-															</CommandItem>
-														);
-													}) : (
-														!loadingTeachers && (
-															<div className="p-2 text-sm text-muted-foreground">
-																No teachers available. Please create teachers first.
-															</div>
-														)
-													)}
+													{teachers.length > 0
+														? teachers.map((teacher) => {
+																const teacherName = `${teacher.first_name} ${teacher.last_name}`;
+																return (
+																	<CommandItem
+																		key={teacher.id}
+																		value={teacherName}
+																		onSelect={() => {
+																			form.setValue(
+																				"level_checked_by",
+																				teacher.id,
+																			);
+																			setCheckerPopoverOpen(false);
+																		}}
+																	>
+																		<Check
+																			className={cn(
+																				"mr-2 h-4 w-4",
+																				form.watch("level_checked_by") ===
+																					teacher.id
+																					? "opacity-100"
+																					: "opacity-0",
+																			)}
+																		/>
+																		{teacherName}
+																	</CommandItem>
+																);
+															})
+														: !loadingTeachers && (
+																<div className="p-2 text-muted-foreground text-sm">
+																	No teachers available. Please create teachers
+																	first.
+																</div>
+															)}
 												</CommandGroup>
 											</Command>
 										</PopoverContent>
@@ -550,13 +635,13 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 						</FormSection>
 
 						{/* Resources & Notes */}
-						<FormSection 
-							title="Resources & Notes" 
+						<FormSection
+							title="Resources & Notes"
 							description="Additional information and links"
 							icon={FileText}
 						>
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Meeting Recording URL"
 									hint="Link to the recorded assessment session"
 									error={form.formState.errors.meeting_recording_url?.message}
@@ -569,7 +654,7 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 									/>
 								</FormField>
 
-								<FormField 
+								<FormField
 									label="Calendar Event URL"
 									hint="Link to the calendar event"
 									error={form.formState.errors.calendar_event_url?.message}
@@ -583,7 +668,7 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 								</FormField>
 							</FormRow>
 
-							<FormField 
+							<FormField
 								label="Assessment Notes"
 								hint="Internal notes about the assessment"
 								error={form.formState.errors.notes?.message}
@@ -602,7 +687,9 @@ export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess
 				<FormActions
 					primaryLabel={isEditMode ? "Update Assessment" : "Create Assessment"}
 					primaryLoading={isLoading}
-					primaryDisabled={!form.formState.isValid && form.formState.isSubmitted}
+					primaryDisabled={
+						!form.formState.isValid && form.formState.isSubmitted
+					}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}

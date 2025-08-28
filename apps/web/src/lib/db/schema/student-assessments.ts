@@ -1,17 +1,15 @@
 import {
+	boolean,
+	date,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	date,
-	boolean,
 } from "drizzle-orm/pg-core";
-import {
-	assessmentResultEnum,
-} from "./enums";
+import { assessmentResultEnum } from "./enums";
+import { languageLevels } from "./language-levels";
 import { students } from "./students";
 import { teachers } from "./teachers";
-import { languageLevels } from "./language-levels";
 
 export const studentAssessments = pgTable("student_assessments", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -21,14 +19,10 @@ export const studentAssessments = pgTable("student_assessments", {
 	levelId: uuid("level_id").references(() => languageLevels.id),
 	scheduledFor: date("scheduled_for"),
 	isPaid: boolean("is_paid").notNull().default(false),
-	result: assessmentResultEnum("result")
-		.notNull()
-		.default("requested"),
+	result: assessmentResultEnum("result").notNull().default("requested"),
 	notes: text("notes"),
-	interviewHeldBy: uuid("interview_held_by")
-		.references(() => teachers.id),
-	levelCheckedBy: uuid("level_checked_by")
-		.references(() => teachers.id),
+	interviewHeldBy: uuid("interview_held_by").references(() => teachers.id),
+	levelCheckedBy: uuid("level_checked_by").references(() => teachers.id),
 	meetingRecordingUrl: text("meeting_recording_url"),
 	calendarEventUrl: text("calendar_event_url"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),

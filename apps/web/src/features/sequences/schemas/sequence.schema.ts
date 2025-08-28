@@ -20,9 +20,11 @@ export const sequenceSchema = z.object({
 	updated_at: z.string(),
 	// Relations
 	template_follow_up_messages: z.array(sequenceMessageSchema).optional(),
-	_count: z.object({
-		automated_follow_ups: z.number(),
-	}).optional(),
+	_count: z
+		.object({
+			automated_follow_ups: z.number(),
+		})
+		.optional(),
 });
 
 export type Sequence = z.infer<typeof sequenceSchema>;

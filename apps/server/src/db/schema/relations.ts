@@ -1,15 +1,15 @@
 import { relations } from "drizzle-orm";
-import { teachers } from "./teachers";
-import { students } from "./students";
-import { products } from "./products";
+import { automatedFollowUps } from "./automated-follow-ups";
+import { classes } from "./classes";
 import { cohorts } from "./cohorts";
 import { enrollments } from "./enrollments";
-import { weeklySessions } from "./weekly-sessions";
-import { classes } from "./classes";
+import { products } from "./products";
 import { studentAssessments } from "./student-assessments";
-import { templateFollowUpSequences } from "./template-follow-up-sequences";
+import { students } from "./students";
+import { teachers } from "./teachers";
 import { templateFollowUpMessages } from "./template-follow-up-messages";
-import { automatedFollowUps } from "./automated-follow-ups";
+import { templateFollowUpSequences } from "./template-follow-up-sequences";
+import { weeklySessions } from "./weekly-sessions";
 
 // Teacher relations
 export const teachersRelations = relations(teachers, ({ many }) => ({

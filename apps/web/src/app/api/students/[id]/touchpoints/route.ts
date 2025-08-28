@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteParams {
@@ -34,12 +35,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			console.error("Error fetching touchpoints:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch touchpoints" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		// Transform the data to match component expectations
-		const transformedTouchpoints = (touchpoints || []).map(touchpoint => ({
+		const transformedTouchpoints = (touchpoints || []).map((touchpoint) => ({
 			id: touchpoint.id,
 			student_id: touchpoint.student_id,
 			type: touchpoint.channel, // Use channel as type (call, email, sms, whatsapp)
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in GET /api/students/[id]/touchpoints:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

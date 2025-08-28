@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cohortsApi } from "../api/cohorts.api";
-import type { CohortQuery, CreateCohort, UpdateCohort } from "../schemas/cohort.schema";
+import type {
+	CohortQuery,
+	CreateCohort,
+	UpdateCohort,
+} from "../schemas/cohort.schema";
 
 // Query keys factory
 export const cohortsKeys = {
@@ -9,7 +13,8 @@ export const cohortsKeys = {
 	list: (params: CohortQuery) => [...cohortsKeys.lists(), params] as const,
 	details: () => [...cohortsKeys.all, "detail"] as const,
 	detail: (id: string) => [...cohortsKeys.details(), id] as const,
-	withSessions: (id: string) => [...cohortsKeys.detail(id), "sessions"] as const,
+	withSessions: (id: string) =>
+		[...cohortsKeys.detail(id), "sessions"] as const,
 };
 
 // Server queries for prefetching
@@ -32,7 +37,7 @@ export const cohortsQueries = {
 export function useCohorts(params: CohortQuery) {
 	console.log("🎣 useCohorts hook called with params:", params);
 	console.log("🔑 Query key:", cohortsKeys.list(params));
-	
+
 	return useQuery({
 		queryKey: cohortsKeys.list(params),
 		queryFn: () => {

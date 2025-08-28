@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -46,14 +47,14 @@ export async function GET(
 			console.error("Error fetching follow-up:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch follow-up" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		if (!data) {
 			return NextResponse.json(
 				{ error: "Follow-up not found" },
-				{ status: 404 }
+				{ status: 404 },
 			);
 		}
 
@@ -62,14 +63,14 @@ export async function GET(
 		console.error("Follow-up detail error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
 
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -80,7 +81,7 @@ export async function PATCH(
 			.from("automated_follow_ups")
 			.update({
 				...body,
-				updated_at: new Date().toISOString()
+				updated_at: new Date().toISOString(),
 			})
 			.eq("id", id)
 			.select()
@@ -90,7 +91,7 @@ export async function PATCH(
 			console.error("Error updating follow-up:", error);
 			return NextResponse.json(
 				{ error: "Failed to update follow-up" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -99,14 +100,14 @@ export async function PATCH(
 		console.error("Follow-up update error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
 
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -121,7 +122,7 @@ export async function DELETE(
 			console.error("Error deleting follow-up:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete follow-up" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -130,7 +131,7 @@ export async function DELETE(
 		console.error("Follow-up deletion error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

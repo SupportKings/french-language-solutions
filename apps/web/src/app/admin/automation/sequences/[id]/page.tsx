@@ -4,7 +4,9 @@ interface SequenceDetailPageProps {
 	params: Promise<{ id: string }>;
 }
 
-export default async function SequenceDetailPage({ params }: SequenceDetailPageProps) {
+export default async function SequenceDetailPage({
+	params,
+}: SequenceDetailPageProps) {
 	const { id } = await params;
 	return <SequenceDetails sequenceId={id} />;
 }

@@ -11,26 +11,34 @@ export const automatedFollowUpSchema = z.object({
 	created_at: z.string(),
 	updated_at: z.string(),
 	// Relations
-	students: z.object({
-		id: z.string(),
-		full_name: z.string(),
-		email: z.string().nullable(),
-		mobile_phone_number: z.string().nullable(),
-	}).optional(),
-	template_follow_up_sequences: z.object({
-		id: z.string(),
-		display_name: z.string(),
-		subject: z.string(),
-	}).optional(),
+	students: z
+		.object({
+			id: z.string(),
+			full_name: z.string(),
+			email: z.string().nullable(),
+			mobile_phone_number: z.string().nullable(),
+		})
+		.optional(),
+	template_follow_up_sequences: z
+		.object({
+			id: z.string(),
+			display_name: z.string(),
+			subject: z.string(),
+		})
+		.optional(),
 });
 
 export type AutomatedFollowUp = z.infer<typeof automatedFollowUpSchema>;
 
 export const automatedFollowUpQuerySchema = z.object({
 	search: z.string().optional(),
-	status: z.array(z.enum(["activated", "ongoing", "answer_received", "disabled"])).optional(),
+	status: z
+		.array(z.enum(["activated", "ongoing", "answer_received", "disabled"]))
+		.optional(),
 	page: z.number().int().positive().default(1),
 	limit: z.number().int().positive().default(20),
 });
 
-export type AutomatedFollowUpQuery = z.infer<typeof automatedFollowUpQuerySchema>;
+export type AutomatedFollowUpQuery = z.infer<
+	typeof automatedFollowUpQuerySchema
+>;

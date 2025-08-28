@@ -1,48 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
-import { 
-	CalendarIcon, 
-	User, 
-	Mail, 
-	Phone, 
-	MapPin,
-	GraduationCap,
-	MessageSquare,
-	Settings,
-	ExternalLink,
-	Info
-} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import {
+	FormActions,
+	FormContent,
+	FormField,
+	FormHeader,
+	FormLayout,
+	FormRow,
+	FormSection,
+	InfoBanner,
+	InputField,
+	SelectField,
+	SwitchField,
+	TextareaField,
+} from "@/components/form-layout/FormLayout";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
-	FormLayout,
-	FormHeader,
-	FormContent,
-	FormSection,
-	FormField,
-	FormRow,
-	FormActions,
-	InfoBanner,
-	SwitchField,
-	SelectField,
-	InputField,
-	TextareaField
-} from "@/components/form-layout/FormLayout";
+	CalendarIcon,
+	ExternalLink,
+	GraduationCap,
+	Info,
+	Mail,
+	MapPin,
+	MessageSquare,
+	Phone,
+	Settings,
+	User,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const studentFormSchema = z.object({
 	full_name: z.string().min(1, "Full name is required"),
@@ -50,9 +55,9 @@ const studentFormSchema = z.object({
 	mobile_phone_number: z.string().max(20).optional().or(z.literal("")),
 	city: z.string().optional().or(z.literal("")),
 	desired_starting_language_level_id: z.string().optional(),
-	initial_channel: z.enum([
-		"form", "quiz", "call", "message", "email", "assessment"
-	]).optional(),
+	initial_channel: z
+		.enum(["form", "quiz", "call", "message", "email", "assessment"])
+		.optional(),
 	communication_channel: z.enum(["sms_email", "email", "sms"]),
 	is_full_beginner: z.boolean(),
 	is_under_16: z.boolean(),
@@ -78,9 +83,11 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const isEditMode = !!student;
-	
+
 	// Fetch language levels
-	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(languageLevelQueries.list());
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
+		languageLevelQueries.list(),
+	);
 	const levelOptions = languageLevels || [];
 
 	const form = useForm<StudentFormValues>({
@@ -90,7 +97,8 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			email: student?.email || "",
 			mobile_phone_number: student?.mobile_phone_number || "",
 			city: student?.city || "",
-			desired_starting_language_level_id: student?.desired_starting_language_level_id,
+			desired_starting_language_level_id:
+				student?.desired_starting_language_level_id,
 			initial_channel: student?.initial_channel,
 			communication_channel: student?.communication_channel ?? "sms_email",
 			is_full_beginner: student?.is_full_beginner ?? false,
@@ -110,14 +118,12 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 
 	async function onSubmit(values: StudentFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = student 
-				? `/api/students/${student.id}`
-				: "/api/students";
-			
+			const url = student ? `/api/students/${student.id}` : "/api/students";
+
 			const method = student ? "PATCH" : "POST";
-			
+
 			// Format dates for API
 			const payload = {
 				...values,
@@ -136,8 +142,12 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				throw new Error("Failed to save student");
 			}
 
-			toast.success(student ? "Student updated successfully" : "Student created successfully");
-			
+			toast.success(
+				student
+					? "Student updated successfully"
+					: "Student created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else {
@@ -157,9 +167,9 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 	};
 
 	// Transform language levels for select options
-	const languageLevelOptions = levelOptions.map(level => ({
+	const languageLevelOptions = levelOptions.map((level) => ({
 		label: level.display_name,
-		value: level.id
+		value: level.id,
 	}));
 
 	const initialChannels = [
@@ -183,8 +193,14 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				backUrl="/admin/students"
 				backLabel="Students"
 				title={isEditMode ? "Edit Student" : "New Student"}
-				subtitle={isEditMode ? `Update ${student.full_name}'s information` : "Add a new student to your database"}
-				badge={isEditMode ? { label: "Editing", variant: "warning" } : undefined}
+				subtitle={
+					isEditMode
+						? `Update ${student.full_name}'s information`
+						: "Add a new student to your database"
+				}
+				badge={
+					isEditMode ? { label: "Editing", variant: "warning" } : undefined
+				}
 			/>
 
 			<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -200,15 +216,15 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 						)}
 
 						{/* Personal Information */}
-						<FormSection 
-							title="Personal Information" 
+						<FormSection
+							title="Personal Information"
 							description="Basic contact and identification details"
 							icon={User}
 							required
 						>
 							<FormRow>
-								<FormField 
-									label="Full Name" 
+								<FormField
+									label="Full Name"
 									required
 									error={form.formState.errors.full_name?.message}
 								>
@@ -218,7 +234,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 										{...form.register("full_name")}
 									/>
 								</FormField>
-								<FormField 
+								<FormField
 									label="Email Address"
 									error={form.formState.errors.email?.message}
 								>
@@ -231,7 +247,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								</FormField>
 							</FormRow>
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Mobile Phone"
 									hint="E.164 format preferred (+1234567890)"
 									error={form.formState.errors.mobile_phone_number?.message}
@@ -242,7 +258,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 										{...form.register("mobile_phone_number")}
 									/>
 								</FormField>
-								<FormField 
+								<FormField
 									label="City"
 									error={form.formState.errors.city?.message}
 								>
@@ -256,40 +272,58 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 						</FormSection>
 
 						{/* Learning Profile */}
-						<FormSection 
-							title="Learning Profile" 
+						<FormSection
+							title="Learning Profile"
 							description="Language level and learning objectives"
 							icon={GraduationCap}
 						>
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Desired Starting Level"
-									error={form.formState.errors.desired_starting_language_level_id?.message}
+									error={
+										form.formState.errors.desired_starting_language_level_id
+											?.message
+									}
 								>
 									<SelectField
-										placeholder={languageLevelsLoading ? "Loading levels..." : "Select a level"}
-										value={form.watch("desired_starting_language_level_id") || ""}
-										onValueChange={(value) => form.setValue("desired_starting_language_level_id", value)}
+										placeholder={
+											languageLevelsLoading
+												? "Loading levels..."
+												: "Select a level"
+										}
+										value={
+											form.watch("desired_starting_language_level_id") || ""
+										}
+										onValueChange={(value) =>
+											form.setValue("desired_starting_language_level_id", value)
+										}
 										options={languageLevelOptions}
 										disabled={languageLevelsLoading}
 									/>
 								</FormField>
-								<FormField 
+								<FormField
 									label="Target Deadline"
-									error={form.formState.errors.subjective_deadline_for_student?.message}
+									error={
+										form.formState.errors.subjective_deadline_for_student
+											?.message
+									}
 								>
 									<Popover>
 										<PopoverTrigger asChild>
 											<Button
 												variant="outline"
 												className={cn(
-													"w-full h-9 justify-start text-left font-normal",
-													!form.watch("subjective_deadline_for_student") && "text-muted-foreground"
+													"h-9 w-full justify-start text-left font-normal",
+													!form.watch("subjective_deadline_for_student") &&
+														"text-muted-foreground",
 												)}
 											>
 												<CalendarIcon className="mr-2 h-4 w-4" />
 												{form.watch("subjective_deadline_for_student") ? (
-													format(form.watch("subjective_deadline_for_student")!, "PPP")
+													format(
+														form.watch("subjective_deadline_for_student")!,
+														"PPP",
+													)
 												) : (
 													<span>Pick a date</span>
 												)}
@@ -299,15 +333,17 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 											<Calendar
 												mode="single"
 												selected={form.watch("subjective_deadline_for_student")}
-												onSelect={(date) => form.setValue("subjective_deadline_for_student", date)}
+												onSelect={(date) =>
+													form.setValue("subjective_deadline_for_student", date)
+												}
 												initialFocus
 											/>
 										</PopoverContent>
 									</Popover>
 								</FormField>
 							</FormRow>
-							
-							<FormField 
+
+							<FormField
 								label="Learning Purpose"
 								hint="Why does the student want to learn French?"
 								error={form.formState.errors.purpose_to_learn?.message}
@@ -324,35 +360,41 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 									label="Full Beginner"
 									description="Student has no prior French knowledge"
 									checked={form.watch("is_full_beginner")}
-									onCheckedChange={(checked) => form.setValue("is_full_beginner", checked)}
+									onCheckedChange={(checked) =>
+										form.setValue("is_full_beginner", checked)
+									}
 								/>
 								<SwitchField
 									label="Under 16 Years Old"
 									description="Student requires age-appropriate materials"
 									checked={form.watch("is_under_16")}
-									onCheckedChange={(checked) => form.setValue("is_under_16", checked)}
+									onCheckedChange={(checked) =>
+										form.setValue("is_under_16", checked)
+									}
 								/>
 							</div>
 						</FormSection>
 
 						{/* Communication Preferences */}
-						<FormSection 
-							title="Communication" 
+						<FormSection
+							title="Communication"
 							description="Contact preferences and acquisition channels"
 							icon={MessageSquare}
 						>
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Preferred Communication"
 									error={form.formState.errors.communication_channel?.message}
 								>
 									<SelectField
 										value={form.watch("communication_channel")}
-										onValueChange={(value) => form.setValue("communication_channel", value as any)}
+										onValueChange={(value) =>
+											form.setValue("communication_channel", value as any)
+										}
 										options={communicationChannels}
 									/>
 								</FormField>
-								<FormField 
+								<FormField
 									label="Initial Contact Channel"
 									hint="How did they first reach us?"
 									error={form.formState.errors.initial_channel?.message}
@@ -360,7 +402,9 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 									<SelectField
 										placeholder="Select channel"
 										value={form.watch("initial_channel")}
-										onValueChange={(value) => form.setValue("initial_channel", value as any)}
+										onValueChange={(value) =>
+											form.setValue("initial_channel", value as any)
+										}
 										options={initialChannels}
 									/>
 								</FormField>
@@ -369,8 +413,8 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 
 						{/* External Integrations - Collapsible or hidden by default */}
 						{isEditMode && (
-							<FormSection 
-								title="External Integrations" 
+							<FormSection
+								title="External Integrations"
 								description="IDs from third-party services (optional)"
 								icon={ExternalLink}
 							>
@@ -424,7 +468,9 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				<FormActions
 					primaryLabel={isEditMode ? "Update Student" : "Create Student"}
 					primaryLoading={isLoading}
-					primaryDisabled={!form.formState.isValid && form.formState.isSubmitted}
+					primaryDisabled={
+						!form.formState.isValid && form.formState.isSubmitted
+					}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}

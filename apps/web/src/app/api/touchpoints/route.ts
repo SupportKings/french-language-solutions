@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -7,17 +8,16 @@ export async function GET(request: NextRequest) {
 		const supabase = await createClient();
 
 		// Parse query parameters
-		const page = parseInt(searchParams.get("page") || "1");
-		const limit = parseInt(searchParams.get("limit") || "10");
+		const page = Number.parseInt(searchParams.get("page") || "1");
+		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search");
 		const channel = searchParams.getAll("channel");
 		const type = searchParams.getAll("type");
 		const source = searchParams.getAll("source");
 
 		// Build the query
-		let query = supabase
-			.from("touchpoints")
-			.select(`
+		let query = supabase.from("touchpoints").select(
+			`
 				*,
 				students (
 					id,
@@ -32,11 +32,15 @@ export async function GET(request: NextRequest) {
 						display_name
 					)
 				)
-			`, { count: "exact" });
+			`,
+			{ count: "exact" },
+		);
 
 		// Apply filters
 		if (search) {
-			query = query.or(`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%,message.ilike.%${search}%`);
+			query = query.or(
+				`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%,message.ilike.%${search}%`,
+			);
 		}
 
 		if (channel.length > 0) {
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
 			console.error("Error fetching touchpoints:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch touchpoints" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -84,7 +88,7 @@ export async function GET(request: NextRequest) {
 		console.error("Touchpoints API error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -114,7 +118,7 @@ export async function POST(request: NextRequest) {
 			console.error("Error creating touchpoint:", error);
 			return NextResponse.json(
 				{ error: "Failed to create touchpoint" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -123,7 +127,7 @@ export async function POST(request: NextRequest) {
 		console.error("Touchpoint creation error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

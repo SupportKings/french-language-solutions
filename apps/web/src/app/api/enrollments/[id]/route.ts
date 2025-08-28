@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteParams {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
-		
+
 		const { data, error } = await supabase
 			.from("enrollments")
 			.select(`
@@ -34,27 +35,27 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			`)
 			.eq("id", id)
 			.single();
-		
+
 		if (error) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Enrollment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error fetching enrollment:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch enrollment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
-		
+
 		return NextResponse.json(data);
 	} catch (error) {
 		console.error("Error in GET /api/enrollments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -65,13 +66,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		const { id } = await params;
 		const supabase = await createClient();
 		const body = await request.json();
-		
+
 		const updateData = {
 			...(body.status && { status: body.status }),
 			...(body.cohortId && { cohort_id: body.cohortId }),
-			updated_at: new Date().toISOString()
+			updated_at: new Date().toISOString(),
 		};
-		
+
 		const { data, error } = await supabase
 			.from("enrollments")
 			.update(updateData)
@@ -96,27 +97,27 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 				)
 			`)
 			.single();
-		
+
 		if (error) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Enrollment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error updating enrollment:", error);
 			return NextResponse.json(
 				{ error: "Failed to update enrollment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
-		
+
 		return NextResponse.json(data);
 	} catch (error) {
 		console.error("Error in PATCH /api/enrollments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -126,26 +127,23 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
-		
-		const { error } = await supabase
-			.from("enrollments")
-			.delete()
-			.eq("id", id);
-		
+
+		const { error } = await supabase.from("enrollments").delete().eq("id", id);
+
 		if (error) {
 			console.error("Error deleting enrollment:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete enrollment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
-		
+
 		return NextResponse.json({ message: "Enrollment deleted successfully" });
 	} catch (error) {
 		console.error("Error in DELETE /api/enrollments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

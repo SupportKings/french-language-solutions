@@ -1,25 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -30,9 +14,28 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface WeeklySessionModalProps {
 	open: boolean;
@@ -52,7 +55,12 @@ const daysOfWeek = [
 	{ value: "sunday", label: "Sunday" },
 ];
 
-export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: WeeklySessionModalProps) {
+export function WeeklySessionModal({
+	open,
+	onClose,
+	cohortId,
+	sessionToEdit,
+}: WeeklySessionModalProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -71,8 +79,12 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 			setFormData({
 				teacher_id: sessionToEdit.teacher_id || "",
 				day_of_week: sessionToEdit.day_of_week || "",
-				start_time: sessionToEdit.start_time ? sessionToEdit.start_time.substring(0, 5) : "",
-				end_time: sessionToEdit.end_time ? sessionToEdit.end_time.substring(0, 5) : "",
+				start_time: sessionToEdit.start_time
+					? sessionToEdit.start_time.substring(0, 5)
+					: "",
+				end_time: sessionToEdit.end_time
+					? sessionToEdit.end_time.substring(0, 5)
+					: "",
 			});
 		} else {
 			// Reset form when creating new
@@ -105,19 +117,23 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			});
-			
+
 			if (!response.ok) {
 				const error = await response.json();
 				throw new Error(error.error || "Failed to create session");
 			}
-			
+
 			return response.json();
 		},
 		onSuccess: () => {
 			toast.success("Weekly session created successfully");
 			// Invalidate queries to refresh the data
-			queryClient.invalidateQueries({ queryKey: ["cohorts", "detail", cohortId, "sessions"] });
-			queryClient.invalidateQueries({ queryKey: ["cohorts", "detail", cohortId] });
+			queryClient.invalidateQueries({
+				queryKey: ["cohorts", "detail", cohortId, "sessions"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["cohorts", "detail", cohortId],
+			});
 			handleClose();
 		},
 		onError: (error) => {
@@ -133,18 +149,22 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),
 			});
-			
+
 			if (!response.ok) {
 				const error = await response.json();
 				throw new Error(error.error || "Failed to update session");
 			}
-			
+
 			return response.json();
 		},
 		onSuccess: () => {
 			toast.success("Weekly session updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["cohorts", "detail", cohortId, "sessions"] });
-			queryClient.invalidateQueries({ queryKey: ["cohorts", "detail", cohortId] });
+			queryClient.invalidateQueries({
+				queryKey: ["cohorts", "detail", cohortId, "sessions"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["cohorts", "detail", cohortId],
+			});
 			handleClose();
 		},
 		onError: (error) => {
@@ -158,18 +178,22 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 			const response = await fetch(`/api/weekly-sessions/${sessionToEdit.id}`, {
 				method: "DELETE",
 			});
-			
+
 			if (!response.ok) {
 				const error = await response.json();
 				throw new Error(error.error || "Failed to delete session");
 			}
-			
+
 			return response.json();
 		},
 		onSuccess: () => {
 			toast.success("Weekly session deleted successfully");
-			queryClient.invalidateQueries({ queryKey: ["cohorts", "detail", cohortId, "sessions"] });
-			queryClient.invalidateQueries({ queryKey: ["cohorts", "detail", cohortId] });
+			queryClient.invalidateQueries({
+				queryKey: ["cohorts", "detail", cohortId, "sessions"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["cohorts", "detail", cohortId],
+			});
 			setShowDeleteConfirm(false);
 			handleClose();
 		},
@@ -180,9 +204,14 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		
+
 		// Validate form
-		if (!formData.teacher_id || !formData.day_of_week || !formData.start_time || !formData.end_time) {
+		if (
+			!formData.teacher_id ||
+			!formData.day_of_week ||
+			!formData.start_time ||
+			!formData.end_time
+		) {
 			toast.error("Please fill in all required fields");
 			return;
 		}
@@ -212,7 +241,7 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 	};
 
 	const handleInputChange = (field: keyof typeof formData, value: string) => {
-		setFormData(prev => ({ ...prev, [field]: value }));
+		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
 	return (
@@ -221,137 +250,160 @@ export function WeeklySessionModal({ open, onClose, cohortId, sessionToEdit }: W
 				<DialogContent className="sm:max-w-[500px]">
 					<form onSubmit={handleSubmit}>
 						<DialogHeader>
-							<DialogTitle>{isEditMode ? "Edit Weekly Session" : "Add Weekly Session"}</DialogTitle>
+							<DialogTitle>
+								{isEditMode ? "Edit Weekly Session" : "Add Weekly Session"}
+							</DialogTitle>
 							<DialogDescription>
-								{isEditMode 
+								{isEditMode
 									? "Update the details of this weekly session."
 									: "Schedule a recurring weekly session for this cohort."}
 							</DialogDescription>
 						</DialogHeader>
 
-					<div className="grid gap-4 py-4">
-						{/* Teacher Selection */}
-						<div className="grid gap-2">
-							<Label htmlFor="teacher">Teacher *</Label>
-							<Select
-								value={formData.teacher_id}
-								onValueChange={(value) => handleInputChange("teacher_id", value)}
-								disabled={loadingTeachers}
-							>
-								<SelectTrigger id="teacher">
-									<SelectValue placeholder={loadingTeachers ? "Loading teachers..." : "Select a teacher"} />
-								</SelectTrigger>
-								<SelectContent>
-									{teachers?.map((teacher: any) => (
-										<SelectItem key={teacher.id} value={teacher.id}>
-											{teacher.first_name} {teacher.last_name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-
-						{/* Day of Week */}
-						<div className="grid gap-2">
-							<Label htmlFor="day">Day of Week *</Label>
-							<Select
-								value={formData.day_of_week}
-								onValueChange={(value) => handleInputChange("day_of_week", value)}
-							>
-								<SelectTrigger id="day">
-									<SelectValue placeholder="Select a day" />
-								</SelectTrigger>
-								<SelectContent>
-									{daysOfWeek.map((day) => (
-										<SelectItem key={day.value} value={day.value}>
-											{day.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-
-						{/* Time Selection */}
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid gap-4 py-4">
+							{/* Teacher Selection */}
 							<div className="grid gap-2">
-								<Label htmlFor="start_time">Start Time *</Label>
-								<Input
-									id="start_time"
-									type="time"
-									value={formData.start_time}
-									onChange={(e) => handleInputChange("start_time", e.target.value)}
-									required
-								/>
+								<Label htmlFor="teacher">Teacher *</Label>
+								<Select
+									value={formData.teacher_id}
+									onValueChange={(value) =>
+										handleInputChange("teacher_id", value)
+									}
+									disabled={loadingTeachers}
+								>
+									<SelectTrigger id="teacher">
+										<SelectValue
+											placeholder={
+												loadingTeachers
+													? "Loading teachers..."
+													: "Select a teacher"
+											}
+										/>
+									</SelectTrigger>
+									<SelectContent>
+										{teachers?.map((teacher: any) => (
+											<SelectItem key={teacher.id} value={teacher.id}>
+												{teacher.first_name} {teacher.last_name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
+
+							{/* Day of Week */}
 							<div className="grid gap-2">
-								<Label htmlFor="end_time">End Time *</Label>
-								<Input
-									id="end_time"
-									type="time"
-									value={formData.end_time}
-									onChange={(e) => handleInputChange("end_time", e.target.value)}
-									required
-								/>
+								<Label htmlFor="day">Day of Week *</Label>
+								<Select
+									value={formData.day_of_week}
+									onValueChange={(value) =>
+										handleInputChange("day_of_week", value)
+									}
+								>
+									<SelectTrigger id="day">
+										<SelectValue placeholder="Select a day" />
+									</SelectTrigger>
+									<SelectContent>
+										{daysOfWeek.map((day) => (
+											<SelectItem key={day.value} value={day.value}>
+												{day.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+
+							{/* Time Selection */}
+							<div className="grid grid-cols-2 gap-4">
+								<div className="grid gap-2">
+									<Label htmlFor="start_time">Start Time *</Label>
+									<Input
+										id="start_time"
+										type="time"
+										value={formData.start_time}
+										onChange={(e) =>
+											handleInputChange("start_time", e.target.value)
+										}
+										required
+									/>
+								</div>
+								<div className="grid gap-2">
+									<Label htmlFor="end_time">End Time *</Label>
+									<Input
+										id="end_time"
+										type="time"
+										value={formData.end_time}
+										onChange={(e) =>
+											handleInputChange("end_time", e.target.value)
+										}
+										required
+									/>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					<DialogFooter className="flex justify-between">
-						{isEditMode && (
-							<Button
-								type="button"
-								variant="destructive"
-								onClick={() => setShowDeleteConfirm(true)}
-								disabled={deleteSessionMutation.isPending}
-								className="mr-auto"
-							>
-								<Trash2 className="mr-2 h-4 w-4" />
-								Delete
-							</Button>
-						)}
-						<div className="flex gap-2 ml-auto">
-							<Button type="button" variant="outline" onClick={handleClose}>
-								Cancel
-							</Button>
-							<Button 
-								type="submit" 
-								disabled={isEditMode ? updateSessionMutation.isPending : createSessionMutation.isPending}
-							>
-								{(isEditMode ? updateSessionMutation.isPending : createSessionMutation.isPending) && (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								)}
-								{isEditMode ? "Update Session" : "Create Session"}
-							</Button>
-						</div>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+						<DialogFooter className="flex justify-between">
+							{isEditMode && (
+								<Button
+									type="button"
+									variant="destructive"
+									onClick={() => setShowDeleteConfirm(true)}
+									disabled={deleteSessionMutation.isPending}
+									className="mr-auto"
+								>
+									<Trash2 className="mr-2 h-4 w-4" />
+									Delete
+								</Button>
+							)}
+							<div className="ml-auto flex gap-2">
+								<Button type="button" variant="outline" onClick={handleClose}>
+									Cancel
+								</Button>
+								<Button
+									type="submit"
+									disabled={
+										isEditMode
+											? updateSessionMutation.isPending
+											: createSessionMutation.isPending
+									}
+								>
+									{(isEditMode
+										? updateSessionMutation.isPending
+										: createSessionMutation.isPending) && (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									)}
+									{isEditMode ? "Update Session" : "Create Session"}
+								</Button>
+							</div>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 
-		{/* Delete Confirmation Dialog */}
-		<AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>Delete Weekly Session</AlertDialogTitle>
-					<AlertDialogDescription>
-						Are you sure you want to delete this weekly session? This action cannot be undone.
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={() => deleteSessionMutation.mutate()}
-						disabled={deleteSessionMutation.isPending}
-						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-					>
-						{deleteSessionMutation.isPending && (
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-						)}
-						Delete
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Weekly Session</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete this weekly session? This action
+							cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => deleteSessionMutation.mutate()}
+							disabled={deleteSessionMutation.isPending}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{deleteSessionMutation.isPending && (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							)}
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }

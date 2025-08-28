@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteParams {
@@ -52,13 +53,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Assessment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error fetching assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch assessment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in GET /api/assessments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -127,13 +128,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Assessment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error updating assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to update assessment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -142,7 +143,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in PATCH /api/assessments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -162,13 +163,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Assessment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error deleting assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete assessment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -177,7 +178,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in DELETE /api/assessments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

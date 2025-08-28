@@ -1,32 +1,50 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { 
-	Table, 
-	TableBody, 
-	TableCell, 
-	TableHead, 
-	TableHeader, 
-	TableRow 
-} from "@/components/ui/table";
+import { useMemo, useState } from "react";
+
+import Link from "next/link";
+
+import {
+	DataTableFilter,
+	useDataTableFilters,
+} from "@/components/data-table-filter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
+import { Card, CardContent } from "@/components/ui/card";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger 
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoreHorizontal, Edit, Trash, Search, Plus, CheckCircle, Users, Calendar, GraduationCap, Building, Eye } from "lucide-react";
-import { format } from "date-fns";
-import Link from "next/link";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+
+import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@uidotdev/usehooks";
+import { format } from "date-fns";
+import {
+	Building,
+	Calendar,
+	CheckCircle,
+	Edit,
+	Eye,
+	GraduationCap,
+	MoreHorizontal,
+	Plus,
+	Search,
+	Trash,
+	Users,
+} from "lucide-react";
 import { toast } from "sonner";
-import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
 
 const statusColors = {
 	declined_contract: "destructive",
@@ -133,12 +151,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 	const debouncedSearch = useDebounce(search, 300);
 
 	// Data table filters hook
-	const {
-		columns,
-		filters,
-		actions,
-		strategy,
-	} = useDataTableFilters({
+	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: enrollmentColumns,
@@ -146,18 +159,26 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 
 	// Convert filters to query params - support multiple values
 	const filterQuery = useMemo(() => {
-		const statusFilter = filters.find(f => f.columnId === "status");
-		const formatFilter = filters.find(f => f.columnId === "cohort_format");
-		const cohortStatusFilter = filters.find(f => f.columnId === "cohort_status");
-		const levelFilter = filters.find(f => f.columnId === "starting_level");
-		const roomFilter = filters.find(f => f.columnId === "room_type");
-		
+		const statusFilter = filters.find((f) => f.columnId === "status");
+		const formatFilter = filters.find((f) => f.columnId === "cohort_format");
+		const cohortStatusFilter = filters.find(
+			(f) => f.columnId === "cohort_status",
+		);
+		const levelFilter = filters.find((f) => f.columnId === "starting_level");
+		const roomFilter = filters.find((f) => f.columnId === "room_type");
+
 		return {
 			// Pass arrays for multi-select filters
 			status: statusFilter?.values?.length ? statusFilter.values : undefined,
-			cohort_format: formatFilter?.values?.length ? formatFilter.values : undefined,
-			cohort_status: cohortStatusFilter?.values?.length ? cohortStatusFilter.values : undefined,
-			starting_level: levelFilter?.values?.length ? levelFilter.values : undefined,
+			cohort_format: formatFilter?.values?.length
+				? formatFilter.values
+				: undefined,
+			cohort_status: cohortStatusFilter?.values?.length
+				? cohortStatusFilter.values
+				: undefined,
+			starting_level: levelFilter?.values?.length
+				? levelFilter.values
+				: undefined,
 			room_type: roomFilter?.values?.length ? roomFilter.values : undefined,
 		};
 	}, [filters]);
@@ -170,24 +191,30 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 				limit: "20",
 				...(debouncedSearch && { search: debouncedSearch }),
 			});
-			
+
 			// Add array filters
 			if (filterQuery.status) {
-				filterQuery.status.forEach(v => params.append("status", v));
+				filterQuery.status.forEach((v) => params.append("status", v));
 			}
 			if (filterQuery.cohort_format) {
-				filterQuery.cohort_format.forEach(v => params.append("cohort_format", v));
+				filterQuery.cohort_format.forEach((v) =>
+					params.append("cohort_format", v),
+				);
 			}
 			if (filterQuery.cohort_status) {
-				filterQuery.cohort_status.forEach(v => params.append("cohort_status", v));
+				filterQuery.cohort_status.forEach((v) =>
+					params.append("cohort_status", v),
+				);
 			}
 			if (filterQuery.starting_level) {
-				filterQuery.starting_level.forEach(v => params.append("starting_level", v));
+				filterQuery.starting_level.forEach((v) =>
+					params.append("starting_level", v),
+				);
 			}
 			if (filterQuery.room_type) {
-				filterQuery.room_type.forEach(v => params.append("room_type", v));
+				filterQuery.room_type.forEach((v) => params.append("room_type", v));
 			}
-			
+
 			const response = await fetch(`/api/enrollments?${params}`);
 			if (!response.ok) throw new Error("Failed to fetch enrollments");
 			return response.json();
@@ -199,9 +226,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			const response = await fetch(`/api/enrollments/${id}`, {
 				method: "DELETE",
 			});
-			
+
 			if (!response.ok) throw new Error("Failed to delete enrollment");
-			
+
 			toast.success("Enrollment deleted successfully");
 			// Refetch data
 			window.location.reload();
@@ -228,32 +255,29 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			{/* Table with integrated search, filters and actions */}
 			<div className="rounded-md border">
 				{/* Combined header with search, filters, and add button */}
-				<div className="border-b bg-muted/30 px-4 py-2 space-y-2">
+				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
 					{/* Search bar and action button */}
 					<div className="flex items-center gap-3">
-						<div className="relative flex-1 max-w-sm">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+						<div className="relative max-w-sm flex-1">
+							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by student name or email..."
 								value={search}
 								onChange={(e) => setSearch(e.target.value)}
-								className="h-9 pl-9 bg-muted/50"
+								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
-						
+
 						<div className="ml-auto">
 							<Link href="/admin/students/enrollments/new">
-								<Button 
-									size="sm" 
-									className="h-9"
-								>
+								<Button size="sm" className="h-9">
 									<Plus className="mr-1.5 h-4 w-4" />
 									New Enrollment
 								</Button>
 							</Link>
 						</div>
 					</div>
-					
+
 					{/* Filter bar */}
 					<DataTableFilter
 						columns={columns}
@@ -262,102 +286,132 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						strategy={strategy}
 					/>
 				</div>
-				
+
 				<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Student</TableHead>
-								<TableHead>Cohort</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Enrolled</TableHead>
-								<TableHead className="w-[70px]"></TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{isLoading ? (
-								Array.from({ length: 5 }).map((_, i) => (
-									<TableRow key={i}>
-										<TableCell><Skeleton className="h-5 w-32" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-20" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-8" /></TableCell>
-									</TableRow>
-								))
-							) : data?.enrollments?.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={5} className="text-center text-muted-foreground">
-										No enrollments found
+					<TableHeader>
+						<TableRow>
+							<TableHead>Student</TableHead>
+							<TableHead>Cohort</TableHead>
+							<TableHead>Status</TableHead>
+							<TableHead>Enrolled</TableHead>
+							<TableHead className="w-[70px]" />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{isLoading ? (
+							Array.from({ length: 5 }).map((_, i) => (
+								<TableRow key={i}>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-8" />
 									</TableCell>
 								</TableRow>
-							) : (
-								data?.enrollments?.map((enrollment: any) => (
-									<TableRow key={enrollment.id} className="hover:bg-muted/50 transition-colors duration-150">
-										<TableCell>
-											<Link href={`/admin/students/${enrollment.student_id}`} className="hover:underline">
-												<div>
-													<p className="font-medium">{enrollment.students?.full_name}</p>
-													<p className="text-sm text-muted-foreground">
-														{enrollment.students?.email || "No email"}
-													</p>
-												</div>
-											</Link>
-										</TableCell>
-										<TableCell>
+							))
+						) : data?.enrollments?.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={5}
+									className="text-center text-muted-foreground"
+								>
+									No enrollments found
+								</TableCell>
+							</TableRow>
+						) : (
+							data?.enrollments?.map((enrollment: any) => (
+								<TableRow
+									key={enrollment.id}
+									className="transition-colors duration-150 hover:bg-muted/50"
+								>
+									<TableCell>
+										<Link
+											href={`/admin/students/${enrollment.student_id}`}
+											className="hover:underline"
+										>
 											<div>
 												<p className="font-medium">
-													{enrollment.cohorts?.products?.format || 'N/A'} - {enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || 'N/A'}
+													{enrollment.students?.full_name}
 												</p>
-												{enrollment.cohorts?.start_date && (
-													<p className="text-sm text-muted-foreground">
-														Starts {format(new Date(enrollment.cohorts.start_date), "MMM d, yyyy")}
-													</p>
-												)}
+												<p className="text-muted-foreground text-sm">
+													{enrollment.students?.email || "No email"}
+												</p>
 											</div>
-										</TableCell>
-										<TableCell>
-											<Badge variant={(statusColors as any)[enrollment.status]}>
-												{(statusLabels as any)[enrollment.status]}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">
-												{format(new Date(enrollment.created_at), "MMM d, yyyy")}
+										</Link>
+									</TableCell>
+									<TableCell>
+										<div>
+											<p className="font-medium">
+												{enrollment.cohorts?.products?.format || "N/A"} -{" "}
+												{enrollment.cohorts?.starting_level?.display_name ||
+													enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
+													"N/A"}
 											</p>
-										</TableCell>
-										<TableCell>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<Link href={`/admin/students/enrollments/${enrollment.id}`}>
-														<DropdownMenuItem>
-															<Eye className="mr-2 h-4 w-4" />
-															View
-														</DropdownMenuItem>
-													</Link>
-													<DropdownMenuItem 
-														onClick={() => handleDelete(enrollment.id)}
-														className="text-destructive"
-													>
-														<Trash className="mr-2 h-4 w-4" />
-														Delete
+											{enrollment.cohorts?.start_date && (
+												<p className="text-muted-foreground text-sm">
+													Starts{" "}
+													{format(
+														new Date(enrollment.cohorts.start_date),
+														"MMM d, yyyy",
+													)}
+												</p>
+											)}
+										</div>
+									</TableCell>
+									<TableCell>
+										<Badge variant={(statusColors as any)[enrollment.status]}>
+											{(statusLabels as any)[enrollment.status]}
+										</Badge>
+									</TableCell>
+									<TableCell>
+										<p className="text-sm">
+											{format(new Date(enrollment.created_at), "MMM d, yyyy")}
+										</p>
+									</TableCell>
+									<TableCell>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button variant="ghost" size="icon">
+													<MoreHorizontal className="h-4 w-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end">
+												<Link
+													href={`/admin/students/enrollments/${enrollment.id}`}
+												>
+													<DropdownMenuItem>
+														<Eye className="mr-2 h-4 w-4" />
+														View
 													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</TableCell>
-									</TableRow>
-								))
-							)}
-						</TableBody>
+												</Link>
+												<DropdownMenuItem
+													onClick={() => handleDelete(enrollment.id)}
+													className="text-destructive"
+												>
+													<Trash className="mr-2 h-4 w-4" />
+													Delete
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</TableCell>
+								</TableRow>
+							))
+						)}
+					</TableBody>
 				</Table>
-				
+
 				{data?.pagination && data.pagination.totalPages > 1 && (
-					<div className="flex items-center justify-between px-4 py-3 border-t bg-muted/10">
-						<p className="text-sm text-muted-foreground">
+					<div className="flex items-center justify-between border-t bg-muted/10 px-4 py-3">
+						<p className="text-muted-foreground text-sm">
 							Page {data.pagination.page} of {data.pagination.totalPages}
 						</p>
 						<div className="flex gap-2">

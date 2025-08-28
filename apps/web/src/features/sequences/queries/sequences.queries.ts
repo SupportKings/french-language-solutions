@@ -1,4 +1,9 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import type { SequenceQuery } from "../schemas/sequence.schema";
 
 export const sequencesQueries = {
@@ -40,7 +45,7 @@ export function useSequence(id: string) {
 
 export function useDeleteSequence() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const response = await fetch(`/api/sequences/${id}`, {

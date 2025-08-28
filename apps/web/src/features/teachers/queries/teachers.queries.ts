@@ -1,5 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Teacher, TeacherQuery, TeacherFormData } from "../schemas/teacher.schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+	Teacher,
+	TeacherFormData,
+	TeacherQuery,
+} from "../schemas/teacher.schema";
 
 const TEACHER_QUERY_KEY = "teachers";
 
@@ -13,7 +17,7 @@ export function useTeachers(query: TeacherQuery) {
 				if (value !== undefined && value !== null && value !== "") {
 					// Handle arrays for multi-select filters
 					if (Array.isArray(value)) {
-						value.forEach(v => params.append(key, String(v)));
+						value.forEach((v) => params.append(key, String(v)));
 					} else {
 						params.append(key, String(value));
 					}
@@ -47,7 +51,7 @@ export function useTeacher(id: string) {
 // Create teacher
 export function useCreateTeacher() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async (data: TeacherFormData) => {
 			const response = await fetch("/api/teachers", {
@@ -57,11 +61,11 @@ export function useCreateTeacher() {
 				},
 				body: JSON.stringify(data),
 			});
-			
+
 			if (!response.ok) {
 				throw new Error("Failed to create teacher");
 			}
-			
+
 			return response.json();
 		},
 		onSuccess: () => {
@@ -73,7 +77,7 @@ export function useCreateTeacher() {
 // Update teacher
 export function useUpdateTeacher() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: TeacherFormData }) => {
 			const response = await fetch(`/api/teachers/${id}`, {
@@ -83,16 +87,18 @@ export function useUpdateTeacher() {
 				},
 				body: JSON.stringify(data),
 			});
-			
+
 			if (!response.ok) {
 				throw new Error("Failed to update teacher");
 			}
-			
+
 			return response.json();
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: [TEACHER_QUERY_KEY] });
-			queryClient.invalidateQueries({ queryKey: [TEACHER_QUERY_KEY, variables.id] });
+			queryClient.invalidateQueries({
+				queryKey: [TEACHER_QUERY_KEY, variables.id],
+			});
 		},
 	});
 }
@@ -100,17 +106,17 @@ export function useUpdateTeacher() {
 // Delete teacher
 export function useDeleteTeacher() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const response = await fetch(`/api/teachers/${id}`, {
 				method: "DELETE",
 			});
-			
+
 			if (!response.ok) {
 				throw new Error("Failed to delete teacher");
 			}
-			
+
 			return response.json();
 		},
 		onSuccess: () => {

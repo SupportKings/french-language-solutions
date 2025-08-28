@@ -1,4 +1,9 @@
-import type { Student, CreateStudent, UpdateStudent, StudentQuery } from "../schemas/student.schema";
+import type {
+	CreateStudent,
+	Student,
+	StudentQuery,
+	UpdateStudent,
+} from "../schemas/student.schema";
 
 export interface PaginatedResponse<T> {
 	data: T[];
@@ -18,7 +23,7 @@ export const studentsApi = {
 			if (value !== undefined && value !== null) {
 				// Handle arrays for multi-select filters
 				if (Array.isArray(value)) {
-					value.forEach(v => searchParams.append(key, String(v)));
+					value.forEach((v) => searchParams.append(key, String(v)));
 				} else {
 					searchParams.append(key, String(value));
 				}
@@ -57,7 +62,7 @@ export const studentsApi = {
 
 	// Create student
 	async create(data: CreateStudent): Promise<Student> {
-		const response = await fetch(`/api/students`, {
+		const response = await fetch("/api/students", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

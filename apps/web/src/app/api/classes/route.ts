@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
+
 import { z } from "zod";
 
 // GET /api/classes - List all classes with pagination and filters
@@ -7,8 +9,8 @@ export async function GET(request: NextRequest) {
 	try {
 		const supabase = await createClient();
 		const searchParams = request.nextUrl.searchParams;
-		const page = parseInt(searchParams.get("page") || "1");
-		const limit = parseInt(searchParams.get("limit") || "10");
+		const page = Number.parseInt(searchParams.get("page") || "1");
+		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
 		const status = searchParams.get("status") || "";
 		const mode = searchParams.get("mode") || "";
@@ -20,10 +22,13 @@ export async function GET(request: NextRequest) {
 
 		let query = supabase
 			.from("classes")
-			.select(`
+			.select(
+				`
 				*,
 				cohort:cohorts(*)
-			`, { count: "exact" })
+			`,
+				{ count: "exact" },
+			)
 			.is("deleted_at", null)
 			.order("created_at", { ascending: false })
 			.range(offset, offset + limit - 1);
@@ -54,7 +59,7 @@ export async function GET(request: NextRequest) {
 			console.error("Error fetching classes:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch classes" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -71,7 +76,7 @@ export async function GET(request: NextRequest) {
 		console.error("Error in GET /api/classes:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -83,7 +88,9 @@ const createClassSchema = z.object({
 	description: z.string().optional().nullable(),
 	start_time: z.string().datetime(),
 	end_time: z.string().datetime(),
-	status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]).default("scheduled"),
+	status: z
+		.enum(["scheduled", "in_progress", "completed", "cancelled"])
+		.default("scheduled"),
 	mode: z.enum(["online", "in_person", "hybrid"]).default("online"),
 	google_calendar_event_id: z.string().optional().nullable(),
 	room: z.string().optional().nullable(),
@@ -113,7 +120,7 @@ export async function POST(request: NextRequest) {
 			console.error("Error creating class:", error);
 			return NextResponse.json(
 				{ error: "Failed to create class" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -122,13 +129,13 @@ export async function POST(request: NextRequest) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: "Validation error", details: error.issues },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 		console.error("Error in POST /api/classes:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

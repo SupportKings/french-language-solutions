@@ -1,14 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2, Check, ChevronsUpDown } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+} from "@/components/ui/command";
 import {
 	Form,
 	FormControl,
@@ -19,7 +25,11 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -27,32 +37,40 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-} from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 const assessmentFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
-	level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus",
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]).optional(),
+	level: z
+		.enum([
+			"a1",
+			"a1_plus",
+			"a2",
+			"a2_plus",
+			"b1",
+			"b1_plus",
+			"b2",
+			"b2_plus",
+			"c1",
+			"c1_plus",
+			"c2",
+		])
+		.optional(),
 	scheduled_for: z.date().optional(),
 	is_paid: z.boolean(),
 	result: z.enum([
-		"requested", "scheduled", "session_held", "level_determined"
+		"requested",
+		"scheduled",
+		"session_held",
+		"level_determined",
 	]),
 	notes: z.union([z.string(), z.literal("")]).optional(),
 	interview_held_by: z.union([z.string(), z.literal("")]).optional(),
@@ -69,7 +87,11 @@ interface AssessmentFormProps {
 	onSuccess?: () => void;
 }
 
-export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentFormProps) {
+export function AssessmentForm({
+	assessment,
+	studentId,
+	onSuccess,
+}: AssessmentFormProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [students, setStudents] = useState<any[]>([]);
@@ -119,7 +141,9 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 		async function fetchTeachers() {
 			setLoadingTeachers(true);
 			try {
-				const response = await fetch("/api/teachers?onboarding_status=onboarded");
+				const response = await fetch(
+					"/api/teachers?onboarding_status=onboarded",
+				);
 				if (response.ok) {
 					const data = await response.json();
 					setTeachers(data.teachers || []);
@@ -135,14 +159,14 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 
 	async function onSubmit(values: AssessmentFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = assessment 
+			const url = assessment
 				? `/api/assessments/${assessment.id}`
 				: "/api/assessments";
-			
+
 			const method = assessment ? "PATCH" : "POST";
-			
+
 			// API expects camelCase for these specific fields
 			const payload = {
 				studentId: values.student_id,
@@ -170,8 +194,12 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 				throw new Error(error.error || "Failed to save assessment");
 			}
 
-			toast.success(assessment ? "Assessment updated successfully" : "Assessment created successfully");
-			
+			toast.success(
+				assessment
+					? "Assessment updated successfully"
+					: "Assessment created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else {
@@ -204,14 +232,17 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 												role="combobox"
 												className={cn(
 													"justify-between",
-													!field.value && "text-muted-foreground"
+													!field.value && "text-muted-foreground",
 												)}
 												disabled={!!studentId || loadingStudents}
 											>
 												{field.value
-													? students.find((s) => s.id === field.value)?.full_name
+													? students.find((s) => s.id === field.value)
+															?.full_name
 													: "Select student..."}
-												{!studentId && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+												{!studentId && (
+													<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+												)}
 											</Button>
 										</FormControl>
 									</PopoverTrigger>
@@ -232,13 +263,17 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 															<Check
 																className={cn(
 																	"mr-2 h-4 w-4",
-																	field.value === student.id ? "opacity-100" : "opacity-0"
+																	field.value === student.id
+																		? "opacity-100"
+																		: "opacity-0",
 																)}
 															/>
 															<div className="flex flex-col">
 																<span>{student.full_name}</span>
 																{student.email && (
-																	<span className="text-xs text-muted-foreground">{student.email}</span>
+																	<span className="text-muted-foreground text-xs">
+																		{student.email}
+																	</span>
 																)}
 															</div>
 														</CommandItem>
@@ -249,7 +284,9 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 									)}
 								</Popover>
 								<FormDescription>
-									{studentId ? "Student is pre-selected" : "Choose the student for assessment"}
+									{studentId
+										? "Student is pre-selected"
+										: "Choose the student for assessment"}
 								</FormDescription>
 								<FormMessage />
 							</FormItem>
@@ -269,7 +306,7 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 												variant="outline"
 												className={cn(
 													"pl-3 text-left font-normal",
-													!field.value && "text-muted-foreground"
+													!field.value && "text-muted-foreground",
 												)}
 											>
 												{field.value ? (
@@ -304,7 +341,10 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Language Level</FormLabel>
-								<Select onValueChange={field.onChange} defaultValue={field.value}>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue placeholder="Select level" />
@@ -324,9 +364,7 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 										<SelectItem value="c2">C2</SelectItem>
 									</SelectContent>
 								</Select>
-								<FormDescription>
-									Determined language level
-								</FormDescription>
+								<FormDescription>Determined language level</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}
@@ -338,7 +376,10 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Assessment Status</FormLabel>
-								<Select onValueChange={field.onChange} defaultValue={field.value}>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue />
@@ -348,7 +389,9 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 										<SelectItem value="requested">Requested</SelectItem>
 										<SelectItem value="scheduled">Scheduled</SelectItem>
 										<SelectItem value="session_held">Session Held</SelectItem>
-										<SelectItem value="level_determined">Level Determined</SelectItem>
+										<SelectItem value="level_determined">
+											Level Determined
+										</SelectItem>
 									</SelectContent>
 								</Select>
 								<FormDescription>
@@ -373,12 +416,13 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 												role="combobox"
 												className={cn(
 													"justify-between",
-													!field.value && "text-muted-foreground"
+													!field.value && "text-muted-foreground",
 												)}
 												disabled={loadingTeachers}
 											>
 												{field.value
-													? teachers.find((t) => t.id === field.value)?.full_name
+													? teachers.find((t) => t.id === field.value)
+															?.full_name
 													: "Select teacher..."}
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
@@ -400,7 +444,9 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 														<Check
 															className={cn(
 																"mr-2 h-4 w-4",
-																field.value === teacher.id ? "opacity-100" : "opacity-0"
+																field.value === teacher.id
+																	? "opacity-100"
+																	: "opacity-0",
 															)}
 														/>
 														{teacher.full_name}
@@ -432,12 +478,13 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 												role="combobox"
 												className={cn(
 													"justify-between",
-													!field.value && "text-muted-foreground"
+													!field.value && "text-muted-foreground",
 												)}
 												disabled={loadingTeachers}
 											>
 												{field.value
-													? teachers.find((t) => t.id === field.value)?.full_name
+													? teachers.find((t) => t.id === field.value)
+															?.full_name
 													: "Select teacher..."}
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
@@ -459,7 +506,9 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 														<Check
 															className={cn(
 																"mr-2 h-4 w-4",
-																field.value === teacher.id ? "opacity-100" : "opacity-0"
+																field.value === teacher.id
+																	? "opacity-100"
+																	: "opacity-0",
 															)}
 														/>
 														{teacher.full_name}
@@ -546,10 +595,7 @@ export function AssessmentForm({ assessment, studentId, onSuccess }: AssessmentF
 				</div>
 
 				<div className="flex gap-4">
-					<Button
-						type="submit"
-						disabled={isLoading}
-					>
+					<Button type="submit" disabled={isLoading}>
 						{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						{assessment ? "Update Assessment" : "Create Assessment"}
 					</Button>

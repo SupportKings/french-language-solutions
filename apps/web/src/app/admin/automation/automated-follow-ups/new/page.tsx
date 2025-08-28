@@ -3,7 +3,7 @@ import { AutomatedFollowUpForm } from "@/features/automated-follow-ups/component
 export default async function NewAutomatedFollowUpPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ 
+	searchParams: Promise<{
 		studentId?: string;
 		studentName?: string;
 		email?: string;

@@ -1,31 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useEffect, useState } from "react";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
+
+import { format } from "date-fns";
+import {
 	Calendar,
 	Clock,
-	User,
 	ExternalLink,
-	Phone,
+	FileText,
+	Hand,
 	Mail,
 	MessageSquare,
-	Hand,
+	Phone,
+	User,
 	Video,
-	FileText
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
 
 interface Touchpoint {
 	id: string;
 	student_id: string;
-	type: "call" | "email" | "sms" | "whatsapp" | "meeting" | "video_call" | "note";
+	type:
+		| "call"
+		| "email"
+		| "sms"
+		| "whatsapp"
+		| "meeting"
+		| "video_call"
+		| "note";
 	title: string;
 	description?: string;
 	contact_date: string;
@@ -70,7 +81,7 @@ const touchpointConfig = {
 		color: "bg-blue-500/10 text-blue-700 border-blue-200",
 	},
 	video_call: {
-		label: "Video Call", 
+		label: "Video Call",
 		icon: Video,
 		color: "bg-purple-500/10 text-purple-700 border-purple-200",
 	},
@@ -86,7 +97,7 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 	const [loading, setLoading] = useState(true);
 	const router = useRouter();
 	const pathname = usePathname();
-	
+
 	// Get current URL for redirectTo
 	const currentUrl = `${pathname}?tab=touchpoints`;
 
@@ -108,11 +119,11 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 	useEffect(() => {
 		fetchTouchpoints();
 	}, [studentId]);
-	
+
 	// Refresh data when returning from forms
 	useEffect(() => {
 		const searchParams = new URLSearchParams(window.location.search);
-		if (searchParams.get('tab') === 'touchpoints') {
+		if (searchParams.get("tab") === "touchpoints") {
 			fetchTouchpoints();
 		}
 	}, [pathname]);
@@ -121,7 +132,7 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 		return (
 			<div className="space-y-3">
 				{[...Array(3)].map((_, i) => (
-					<div key={i} className="border rounded-lg p-4">
+					<div key={i} className="rounded-lg border p-4">
 						<div className="flex items-start gap-4">
 							<Skeleton className="h-10 w-10 rounded" />
 							<div className="flex-1 space-y-2">
@@ -141,29 +152,35 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 
 	if (touchpoints.length === 0) {
 		return (
-			<div className="text-center py-8 bg-muted/30 rounded-lg">
-				<Hand className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-				<p className="text-muted-foreground mb-1">No touchpoints yet</p>
-				<p className="text-xs text-muted-foreground">Communication touchpoints will appear here once logged</p>
+			<div className="rounded-lg bg-muted/30 py-8 text-center">
+				<Hand className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
+				<p className="mb-1 text-muted-foreground">No touchpoints yet</p>
+				<p className="text-muted-foreground text-xs">
+					Communication touchpoints will appear here once logged
+				</p>
 			</div>
 		);
 	}
 
 	// Sort touchpoints by date (newest first)
-	const sortedTouchpoints = touchpoints.sort((a, b) => 
-		new Date(b.contact_date).getTime() - new Date(a.contact_date).getTime()
+	const sortedTouchpoints = touchpoints.sort(
+		(a, b) =>
+			new Date(b.contact_date).getTime() - new Date(a.contact_date).getTime(),
 	);
 
 	// Group touchpoints by month
-	const groupedTouchpoints = sortedTouchpoints.reduce((acc, touchpoint) => {
-		const date = new Date(touchpoint.contact_date);
-		const monthKey = format(date, "MMMM yyyy");
-		if (!acc[monthKey]) {
-			acc[monthKey] = [];
-		}
-		acc[monthKey].push(touchpoint);
-		return acc;
-	}, {} as Record<string, Touchpoint[]>);
+	const groupedTouchpoints = sortedTouchpoints.reduce(
+		(acc, touchpoint) => {
+			const date = new Date(touchpoint.contact_date);
+			const monthKey = format(date, "MMMM yyyy");
+			if (!acc[monthKey]) {
+				acc[monthKey] = [];
+			}
+			acc[monthKey].push(touchpoint);
+			return acc;
+		},
+		{} as Record<string, Touchpoint[]>,
+	);
 
 	return (
 		<div className="space-y-6">
@@ -171,8 +188,10 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 				<div key={month} className="space-y-3">
 					<div className="flex items-center gap-2">
 						<Calendar className="h-4 w-4 text-muted-foreground" />
-						<h3 className="font-medium text-sm text-muted-foreground">{month}</h3>
-						<div className="flex-1 h-px bg-border" />
+						<h3 className="font-medium text-muted-foreground text-sm">
+							{month}
+						</h3>
+						<div className="h-px flex-1 bg-border" />
 					</div>
 
 					{monthTouchpoints.map((touchpoint) => {
@@ -182,56 +201,64 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 						return (
 							<div
 								key={touchpoint.id}
-								className="border rounded-lg p-4 transition-all duration-200 hover:shadow-md"
+								className="rounded-lg border p-4 transition-all duration-200 hover:shadow-md"
 							>
 								<div className="flex items-start gap-4">
-									<div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center">
+									<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
 										<TypeIcon className="h-5 w-5 text-muted-foreground" />
 									</div>
 
-									<div className="flex-1 min-w-0">
+									<div className="min-w-0 flex-1">
 										<div className="flex items-start justify-between gap-3">
 											<div className="flex-1">
-												<div className="flex items-center gap-2 mb-1">
+												<div className="mb-1 flex items-center gap-2">
 													<h3 className="font-medium text-sm">
 														{touchpoint.title}
 													</h3>
-													<Badge variant="outline" className={cn("text-xs", typeInfo.color)}>
+													<Badge
+														variant="outline"
+														className={cn("text-xs", typeInfo.color)}
+													>
 														{typeInfo.label}
 													</Badge>
 												</div>
-												
+
 												{touchpoint.description && (
-													<p className="text-xs text-muted-foreground mb-2">
+													<p className="mb-2 text-muted-foreground text-xs">
 														{touchpoint.description}
 													</p>
 												)}
 
 												{touchpoint.outcome && (
-													<div className="text-xs bg-muted/30 rounded p-2 mb-2">
+													<div className="mb-2 rounded bg-muted/30 p-2 text-xs">
 														<span className="font-medium">Outcome: </span>
 														{touchpoint.outcome}
 													</div>
 												)}
 											</div>
-											
+
 											<Button
 												asChild
 												variant="ghost"
 												size="sm"
-												className="h-8 px-2 flex-shrink-0"
+												className="h-8 flex-shrink-0 px-2"
 											>
-												<Link href={`/admin/touchpoints/${touchpoint.id}?redirectTo=${encodeURIComponent(currentUrl)}`}>
+												<Link
+													href={`/admin/touchpoints/${touchpoint.id}?redirectTo=${encodeURIComponent(currentUrl)}`}
+												>
 													<ExternalLink className="h-3.5 w-3.5" />
 												</Link>
 											</Button>
 										</div>
 
-										<div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+										<div className="mt-2 flex items-center gap-4 text-muted-foreground text-xs">
 											<div className="flex items-center gap-1">
 												<Clock className="h-3 w-3" />
 												<span>
-													{format(new Date(touchpoint.contact_date), "MMM d, yyyy 'at' h:mm a")}
+													{format(
+														new Date(touchpoint.contact_date),
+														"MMM d, yyyy 'at' h:mm a",
+													)}
 												</span>
 											</div>
 

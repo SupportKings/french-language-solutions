@@ -3,7 +3,7 @@ import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentF
 export default async function NewEnrollmentPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ 
+	searchParams: Promise<{
 		studentId?: string;
 		cohortId?: string;
 		cohortName?: string;
@@ -12,7 +12,7 @@ export default async function NewEnrollmentPage({
 }) {
 	const params = await searchParams;
 	return (
-		<EnrollmentFormNew 
+		<EnrollmentFormNew
 			studentId={params.studentId}
 			cohortId={params.cohortId}
 			cohortName={params.cohortName}

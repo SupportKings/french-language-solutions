@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+
+import { createClient } from "@/lib/supabase/client";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
 	FormMessage,
-	FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -24,14 +25,21 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, Users, Video, MapPin, BookOpen } from "lucide-react";
-import { classFormSchema, type ClassFormValues, type Class } from "../schemas/class.schema";
-import { useCreateClass, useUpdateClass } from "../queries/classes.queries";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { format } from "date-fns";
+import { BookOpen, Calendar, Clock, MapPin, Users, Video } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useCreateClass, useUpdateClass } from "../queries/classes.queries";
+import {
+	type Class,
+	type ClassFormValues,
+	classFormSchema,
+} from "../schemas/class.schema";
 
 interface ClassFormProps {
 	initialData?: Class;
@@ -99,7 +107,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 					onSuccess: () => {
 						router.push(`/admin/classes/${initialData.id}`);
 					},
-				}
+				},
 			);
 		} else {
 			createClass.mutate(data, {
@@ -115,7 +123,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-				<Card className="bg-card/95 backdrop-blur-sm border-border/50">
+				<Card className="border-border/50 bg-card/95 backdrop-blur-sm">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<BookOpen className="h-5 w-5" />
@@ -130,7 +138,10 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								<FormItem>
 									<FormLabel>Class Name</FormLabel>
 									<FormControl>
-										<Input placeholder="e.g., French A1 - Module 3" {...field} />
+										<Input
+											placeholder="e.g., French A1 - Module 3"
+											{...field}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -156,14 +167,17 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 							)}
 						/>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
 								name="cohort_id"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Cohort</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="Select a cohort" />
@@ -188,8 +202,10 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Teacher (Optional)</FormLabel>
-										<Select 
-											onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
+										<Select
+											onValueChange={(value) =>
+												field.onChange(value === "none" ? "" : value)
+											}
 											defaultValue={field.value || "none"}
 										>
 											<FormControl>
@@ -198,7 +214,9 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												<SelectItem value="none">No teacher assigned</SelectItem>
+												<SelectItem value="none">
+													No teacher assigned
+												</SelectItem>
 												{teachers?.map((teacher) => (
 													<SelectItem key={teacher.id} value={teacher.id}>
 														{teacher.full_name}
@@ -214,7 +232,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 					</CardContent>
 				</Card>
 
-				<Card className="bg-card/95 backdrop-blur-sm border-border/50">
+				<Card className="border-border/50 bg-card/95 backdrop-blur-sm">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<Calendar className="h-5 w-5" />
@@ -222,7 +240,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
 								name="start_time"
@@ -230,10 +248,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 									<FormItem>
 										<FormLabel>Start Time</FormLabel>
 										<FormControl>
-											<Input
-												type="datetime-local"
-												{...field}
-											/>
+											<Input type="datetime-local" {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -247,10 +262,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 									<FormItem>
 										<FormLabel>End Time</FormLabel>
 										<FormControl>
-											<Input
-												type="datetime-local"
-												{...field}
-											/>
+											<Input type="datetime-local" {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -258,14 +270,17 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 							/>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
 								name="status"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Status</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue />
@@ -289,7 +304,10 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Mode</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue />
@@ -319,7 +337,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 					</CardContent>
 				</Card>
 
-				<Card className="bg-card/95 backdrop-blur-sm border-border/50">
+				<Card className="border-border/50 bg-card/95 backdrop-blur-sm">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<MapPin className="h-5 w-5" />
@@ -334,8 +352,8 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								<FormItem>
 									<FormLabel>Room/Location</FormLabel>
 									<FormControl>
-										<Input 
-											placeholder="e.g., Room 201 or Building A" 
+										<Input
+											placeholder="e.g., Room 201 or Building A"
 											{...field}
 											value={field.value || ""}
 										/>
@@ -355,8 +373,8 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								<FormItem>
 									<FormLabel>Meeting Link</FormLabel>
 									<FormControl>
-										<Input 
-											placeholder="https://zoom.us/..." 
+										<Input
+											placeholder="https://zoom.us/..."
 											type="url"
 											{...field}
 											value={field.value || ""}
@@ -377,8 +395,8 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								<FormItem>
 									<FormLabel>Materials Link</FormLabel>
 									<FormControl>
-										<Input 
-											placeholder="Link to course materials" 
+										<Input
+											placeholder="Link to course materials"
 											{...field}
 											value={field.value || ""}
 										/>
@@ -390,7 +408,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 					</CardContent>
 				</Card>
 
-				<Card className="bg-card/95 backdrop-blur-sm border-border/50">
+				<Card className="border-border/50 bg-card/95 backdrop-blur-sm">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<Users className="h-5 w-5" />
@@ -398,7 +416,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
 								name="max_students"
@@ -410,7 +428,9 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 												type="number"
 												min="1"
 												{...field}
-												onChange={(e) => field.onChange(parseInt(e.target.value))}
+												onChange={(e) =>
+													field.onChange(Number.parseInt(e.target.value))
+												}
 											/>
 										</FormControl>
 										<FormMessage />
@@ -429,7 +449,9 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 												type="number"
 												min="0"
 												{...field}
-												onChange={(e) => field.onChange(parseInt(e.target.value))}
+												onChange={(e) =>
+													field.onChange(Number.parseInt(e.target.value))
+												}
 											/>
 										</FormControl>
 										<FormMessage />
@@ -495,8 +517,8 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								? "Updating..."
 								: "Creating..."
 							: isEdit
-							? "Update Class"
-							: "Create Class"}
+								? "Update Class"
+								: "Create Class"}
 					</Button>
 				</div>
 			</form>

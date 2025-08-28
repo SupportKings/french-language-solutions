@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+
 import StudentDetailsClient from "./page-client";
 
 async function getStudent(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 	const response = await fetch(`${baseUrl}/api/students/${id}`, {
 		cache: "no-store",
 	});
@@ -31,10 +32,10 @@ export default async function StudentDetailPage({
 	const assessmentCount = 0; // Would be calculated from actual assessments
 
 	return (
-		<StudentDetailsClient 
-			student={student} 
-			enrollmentCount={enrollmentCount} 
-			assessmentCount={assessmentCount} 
+		<StudentDetailsClient
+			student={student}
+			enrollmentCount={enrollmentCount}
+			assessmentCount={assessmentCount}
 		/>
 	);
 }

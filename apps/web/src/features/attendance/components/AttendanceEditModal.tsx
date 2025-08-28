@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -9,11 +13,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Select,
 	SelectContent,
@@ -21,8 +21,19 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Calendar, User, Clock, CheckCircle, XCircle, HelpCircle, Save, BookOpen } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+
 import { format } from "date-fns";
+import {
+	BookOpen,
+	Calendar,
+	CheckCircle,
+	Clock,
+	HelpCircle,
+	Save,
+	User,
+	XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface AttendanceRecord {
@@ -69,7 +80,9 @@ export function AttendanceEditModal({
 }: AttendanceEditModalProps) {
 	const [status, setStatus] = useState(record?.status || "unset");
 	const [notes, setNotes] = useState(record?.notes || "");
-	const [homeworkCompleted, setHomeworkCompleted] = useState(record?.homeworkCompleted || false);
+	const [homeworkCompleted, setHomeworkCompleted] = useState(
+		record?.homeworkCompleted || false,
+	);
 	const [saving, setSaving] = useState(false);
 
 	// Update state when record changes
@@ -119,12 +132,23 @@ export function AttendanceEditModal({
 
 	const getStatusBadge = (statusValue: string) => {
 		const statusConfig = {
-			attended: { label: "Present", className: "bg-green-500/10 text-green-700 border-green-200" },
-			not_attended: { label: "Absent", className: "bg-red-500/10 text-red-700 border-red-200" },
-			unset: { label: "Not Marked", className: "bg-gray-500/10 text-gray-700 border-gray-200" },
+			attended: {
+				label: "Present",
+				className: "bg-green-500/10 text-green-700 border-green-200",
+			},
+			not_attended: {
+				label: "Absent",
+				className: "bg-red-500/10 text-red-700 border-red-200",
+			},
+			unset: {
+				label: "Not Marked",
+				className: "bg-gray-500/10 text-gray-700 border-gray-200",
+			},
 		};
-		const config = statusConfig[statusValue as keyof typeof statusConfig] || statusConfig.unset;
-		
+		const config =
+			statusConfig[statusValue as keyof typeof statusConfig] ||
+			statusConfig.unset;
+
 		return (
 			<Badge variant="outline" className={`${config.className}`}>
 				{config.label}
@@ -146,15 +170,19 @@ export function AttendanceEditModal({
 
 				<div className="space-y-4 py-4">
 					{/* Student Info */}
-					<div className="rounded-lg bg-muted/30 p-4 space-y-3">
+					<div className="space-y-3 rounded-lg bg-muted/30 p-4">
 						<div className="flex items-center gap-3">
-							<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
 								<User className="h-5 w-5 text-primary" />
 							</div>
 							<div className="flex-1">
-								<p className="font-medium">{record.student?.full_name || "Unknown Student"}</p>
+								<p className="font-medium">
+									{record.student?.full_name || "Unknown Student"}
+								</p>
 								{record.student?.email && (
-									<p className="text-sm text-muted-foreground">{record.student.email}</p>
+									<p className="text-muted-foreground text-sm">
+										{record.student.email}
+									</p>
 								)}
 							</div>
 						</div>
@@ -163,12 +191,17 @@ export function AttendanceEditModal({
 					{/* Class Info */}
 					{record.class && (
 						<div className="space-y-2">
-							<Label className="text-xs text-muted-foreground">Class</Label>
+							<Label className="text-muted-foreground text-xs">Class</Label>
 							<div className="flex items-center gap-2 text-sm">
 								<Calendar className="h-4 w-4 text-muted-foreground" />
 								<span>Class {record.class.id}</span>
 								<span className="text-muted-foreground">•</span>
-								<span>{format(new Date(record.class.start_time), "MMM d, yyyy 'at' h:mm a")}</span>
+								<span>
+									{format(
+										new Date(record.class.start_time),
+										"MMM d, yyyy 'at' h:mm a",
+									)}
+								</span>
 							</div>
 						</div>
 					)}
@@ -180,10 +213,12 @@ export function AttendanceEditModal({
 							<Button
 								type="button"
 								variant={status === "attended" ? "default" : "outline"}
-								className={status === "attended" ? "bg-green-600 hover:bg-green-700" : ""}
+								className={
+									status === "attended" ? "bg-green-600 hover:bg-green-700" : ""
+								}
 								onClick={() => setStatus("attended")}
 							>
-								<CheckCircle className="h-4 w-4 mr-2" />
+								<CheckCircle className="mr-2 h-4 w-4" />
 								Present
 							</Button>
 							<Button
@@ -191,7 +226,7 @@ export function AttendanceEditModal({
 								variant={status === "not_attended" ? "destructive" : "outline"}
 								onClick={() => setStatus("not_attended")}
 							>
-								<XCircle className="h-4 w-4 mr-2" />
+								<XCircle className="mr-2 h-4 w-4" />
 								Absent
 							</Button>
 							<Button
@@ -199,7 +234,7 @@ export function AttendanceEditModal({
 								variant={status === "unset" ? "secondary" : "outline"}
 								onClick={() => setStatus("unset")}
 							>
-								<HelpCircle className="h-4 w-4 mr-2" />
+								<HelpCircle className="mr-2 h-4 w-4" />
 								Unset
 							</Button>
 						</div>
@@ -212,10 +247,10 @@ export function AttendanceEditModal({
 								<BookOpen className="h-4 w-4 text-blue-600" />
 								Homework Status
 							</Label>
-							<div 
-								className={`p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
-									homeworkCompleted 
-										? "border-blue-200 bg-blue-50/50 hover:bg-blue-50/80" 
+							<div
+								className={`cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 ${
+									homeworkCompleted
+										? "border-blue-200 bg-blue-50/50 hover:bg-blue-50/80"
 										: "border-gray-200 bg-muted/30 hover:bg-muted/50"
 								}`}
 								onClick={() => setHomeworkCompleted(!homeworkCompleted)}
@@ -224,27 +259,28 @@ export function AttendanceEditModal({
 									<Checkbox
 										id="homework-completed"
 										checked={homeworkCompleted}
-										onCheckedChange={(checked) => setHomeworkCompleted(checked as boolean)}
+										onCheckedChange={(checked) =>
+											setHomeworkCompleted(checked as boolean)
+										}
 										className="h-5 w-5"
 									/>
 									<div className="flex-1">
-										<label 
-											htmlFor="homework-completed" 
-											className="text-sm font-medium cursor-pointer block"
+										<label
+											htmlFor="homework-completed"
+											className="block cursor-pointer font-medium text-sm"
 										>
 											Homework completed
 										</label>
-										<p className="text-xs text-muted-foreground mt-0.5">
-											{homeworkCompleted 
-												? "Student has completed their homework for this class" 
-												: "Mark if the student has completed their homework"
-											}
+										<p className="mt-0.5 text-muted-foreground text-xs">
+											{homeworkCompleted
+												? "Student has completed their homework for this class"
+												: "Mark if the student has completed their homework"}
 										</p>
 									</div>
 									{homeworkCompleted && (
 										<div className="flex items-center gap-1 text-blue-600">
 											<div className="h-2 w-2 rounded-full bg-blue-600" />
-											<span className="text-xs font-medium">Completed</span>
+											<span className="font-medium text-xs">Completed</span>
 										</div>
 									)}
 								</div>
@@ -266,14 +302,19 @@ export function AttendanceEditModal({
 
 					{/* Last Modified Info */}
 					{record.markedAt && (
-						<div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+						<div className="space-y-1 border-t pt-2 text-muted-foreground text-xs">
 							<div className="flex items-center gap-1">
 								<Clock className="h-3 w-3" />
-								<span>Last updated: {format(new Date(record.markedAt), "MMM d, yyyy 'at' h:mm a")}</span>
+								<span>
+									Last updated:{" "}
+									{format(new Date(record.markedAt), "MMM d, yyyy 'at' h:mm a")}
+								</span>
 							</div>
 							{record.teacher && (
-								<div className="flex items-center gap-1 ml-4">
-									<span>by {record.teacher.first_name} {record.teacher.last_name}</span>
+								<div className="ml-4 flex items-center gap-1">
+									<span>
+										by {record.teacher.first_name} {record.teacher.last_name}
+									</span>
 								</div>
 							)}
 						</div>
@@ -289,7 +330,7 @@ export function AttendanceEditModal({
 							<>Saving...</>
 						) : (
 							<>
-								<Save className="h-4 w-4 mr-2" />
+								<Save className="mr-2 h-4 w-4" />
 								Save Changes
 							</>
 						)}

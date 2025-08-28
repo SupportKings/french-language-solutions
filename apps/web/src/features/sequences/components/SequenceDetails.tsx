@@ -1,23 +1,31 @@
 "use client";
 
-import { useSequence } from "../queries/sequences.queries";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { 
-	MessageSquare, 
-	Clock, 
-	Mail, 
-	Timer,
-	CheckCircle,
-	XCircle,
-	ArrowLeft,
-	Edit
-} from "lucide-react";
-import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { format } from "date-fns";
+import {
+	ArrowLeft,
+	CheckCircle,
+	Clock,
+	Edit,
+	Mail,
+	MessageSquare,
+	Timer,
+	XCircle,
+} from "lucide-react";
+import { useSequence } from "../queries/sequences.queries";
 
 interface SequenceDetailsProps {
 	sequenceId: string;
@@ -30,13 +38,13 @@ export function SequenceDetails({ sequenceId }: SequenceDetailsProps) {
 	const formatDelay = (hours: number) => {
 		if (hours < 1) {
 			return `${hours * 60} minutes`;
-		} else if (hours < 24) {
-			return `${hours} hour${hours > 1 ? 's' : ''}`;
-		} else {
-			const days = Math.floor(hours / 24);
-			const remainingHours = hours % 24;
-			return `${days} day${days > 1 ? 's' : ''}${remainingHours > 0 ? ` ${remainingHours}h` : ''}`;
 		}
+		if (hours < 24) {
+			return `${hours} hour${hours > 1 ? "s" : ""}`;
+		}
+		const days = Math.floor(hours / 24);
+		const remainingHours = hours % 24;
+		return `${days} day${days > 1 ? "s" : ""}${remainingHours > 0 ? ` ${remainingHours}h` : ""}`;
 	};
 
 	if (isLoading) {
@@ -75,11 +83,7 @@ export function SequenceDetails({ sequenceId }: SequenceDetailsProps) {
 		<div className="space-y-6">
 			{/* Actions bar */}
 			<div className="flex items-center justify-between">
-				<Button 
-					variant="ghost" 
-					onClick={() => router.back()}
-					className="gap-2"
-				>
+				<Button variant="ghost" onClick={() => router.back()} className="gap-2">
 					<ArrowLeft className="h-4 w-4" />
 					Back
 				</Button>
@@ -96,7 +100,9 @@ export function SequenceDetails({ sequenceId }: SequenceDetailsProps) {
 				<CardHeader>
 					<div className="flex items-start justify-between">
 						<div>
-							<CardTitle className="text-2xl">{sequence.display_name}</CardTitle>
+							<CardTitle className="text-2xl">
+								{sequence.display_name}
+							</CardTitle>
 							<CardDescription className="mt-2">
 								<div className="flex items-center gap-2">
 									<Mail className="h-4 w-4" />
@@ -105,44 +111,48 @@ export function SequenceDetails({ sequenceId }: SequenceDetailsProps) {
 							</CardDescription>
 						</div>
 						<div className="text-right">
-							<p className="text-sm text-muted-foreground">Created</p>
-							<p className="text-sm font-medium">
+							<p className="text-muted-foreground text-sm">Created</p>
+							<p className="font-medium text-sm">
 								{format(new Date(sequence.created_at), "MMM d, yyyy")}
 							</p>
 						</div>
 					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div className="flex items-center gap-3 rounded-lg bg-muted/50 p-4">
 							<Timer className="h-5 w-5 text-muted-foreground" />
 							<div>
-								<p className="text-sm text-muted-foreground">First Follow-up Delay</p>
+								<p className="text-muted-foreground text-sm">
+									First Follow-up Delay
+								</p>
 								<p className="font-medium">
-									{sequence.first_follow_up_delay_minutes < 60 
+									{sequence.first_follow_up_delay_minutes < 60
 										? `${sequence.first_follow_up_delay_minutes} minutes`
 										: sequence.first_follow_up_delay_minutes < 1440
-										? `${Math.floor(sequence.first_follow_up_delay_minutes / 60)} hours`
-										: `${Math.floor(sequence.first_follow_up_delay_minutes / 1440)} days`
-									}
+											? `${Math.floor(sequence.first_follow_up_delay_minutes / 60)} hours`
+											: `${Math.floor(sequence.first_follow_up_delay_minutes / 1440)} days`}
 								</p>
 							</div>
 						</div>
-						<div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+						<div className="flex items-center gap-3 rounded-lg bg-muted/50 p-4">
 							<MessageSquare className="h-5 w-5 text-muted-foreground" />
 							<div>
-								<p className="text-sm text-muted-foreground">Total Messages</p>
+								<p className="text-muted-foreground text-sm">Total Messages</p>
 								<p className="font-medium">
 									{sequence.template_follow_up_messages?.length || 0} messages
 								</p>
 							</div>
 						</div>
-						<div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+						<div className="flex items-center gap-3 rounded-lg bg-muted/50 p-4">
 							<CheckCircle className="h-5 w-5 text-muted-foreground" />
 							<div>
-								<p className="text-sm text-muted-foreground">Active Messages</p>
+								<p className="text-muted-foreground text-sm">Active Messages</p>
 								<p className="font-medium">
-									{sequence.template_follow_up_messages?.filter((m: any) => m.status === "active").length || 0} active
+									{sequence.template_follow_up_messages?.filter(
+										(m: any) => m.status === "active",
+									).length || 0}{" "}
+									active
 								</p>
 							</div>
 						</div>
@@ -159,62 +169,72 @@ export function SequenceDetails({ sequenceId }: SequenceDetailsProps) {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{sequence.template_follow_up_messages && sequence.template_follow_up_messages.length > 0 ? (
+					{sequence.template_follow_up_messages &&
+					sequence.template_follow_up_messages.length > 0 ? (
 						<div className="space-y-4">
-							{sequence.template_follow_up_messages.map((message: any, index: number) => (
-								<div
-									key={message.id}
-									className="relative"
-								>
-									{/* Timeline connector */}
-									{index < sequence.template_follow_up_messages.length - 1 && (
-										<div className="absolute left-5 top-10 bottom-0 w-0.5 bg-border" />
-									)}
-									
-									<div className="flex gap-4">
-										{/* Timeline dot */}
-										<div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background">
-											<span className="text-sm font-medium">{message.step_index}</span>
-										</div>
-										
-										{/* Message content */}
-										<div className="flex-1 space-y-2">
-											<div className="flex items-center gap-2">
-												<Badge 
-													variant={message.status === "active" ? "default" : "secondary"}
-													className="gap-1"
-												>
-													{message.status === "active" ? (
-														<CheckCircle className="h-3 w-3" />
-													) : (
-														<XCircle className="h-3 w-3" />
-													)}
-													{message.status}
-												</Badge>
-												<div className="flex items-center gap-1 text-sm text-muted-foreground">
-													<Clock className="h-3 w-3" />
-													Wait {formatDelay(message.time_delay_hours)}
-												</div>
+							{sequence.template_follow_up_messages.map(
+								(message: any, index: number) => (
+									<div key={message.id} className="relative">
+										{/* Timeline connector */}
+										{index <
+											sequence.template_follow_up_messages.length - 1 && (
+											<div className="absolute top-10 bottom-0 left-5 w-0.5 bg-border" />
+										)}
+
+										<div className="flex gap-4">
+											{/* Timeline dot */}
+											<div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background">
+												<span className="font-medium text-sm">
+													{message.step_index}
+												</span>
 											</div>
-											
-											<Card>
-												<CardContent className="pt-4">
-													<p className="text-sm whitespace-pre-wrap">{message.message_content}</p>
-												</CardContent>
-											</Card>
-											
-											{index < sequence.template_follow_up_messages.length - 1 && (
-												<div className="pb-4" />
-											)}
+
+											{/* Message content */}
+											<div className="flex-1 space-y-2">
+												<div className="flex items-center gap-2">
+													<Badge
+														variant={
+															message.status === "active"
+																? "default"
+																: "secondary"
+														}
+														className="gap-1"
+													>
+														{message.status === "active" ? (
+															<CheckCircle className="h-3 w-3" />
+														) : (
+															<XCircle className="h-3 w-3" />
+														)}
+														{message.status}
+													</Badge>
+													<div className="flex items-center gap-1 text-muted-foreground text-sm">
+														<Clock className="h-3 w-3" />
+														Wait {formatDelay(message.time_delay_hours)}
+													</div>
+												</div>
+
+												<Card>
+													<CardContent className="pt-4">
+														<p className="whitespace-pre-wrap text-sm">
+															{message.message_content}
+														</p>
+													</CardContent>
+												</Card>
+
+												{index <
+													sequence.template_follow_up_messages.length - 1 && (
+													<div className="pb-4" />
+												)}
+											</div>
 										</div>
 									</div>
-								</div>
-							))}
+								),
+							)}
 						</div>
 					) : (
-						<div className="text-center py-8">
+						<div className="py-8 text-center">
 							<MessageSquare className="mx-auto h-12 w-12 text-muted-foreground/50" />
-							<p className="mt-2 text-sm text-muted-foreground">
+							<p className="mt-2 text-muted-foreground text-sm">
 								No messages configured for this sequence
 							</p>
 							<Link href={`/admin/automation/sequences/${sequenceId}/edit`}>

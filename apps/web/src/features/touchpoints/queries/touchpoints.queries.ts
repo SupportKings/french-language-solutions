@@ -1,4 +1,9 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import type { TouchpointQuery } from "../schemas/touchpoint.schema";
 
 export const touchpointsQueries = {
@@ -16,13 +21,13 @@ export const touchpointsQueries = {
 
 				// Add array filters
 				if (query.channel) {
-					query.channel.forEach(v => params.append("channel", v));
+					query.channel.forEach((v) => params.append("channel", v));
 				}
 				if (query.type) {
-					query.type.forEach(v => params.append("type", v));
+					query.type.forEach((v) => params.append("type", v));
 				}
 				if (query.source) {
-					query.source.forEach(v => params.append("source", v));
+					query.source.forEach((v) => params.append("source", v));
 				}
 
 				const response = await fetch(`/api/touchpoints?${params}`);
@@ -51,7 +56,7 @@ export function useTouchpoint(id: string) {
 
 export function useDeleteTouchpoint() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const response = await fetch(`/api/touchpoints/${id}`, {

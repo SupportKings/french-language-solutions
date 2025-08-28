@@ -1,26 +1,14 @@
 "use client";
 
 import { useState } from "react";
+
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQueryState } from "nuqs";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
+import { cn } from "@/lib/utils";
+
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -31,32 +19,9 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { 
-	User, 
-	Calendar, 
-	GraduationCap, 
-	Mail,
-	Phone,
-	MapPin,
-	Clock,
-	CheckCircle,
-	XCircle,
-	AlertCircle,
-	Eye,
-	Edit,
-	Trash,
-	MoreHorizontal,
-	FileText,
-	Video,
-	ExternalLink,
-	DollarSign,
-	ArrowLeft,
-	UserCircle,
-	ClipboardCheck,
-	BookOpen,
-	Link as LinkIcon
-} from "lucide-react";
-import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -64,7 +29,46 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+
+import { format } from "date-fns";
+import {
+	AlertCircle,
+	ArrowLeft,
+	BookOpen,
+	Calendar,
+	CheckCircle,
+	ClipboardCheck,
+	Clock,
+	DollarSign,
+	Edit,
+	ExternalLink,
+	Eye,
+	FileText,
+	GraduationCap,
+	Link as LinkIcon,
+	Mail,
+	MapPin,
+	MoreHorizontal,
+	Phone,
+	Trash,
+	User,
+	UserCircle,
+	Video,
+	XCircle,
+} from "lucide-react";
+import { useQueryState } from "nuqs";
+import { toast } from "sonner";
 
 const resultColors = {
 	requested: "secondary",
@@ -103,30 +107,34 @@ interface AssessmentDetailsClientProps {
 	assessment: any;
 }
 
-export function AssessmentDetailsClient({ assessment: initialAssessment }: AssessmentDetailsClientProps) {
+export function AssessmentDetailsClient({
+	assessment: initialAssessment,
+}: AssessmentDetailsClientProps) {
 	const router = useRouter();
 	const [assessment, setAssessment] = useState(initialAssessment);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-	
+
 	// Get redirectTo param from URL
 	const [redirectTo] = useQueryState("redirectTo", {
-		defaultValue: "/admin/students/assessments"
+		defaultValue: "/admin/students/assessments",
 	});
 
 	// Get student initials for avatar
-	const studentInitials = assessment.students?.full_name
-		?.split(' ')
-		.map((n: string) => n[0])
-		.join('')
-		.toUpperCase()
-		.slice(0, 2) || 'ST';
+	const studentInitials =
+		assessment.students?.full_name
+			?.split(" ")
+			.map((n: string) => n[0])
+			.join("")
+			.toUpperCase()
+			.slice(0, 2) || "ST";
 
 	const handleUpdate = async (field: string, value: any) => {
 		try {
 			// Convert field names to API format
-			const apiField = field.includes('_') ? field : 
-				field.replace(/([A-Z])/g, '_$1').toLowerCase();
+			const apiField = field.includes("_")
+				? field
+				: field.replace(/([A-Z])/g, "_$1").toLowerCase();
 
 			const response = await fetch(`/api/assessments/${assessment.id}`, {
 				method: "PATCH",
@@ -169,16 +177,18 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 	const navigateToEdit = () => {
 		const params = new URLSearchParams({
 			studentId: assessment.student_id,
-			studentName: assessment.students?.full_name || '',
+			studentName: assessment.students?.full_name || "",
 			redirectTo: redirectTo,
 		});
-		router.push(`/admin/students/assessments/new?${params.toString()}&edit=${assessment.id}`);
+		router.push(
+			`/admin/students/assessments/new?${params.toString()}&edit=${assessment.id}`,
+		);
 	};
 
 	return (
 		<>
 			<div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-				<div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl">
+				<div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 					{/* Header */}
 					<div className="mb-8">
 						<Link href={redirectTo}>
@@ -187,23 +197,29 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 								Back
 							</Button>
 						</Link>
-						
+
 						<div className="flex items-start justify-between">
 							<div className="flex items-start gap-4">
 								{/* Student Avatar */}
-								<div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-									<span className="text-xl font-semibold text-primary">
+								<div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+									<span className="font-semibold text-primary text-xl">
 										{studentInitials}
 									</span>
 								</div>
-								
+
 								<div className="space-y-1">
 									<div className="flex items-center gap-3">
-										<h1 className="text-3xl font-bold tracking-tight">
-											{assessment.students?.full_name || 'Assessment Details'}
+										<h1 className="font-bold text-3xl tracking-tight">
+											{assessment.students?.full_name || "Assessment Details"}
 										</h1>
-										<Badge variant={(resultColors as any)[assessment.result] || "default"} className="px-3 py-1">
-											{(resultLabels as any)[assessment.result] || assessment.result}
+										<Badge
+											variant={
+												(resultColors as any)[assessment.result] || "default"
+											}
+											className="px-3 py-1"
+										>
+											{(resultLabels as any)[assessment.result] ||
+												assessment.result}
 										</Badge>
 										{assessment.is_paid && (
 											<Badge variant="success" className="px-3 py-1">
@@ -213,10 +229,14 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 										)}
 									</div>
 									<p className="text-muted-foreground">
-										Level: {assessment.level ? assessment.level.toUpperCase() : 'To Be Determined'} • 
-										{' '}{assessment.scheduled_for ? 
-											`Scheduled for ${format(new Date(assessment.scheduled_for), "MMM d, yyyy")}` : 
-											'Not scheduled'}
+										Level:{" "}
+										{assessment.level
+											? assessment.level.toUpperCase()
+											: "To Be Determined"}{" "}
+										•{" "}
+										{assessment.scheduled_for
+											? `Scheduled for ${format(new Date(assessment.scheduled_for), "MMM d, yyyy")}`
+											: "Not scheduled"}
 									</p>
 								</div>
 							</div>
@@ -241,7 +261,7 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 											Edit Assessment
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
-										<DropdownMenuItem 
+										<DropdownMenuItem
 											onClick={() => setShowDeleteDialog(true)}
 											className="text-destructive"
 										>
@@ -255,88 +275,123 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 					</div>
 
 					{/* Main Content Card */}
-					<Card className="bg-card/95 backdrop-blur-sm border-border/50 shadow-xl">
+					<Card className="border-border/50 bg-card/95 shadow-xl backdrop-blur-sm">
 						<CardContent className="p-0">
 							{/* Quick Stats */}
-							<div className="border-b border-border/50 bg-muted/30 px-6 py-4">
-								<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+							<div className="border-border/50 border-b bg-muted/30 px-6 py-4">
+								<div className="grid grid-cols-2 gap-6 md:grid-cols-4">
 									<div className="space-y-1">
-										<p className="text-xs text-muted-foreground">Result Status</p>
-										<Badge variant={(resultColors as any)[assessment.result] || "default"}>
-											{(resultLabels as any)[assessment.result] || assessment.result}
+										<p className="text-muted-foreground text-xs">
+											Result Status
+										</p>
+										<Badge
+											variant={
+												(resultColors as any)[assessment.result] || "default"
+											}
+										>
+											{(resultLabels as any)[assessment.result] ||
+												assessment.result}
 										</Badge>
 									</div>
 									<div className="space-y-1">
-										<p className="text-xs text-muted-foreground">Level</p>
-										<p className="text-sm font-medium">
-											{assessment.language_level?.display_name || assessment.language_level?.code?.toUpperCase() || "TBD"}
+										<p className="text-muted-foreground text-xs">Level</p>
+										<p className="font-medium text-sm">
+											{assessment.language_level?.display_name ||
+												assessment.language_level?.code?.toUpperCase() ||
+												"TBD"}
 										</p>
 									</div>
 									<div className="space-y-1">
-										<p className="text-xs text-muted-foreground">Payment Status</p>
+										<p className="text-muted-foreground text-xs">
+											Payment Status
+										</p>
 										<div className="flex items-center gap-1">
 											{assessment.is_paid ? (
 												<>
 													<CheckCircle className="h-3.5 w-3.5 text-green-600" />
-													<span className="text-sm font-medium text-green-600">Paid</span>
+													<span className="font-medium text-green-600 text-sm">
+														Paid
+													</span>
 												</>
 											) : (
 												<>
 													<XCircle className="h-3.5 w-3.5 text-muted-foreground" />
-													<span className="text-sm font-medium text-muted-foreground">Unpaid</span>
+													<span className="font-medium text-muted-foreground text-sm">
+														Unpaid
+													</span>
 												</>
 											)}
 										</div>
 									</div>
 									<div className="space-y-1">
-										<p className="text-xs text-muted-foreground">Scheduled Date</p>
-										<p className="text-sm font-medium">
-											{assessment.scheduled_for ? 
-												format(new Date(assessment.scheduled_for), "MMM d, yyyy") : 
-												"Not scheduled"}
+										<p className="text-muted-foreground text-xs">
+											Scheduled Date
+										</p>
+										<p className="font-medium text-sm">
+											{assessment.scheduled_for
+												? format(
+														new Date(assessment.scheduled_for),
+														"MMM d, yyyy",
+													)
+												: "Not scheduled"}
 										</p>
 									</div>
 								</div>
 							</div>
 
-							<div className="px-6 py-4 space-y-4">
+							<div className="space-y-4 px-6 py-4">
 								{/* Assessment Information Section */}
 								<EditableSection title="Assessment Information">
 									{(editing) => (
 										<div className="grid gap-8 lg:grid-cols-2">
 											<div className="space-y-4">
-												<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+												<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 													Assessment Details
 												</h3>
 												<div className="space-y-3">
 													<div className="flex items-start gap-3">
-														<ClipboardCheck className="h-4 w-4 text-muted-foreground mt-0.5" />
+														<ClipboardCheck className="mt-0.5 h-4 w-4 text-muted-foreground" />
 														<div className="flex-1 space-y-0.5">
-															<p className="text-xs text-muted-foreground">Result Status:</p>
+															<p className="text-muted-foreground text-xs">
+																Result Status:
+															</p>
 															{editing ? (
 																<InlineEditField
 																	value={assessment.result}
-																	onSave={(value) => handleUpdate("result", value)}
+																	onSave={(value) =>
+																		handleUpdate("result", value)
+																	}
 																	editing={editing}
 																	type="select"
 																	options={resultOptions}
 																/>
 															) : (
-																<Badge variant={(resultColors as any)[assessment.result] || "default"} className="mt-1">
-																	{(resultLabels as any)[assessment.result] || assessment.result}
+																<Badge
+																	variant={
+																		(resultColors as any)[assessment.result] ||
+																		"default"
+																	}
+																	className="mt-1"
+																>
+																	{(resultLabels as any)[assessment.result] ||
+																		assessment.result}
 																</Badge>
 															)}
 														</div>
 													</div>
 
 													<div className="flex items-start gap-3">
-														<GraduationCap className="h-4 w-4 text-muted-foreground mt-0.5" />
+														<GraduationCap className="mt-0.5 h-4 w-4 text-muted-foreground" />
 														<div className="flex-1 space-y-0.5">
-															<p className="text-xs text-muted-foreground">Level:</p>
+															<p className="text-muted-foreground text-xs">
+																Level:
+															</p>
 															{editing ? (
 																<InlineEditField
 																	value={assessment.level || ""}
-																	onSave={(value) => handleUpdate("level", value || null)}
+																	onSave={(value) =>
+																		handleUpdate("level", value || null)
+																	}
 																	editing={editing}
 																	type="select"
 																	options={levelOptions}
@@ -347,41 +402,56 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 																	{assessment.level.toUpperCase()}
 																</Badge>
 															) : (
-																<span className="text-sm text-muted-foreground">Not determined</span>
+																<span className="text-muted-foreground text-sm">
+																	Not determined
+																</span>
 															)}
 														</div>
 													</div>
 
 													<div className="flex items-start gap-3">
-														<Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+														<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
 														<div className="flex-1 space-y-0.5">
-															<p className="text-xs text-muted-foreground">Scheduled For:</p>
+															<p className="text-muted-foreground text-xs">
+																Scheduled For:
+															</p>
 															{editing ? (
 																<InlineEditField
 																	value={assessment.scheduled_for || ""}
-																	onSave={(value) => handleUpdate("scheduledFor", value || null)}
+																	onSave={(value) =>
+																		handleUpdate("scheduledFor", value || null)
+																	}
 																	editing={editing}
 																	type="date"
 																/>
 															) : assessment.scheduled_for ? (
-																<p className="text-sm font-medium">
-																	{format(new Date(assessment.scheduled_for), "MMMM d, yyyy")}
+																<p className="font-medium text-sm">
+																	{format(
+																		new Date(assessment.scheduled_for),
+																		"MMMM d, yyyy",
+																	)}
 																</p>
 															) : (
-																<span className="text-sm text-muted-foreground">Not scheduled</span>
+																<span className="text-muted-foreground text-sm">
+																	Not scheduled
+																</span>
 															)}
 														</div>
 													</div>
 
 													<div className="flex items-start gap-3">
-														<DollarSign className="h-4 w-4 text-muted-foreground mt-0.5" />
+														<DollarSign className="mt-0.5 h-4 w-4 text-muted-foreground" />
 														<div className="flex-1 space-y-0.5">
-															<p className="text-xs text-muted-foreground">Payment Status:</p>
+															<p className="text-muted-foreground text-xs">
+																Payment Status:
+															</p>
 															{editing ? (
 																<div className="flex items-center gap-2">
 																	<Switch
 																		checked={assessment.is_paid}
-																		onCheckedChange={(checked) => handleUpdate("isPaid", checked)}
+																		onCheckedChange={(checked) =>
+																			handleUpdate("isPaid", checked)
+																		}
 																	/>
 																	<span className="text-sm">
 																		{assessment.is_paid ? "Paid" : "Unpaid"}
@@ -404,62 +474,80 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 											</div>
 
 											<div className="space-y-4">
-												<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+												<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 													Resources & Links
 												</h3>
 												<div className="space-y-3">
 													<div className="flex items-start gap-3">
-														<Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+														<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
 														<div className="flex-1 space-y-0.5">
-															<p className="text-xs text-muted-foreground">Calendar Event:</p>
+															<p className="text-muted-foreground text-xs">
+																Calendar Event:
+															</p>
 															{editing ? (
 																<InlineEditField
 																	value={assessment.calendar_event_url || ""}
-																	onSave={(value) => handleUpdate("calendarEventUrl", value || null)}
+																	onSave={(value) =>
+																		handleUpdate(
+																			"calendarEventUrl",
+																			value || null,
+																		)
+																	}
 																	editing={editing}
 																	type="text"
 																	placeholder="https://calendar.google.com/..."
 																/>
 															) : assessment.calendar_event_url ? (
-																<a 
-																	href={assessment.calendar_event_url} 
-																	target="_blank" 
+																<a
+																	href={assessment.calendar_event_url}
+																	target="_blank"
 																	rel="noopener noreferrer"
-																	className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+																	className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
 																>
 																	<ExternalLink className="h-3 w-3" />
 																	View Calendar Event
 																</a>
 															) : (
-																<span className="text-sm text-muted-foreground">No calendar event</span>
+																<span className="text-muted-foreground text-sm">
+																	No calendar event
+																</span>
 															)}
 														</div>
 													</div>
 
 													<div className="flex items-start gap-3">
-														<Video className="h-4 w-4 text-muted-foreground mt-0.5" />
+														<Video className="mt-0.5 h-4 w-4 text-muted-foreground" />
 														<div className="flex-1 space-y-0.5">
-															<p className="text-xs text-muted-foreground">Meeting Recording:</p>
+															<p className="text-muted-foreground text-xs">
+																Meeting Recording:
+															</p>
 															{editing ? (
 																<InlineEditField
 																	value={assessment.meeting_recording_url || ""}
-																	onSave={(value) => handleUpdate("meetingRecordingUrl", value || null)}
+																	onSave={(value) =>
+																		handleUpdate(
+																			"meetingRecordingUrl",
+																			value || null,
+																		)
+																	}
 																	editing={editing}
 																	type="text"
 																	placeholder="https://zoom.us/rec/..."
 																/>
 															) : assessment.meeting_recording_url ? (
-																<a 
-																	href={assessment.meeting_recording_url} 
-																	target="_blank" 
+																<a
+																	href={assessment.meeting_recording_url}
+																	target="_blank"
 																	rel="noopener noreferrer"
-																	className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+																	className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
 																>
 																	<Video className="h-3 w-3" />
 																	View Recording
 																</a>
 															) : (
-																<span className="text-sm text-muted-foreground">No recording available</span>
+																<span className="text-muted-foreground text-sm">
+																	No recording available
+																</span>
 															)}
 														</div>
 													</div>
@@ -476,15 +564,21 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 											{editing ? (
 												<InlineEditField
 													value={assessment.notes || ""}
-													onSave={(value) => handleUpdate("notes", value || null)}
+													onSave={(value) =>
+														handleUpdate("notes", value || null)
+													}
 													editing={editing}
 													type="textarea"
 													placeholder="Add assessment notes..."
 												/>
 											) : assessment.notes ? (
-												<p className="text-sm whitespace-pre-wrap">{assessment.notes}</p>
+												<p className="whitespace-pre-wrap text-sm">
+													{assessment.notes}
+												</p>
 											) : (
-												<p className="text-sm text-muted-foreground italic">No notes added</p>
+												<p className="text-muted-foreground text-sm italic">
+													No notes added
+												</p>
 											)}
 										</div>
 									)}
@@ -493,12 +587,18 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 								{/* Tabs for Student and Teacher Information */}
 								<div className="mt-6">
 									<Tabs defaultValue="student" className="w-full">
-										<TabsList className="grid grid-cols-2 w-[300px]">
-											<TabsTrigger value="student" className="flex items-center gap-2">
+										<TabsList className="grid w-[300px] grid-cols-2">
+											<TabsTrigger
+												value="student"
+												className="flex items-center gap-2"
+											>
 												<UserCircle className="h-3.5 w-3.5" />
 												Student Info
 											</TabsTrigger>
-											<TabsTrigger value="teacher" className="flex items-center gap-2">
+											<TabsTrigger
+												value="teacher"
+												className="flex items-center gap-2"
+											>
 												<User className="h-3.5 w-3.5" />
 												Teacher Info
 											</TabsTrigger>
@@ -508,21 +608,31 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 										<TabsContent value="student" className="mt-4">
 											<Card className="border-border/50">
 												<CardHeader className="pb-3">
-													<CardTitle className="text-base">Student Information</CardTitle>
+													<CardTitle className="text-base">
+														Student Information
+													</CardTitle>
 												</CardHeader>
 												<CardContent>
 													<div className="grid gap-6 lg:grid-cols-2">
 														<div className="space-y-3">
 															<div className="flex items-start gap-3">
-																<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+																<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																<div className="flex-1 space-y-0.5">
-																	<p className="text-xs text-muted-foreground">Full Name:</p>
+																	<p className="text-muted-foreground text-xs">
+																		Full Name:
+																	</p>
 																	<div className="flex items-center gap-2">
-																		<p className="text-sm font-medium">
+																		<p className="font-medium text-sm">
 																			{assessment.students?.full_name}
 																		</p>
-																		<Link href={`/admin/students/${assessment.student_id}`}>
-																			<Button variant="ghost" size="sm" className="h-6 px-2">
+																		<Link
+																			href={`/admin/students/${assessment.student_id}`}
+																		>
+																			<Button
+																				variant="ghost"
+																				size="sm"
+																				className="h-6 px-2"
+																			>
 																				<Eye className="h-3 w-3" />
 																			</Button>
 																		</Link>
@@ -531,11 +641,14 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 															</div>
 
 															<div className="flex items-start gap-3">
-																<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+																<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																<div className="flex-1 space-y-0.5">
-																	<p className="text-xs text-muted-foreground">Email:</p>
-																	<p className="text-sm font-medium">
-																		{assessment.students?.email || "Not provided"}
+																	<p className="text-muted-foreground text-xs">
+																		Email:
+																	</p>
+																	<p className="font-medium text-sm">
+																		{assessment.students?.email ||
+																			"Not provided"}
 																	</p>
 																</div>
 															</div>
@@ -543,21 +656,27 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 
 														<div className="space-y-3">
 															<div className="flex items-start gap-3">
-																<Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+																<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																<div className="flex-1 space-y-0.5">
-																	<p className="text-xs text-muted-foreground">Phone:</p>
-																	<p className="text-sm font-medium">
-																		{assessment.students?.mobile_phone_number || "Not provided"}
+																	<p className="text-muted-foreground text-xs">
+																		Phone:
+																	</p>
+																	<p className="font-medium text-sm">
+																		{assessment.students?.mobile_phone_number ||
+																			"Not provided"}
 																	</p>
 																</div>
 															</div>
 
 															<div className="flex items-start gap-3">
-																<MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+																<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																<div className="flex-1 space-y-0.5">
-																	<p className="text-xs text-muted-foreground">City:</p>
-																	<p className="text-sm font-medium">
-																		{assessment.students?.city || "Not provided"}
+																	<p className="text-muted-foreground text-xs">
+																		City:
+																	</p>
+																	<p className="font-medium text-sm">
+																		{assessment.students?.city ||
+																			"Not provided"}
 																	</p>
 																</div>
 															</div>
@@ -571,26 +690,37 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 										<TabsContent value="teacher" className="mt-4">
 											<Card className="border-border/50">
 												<CardHeader className="pb-3">
-													<CardTitle className="text-base">Teacher Information</CardTitle>
+													<CardTitle className="text-base">
+														Teacher Information
+													</CardTitle>
 												</CardHeader>
 												<CardContent>
-													{assessment.interview_held_by || assessment.level_checked_by ? (
+													{assessment.interview_held_by ||
+													assessment.level_checked_by ? (
 														<div className="grid gap-6 lg:grid-cols-2">
 															{assessment.interview_held_by && (
 																<div className="space-y-3">
-																	<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+																	<h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 																		Interview Held By
 																	</h4>
 																	<div className="flex items-start gap-3">
-																		<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+																		<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																		<div className="flex-1 space-y-0.5">
-																			<p className="text-xs text-muted-foreground">Name:</p>
+																			<p className="text-muted-foreground text-xs">
+																				Name:
+																			</p>
 																			<div className="flex items-center gap-2">
-																				<p className="text-sm font-medium">
+																				<p className="font-medium text-sm">
 																					{`${assessment.interview_held_by.first_name} ${assessment.interview_held_by.last_name}`}
 																				</p>
-																				<Link href={`/admin/teachers/${assessment.interview_held_by.id}`}>
-																					<Button variant="ghost" size="sm" className="h-6 px-2">
+																				<Link
+																					href={`/admin/teachers/${assessment.interview_held_by.id}`}
+																				>
+																					<Button
+																						variant="ghost"
+																						size="sm"
+																						className="h-6 px-2"
+																					>
 																						<Eye className="h-3 w-3" />
 																					</Button>
 																				</Link>
@@ -598,10 +728,12 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 																		</div>
 																	</div>
 																	<div className="flex items-start gap-3">
-																		<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+																		<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																		<div className="flex-1 space-y-0.5">
-																			<p className="text-xs text-muted-foreground">Email:</p>
-																			<p className="text-sm font-medium">
+																			<p className="text-muted-foreground text-xs">
+																				Email:
+																			</p>
+																			<p className="font-medium text-sm">
 																				{assessment.interview_held_by.email}
 																			</p>
 																		</div>
@@ -611,19 +743,27 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 
 															{assessment.level_checked_by && (
 																<div className="space-y-3">
-																	<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+																	<h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 																		Level Checked By
 																	</h4>
 																	<div className="flex items-start gap-3">
-																		<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+																		<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																		<div className="flex-1 space-y-0.5">
-																			<p className="text-xs text-muted-foreground">Name:</p>
+																			<p className="text-muted-foreground text-xs">
+																				Name:
+																			</p>
 																			<div className="flex items-center gap-2">
-																				<p className="text-sm font-medium">
+																				<p className="font-medium text-sm">
 																					{`${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`}
 																				</p>
-																				<Link href={`/admin/teachers/${assessment.level_checked_by.id}`}>
-																					<Button variant="ghost" size="sm" className="h-6 px-2">
+																				<Link
+																					href={`/admin/teachers/${assessment.level_checked_by.id}`}
+																				>
+																					<Button
+																						variant="ghost"
+																						size="sm"
+																						className="h-6 px-2"
+																					>
 																						<Eye className="h-3 w-3" />
 																					</Button>
 																				</Link>
@@ -631,10 +771,12 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 																		</div>
 																	</div>
 																	<div className="flex items-start gap-3">
-																		<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+																		<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 																		<div className="flex-1 space-y-0.5">
-																			<p className="text-xs text-muted-foreground">Email:</p>
-																			<p className="text-sm font-medium">
+																			<p className="text-muted-foreground text-xs">
+																				Email:
+																			</p>
+																			<p className="font-medium text-sm">
 																				{assessment.level_checked_by.email}
 																			</p>
 																		</div>
@@ -643,7 +785,9 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 															)}
 														</div>
 													) : (
-														<p className="text-sm text-muted-foreground italic">No teacher assigned yet</p>
+														<p className="text-muted-foreground text-sm italic">
+															No teacher assigned yet
+														</p>
 													)}
 												</CardContent>
 											</Card>
@@ -654,26 +798,42 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 								{/* System Information */}
 								<Card className="border-border/50 bg-muted/10">
 									<CardHeader className="pb-3">
-										<CardTitle className="text-sm text-muted-foreground">System Information</CardTitle>
+										<CardTitle className="text-muted-foreground text-sm">
+											System Information
+										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+										<div className="grid grid-cols-2 gap-4 md:grid-cols-3">
 											<div className="space-y-1">
-												<p className="text-xs text-muted-foreground">Assessment ID</p>
-												<p className="text-xs font-mono text-muted-foreground">
+												<p className="text-muted-foreground text-xs">
+													Assessment ID
+												</p>
+												<p className="font-mono text-muted-foreground text-xs">
 													{assessment.id}
 												</p>
 											</div>
 											<div className="space-y-1">
-												<p className="text-xs text-muted-foreground">Created Date</p>
+												<p className="text-muted-foreground text-xs">
+													Created Date
+												</p>
 												<p className="text-sm">
-													{format(new Date(assessment.created_at), "MMM d, yyyy")}
+													{format(
+														new Date(assessment.created_at),
+														"MMM d, yyyy",
+													)}
 												</p>
 											</div>
 											<div className="space-y-1">
-												<p className="text-xs text-muted-foreground">Last Updated</p>
+												<p className="text-muted-foreground text-xs">
+													Last Updated
+												</p>
 												<p className="text-sm">
-													{format(new Date(assessment.updated_at || assessment.created_at), "MMM d, yyyy")}
+													{format(
+														new Date(
+															assessment.updated_at || assessment.created_at,
+														),
+														"MMM d, yyyy",
+													)}
 												</p>
 											</div>
 										</div>
@@ -691,12 +851,13 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Assessment</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete this assessment? This action cannot be undone.
+							Are you sure you want to delete this assessment? This action
+							cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction 
+						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

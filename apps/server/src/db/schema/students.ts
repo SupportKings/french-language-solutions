@@ -1,17 +1,14 @@
+import { sql } from "drizzle-orm";
 import {
+	boolean,
+	date,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	boolean,
 	varchar,
-	date,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
-import {
-	initialChannelEnum,
-	communicationChannelEnum,
-} from "./enums";
+import { communicationChannelEnum, initialChannelEnum } from "./enums";
 import { languageLevels } from "./language-levels";
 
 export const students = pgTable("students", {
@@ -30,8 +27,9 @@ export const students = pgTable("students", {
 		END`,
 	),
 	email: text("email"), // Separate from auth email - students might not have auth
-	desiredStartingLanguageLevelId: uuid("desired_starting_language_level_id")
-		.references(() => languageLevels.id),
+	desiredStartingLanguageLevelId: uuid(
+		"desired_starting_language_level_id",
+	).references(() => languageLevels.id),
 	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }), // E.164 format
 	city: text("city"),
 	websiteQuizSubmissionDate: date("website_quiz_submission_date"),

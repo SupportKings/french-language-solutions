@@ -1,19 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useEffect, useState } from "react";
+
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import {
 	Dialog,
 	DialogContent,
@@ -23,6 +16,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -30,17 +31,19 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { 
-	Calendar,
-	Clock,
-	CheckCircle,
-	XCircle,
-	MinusCircle,
-	Edit,
+import { Textarea } from "@/components/ui/textarea";
+
+import { format } from "date-fns";
+import {
 	BookOpen,
-	Save
+	Calendar,
+	CheckCircle,
+	Clock,
+	Edit,
+	MinusCircle,
+	Save,
+	XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface AttendanceRecord {
@@ -115,11 +118,13 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	const [student, setStudent] = useState<StudentInfo | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState<string | null>(null);
-	const [filter, setFilter] = useState<"all" | "attended" | "not_attended" | "unset">("all");
-	const [notesDialog, setNotesDialog] = useState<{ 
-		open: boolean; 
-		recordId: string | null; 
-		currentNotes: string 
+	const [filter, setFilter] = useState<
+		"all" | "attended" | "not_attended" | "unset"
+	>("all");
+	const [notesDialog, setNotesDialog] = useState<{
+		open: boolean;
+		recordId: string | null;
+		currentNotes: string;
 	}>({ open: false, recordId: null, currentNotes: "" });
 	const [noteValue, setNoteValue] = useState("");
 
@@ -163,7 +168,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	}, [studentId]);
 
 	// Update attendance status
-	const updateAttendance = async (recordId: string, updates: { status?: string; notes?: string; homeworkCompleted?: boolean }) => {
+	const updateAttendance = async (
+		recordId: string,
+		updates: { status?: string; notes?: string; homeworkCompleted?: boolean },
+	) => {
 		setUpdating(recordId);
 		try {
 			const body: any = { recordId, ...updates };
@@ -190,26 +198,25 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 	// Open notes dialog
 	const openNotesDialog = (record: AttendanceRecord) => {
 		setNoteValue(record.notes || "");
-		setNotesDialog({ 
-			open: true, 
-			recordId: record.id, 
-			currentNotes: record.notes || "" 
+		setNotesDialog({
+			open: true,
+			recordId: record.id,
+			currentNotes: record.notes || "",
 		});
 	};
 
 	// Save note
 	const saveNote = async () => {
 		if (!notesDialog.recordId) return;
-		
+
 		await updateAttendance(notesDialog.recordId, { notes: noteValue });
 		setNotesDialog({ open: false, recordId: null, currentNotes: "" });
 		setNoteValue("");
 	};
 
 	// Filter records
-	const filteredRecords = filter === "all" 
-		? records 
-		: records.filter(r => r.status === filter);
+	const filteredRecords =
+		filter === "all" ? records : records.filter((r) => r.status === filter);
 
 	if (loading) {
 		return (
@@ -221,10 +228,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 					))}
 				</div>
 				{/* Table skeleton */}
-				<div className="border rounded-lg">
+				<div className="rounded-lg border">
 					<div className="p-4">
 						{[...Array(5)].map((_, i) => (
-							<Skeleton key={i} className="h-12 mb-2" />
+							<Skeleton key={i} className="mb-2 h-12" />
 						))}
 					</div>
 				</div>
@@ -234,21 +241,27 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 
 	if (!stats || records.length === 0) {
 		return (
-			<div className="border rounded-lg p-8 text-center">
-				<Calendar className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-				<p className="text-sm font-medium text-muted-foreground mb-1">No attendance records yet</p>
-				<p className="text-xs text-muted-foreground">Attendance will appear here once classes begin</p>
+			<div className="rounded-lg border p-8 text-center">
+				<Calendar className="mx-auto mb-3 h-12 w-12 text-muted-foreground/30" />
+				<p className="mb-1 font-medium text-muted-foreground text-sm">
+					No attendance records yet
+				</p>
+				<p className="text-muted-foreground text-xs">
+					Attendance will appear here once classes begin
+				</p>
 			</div>
 		);
 	}
-
 
 	return (
 		<div className="space-y-4">
 			{/* Controls */}
 			<div className="flex items-center justify-between gap-4">
 				<div className="flex items-center gap-3">
-					<Select value={filter} onValueChange={(value: any) => setFilter(value)}>
+					<Select
+						value={filter}
+						onValueChange={(value: any) => setFilter(value)}
+					>
 						<SelectTrigger className="w-[180px]">
 							<SelectValue placeholder="Filter by status" />
 						</SelectTrigger>
@@ -265,28 +278,45 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 				<div className="flex items-center gap-4 text-sm">
 					<div className="flex items-center gap-2">
 						<CheckCircle className="h-4 w-4 text-green-600" />
-						<span>{filteredRecords.filter(r => r.status === "attended").length} Present</span>
+						<span>
+							{filteredRecords.filter((r) => r.status === "attended").length}{" "}
+							Present
+						</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<XCircle className="h-4 w-4 text-red-600" />
-						<span>{filteredRecords.filter(r => r.status === "not_attended").length} Absent</span>
+						<span>
+							{
+								filteredRecords.filter((r) => r.status === "not_attended")
+									.length
+							}{" "}
+							Absent
+						</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<MinusCircle className="h-4 w-4 text-gray-400" />
-						<span>{filteredRecords.filter(r => r.status === "unset").length} Not Marked</span>
+						<span>
+							{filteredRecords.filter((r) => r.status === "unset").length} Not
+							Marked
+						</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<BookOpen className="h-4 w-4 text-blue-600" />
 						<span>
-							{filteredRecords.filter(r => r.status === "attended" && r.homeworkCompleted).length}/
-							{filteredRecords.filter(r => r.status === "attended").length} Homework
+							{
+								filteredRecords.filter(
+									(r) => r.status === "attended" && r.homeworkCompleted,
+								).length
+							}
+							/{filteredRecords.filter((r) => r.status === "attended").length}{" "}
+							Homework
 						</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Attendance Table */}
-			<div className="border rounded-lg overflow-hidden">
+			<div className="overflow-hidden rounded-lg border">
 				<Table>
 					<TableHeader>
 						<TableRow className="bg-muted/30">
@@ -305,26 +335,46 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 							// Loading skeleton rows
 							[...Array(5)].map((_, i) => (
 								<TableRow key={i}>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-full" /></TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-full" />
+									</TableCell>
 								</TableRow>
 							))
 						) : filteredRecords.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+								<TableCell
+									colSpan={8}
+									className="py-8 text-center text-muted-foreground"
+								>
 									No attendance records found
 								</TableCell>
 							</TableRow>
 						) : (
 							filteredRecords.map((record) => {
 								const isUpdating = updating === record.id;
-								const config = statusConfig[record.status as keyof typeof statusConfig];
+								const config =
+									statusConfig[record.status as keyof typeof statusConfig];
 
 								return (
 									<TableRow key={record.id} className="hover:bg-muted/5">
@@ -333,7 +383,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 											<div className="text-sm">
 												{format(new Date(record.attendanceDate), "MMM d")}
 											</div>
-											<div className="text-xs text-muted-foreground">
+											<div className="text-muted-foreground text-xs">
 												{format(new Date(record.attendanceDate), "yyyy")}
 											</div>
 										</TableCell>
@@ -351,14 +401,15 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 
 										{/* Cohort */}
 										<TableCell>
-											<div className="text-sm">
-												{record.cohortName || "—"}
-											</div>
+											<div className="text-sm">{record.cohortName || "—"}</div>
 										</TableCell>
 
 										{/* Status */}
 										<TableCell>
-											<Badge variant="outline" className={cn("text-xs", config.color)}>
+											<Badge
+												variant="outline"
+												className={cn("text-xs", config.color)}
+											>
 												{config.label}
 											</Badge>
 										</TableCell>
@@ -366,7 +417,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 										{/* Homework */}
 										<TableCell>
 											{record.status === "attended" ? (
-												<div 
+												<div
 													className="flex items-center gap-2"
 													onClick={(e) => e.stopPropagation()}
 												>
@@ -374,16 +425,20 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 														id={`homework-${record.id}`}
 														checked={record.homeworkCompleted}
 														onCheckedChange={(checked) => {
-															updateAttendance(record.id, { homeworkCompleted: checked as boolean });
+															updateAttendance(record.id, {
+																homeworkCompleted: checked as boolean,
+															});
 														}}
 														disabled={isUpdating}
 														className="h-4 w-4"
 													/>
-													<label 
+													<label
 														htmlFor={`homework-${record.id}`}
 														className={cn(
-															"flex items-center gap-1 text-xs cursor-pointer",
-															record.homeworkCompleted ? "text-blue-600" : "text-muted-foreground"
+															"flex cursor-pointer items-center gap-1 text-xs",
+															record.homeworkCompleted
+																? "text-blue-600"
+																: "text-muted-foreground",
 														)}
 													>
 														<BookOpen className="h-3 w-3" />
@@ -404,10 +459,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 												<Button
 													variant="ghost"
 													size="sm"
-													className="h-auto p-1 text-left justify-start max-w-[200px]"
+													className="h-auto max-w-[200px] justify-start p-1 text-left"
 													onClick={() => openNotesDialog(record)}
 												>
-													<span className="text-xs truncate block">
+													<span className="block truncate text-xs">
 														{record.notes}
 													</span>
 												</Button>
@@ -418,7 +473,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 													className="h-8 px-2 text-muted-foreground"
 													onClick={() => openNotesDialog(record)}
 												>
-													<Edit className="h-3 w-3 mr-1" />
+													<Edit className="mr-1 h-3 w-3" />
 													<span className="text-xs">Add note</span>
 												</Button>
 											)}
@@ -428,10 +483,14 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 										<TableCell>
 											<div className="flex items-center gap-1">
 												<Button
-													variant={record.status === "attended" ? "default" : "outline"}
+													variant={
+														record.status === "attended" ? "default" : "outline"
+													}
 													size="sm"
 													className="h-7 px-2"
-													onClick={() => updateAttendance(record.id, { status: "attended" })}
+													onClick={() =>
+														updateAttendance(record.id, { status: "attended" })
+													}
 													disabled={isUpdating}
 													title="Mark as Present"
 												>
@@ -442,10 +501,18 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 													)}
 												</Button>
 												<Button
-													variant={record.status === "not_attended" ? "destructive" : "outline"}
+													variant={
+														record.status === "not_attended"
+															? "destructive"
+															: "outline"
+													}
 													size="sm"
 													className="h-7 px-2"
-													onClick={() => updateAttendance(record.id, { status: "not_attended" })}
+													onClick={() =>
+														updateAttendance(record.id, {
+															status: "not_attended",
+														})
+													}
 													disabled={isUpdating}
 													title="Mark as Absent"
 												>
@@ -456,10 +523,14 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 													)}
 												</Button>
 												<Button
-													variant={record.status === "unset" ? "secondary" : "outline"}
+													variant={
+														record.status === "unset" ? "secondary" : "outline"
+													}
 													size="sm"
 													className="h-7 px-2"
-													onClick={() => updateAttendance(record.id, { status: "unset" })}
+													onClick={() =>
+														updateAttendance(record.id, { status: "unset" })
+													}
 													disabled={isUpdating}
 													title="Clear Status"
 												>
@@ -475,7 +546,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 										{/* Marked At */}
 										<TableCell>
 											{record.markedAt ? (
-												<div className="text-xs text-muted-foreground">
+												<div className="text-muted-foreground text-xs">
 													{format(new Date(record.markedAt), "MMM d")}
 												</div>
 											) : (
@@ -491,12 +562,15 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 			</div>
 
 			{/* Notes Dialog */}
-			<Dialog open={notesDialog.open} onOpenChange={(open) => {
-				if (!open) {
-					setNotesDialog({ open: false, recordId: null, currentNotes: "" });
-					setNoteValue("");
-				}
-			}}>
+			<Dialog
+				open={notesDialog.open}
+				onOpenChange={(open) => {
+					if (!open) {
+						setNotesDialog({ open: false, recordId: null, currentNotes: "" });
+						setNoteValue("");
+					}
+				}}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Edit Attendance Note</DialogTitle>
@@ -516,13 +590,20 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 						<Button
 							variant="outline"
 							onClick={() => {
-								setNotesDialog({ open: false, recordId: null, currentNotes: "" });
+								setNotesDialog({
+									open: false,
+									recordId: null,
+									currentNotes: "",
+								});
 								setNoteValue("");
 							}}
 						>
 							Cancel
 						</Button>
-						<Button onClick={saveNote} disabled={updating === notesDialog.recordId}>
+						<Button
+							onClick={saveNote}
+							disabled={updating === notesDialog.recordId}
+						>
 							{updating === notesDialog.recordId ? (
 								<>
 									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

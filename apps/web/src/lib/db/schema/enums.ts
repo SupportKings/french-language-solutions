@@ -96,12 +96,10 @@ export const followUpMessageStatusEnum = pgEnum("follow_up_message_status", [
 ]);
 
 // Automated follow-up status
-export const automatedFollowUpStatusEnum = pgEnum("automated_follow_up_status", [
-	"activated",
-	"ongoing",
-	"answer_received",
-	"disabled",
-]);
+export const automatedFollowUpStatusEnum = pgEnum(
+	"automated_follow_up_status",
+	["activated", "ongoing", "answer_received", "disabled"],
+);
 
 // Product enums
 export const productFormatEnum = pgEnum("product_format", [

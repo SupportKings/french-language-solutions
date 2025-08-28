@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -30,20 +31,22 @@ export async function GET(
 			console.error("Error fetching sequence:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch sequence" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		if (!data) {
 			return NextResponse.json(
 				{ error: "Sequence not found" },
-				{ status: 404 }
+				{ status: 404 },
 			);
 		}
 
 		// Sort messages by step_index
 		if (data.template_follow_up_messages) {
-			data.template_follow_up_messages.sort((a: any, b: any) => a.step_index - b.step_index);
+			data.template_follow_up_messages.sort(
+				(a: any, b: any) => a.step_index - b.step_index,
+			);
 		}
 
 		return NextResponse.json(data);
@@ -51,14 +54,14 @@ export async function GET(
 		console.error("Sequence detail error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
 
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -80,7 +83,7 @@ export async function DELETE(
 			console.error("Error deleting sequence:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete sequence" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -89,7 +92,7 @@ export async function DELETE(
 		console.error("Sequence deletion error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

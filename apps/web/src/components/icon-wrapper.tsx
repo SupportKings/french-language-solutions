@@ -1,23 +1,24 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { type LucideIcon } from "lucide-react"
+import * as React from "react";
+
+import type { LucideIcon } from "lucide-react";
 
 interface IconWrapperProps {
-  icon: LucideIcon
-  className?: string
+	icon: LucideIcon;
+	className?: string;
 }
 
 export function IconWrapper({ icon: Icon, className }: IconWrapperProps) {
-  const [mounted, setMounted] = React.useState(false)
+	const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+	React.useEffect(() => {
+		setMounted(true);
+	}, []);
 
-  if (!mounted) {
-    return <div className={className} />
-  }
+	if (!mounted) {
+		return <div className={className} />;
+	}
 
-  return <Icon className={className} />
+	return <Icon className={className} />;
 }

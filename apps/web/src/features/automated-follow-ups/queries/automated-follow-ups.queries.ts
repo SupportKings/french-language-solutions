@@ -1,4 +1,9 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import type { AutomatedFollowUpQuery } from "../schemas/automated-follow-up.schema";
 
 export const automatedFollowUpsQueries = {
@@ -16,11 +21,12 @@ export const automatedFollowUpsQueries = {
 
 				// Add array filters
 				if (query.status) {
-					query.status.forEach(v => params.append("status", v));
+					query.status.forEach((v) => params.append("status", v));
 				}
 
 				const response = await fetch(`/api/automated-follow-ups?${params}`);
-				if (!response.ok) throw new Error("Failed to fetch automated follow-ups");
+				if (!response.ok)
+					throw new Error("Failed to fetch automated follow-ups");
 				return response.json();
 			},
 		}),
@@ -29,7 +35,8 @@ export const automatedFollowUpsQueries = {
 			queryKey: [...automatedFollowUpsQueries.all(), "detail", id] as const,
 			queryFn: async () => {
 				const response = await fetch(`/api/automated-follow-ups/${id}`);
-				if (!response.ok) throw new Error("Failed to fetch automated follow-up");
+				if (!response.ok)
+					throw new Error("Failed to fetch automated follow-up");
 				return response.json();
 			},
 		}),
@@ -45,7 +52,7 @@ export function useAutomatedFollowUp(id: string) {
 
 export function useDeleteAutomatedFollowUp() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const response = await fetch(`/api/automated-follow-ups/${id}`, {
@@ -55,7 +62,9 @@ export function useDeleteAutomatedFollowUp() {
 			return response.json();
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: automatedFollowUpsQueries.lists() });
+			queryClient.invalidateQueries({
+				queryKey: automatedFollowUpsQueries.lists(),
+			});
 		},
 	});
 }

@@ -1,4 +1,10 @@
-import type { Cohort, CohortQuery, CreateCohort, UpdateCohort, WeeklySession } from "../schemas/cohort.schema";
+import type {
+	Cohort,
+	CohortQuery,
+	CreateCohort,
+	UpdateCohort,
+	WeeklySession,
+} from "../schemas/cohort.schema";
 
 const BASE_URL = "/api/cohorts";
 
@@ -22,12 +28,21 @@ export const cohortsApi = {
 	async list(params: CohortQuery): Promise<PaginatedResponse<Cohort>> {
 		console.log("🚀 API call started with params:", params);
 		
+		// Log specific filter values
+		if (params.cohort_status) {
+			console.log("🔍 cohort_status filter:", params.cohort_status);
+		}
+
 		const searchParams = new URLSearchParams();
 		Object.entries(params).forEach(([key, value]) => {
 			if (value !== undefined && value !== null) {
 				// Handle arrays for multi-select filters
 				if (Array.isArray(value)) {
-					value.forEach(v => searchParams.append(key, String(v)));
+					// Only add if array has items
+					if (value.length > 0) {
+						console.log(`📍 Adding array param ${key}:`, value);
+						value.forEach((v) => searchParams.append(key, String(v)));
+					}
 				} else {
 					searchParams.append(key, String(value));
 				}
@@ -44,12 +59,12 @@ export const cohortsApi = {
 			},
 		});
 		console.log("📥 Response status:", response.status, response.statusText);
-		
+
 		if (!response.ok) {
 			console.error("❌ API Error:", response.status, response.statusText);
 			throw new Error("Failed to fetch cohorts");
 		}
-		
+
 		const result = await response.json();
 		console.log("✅ API Response:", result);
 		return result;
@@ -68,7 +83,9 @@ export const cohortsApi = {
 	async getWithSessions(id: string): Promise<CohortWithSessions> {
 		const response = await fetch(`${BASE_URL}/${id}/sessions`);
 		if (!response.ok) {
-			throw new Error(`Failed to fetch cohort with sessions: ${response.statusText}`);
+			throw new Error(
+				`Failed to fetch cohort with sessions: ${response.statusText}`,
+			);
 		}
 		return response.json();
 	},

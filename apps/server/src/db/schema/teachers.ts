@@ -1,16 +1,16 @@
 import {
+	boolean,
+	integer,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	integer,
-	boolean,
 	varchar,
 } from "drizzle-orm/pg-core";
 import {
+	contractTypeEnum,
 	groupClassBonusTermsEnum,
 	onboardingStatusEnum,
-	contractTypeEnum,
 } from "./enums";
 
 export const teachers = pgTable("teachers", {

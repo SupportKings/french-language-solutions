@@ -1,30 +1,15 @@
 "use client";
 
 import { useState } from "react";
+
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
-import { toast } from "sonner";
-import { 
-	Phone, 
-	Calendar, 
-	Video, 
-	MapPin, 
-	Shield, 
-	Briefcase, 
-	Clock,
-	ChevronRight,
-	MoreVertical,
-	Trash2,
-	MessageSquare,
-	Plus,
-	DollarSign,
-	CreditCard,
-	User
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -32,8 +17,26 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
+
 import { format } from "date-fns";
+import {
+	Briefcase,
+	Calendar,
+	ChevronRight,
+	Clock,
+	CreditCard,
+	DollarSign,
+	MapPin,
+	MessageSquare,
+	MoreVertical,
+	Phone,
+	Plus,
+	Shield,
+	Trash2,
+	User,
+	Video,
+} from "lucide-react";
+import { toast } from "sonner";
 
 const onboardingStatusColors = {
 	new: "secondary",
@@ -63,18 +66,21 @@ interface TeacherDetailsClientProps {
 	teacher: any;
 }
 
-export default function TeacherDetailsClient({ teacher: initialTeacher }: TeacherDetailsClientProps) {
+export default function TeacherDetailsClient({
+	teacher: initialTeacher,
+}: TeacherDetailsClientProps) {
 	const router = useRouter();
 	const [teacher, setTeacher] = useState(initialTeacher);
-	
+
 	// Construct full name from first and last name
-	const fullName = `${teacher.first_name || ''} ${teacher.last_name || ''}`.trim();
-	
+	const fullName =
+		`${teacher.first_name || ""} ${teacher.last_name || ""}`.trim();
+
 	// Get initials for avatar
 	const initials = fullName
-		.split(' ')
+		.split(" ")
 		.map((n: string) => n[0])
-		.join('')
+		.join("")
 		.toUpperCase()
 		.slice(0, 2);
 
@@ -112,7 +118,9 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 			teacherId: teacher.id,
 			teacherName: fullName,
 		});
-		router.push(`/admin/automation/automated-follow-ups/new?${params.toString()}`);
+		router.push(
+			`/admin/automation/automated-follow-ups/new?${params.toString()}`,
+		);
 	};
 
 	return (
@@ -120,8 +128,11 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 			{/* Enhanced Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-						<Link href="/admin/teachers" className="hover:text-foreground transition-colors">
+					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
+						<Link
+							href="/admin/teachers"
+							className="transition-colors hover:text-foreground"
+						>
 							Teachers
 						</Link>
 						<ChevronRight className="h-3 w-3" />
@@ -129,27 +140,41 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-								<span className="text-sm font-semibold text-primary">{initials}</span>
+							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+								<span className="font-semibold text-primary text-sm">
+									{initials}
+								</span>
 							</div>
 							<div>
-								<h1 className="text-xl font-semibold">{fullName}</h1>
-								<div className="flex items-center gap-2 mt-0.5">
-									<Badge 
-										variant={onboardingStatusColors[teacher.onboarding_status as keyof typeof onboardingStatusColors]} 
-										className="h-4 text-[10px] px-1.5"
+								<h1 className="font-semibold text-xl">{fullName}</h1>
+								<div className="mt-0.5 flex items-center gap-2">
+									<Badge
+										variant={
+											onboardingStatusColors[
+												teacher.onboarding_status as keyof typeof onboardingStatusColors
+											]
+										}
+										className="h-4 px-1.5 text-[10px]"
 									>
-										{onboardingStatusLabels[teacher.onboarding_status as keyof typeof onboardingStatusLabels]}
+										{
+											onboardingStatusLabels[
+												teacher.onboarding_status as keyof typeof onboardingStatusLabels
+											]
+										}
 									</Badge>
 									{teacher.contract_type && (
-										<Badge variant="outline" className="h-4 text-[10px] px-1.5">
-											{contractTypeLabels[teacher.contract_type as keyof typeof contractTypeLabels]}
+										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+											{
+												contractTypeLabels[
+													teacher.contract_type as keyof typeof contractTypeLabels
+												]
+											}
 										</Badge>
 									)}
 								</div>
 							</div>
 						</div>
-						
+
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="outline" size="sm">
@@ -176,36 +201,44 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 				</div>
 			</div>
 
-			<div className="px-6 py-4 space-y-4">
+			<div className="space-y-4 px-6 py-4">
 				{/* Teacher Information with inline editing */}
 				<EditableSection title="Teacher Information">
 					{(editing) => (
 						<div className="grid gap-8 lg:grid-cols-3">
 							{/* Contact Section */}
 							<div className="space-y-4">
-								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</h3>
+								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+									Contact
+								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Phone:</p>
+											<p className="text-muted-foreground text-xs">Phone:</p>
 											<InlineEditField
 												value={teacher.mobile_phone_number}
-												onSave={(value) => updateTeacherField("mobile_phone_number", value)}
+												onSave={(value) =>
+													updateTeacherField("mobile_phone_number", value)
+												}
 												editing={editing}
 												type="text"
 												placeholder="Enter phone"
 											/>
 										</div>
 									</div>
-									
+
 									<div className="flex items-start gap-3">
-										<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">First Name:</p>
+											<p className="text-muted-foreground text-xs">
+												First Name:
+											</p>
 											<InlineEditField
 												value={teacher.first_name}
-												onSave={(value) => updateTeacherField("first_name", value)}
+												onSave={(value) =>
+													updateTeacherField("first_name", value)
+												}
 												editing={editing}
 												type="text"
 												placeholder="Enter first name"
@@ -214,12 +247,16 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 									</div>
 
 									<div className="flex items-start gap-3">
-										<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Last Name:</p>
+											<p className="text-muted-foreground text-xs">
+												Last Name:
+											</p>
 											<InlineEditField
 												value={teacher.last_name}
-												onSave={(value) => updateTeacherField("last_name", value)}
+												onSave={(value) =>
+													updateTeacherField("last_name", value)
+												}
 												editing={editing}
 												type="text"
 												placeholder="Enter last name"
@@ -231,16 +268,22 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 
 							{/* Employment Details */}
 							<div className="space-y-4">
-								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Employment</h3>
+								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+									Employment
+								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<Briefcase className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<Briefcase className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Contract Type:</p>
+											<p className="text-muted-foreground text-xs">
+												Contract Type:
+											</p>
 											{editing ? (
 												<InlineEditField
 													value={teacher.contract_type}
-													onSave={(value) => updateTeacherField("contract_type", value)}
+													onSave={(value) =>
+														updateTeacherField("contract_type", value)
+													}
 													editing={editing}
 													type="select"
 													options={[
@@ -250,48 +293,76 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 												/>
 											) : (
 												<Badge variant="outline" className="h-5 text-xs">
-													{teacher.contract_type ? contractTypeLabels[teacher.contract_type as keyof typeof contractTypeLabels] : "—"}
-												</Badge>
-											)}
-										</div>
-									</div>
-									
-									<div className="flex items-start gap-3">
-										<Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Onboarding Status:</p>
-											{editing ? (
-												<InlineEditField
-													value={teacher.onboarding_status}
-													onSave={(value) => updateTeacherField("onboarding_status", value)}
-													editing={editing}
-													type="select"
-													options={[
-														{ label: "New", value: "new" },
-														{ label: "Training", value: "training_in_progress" },
-														{ label: "Onboarded", value: "onboarded" },
-														{ label: "Offboarded", value: "offboarded" },
-													]}
-												/>
-											) : (
-												<Badge 
-													variant={onboardingStatusColors[teacher.onboarding_status as keyof typeof onboardingStatusColors]} 
-													className="h-5 text-xs"
-												>
-													{onboardingStatusLabels[teacher.onboarding_status as keyof typeof onboardingStatusLabels]}
+													{teacher.contract_type
+														? contractTypeLabels[
+																teacher.contract_type as keyof typeof contractTypeLabels
+															]
+														: "—"}
 												</Badge>
 											)}
 										</div>
 									</div>
 
 									<div className="flex items-start gap-3">
-										<Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<Shield className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Available for Booking:</p>
+											<p className="text-muted-foreground text-xs">
+												Onboarding Status:
+											</p>
 											{editing ? (
 												<InlineEditField
-													value={teacher.available_for_booking ? "true" : "false"}
-													onSave={(value) => updateTeacherField("available_for_booking", value === "true")}
+													value={teacher.onboarding_status}
+													onSave={(value) =>
+														updateTeacherField("onboarding_status", value)
+													}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "New", value: "new" },
+														{
+															label: "Training",
+															value: "training_in_progress",
+														},
+														{ label: "Onboarded", value: "onboarded" },
+														{ label: "Offboarded", value: "offboarded" },
+													]}
+												/>
+											) : (
+												<Badge
+													variant={
+														onboardingStatusColors[
+															teacher.onboarding_status as keyof typeof onboardingStatusColors
+														]
+													}
+													className="h-5 text-xs"
+												>
+													{
+														onboardingStatusLabels[
+															teacher.onboarding_status as keyof typeof onboardingStatusLabels
+														]
+													}
+												</Badge>
+											)}
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Shield className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Available for Booking:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={
+														teacher.available_for_booking ? "true" : "false"
+													}
+													onSave={(value) =>
+														updateTeacherField(
+															"available_for_booking",
+															value === "true",
+														)
+													}
 													editing={editing}
 													type="select"
 													options={[
@@ -300,8 +371,17 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 													]}
 												/>
 											) : (
-												<Badge variant={teacher.available_for_booking ? "success" : "secondary"} className="h-5 text-xs">
-													{teacher.available_for_booking ? "Available" : "Not Available"}
+												<Badge
+													variant={
+														teacher.available_for_booking
+															? "success"
+															: "secondary"
+													}
+													className="h-5 text-xs"
+												>
+													{teacher.available_for_booking
+														? "Available"
+														: "Not Available"}
 												</Badge>
 											)}
 										</div>
@@ -311,29 +391,24 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 
 							{/* Compensation Details */}
 							<div className="space-y-4">
-								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Compensation</h3>
+								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+									Compensation
+								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Max Hours/Week:</p>
+											<p className="text-muted-foreground text-xs">
+												Max Hours/Week:
+											</p>
 											<InlineEditField
 												value={teacher.maximum_hours_per_week}
-												onSave={(value) => updateTeacherField("maximum_hours_per_week", value ? parseInt(value) : null)}
-												editing={editing}
-												type="text"
-												placeholder="Enter max hours"
-											/>
-										</div>
-									</div>
-									
-									<div className="flex items-start gap-3">
-										<Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Max Hours/Day:</p>
-											<InlineEditField
-												value={teacher.maximum_hours_per_day}
-												onSave={(value) => updateTeacherField("maximum_hours_per_day", value ? parseInt(value) : null)}
+												onSave={(value) =>
+													updateTeacherField(
+														"maximum_hours_per_week",
+														value ? Number.parseInt(value) : null,
+													)
+												}
 												editing={editing}
 												type="text"
 												placeholder="Enter max hours"
@@ -342,26 +417,58 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 									</div>
 
 									<div className="flex items-start gap-3">
-										<CreditCard className="h-4 w-4 text-muted-foreground mt-0.5" />
+										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-xs text-muted-foreground">Group Class Bonus Terms:</p>
+											<p className="text-muted-foreground text-xs">
+												Max Hours/Day:
+											</p>
+											<InlineEditField
+												value={teacher.maximum_hours_per_day}
+												onSave={(value) =>
+													updateTeacherField(
+														"maximum_hours_per_day",
+														value ? Number.parseInt(value) : null,
+													)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter max hours"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<CreditCard className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Group Class Bonus Terms:
+											</p>
 											{editing ? (
 												<InlineEditField
 													value={teacher.group_class_bonus_terms}
-													onSave={(value) => updateTeacherField("group_class_bonus_terms", value)}
+													onSave={(value) =>
+														updateTeacherField("group_class_bonus_terms", value)
+													}
 													editing={editing}
 													type="select"
 													options={[
-														{ label: "Per Student Per Hour", value: "per_student_per_hour" },
+														{
+															label: "Per Student Per Hour",
+															value: "per_student_per_hour",
+														},
 														{ label: "Per Hour", value: "per_hour" },
 													]}
 												/>
 											) : teacher.group_class_bonus_terms ? (
 												<Badge variant="outline" className="h-5 text-xs">
-													{bonusTermsLabels[teacher.group_class_bonus_terms as keyof typeof bonusTermsLabels]}
+													{
+														bonusTermsLabels[
+															teacher.group_class_bonus_terms as keyof typeof bonusTermsLabels
+														]
+													}
 												</Badge>
 											) : (
-												<span className="text-sm font-medium">—</span>
+												<span className="font-medium text-sm">—</span>
 											)}
 										</div>
 									</div>
@@ -377,13 +484,24 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 						<div className="grid gap-6 lg:grid-cols-3">
 							<div className="space-y-3">
 								<div className="flex items-start gap-3">
-									<Video className="h-4 w-4 text-muted-foreground mt-0.5" />
+									<Video className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div className="flex-1 space-y-0.5">
-										<p className="text-xs text-muted-foreground">Available for Online:</p>
+										<p className="text-muted-foreground text-xs">
+											Available for Online:
+										</p>
 										{editing ? (
 											<InlineEditField
-												value={teacher.available_for_online_classes ? "true" : "false"}
-												onSave={(value) => updateTeacherField("available_for_online_classes", value === "true")}
+												value={
+													teacher.available_for_online_classes
+														? "true"
+														: "false"
+												}
+												onSave={(value) =>
+													updateTeacherField(
+														"available_for_online_classes",
+														value === "true",
+													)
+												}
 												editing={editing}
 												type="select"
 												options={[
@@ -392,7 +510,14 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 												]}
 											/>
 										) : (
-											<Badge variant={teacher.available_for_online_classes ? "success" : "secondary"} className="h-5 text-xs">
+											<Badge
+												variant={
+													teacher.available_for_online_classes
+														? "success"
+														: "secondary"
+												}
+												className="h-5 text-xs"
+											>
 												{teacher.available_for_online_classes ? "Yes" : "No"}
 											</Badge>
 										)}
@@ -401,13 +526,24 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 							</div>
 							<div className="space-y-3">
 								<div className="flex items-start gap-3">
-									<MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div className="flex-1 space-y-0.5">
-										<p className="text-xs text-muted-foreground">Available for In-Person:</p>
+										<p className="text-muted-foreground text-xs">
+											Available for In-Person:
+										</p>
 										{editing ? (
 											<InlineEditField
-												value={teacher.available_for_in_person_classes ? "true" : "false"}
-												onSave={(value) => updateTeacherField("available_for_in_person_classes", value === "true")}
+												value={
+													teacher.available_for_in_person_classes
+														? "true"
+														: "false"
+												}
+												onSave={(value) =>
+													updateTeacherField(
+														"available_for_in_person_classes",
+														value === "true",
+													)
+												}
 												editing={editing}
 												type="select"
 												options={[
@@ -416,7 +552,14 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 												]}
 											/>
 										) : (
-											<Badge variant={teacher.available_for_in_person_classes ? "success" : "secondary"} className="h-5 text-xs">
+											<Badge
+												variant={
+													teacher.available_for_in_person_classes
+														? "success"
+														: "secondary"
+												}
+												className="h-5 text-xs"
+											>
 												{teacher.available_for_in_person_classes ? "Yes" : "No"}
 											</Badge>
 										)}
@@ -425,13 +568,22 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 							</div>
 							<div className="space-y-3">
 								<div className="flex items-start gap-3">
-									<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+									<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 									<div className="flex-1 space-y-0.5">
-										<p className="text-xs text-muted-foreground">Qualified for Under 16:</p>
+										<p className="text-muted-foreground text-xs">
+											Qualified for Under 16:
+										</p>
 										{editing ? (
 											<InlineEditField
-												value={teacher.qualified_for_under_16 ? "true" : "false"}
-												onSave={(value) => updateTeacherField("qualified_for_under_16", value === "true")}
+												value={
+													teacher.qualified_for_under_16 ? "true" : "false"
+												}
+												onSave={(value) =>
+													updateTeacherField(
+														"qualified_for_under_16",
+														value === "true",
+													)
+												}
 												editing={editing}
 												type="select"
 												options={[
@@ -440,7 +592,12 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 												]}
 											/>
 										) : (
-											<Badge variant={teacher.qualified_for_under_16 ? "info" : "secondary"} className="h-5 text-xs">
+											<Badge
+												variant={
+													teacher.qualified_for_under_16 ? "info" : "secondary"
+												}
+												className="h-5 text-xs"
+											>
 												{teacher.qualified_for_under_16 ? "Yes" : "No"}
 											</Badge>
 										)}
@@ -468,27 +625,41 @@ export default function TeacherDetailsClient({ teacher: initialTeacher }: Teache
 
 				{/* System Information - Less prominent at the bottom */}
 				<div className="mt-8 border-t pt-6">
-					<div className="max-w-3xl mx-auto">
-						<div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground/70">
+					<div className="mx-auto max-w-3xl">
+						<div className="flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground/70 text-xs">
 							<div className="flex items-center gap-2">
 								<span>ID:</span>
-								<code className="bg-muted/50 px-1.5 py-0.5 rounded font-mono">{teacher.id.slice(0, 8)}</code>
+								<code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono">
+									{teacher.id.slice(0, 8)}
+								</code>
 							</div>
 							{teacher.user_id && (
 								<div className="flex items-center gap-2">
 									<span>User:</span>
-									<code className="bg-muted/50 px-1.5 py-0.5 rounded font-mono">{teacher.user_id.slice(0, 8)}</code>
+									<code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono">
+										{teacher.user_id.slice(0, 8)}
+									</code>
 								</div>
 							)}
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
 								<span>Created:</span>
-								<span>{format(new Date(teacher.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
+								<span>
+									{format(
+										new Date(teacher.created_at),
+										"MMM d, yyyy 'at' h:mm a",
+									)}
+								</span>
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
 								<span>Updated:</span>
-								<span>{format(new Date(teacher.updated_at), "MMM d, yyyy 'at' h:mm a")}</span>
+								<span>
+									{format(
+										new Date(teacher.updated_at),
+										"MMM d, yyyy 'at' h:mm a",
+									)}
+								</span>
 							</div>
 						</div>
 					</div>

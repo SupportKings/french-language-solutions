@@ -5,13 +5,13 @@ export const CohortFormatEnum = z.enum(["group", "private"]);
 export const CohortStatusEnum = z.enum([
 	"enrollment_open",
 	"enrollment_closed",
-	"class_ended"
+	"class_ended",
 ]);
 export const RoomTypeEnum = z.enum([
 	"for_one_to_one",
 	"medium",
-	"medium_plus", 
-	"large"
+	"medium_plus",
+	"large",
 ]);
 
 // Base cohort schema - using exact DB column names (snake_case)
@@ -33,12 +33,12 @@ export const CohortSchema = z.object({
 // Weekly Session schema - using exact DB column names
 export const DayOfWeekEnum = z.enum([
 	"monday",
-	"tuesday", 
+	"tuesday",
 	"wednesday",
 	"thursday",
 	"friday",
 	"saturday",
-	"sunday"
+	"sunday",
 ]);
 
 export const WeeklySessionSchema = z.object({
@@ -57,9 +57,15 @@ export const WeeklySessionSchema = z.object({
 export const CohortQuerySchema = z.object({
 	search: z.string().optional(),
 	format: z.union([CohortFormatEnum, z.array(CohortFormatEnum)]).optional(),
-	cohort_status: z.union([CohortStatusEnum, z.array(CohortStatusEnum)]).optional(),
-	starting_level_id: z.union([z.string().uuid(), z.array(z.string().uuid())]).optional(),
-	current_level_id: z.union([z.string().uuid(), z.array(z.string().uuid())]).optional(),
+	cohort_status: z
+		.union([CohortStatusEnum, z.array(CohortStatusEnum)])
+		.optional(),
+	starting_level_id: z
+		.union([z.string().uuid(), z.array(z.string().uuid())])
+		.optional(),
+	current_level_id: z
+		.union([z.string().uuid(), z.array(z.string().uuid())])
+		.optional(),
 	room_type: z.union([RoomTypeEnum, z.array(RoomTypeEnum)]).optional(),
 	page: z.number().min(1).default(1),
 	limit: z.number().min(1).max(100).default(20),

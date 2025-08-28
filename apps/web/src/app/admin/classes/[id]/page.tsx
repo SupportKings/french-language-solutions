@@ -1,9 +1,16 @@
-import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { notFound, redirect } from "next/navigation";
-import { getUser } from "@/queries/getUser";
-import { CohortDetailPageClient } from "./page-client";
-import { cohortsQueries } from "@/features/cohorts/queries/cohorts.queries";
+
 import { cohortsApi } from "@/features/cohorts/api/cohorts.api";
+import { cohortsQueries } from "@/features/cohorts/queries/cohorts.queries";
+
+import { getUser } from "@/queries/getUser";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import { CohortDetailPageClient } from "./page-client";
 
 export default async function CohortDetailPage({
 	params,

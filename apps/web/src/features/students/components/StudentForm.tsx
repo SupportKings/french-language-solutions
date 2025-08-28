@@ -1,14 +1,11 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
-import { CalendarIcon, Loader2 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -21,7 +18,11 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -29,14 +30,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 const studentFormSchema = z.object({
 	full_name: z.string().min(1, "Full name is required"),
@@ -46,9 +51,9 @@ const studentFormSchema = z.object({
 	desired_starting_language_level_id: z.string().optional(),
 	website_quiz_submission_date: z.date().optional(),
 	added_to_email_newsletter: z.boolean(),
-	initial_channel: z.enum([
-		"form", "quiz", "call", "message", "email", "assessment"
-	]).optional(),
+	initial_channel: z
+		.enum(["form", "quiz", "call", "message", "email", "assessment"])
+		.optional(),
 	communication_channel: z.enum(["sms_email", "email", "sms"]),
 	is_full_beginner: z.boolean(),
 	is_under_16: z.boolean(),
@@ -75,7 +80,9 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 	const [isLoading, setIsLoading] = useState(false);
 
 	// Fetch language levels
-	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(languageLevelQueries.list());
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
+		languageLevelQueries.list(),
+	);
 	const levelOptions = languageLevels || [];
 
 	const form = useForm<StudentFormValues>({
@@ -85,9 +92,10 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 			email: student?.email || "",
 			mobile_phone_number: student?.mobile_phone_number || "",
 			city: student?.city || "",
-			desired_starting_language_level_id: student?.desired_starting_language_level_id,
-			website_quiz_submission_date: student?.website_quiz_submission_date 
-				? new Date(student.website_quiz_submission_date) 
+			desired_starting_language_level_id:
+				student?.desired_starting_language_level_id,
+			website_quiz_submission_date: student?.website_quiz_submission_date
+				? new Date(student.website_quiz_submission_date)
 				: undefined,
 			added_to_email_newsletter: student?.added_to_email_newsletter ?? false,
 			initial_channel: student?.initial_channel,
@@ -109,14 +117,12 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 
 	async function onSubmit(values: StudentFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = student 
-				? `/api/students/${student.id}`
-				: "/api/students";
-			
+			const url = student ? `/api/students/${student.id}` : "/api/students";
+
 			const method = student ? "PATCH" : "POST";
-			
+
 			// Format dates for API - fields are already snake_case
 			const payload = {
 				...values,
@@ -138,8 +144,12 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 				throw new Error("Failed to save student");
 			}
 
-			toast.success(student ? "Student updated successfully" : "Student created successfully");
-			
+			toast.success(
+				student
+					? "Student updated successfully"
+					: "Student created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else {
@@ -179,7 +189,11 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 								<FormItem>
 									<FormLabel>Email</FormLabel>
 									<FormControl>
-										<Input type="email" placeholder="john@example.com" {...field} />
+										<Input
+											type="email"
+											placeholder="john@example.com"
+											{...field}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -215,7 +229,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 					</div>
 
 					<div className="space-y-4">
-						<h3 className="text-lg font-semibold">Learning Preferences</h3>
+						<h3 className="font-semibold text-lg">Learning Preferences</h3>
 						<div className="grid gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
@@ -223,15 +237,26 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Desired Starting Level</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
-													<SelectValue placeholder={languageLevelsLoading ? "Loading levels..." : "Select a level"} />
+													<SelectValue
+														placeholder={
+															languageLevelsLoading
+																? "Loading levels..."
+																: "Select a level"
+														}
+													/>
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
 												{languageLevelsLoading ? (
-													<SelectItem value="" disabled>Loading levels...</SelectItem>
+													<SelectItem value="" disabled>
+														Loading levels...
+													</SelectItem>
 												) : (
 													levelOptions.map((level) => (
 														<SelectItem key={level.id} value={level.id}>
@@ -258,7 +283,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 														variant="outline"
 														className={cn(
 															"w-full pl-3 text-left font-normal",
-															!field.value && "text-muted-foreground"
+															!field.value && "text-muted-foreground",
 														)}
 													>
 														{field.value ? (
@@ -290,7 +315,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 									<FormItem className="md:col-span-2">
 										<FormLabel>Purpose to Learn</FormLabel>
 										<FormControl>
-											<Textarea 
+											<Textarea
 												placeholder="Why do you want to learn French?"
 												className="resize-none"
 												{...field}
@@ -344,7 +369,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 					</div>
 
 					<div className="space-y-4">
-						<h3 className="text-lg font-semibold">Communication</h3>
+						<h3 className="font-semibold text-lg">Communication</h3>
 						<div className="grid gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
@@ -352,7 +377,10 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Communication Channel</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue />
@@ -374,7 +402,10 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Initial Channel</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="How did they find us?" />
@@ -406,7 +437,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 														variant="outline"
 														className={cn(
 															"w-full pl-3 text-left font-normal",
-															!field.value && "text-muted-foreground"
+															!field.value && "text-muted-foreground",
 														)}
 													>
 														{field.value ? (
@@ -437,7 +468,9 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
 										<div className="space-y-0.5">
-											<FormLabel className="text-base">Newsletter Subscription</FormLabel>
+											<FormLabel className="text-base">
+												Newsletter Subscription
+											</FormLabel>
 											<FormDescription>
 												Student is subscribed to email newsletter
 											</FormDescription>
@@ -456,10 +489,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 				</div>
 
 				<div className="flex gap-4">
-					<Button
-						type="submit"
-						disabled={isLoading}
-					>
+					<Button type="submit" disabled={isLoading}>
 						{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						{student ? "Update Student" : "Create Student"}
 					</Button>

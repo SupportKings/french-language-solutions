@@ -1,24 +1,23 @@
 import {
+	boolean,
+	date,
+	integer,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	date,
-	integer,
-	boolean,
 } from "drizzle-orm/pg-core";
-import {
-	cohortStatusEnum,
-	roomTypeEnum,
-} from "./enums";
-import { products } from "./products";
+import { cohortStatusEnum, roomTypeEnum } from "./enums";
 import { languageLevels } from "./language-levels";
+import { products } from "./products";
 
 export const cohorts = pgTable("cohorts", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	productId: uuid("product_id").references(() => products.id),
 	googleDriveFolderId: text("google_drive_folder_id"),
-	startingLevelId: uuid("starting_level_id").references(() => languageLevels.id),
+	startingLevelId: uuid("starting_level_id").references(
+		() => languageLevels.id,
+	),
 	startDate: date("start_date"),
 	cohortStatus: cohortStatusEnum("cohort_status")
 		.notNull()

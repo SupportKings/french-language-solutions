@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
+
 import { EnrollmentDetailsClient } from "@/features/enrollments/components/EnrollmentDetailsClient";
 
 interface EnrollmentPageProps {
 	params: Promise<{ id: string }>;
 }
 
-export default async function EnrollmentDetailsPage({ params }: EnrollmentPageProps) {
+export default async function EnrollmentDetailsPage({
+	params,
+}: EnrollmentPageProps) {
 	const { id } = await params;
 	const supabase = await createClient();
 

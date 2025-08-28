@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { 
-	UserCheck, 
-	MessageSquare, 
-	Check, 
-	ChevronsUpDown,
-	Calendar,
-	AlertCircle
-} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import {
+	FormActions,
+	FormContent,
+	FormField,
+	FormHeader,
+	FormLayout,
+	FormRow,
+	FormSection,
+	InfoBanner,
+} from "@/components/form-layout/FormLayout";
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -26,28 +29,24 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-	FormLayout,
-	FormHeader,
-	FormContent,
-	FormSection,
-	FormField,
-	FormRow,
-	FormActions,
-	InfoBanner
-} from "@/components/form-layout/FormLayout";
+	AlertCircle,
+	Calendar,
+	Check,
+	ChevronsUpDown,
+	MessageSquare,
+	UserCheck,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const followUpFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
 	sequence_id: z.string().min(1, "Sequence is required"),
-	status: z.enum([
-		"activated",
-		"ongoing",
-		"answer_received",
-		"disabled"
-	]),
+	status: z.enum(["activated", "ongoing", "answer_received", "disabled"]),
 });
 
 type FollowUpFormValues = z.infer<typeof followUpFormSchema>;
@@ -63,7 +62,11 @@ interface AutomatedFollowUpFormProps {
 	onSuccess?: () => void;
 }
 
-export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: AutomatedFollowUpFormProps) {
+export function AutomatedFollowUpForm({
+	followUp,
+	searchParams,
+	onSuccess,
+}: AutomatedFollowUpFormProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [students, setStudents] = useState<any[]>([]);
@@ -93,12 +96,13 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 					const result = await response.json();
 					const studentsList = result.data || [];
 					setStudents(Array.isArray(studentsList) ? studentsList : []);
-					
+
 					// If we have a searchParams.studentName, pre-select that student
 					if (searchParams?.studentName && !form.getValues("student_id")) {
-						const matchingStudent = studentsList.find((s: any) => 
-							s.full_name === searchParams.studentName || 
-							s.id === searchParams.studentId
+						const matchingStudent = studentsList.find(
+							(s: any) =>
+								s.full_name === searchParams.studentName ||
+								s.id === searchParams.studentId,
 						);
 						if (matchingStudent) {
 							form.setValue("student_id", matchingStudent.id);
@@ -143,10 +147,10 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 	const onSubmit = async (data: FollowUpFormValues) => {
 		setIsLoading(true);
 		try {
-			const url = isEditMode 
+			const url = isEditMode
 				? `/api/automated-follow-ups/${followUp.id}`
 				: "/api/automated-follow-ups";
-			
+
 			const response = await fetch(url, {
 				method: isEditMode ? "PATCH" : "POST",
 				headers: {
@@ -160,8 +164,12 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 				throw new Error(error.message || "Failed to save follow-up");
 			}
 
-			toast.success(isEditMode ? "Follow-up updated successfully" : "Follow-up created successfully");
-			
+			toast.success(
+				isEditMode
+					? "Follow-up updated successfully"
+					: "Follow-up created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else {
@@ -169,25 +177,37 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 			}
 		} catch (error) {
 			console.error("Error saving follow-up:", error);
-			toast.error(error instanceof Error ? error.message : "Failed to save follow-up");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to save follow-up",
+			);
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	const selectedStudent = students.find(s => s.id === form.watch("student_id"));
-	const selectedSequence = sequences.find(s => s.id === form.watch("sequence_id"));
+	const selectedStudent = students.find(
+		(s) => s.id === form.watch("student_id"),
+	);
+	const selectedSequence = sequences.find(
+		(s) => s.id === form.watch("sequence_id"),
+	);
 
 	return (
-		<FormLayout >
+		<FormLayout>
 			<FormHeader
 				backUrl="/admin/automation/automated-follow-ups"
 				backLabel="Follow-ups"
-				title={isEditMode ? "Edit Automated Follow-up" : "Set Automated Follow-up"}
-				subtitle={isEditMode ? "Update the automated follow-up details" : "Configure an automated follow-up sequence for a student"}
+				title={
+					isEditMode ? "Edit Automated Follow-up" : "Set Automated Follow-up"
+				}
+				subtitle={
+					isEditMode
+						? "Update the automated follow-up details"
+						: "Configure an automated follow-up sequence for a student"
+				}
 			/>
 
-			<form  onSubmit={form.handleSubmit(onSubmit)}>
+			<form onSubmit={form.handleSubmit(onSubmit)}>
 				<FormContent>
 					{/* Pre-filled info from search params */}
 					{searchParams?.studentName && (
@@ -205,7 +225,10 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 								required
 								error={form.formState.errors.student_id?.message}
 							>
-								<Popover open={studentPopoverOpen} onOpenChange={setStudentPopoverOpen}>
+								<Popover
+									open={studentPopoverOpen}
+									onOpenChange={setStudentPopoverOpen}
+								>
 									<PopoverTrigger asChild>
 										<Button
 											variant="outline"
@@ -226,7 +249,9 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 												</div>
 											) : (
 												<span className="text-muted-foreground">
-													{loadingStudents ? "Loading students..." : "Select a student..."}
+													{loadingStudents
+														? "Loading students..."
+														: "Select a student..."}
 												</span>
 											)}
 											<ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
@@ -240,7 +265,7 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 												{students.map((student) => (
 													<CommandItem
 														key={student.id}
-														value={`${student.full_name} ${student.email || ''}`}
+														value={`${student.full_name} ${student.email || ""}`}
 														onSelect={() => {
 															form.setValue("student_id", student.id);
 															setStudentPopoverOpen(false);
@@ -249,13 +274,17 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 														<Check
 															className={cn(
 																"mr-2 h-4 w-4",
-																form.watch("student_id") === student.id ? "opacity-100" : "opacity-0"
+																form.watch("student_id") === student.id
+																	? "opacity-100"
+																	: "opacity-0",
 															)}
 														/>
 														<div className="flex-1">
 															<p className="font-medium">{student.full_name}</p>
 															{student.email && (
-																<p className="text-sm text-muted-foreground">{student.email}</p>
+																<p className="text-muted-foreground text-sm">
+																	{student.email}
+																</p>
 															)}
 														</div>
 													</CommandItem>
@@ -272,7 +301,10 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 								required
 								error={form.formState.errors.sequence_id?.message}
 							>
-								<Popover open={sequencePopoverOpen} onOpenChange={setSequencePopoverOpen}>
+								<Popover
+									open={sequencePopoverOpen}
+									onOpenChange={setSequencePopoverOpen}
+								>
 									<PopoverTrigger asChild>
 										<Button
 											variant="outline"
@@ -284,11 +316,17 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 											{selectedSequence ? (
 												<div className="flex items-center gap-2">
 													<MessageSquare className="h-4 w-4" />
-													<span>{selectedSequence.display_name || selectedSequence.displayName || 'Selected'}</span>
+													<span>
+														{selectedSequence.display_name ||
+															selectedSequence.displayName ||
+															"Selected"}
+													</span>
 												</div>
 											) : (
 												<span className="text-muted-foreground">
-													{loadingSequences ? "Loading sequences..." : "Select a sequence..."}
+													{loadingSequences
+														? "Loading sequences..."
+														: "Select a sequence..."}
 												</span>
 											)}
 											<ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
@@ -301,13 +339,15 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 											<CommandGroup className="max-h-[200px] overflow-auto">
 												{sequences.length === 0 ? (
 													<CommandItem disabled>
-														<span className="text-muted-foreground">No sequences available</span>
+														<span className="text-muted-foreground">
+															No sequences available
+														</span>
 													</CommandItem>
 												) : (
 													sequences.map((sequence) => (
 														<CommandItem
 															key={sequence.id}
-															value={`${sequence.display_name || sequence.displayName || ''} ${sequence.subject || ''}`}
+															value={`${sequence.display_name || sequence.displayName || ""} ${sequence.subject || ""}`}
 															onSelect={() => {
 																form.setValue("sequence_id", sequence.id);
 																setSequencePopoverOpen(false);
@@ -316,13 +356,21 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 															<Check
 																className={cn(
 																	"mr-2 h-4 w-4",
-																	form.watch("sequence_id") === sequence.id ? "opacity-100" : "opacity-0"
+																	form.watch("sequence_id") === sequence.id
+																		? "opacity-100"
+																		: "opacity-0",
 																)}
 															/>
 															<div className="flex-1">
-																<p className="font-medium">{sequence.display_name || sequence.displayName || 'Unnamed Sequence'}</p>
+																<p className="font-medium">
+																	{sequence.display_name ||
+																		sequence.displayName ||
+																		"Unnamed Sequence"}
+																</p>
 																{sequence.subject && (
-																	<p className="text-sm text-muted-foreground">{sequence.subject}</p>
+																	<p className="text-muted-foreground text-sm">
+																		{sequence.subject}
+																	</p>
 																)}
 															</div>
 														</CommandItem>
@@ -338,12 +386,20 @@ export function AutomatedFollowUpForm({ followUp, searchParams, onSuccess }: Aut
 				</FormContent>
 
 				<FormActions
-					primaryLabel={isLoading ? "Saving..." : isEditMode ? "Update Follow-up" : "Create Follow-up"}
+					primaryLabel={
+						isLoading
+							? "Saving..."
+							: isEditMode
+								? "Update Follow-up"
+								: "Create Follow-up"
+					}
 					primaryType="submit"
 					primaryLoading={isLoading}
 					primaryDisabled={isLoading}
 					secondaryLabel="Cancel"
-					onSecondaryClick={() => router.push("/admin/automation/automated-follow-ups")}
+					onSecondaryClick={() =>
+						router.push("/admin/automation/automated-follow-ups")
+					}
 				/>
 			</form>
 		</FormLayout>

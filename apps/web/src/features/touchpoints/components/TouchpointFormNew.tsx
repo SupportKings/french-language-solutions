@@ -1,52 +1,63 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter, useSearchParams } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { 
-	CalendarIcon, 
-	User, 
-	Mail, 
-	Phone, 
-	MessageSquare,
-	Hand,
-	Clock,
-	Hash,
-	FileText,
-	Send
-} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import {
+	FormActions,
+	FormContent,
+	FormField,
+	FormHeader,
+	FormLayout,
+	FormRow,
+	FormSection,
+	InfoBanner,
+	InputField,
+	SelectField,
+	TextareaField,
+} from "@/components/form-layout/FormLayout";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import {
-	FormLayout,
-	FormHeader,
-	FormContent,
-	FormSection,
-	FormField,
-	FormRow,
-	FormActions,
-	InfoBanner,
-	SelectField,
-	InputField,
-	TextareaField
-} from "@/components/form-layout/FormLayout";
+	CalendarIcon,
+	Clock,
+	FileText,
+	Hand,
+	Hash,
+	Mail,
+	MessageSquare,
+	Phone,
+	Send,
+	User,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const touchpointFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
 	channel: z.enum(["sms", "call", "whatsapp", "email"]),
 	type: z.enum(["inbound", "outbound"]),
 	message: z.string().min(1, "Message content is required"),
-	source: z.enum(["manual", "automated", "openphone", "gmail", "whatsapp_business", "webhook"]),
+	source: z.enum([
+		"manual",
+		"automated",
+		"openphone",
+		"gmail",
+		"whatsapp_business",
+		"webhook",
+	]),
 	occurred_at: z.date(),
 	automated_follow_up_id: z.string().optional().or(z.literal("")),
 	external_id: z.string().optional().or(z.literal("")),
@@ -63,7 +74,13 @@ interface TouchpointFormNewProps {
 	onSuccess?: () => void;
 }
 
-export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, studentName: propsStudentName, redirectTo, onSuccess }: TouchpointFormNewProps) {
+export function TouchpointFormNew({
+	touchpoint,
+	studentId: propsStudentId,
+	studentName: propsStudentName,
+	redirectTo,
+	onSuccess,
+}: TouchpointFormNewProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [isLoading, setIsLoading] = useState(false);
@@ -82,7 +99,9 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 			type: touchpoint?.type || "outbound",
 			message: touchpoint?.message || "",
 			source: touchpoint?.source || "manual",
-			occurred_at: touchpoint?.occurred_at ? new Date(touchpoint.occurred_at) : new Date(),
+			occurred_at: touchpoint?.occurred_at
+				? new Date(touchpoint.occurred_at)
+				: new Date(),
 			automated_follow_up_id: touchpoint?.automated_follow_up_id || "",
 			external_id: touchpoint?.external_id || "",
 			external_metadata: touchpoint?.external_metadata || "",
@@ -98,14 +117,14 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 
 	async function onSubmit(values: TouchpointFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = touchpoint 
+			const url = touchpoint
 				? `/api/touchpoints/${touchpoint.id}`
 				: "/api/touchpoints";
-			
+
 			const method = touchpoint ? "PATCH" : "POST";
-			
+
 			// Format dates for API
 			const payload = {
 				...values,
@@ -127,8 +146,12 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 				throw new Error(error.message || "Failed to save touchpoint");
 			}
 
-			toast.success(touchpoint ? "Touchpoint updated successfully" : "Touchpoint logged successfully");
-			
+			toast.success(
+				touchpoint
+					? "Touchpoint updated successfully"
+					: "Touchpoint logged successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else if (redirectTo) {
@@ -145,7 +168,9 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 			}
 		} catch (error) {
 			console.error("Error saving touchpoint:", error);
-			toast.error(error instanceof Error ? error.message : "Failed to save touchpoint");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to save touchpoint",
+			);
 		} finally {
 			setIsLoading(false);
 		}
@@ -185,17 +210,28 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 	return (
 		<FormLayout>
 			<FormHeader
-				backUrl={redirectTo || (studentId ? `/admin/students/${studentId}` : "/admin/touchpoints")}
-				backLabel={redirectTo ? "Back" : (studentId ? studentName || "Student Details" : "Touchpoints")}
+				backUrl={
+					redirectTo ||
+					(studentId ? `/admin/students/${studentId}` : "/admin/touchpoints")
+				}
+				backLabel={
+					redirectTo
+						? "Back"
+						: studentId
+							? studentName || "Student Details"
+							: "Touchpoints"
+				}
 				title={isEditMode ? "Edit Touchpoint" : "Log Touchpoint"}
 				subtitle={
-					isEditMode 
-						? "Update touchpoint details" 
-						: studentName 
+					isEditMode
+						? "Update touchpoint details"
+						: studentName
 							? `Record a communication with ${studentName}`
 							: "Record a student communication"
 				}
-				badge={isEditMode ? { label: "Editing", variant: "warning" } : undefined}
+				badge={
+					isEditMode ? { label: "Editing", variant: "warning" } : undefined
+				}
 			/>
 
 			<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -211,16 +247,16 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 						)}
 
 						{/* Communication Details */}
-						<FormSection 
-							title="Communication Details" 
+						<FormSection
+							title="Communication Details"
 							description="Basic information about this interaction"
 							icon={MessageSquare}
 							required
 						>
 							{/* Show student selector only if no student ID in params */}
 							{!studentId && (
-								<FormField 
-									label="Student" 
+								<FormField
+									label="Student"
 									required
 									error={form.formState.errors.student_id?.message}
 								>
@@ -233,43 +269,49 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 							)}
 
 							<FormRow>
-								<FormField 
-									label="Channel" 
+								<FormField
+									label="Channel"
 									required
 									error={form.formState.errors.channel?.message}
 								>
 									<SelectField
 										value={form.watch("channel")}
-										onValueChange={(value) => form.setValue("channel", value as any)}
+										onValueChange={(value) =>
+											form.setValue("channel", value as any)
+										}
 										options={channels}
 									/>
 								</FormField>
-								<FormField 
+								<FormField
 									label="Direction"
 									required
 									error={form.formState.errors.type?.message}
 								>
 									<SelectField
 										value={form.watch("type")}
-										onValueChange={(value) => form.setValue("type", value as any)}
+										onValueChange={(value) =>
+											form.setValue("type", value as any)
+										}
 										options={types}
 									/>
 								</FormField>
 							</FormRow>
 
 							<FormRow>
-								<FormField 
+								<FormField
 									label="Source"
 									hint="How was this communication logged?"
 									error={form.formState.errors.source?.message}
 								>
 									<SelectField
 										value={form.watch("source")}
-										onValueChange={(value) => form.setValue("source", value as any)}
+										onValueChange={(value) =>
+											form.setValue("source", value as any)
+										}
 										options={sources}
 									/>
 								</FormField>
-								<FormField 
+								<FormField
 									label="Date & Time"
 									error={form.formState.errors.occurred_at?.message}
 								>
@@ -278,8 +320,8 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 											<Button
 												variant="outline"
 												className={cn(
-													"w-full h-9 justify-start text-left font-normal",
-													!form.watch("occurred_at") && "text-muted-foreground"
+													"h-9 w-full justify-start text-left font-normal",
+													!form.watch("occurred_at") && "text-muted-foreground",
 												)}
 											>
 												<CalendarIcon className="mr-2 h-4 w-4" />
@@ -312,13 +354,13 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 						</FormSection>
 
 						{/* Message Content */}
-						<FormSection 
-							title="Message Content" 
+						<FormSection
+							title="Message Content"
 							description="The actual communication content"
 							icon={FileText}
 							required
 						>
-							<FormField 
+							<FormField
 								label="Message"
 								required
 								hint="Describe the communication or paste the message content"
@@ -334,13 +376,13 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 						</FormSection>
 
 						{/* Optional Metadata */}
-						<FormSection 
-							title="Additional Information" 
+						<FormSection
+							title="Additional Information"
 							description="Optional tracking and integration data"
 							icon={Hash}
 						>
 							<FormRow>
-								<FormField 
+								<FormField
 									label="External ID"
 									hint="ID from external system (OpenPhone, etc.)"
 									error={form.formState.errors.external_id?.message}
@@ -351,8 +393,8 @@ export function TouchpointFormNew({ touchpoint, studentId: propsStudentId, stude
 									/>
 								</FormField>
 							</FormRow>
-							
-							<FormField 
+
+							<FormField
 								label="Metadata"
 								hint="Additional JSON data or notes"
 								error={form.formState.errors.external_metadata?.message}
