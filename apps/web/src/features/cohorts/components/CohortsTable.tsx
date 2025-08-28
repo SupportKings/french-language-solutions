@@ -45,6 +45,17 @@ interface CohortWithStats extends Cohort {
 		code: string;
 		display_name: string;
 	} | null;
+	weekly_sessions?: Array<{
+		id: string;
+		day_of_week: string;
+		start_time: string;
+		end_time: string;
+		teacher?: {
+			id: string;
+			first_name: string;
+			last_name: string;
+		} | null;
+	}>;
 }
 
 // Status badge variant mapping

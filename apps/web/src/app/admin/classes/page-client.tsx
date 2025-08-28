@@ -11,7 +11,7 @@ import { DataTableFilter, useDataTableFilters } from "@/components/data-table-fi
 import { CohortsTable } from "@/features/cohorts/components/CohortsTable";
 import { useCohorts } from "@/features/cohorts/queries/cohorts.queries";
 import type { Cohort, CohortFormat, CohortStatus, RoomType } from "@/features/cohorts/schemas/cohort.schema";
-import type { LanguageLevel } from "@/features/language-levels/queries/language-levels.queries";
+import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
 
 // Extended cohort type with relationships
 interface CohortWithRelations extends Cohort {
