@@ -253,7 +253,7 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 													? (() => {
 														const cohort = cohorts.find((c) => c.id === field.value);
 														return cohort 
-															? `${cohort.format} - ${cohort.starting_level?.toUpperCase()} (${cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : 'TBD'})`
+															? `${cohort.products?.format || 'N/A'} - ${cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || 'N/A'} (${cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : 'TBD'})`
 															: "Select cohort...";
 													})()
 													: "Select cohort..."}
@@ -269,7 +269,7 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 												{cohorts.map((cohort) => (
 													<CommandItem
 														key={cohort.id}
-														value={`${cohort.format} ${cohort.starting_level}`}
+														value={`${cohort.products?.format || ''} ${cohort.starting_level?.code || ''}`}
 														onSelect={() => {
 															form.setValue("cohort_id", cohort.id);
 														}}
@@ -282,7 +282,7 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 														/>
 														<div className="flex flex-col">
 															<span className="font-medium">
-																{cohort.format} - {cohort.starting_level?.toUpperCase()}
+																{cohort.products?.format || 'N/A'} - {cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || 'N/A'}
 															</span>
 															<span className="text-xs text-muted-foreground">
 																{cohort.start_date 

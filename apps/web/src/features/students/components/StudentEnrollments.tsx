@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 const statusColors = {
@@ -38,7 +39,19 @@ interface StudentEnrollmentsProps {
 
 export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const queryClient = useQueryClient();
+	
+	// Get current URL for redirectTo
+	const currentUrl = `${pathname}?tab=enrollments`;
+	
+	// Invalidate cache when component mounts (useful when returning from forms)
+	useEffect(() => {
+		const searchParams = new URLSearchParams(window.location.search);
+		if (searchParams.get('tab') === 'enrollments') {
+			queryClient.invalidateQueries({ queryKey: ["student-enrollments", studentId] });
+		}
+	}, [queryClient, studentId, pathname]);
 	
 	const { data: enrollments, isLoading } = useQuery({
 		queryKey: ["student-enrollments", studentId],
@@ -102,12 +115,13 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 					"bg-gray-500/10 text-gray-700 border-gray-200";
 
 				// Get cohort initials
-				const cohortInitials = enrollment.cohorts?.format === 'group' ? 'GC' : 'PC';
+				const cohortInitials = enrollment.cohorts?.products?.format === 'group' ? 'GC' : 'PC';
 
 				return (
 					<div
 						key={enrollment.id}
-						className="group relative overflow-hidden rounded-lg border bg-card hover:shadow-md transition-all duration-200"
+						className="group relative overflow-hidden rounded-lg border bg-card hover:shadow-md transition-all duration-200 cursor-pointer"
+						onClick={() => router.push(`/admin/students/enrollments/${enrollment.id}?redirectTo=${encodeURIComponent(currentUrl)}`)}
 					>
 						<div className="p-3">
 							<div className="flex items-start justify-between gap-3">
@@ -124,7 +138,10 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 													href={`/admin/classes/${enrollment.cohort_id}`}
 													className="font-medium text-sm hover:text-primary hover:underline transition-colors truncate block"
 												>
-													{enrollment.cohorts?.format === 'group' ? 'Group' : 'Private'} - {enrollment.cohorts?.starting_level?.replace('_plus', '+').toUpperCase() || 'N/A'}
+													{enrollment.cohorts?.title ? 
+														enrollment.cohorts.title :
+														`${enrollment.cohorts?.products?.format === 'group' ? 'Group' : 'Private'} - ${enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || 'N/A'}`
+													}
 												</Link>
 												<div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
 													{enrollment.cohorts?.start_date && (
@@ -170,40 +187,6 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 														l.toUpperCase()
 													)}
 											</Badge>
-
-											{enrollment.status && (
-												<div className="flex items-center gap-1">
-													<div className="flex gap-0.5">
-														{[
-															"interested",
-															"beginner_form_filled",
-															"contract_signed",
-															"paid",
-															"welcome_package_sent",
-														].map((step, index) => {
-															const currentIndex = [
-																"interested",
-																"beginner_form_filled",
-																"contract_signed",
-																"paid",
-																"welcome_package_sent",
-															].indexOf(enrollment.status);
-															const isCompleted =
-																index <= currentIndex;
-															return (
-																<div
-																	key={step}
-																	className={`h-1 w-3 rounded-full transition-colors ${
-																		isCompleted
-																			? "bg-primary"
-																			: "bg-muted"
-																	}`}
-																/>
-															);
-														})}
-													</div>
-												</div>
-											)}
 										</div>
 									</div>
 
@@ -211,11 +194,12 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 										variant="outline"
 										size="sm"
 										className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-										onClick={() =>
+										onClick={(e) => {
+											e.stopPropagation();
 											router.push(
-												`/admin/students/enrollments/${enrollment.id}/edit`
-											)
-										}
+												`/admin/students/enrollments/${enrollment.id}/edit?redirectTo=${encodeURIComponent(currentUrl)}`
+											);
+										}}
 									>
 										<Edit2 className="h-3.5 w-3.5 mr-1" />
 										Edit

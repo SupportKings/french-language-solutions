@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { 
 	CalendarIcon, 
 	User, 
@@ -47,10 +49,7 @@ const studentFormSchema = z.object({
 	email: z.string().email("Invalid email").optional().or(z.literal("")),
 	mobile_phone_number: z.string().max(20).optional().or(z.literal("")),
 	city: z.string().optional().or(z.literal("")),
-	desired_starting_language_level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]).optional(),
+	desired_starting_language_level_id: z.string().optional(),
 	initial_channel: z.enum([
 		"form", "quiz", "call", "message", "email", "assessment"
 	]).optional(),
@@ -79,6 +78,10 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const isEditMode = !!student;
+	
+	// Fetch language levels
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(languageLevelQueries.list());
+	const levelOptions = languageLevels || [];
 
 	const form = useForm<StudentFormValues>({
 		resolver: zodResolver(studentFormSchema),
@@ -87,7 +90,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			email: student?.email || "",
 			mobile_phone_number: student?.mobile_phone_number || "",
 			city: student?.city || "",
-			desired_starting_language_level: student?.desired_starting_language_level,
+			desired_starting_language_level_id: student?.desired_starting_language_level_id,
 			initial_channel: student?.initial_channel,
 			communication_channel: student?.communication_channel ?? "sms_email",
 			is_full_beginner: student?.is_full_beginner ?? false,
@@ -153,19 +156,11 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 		router.push("/admin/students");
 	};
 
-	const languageLevels = [
-		{ label: "A1", value: "a1" },
-		{ label: "A1+", value: "a1_plus" },
-		{ label: "A2", value: "a2" },
-		{ label: "A2+", value: "a2_plus" },
-		{ label: "B1", value: "b1" },
-		{ label: "B1+", value: "b1_plus" },
-		{ label: "B2", value: "b2" },
-		{ label: "B2+", value: "b2_plus" },
-		{ label: "C1", value: "c1" },
-		{ label: "C1+", value: "c1_plus" },
-		{ label: "C2", value: "c2" },
-	];
+	// Transform language levels for select options
+	const languageLevelOptions = levelOptions.map(level => ({
+		label: level.display_name,
+		value: level.id
+	}));
 
 	const initialChannels = [
 		{ label: "Form", value: "form" },
@@ -269,13 +264,14 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 							<FormRow>
 								<FormField 
 									label="Desired Starting Level"
-									error={form.formState.errors.desired_starting_language_level?.message}
+									error={form.formState.errors.desired_starting_language_level_id?.message}
 								>
 									<SelectField
-										placeholder="Select a level"
-										value={form.watch("desired_starting_language_level")}
-										onValueChange={(value) => form.setValue("desired_starting_language_level", value as any)}
-										options={languageLevels}
+										placeholder={languageLevelsLoading ? "Loading levels..." : "Select a level"}
+										value={form.watch("desired_starting_language_level_id") || ""}
+										onValueChange={(value) => form.setValue("desired_starting_language_level_id", value)}
+										options={languageLevelOptions}
+										disabled={languageLevelsLoading}
 									/>
 								</FormField>
 								<FormField 

@@ -16,19 +16,6 @@ export const communicationChannelEnum = z.enum([
 	"sms",
 ]);
 
-export const languageLevelEnum = z.enum([
-	"a1",
-	"a1_plus",
-	"a2",
-	"a2_plus",
-	"b1",
-	"b1_plus",
-	"b2",
-	"b2_plus",
-	"c1",
-	"c1_plus",
-	"c2",
-]);
 
 // Student schema matching Supabase database exactly
 export const studentSchema = z.object({
@@ -38,7 +25,7 @@ export const studentSchema = z.object({
 	first_name: z.string().nullable(), // Generated column
 	last_name: z.string().nullable(), // Generated column
 	email: z.string().email("Invalid email address").nullable(),
-	desired_starting_language_level: languageLevelEnum.nullable(),
+	desired_starting_language_level_id: z.string().uuid().nullable(),
 	mobile_phone_number: z.string().nullable(),
 	city: z.string().nullable(),
 	website_quiz_submission_date: z.string().nullable(), // Date as string from DB
@@ -84,7 +71,7 @@ export const studentQuerySchema = z.object({
 	page: z.number().min(1).default(1),
 	limit: z.number().min(1).max(100).default(20),
 	search: z.string().optional(),
-	desired_starting_language_level: languageLevelEnum.optional(),
+	desired_starting_language_level_id: z.string().uuid().optional(),
 	initial_channel: initialChannelEnum.optional(),
 	sortBy: z.enum(["created_at", "full_name", "email"]).default("created_at"),
 	sortOrder: z.enum(["asc", "desc"]).default("desc"),

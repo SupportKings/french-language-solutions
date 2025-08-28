@@ -22,13 +22,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				),
 				cohorts (
 					id,
-					format,
-					current_level,
-					starting_level
+					products (
+						id,
+						format
+					),
+					current_level:language_levels!current_level_id (
+						id,
+						code,
+						display_name
+					),
+					starting_level:language_levels!starting_level_id (
+						id,
+						code,
+						display_name
+					)
 				)
 			`)
 			.eq("student_id", studentId)
-			.order("attendance_date", { ascending: false })
+			.order("created_at", { ascending: false })
 			.limit(100);
 
 		if (recordsError) {
@@ -104,7 +115,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			studentId: record.student_id,
 			cohortId: record.cohort_id,
 			classId: record.class_id,
-			attendanceDate: record.attendance_date,
+			attendanceDate: record.classes?.start_time ? new Date(record.classes.start_time).toISOString().split('T')[0] : null,
 			status: record.status,
 			notes: record.notes,
 			homeworkCompleted: record.homework_completed || false,
@@ -113,7 +124,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			createdAt: record.created_at,
 			className: null, // Classes don't have names anymore
 			classStartTime: record.classes?.start_time || null,
-			cohortName: record.cohorts ? `${record.cohorts.format === 'group' ? 'Group' : 'Private'} - ${record.cohorts.current_level || record.cohorts.starting_level}`.toUpperCase() : null,
+			cohortName: record.cohorts ? `${record.cohorts.products?.format === 'group' ? 'Group' : 'Private'} - ${record.cohorts.current_level?.display_name || record.cohorts.starting_level?.display_name || 'N/A'}` : null,
 		})) || [];
 
 		return NextResponse.json({

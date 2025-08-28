@@ -22,7 +22,7 @@ export async function GET(
 				automated_follow_ups (
 					id,
 					status,
-					template_follow_up_sequences (
+					sequences:template_follow_up_sequences!sequence_id (
 						display_name
 					)
 				)
@@ -77,6 +77,46 @@ export async function PUT(
 				occurred_at: body.occurred_at,
 				updated_at: new Date().toISOString(),
 			})
+			.eq("id", id)
+			.select()
+			.single();
+
+		if (error) {
+			console.error("Error updating touchpoint:", error);
+			return NextResponse.json(
+				{ error: "Failed to update touchpoint" },
+				{ status: 500 }
+			);
+		}
+
+		return NextResponse.json(data);
+	} catch (error) {
+		console.error("Touchpoint update error:", error);
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 }
+		);
+	}
+}
+
+export async function PATCH(
+	request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> }
+) {
+	try {
+		const { id } = await params;
+		const supabase = await createClient();
+		const body = await request.json();
+
+		// For PATCH, we only update the fields that are provided
+		const updateData = {
+			...body,
+			updated_at: new Date().toISOString(),
+		};
+
+		const { data, error } = await supabase
+			.from("touchpoints")
+			.update(updateData)
 			.eq("id", id)
 			.select()
 			.single();

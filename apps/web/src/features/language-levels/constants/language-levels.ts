@@ -1,0 +1,60 @@
+// Static language level definitions for use when API data is not available
+// This should match the data in the database
+
+export const LANGUAGE_LEVEL_CODES = [
+	'a0',
+	'a1.1', 'a1.2', 'a1.3', 'a1.4', 'a1.5', 'a1.6', 
+	'a1.7', 'a1.8', 'a1.9', 'a1.10', 'a1.11', 'a1.12',
+	'a2.1', 'a2.2', 'a2.3', 'a2.4', 'a2.5', 'a2.6',
+	'a2.7', 'a2.8', 'a2.9', 'a2.10', 'a2.11', 'a2.12',
+	'b1.1', 'b1.2', 'b1.3', 'b1.4', 'b1.5', 'b1.6',
+	'b1.7', 'b1.8', 'b1.9', 'b1.10', 'b1.11', 'b1.12',
+	'b2.1', 'b2.2', 'b2.3', 'b2.4', 'b2.5', 'b2.6',
+	'b2.7', 'b2.8', 'b2.9', 'b2.10', 'b2.11', 'b2.12',
+	'c1.1', 'c1.2', 'c1.3', 'c1.4', 'c1.5', 'c1.6',
+	'c1.7', 'c1.8', 'c1.9', 'c1.10', 'c1.11', 'c1.12',
+	'c2.1', 'c2.2', 'c2.3', 'c2.4', 'c2.5', 'c2.6',
+	'c2.7', 'c2.8', 'c2.9', 'c2.10', 'c2.11', 'c2.12',
+] as const;
+
+export type LanguageLevelCode = typeof LANGUAGE_LEVEL_CODES[number];
+
+// Display names for each level
+export const LANGUAGE_LEVEL_DISPLAY_NAMES: Record<LanguageLevelCode, string> = {
+	'a0': 'A0 - Complete Beginner',
+	'a1.1': 'A1.1', 'a1.2': 'A1.2', 'a1.3': 'A1.3', 'a1.4': 'A1.4', 
+	'a1.5': 'A1.5', 'a1.6': 'A1.6', 'a1.7': 'A1.7', 'a1.8': 'A1.8',
+	'a1.9': 'A1.9', 'a1.10': 'A1.10', 'a1.11': 'A1.11', 'a1.12': 'A1.12',
+	'a2.1': 'A2.1', 'a2.2': 'A2.2', 'a2.3': 'A2.3', 'a2.4': 'A2.4',
+	'a2.5': 'A2.5', 'a2.6': 'A2.6', 'a2.7': 'A2.7', 'a2.8': 'A2.8',
+	'a2.9': 'A2.9', 'a2.10': 'A2.10', 'a2.11': 'A2.11', 'a2.12': 'A2.12',
+	'b1.1': 'B1.1', 'b1.2': 'B1.2', 'b1.3': 'B1.3', 'b1.4': 'B1.4',
+	'b1.5': 'B1.5', 'b1.6': 'B1.6', 'b1.7': 'B1.7', 'b1.8': 'B1.8',
+	'b1.9': 'B1.9', 'b1.10': 'B1.10', 'b1.11': 'B1.11', 'b1.12': 'B1.12',
+	'b2.1': 'B2.1', 'b2.2': 'B2.2', 'b2.3': 'B2.3', 'b2.4': 'B2.4',
+	'b2.5': 'B2.5', 'b2.6': 'B2.6', 'b2.7': 'B2.7', 'b2.8': 'B2.8',
+	'b2.9': 'B2.9', 'b2.10': 'B2.10', 'b2.11': 'B2.11', 'b2.12': 'B2.12',
+	'c1.1': 'C1.1', 'c1.2': 'C1.2', 'c1.3': 'C1.3', 'c1.4': 'C1.4',
+	'c1.5': 'C1.5', 'c1.6': 'C1.6', 'c1.7': 'C1.7', 'c1.8': 'C1.8',
+	'c1.9': 'C1.9', 'c1.10': 'C1.10', 'c1.11': 'C1.11', 'c1.12': 'C1.12',
+	'c2.1': 'C2.1', 'c2.2': 'C2.2', 'c2.3': 'C2.3', 'c2.4': 'C2.4',
+	'c2.5': 'C2.5', 'c2.6': 'C2.6', 'c2.7': 'C2.7', 'c2.8': 'C2.8',
+	'c2.9': 'C2.9', 'c2.10': 'C2.10', 'c2.11': 'C2.11', 'c2.12': 'C2.12',
+};
+
+// Mapping from old enum values to new codes (for migration)
+export const ENUM_TO_CODE_MAP = {
+	'a1': 'a1.1',
+	'a1_plus': 'a1.6',
+	'a2': 'a2.1',
+	'a2_plus': 'a2.6',
+	'b1': 'b1.1',
+	'b1_plus': 'b1.6',
+	'b2': 'b2.1',
+	'b2_plus': 'b2.6',
+	'c1': 'c1.1',
+	'c1_plus': 'c1.6',
+	'c2': 'c2.1',
+} as const;
+
+export type OldLanguageLevelEnum = keyof typeof ENUM_TO_CODE_MAP;

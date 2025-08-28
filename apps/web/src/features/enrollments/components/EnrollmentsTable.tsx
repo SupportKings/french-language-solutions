@@ -67,7 +67,7 @@ const enrollmentColumns = [
 	},
 	{
 		id: "cohort_format",
-		accessor: (enrollment: any) => enrollment.cohorts?.format,
+		accessor: (enrollment: any) => enrollment.cohorts?.products?.format,
 		displayName: "Class Format",
 		icon: Users,
 		type: "option" as const,
@@ -90,7 +90,7 @@ const enrollmentColumns = [
 	},
 	{
 		id: "starting_level",
-		accessor: (enrollment: any) => enrollment.cohorts?.starting_level,
+		accessor: (enrollment: any) => enrollment.cohorts?.starting_level?.code,
 		displayName: "Starting Level",
 		icon: GraduationCap,
 		type: "option" as const,
@@ -306,7 +306,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										<TableCell>
 											<div>
 												<p className="font-medium">
-													{enrollment.cohorts?.format} - {enrollment.cohorts?.starting_level?.toUpperCase()}
+													{enrollment.cohorts?.products?.format || 'N/A'} - {enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || 'N/A'}
 												</p>
 												{enrollment.cohorts?.start_date && (
 													<p className="text-sm text-muted-foreground">

@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { 
 	CalendarIcon, 
 	Check, 
@@ -52,10 +54,7 @@ import {
 
 const assessmentFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
-	level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus",
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]).optional(),
+	level_id: z.string().optional(),
 	scheduled_for: z.date().optional(),
 	is_paid: z.boolean(),
 	result: z.enum([
@@ -73,10 +72,11 @@ type AssessmentFormValues = z.infer<typeof assessmentFormSchema>;
 interface AssessmentFormNewProps {
 	assessment?: any;
 	studentId?: string;
+	redirectTo?: string;
 	onSuccess?: () => void;
 }
 
-export function AssessmentFormNew({ assessment, studentId, onSuccess }: AssessmentFormNewProps) {
+export function AssessmentFormNew({ assessment, studentId, redirectTo, onSuccess }: AssessmentFormNewProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [students, setStudents] = useState<any[]>([]);
@@ -87,12 +87,16 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 	const [interviewerPopoverOpen, setInterviewerPopoverOpen] = useState(false);
 	const [checkerPopoverOpen, setCheckerPopoverOpen] = useState(false);
 	const isEditMode = !!assessment;
+	
+	// Fetch language levels
+	const { data: languageLevels, isLoading: isLoadingLevels } = useQuery(languageLevelQueries.list());
+	const levelOptions = languageLevels || [];
 
 	const form = useForm<AssessmentFormValues>({
 		resolver: zodResolver(assessmentFormSchema),
 		defaultValues: {
 			student_id: assessment?.student_id || studentId || "",
-			level: assessment?.level,
+			level_id: assessment?.level_id,
 			scheduled_for: assessment?.scheduled_for
 				? new Date(assessment.scheduled_for)
 				: undefined,
@@ -131,11 +135,26 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 		async function fetchTeachers() {
 			setLoadingTeachers(true);
 			try {
-				const response = await fetch("/api/teachers?onboarding_status=onboarded&limit=100");
+				// Try fetching all teachers first to see if any exist
+				const response = await fetch("/api/teachers?limit=100");
 				if (response.ok) {
 					const result = await response.json();
-					// The API likely returns { data: [...], meta: {...} } as well
-					setTeachers(result.data || result.teachers || []);
+					console.log("Fetched teachers data:", result); // Debug log
+					
+					// The API returns { data: [...], meta: {...} }
+					const teachersList = result.data || result.teachers || [];
+					console.log("Teachers list:", teachersList); // Debug log
+					
+					// Filter for onboarded teachers on the client side if needed
+					const onboardedTeachers = teachersList.filter((teacher: any) => 
+						teacher.onboarding_status === 'onboarded'
+					);
+					console.log("Onboarded teachers:", onboardedTeachers); // Debug log
+					
+					// Use all teachers if no onboarded ones, otherwise use onboarded only
+					setTeachers(onboardedTeachers.length > 0 ? onboardedTeachers : teachersList);
+				} else {
+					console.error("Failed to fetch teachers:", response.status, response.statusText);
 				}
 			} catch (error) {
 				console.error("Error fetching teachers:", error);
@@ -158,7 +177,7 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 			
 			const payload = {
 				studentId: values.student_id,
-				level: values.level || null,
+				levelId: values.level_id || null,
 				scheduledFor: values.scheduled_for
 					? format(values.scheduled_for, "yyyy-MM-dd")
 					: null,
@@ -186,6 +205,9 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 			
 			if (onSuccess) {
 				onSuccess();
+			} else if (redirectTo) {
+				router.push(redirectTo);
+				router.refresh();
 			} else {
 				router.push("/admin/students/assessments");
 				router.refresh();
@@ -199,22 +221,18 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 	}
 
 	const handleCancel = () => {
-		router.push("/admin/students/assessments");
+		if (redirectTo) {
+			router.push(redirectTo);
+		} else {
+			router.push("/admin/students/assessments");
+		}
 	};
 
-	const languageLevels = [
-		{ label: "A1", value: "a1" },
-		{ label: "A1+", value: "a1_plus" },
-		{ label: "A2", value: "a2" },
-		{ label: "A2+", value: "a2_plus" },
-		{ label: "B1", value: "b1" },
-		{ label: "B1+", value: "b1_plus" },
-		{ label: "B2", value: "b2" },
-		{ label: "B2+", value: "b2_plus" },
-		{ label: "C1", value: "c1" },
-		{ label: "C1+", value: "c1_plus" },
-		{ label: "C2", value: "c2" },
-	];
+	// Transform language levels for select options
+	const languageLevelOptions = levelOptions.map(level => ({
+		label: level.display_name,
+		value: level.id
+	}));
 
 	const assessmentStatuses = [
 		{ label: "Requested", value: "requested" },
@@ -228,8 +246,8 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 	return (
 		<FormLayout>
 			<FormHeader
-				backUrl="/admin/students/assessments"
-				backLabel="Assessments"
+				backUrl={redirectTo || "/admin/students/assessments"}
+				backLabel={redirectTo ? "Back" : "Assessments"}
 				title={isEditMode ? "Edit Assessment" : "New Assessment"}
 				subtitle={isEditMode ? "Update assessment details" : "Schedule a new student assessment"}
 				badge={isEditMode ? { label: "Editing", variant: "warning" } : undefined}
@@ -366,13 +384,13 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 								<FormField 
 									label="Determined Level"
 									hint="Language level after assessment"
-									error={form.formState.errors.level?.message}
+									error={form.formState.errors.level_id?.message}
 								>
 									<SelectField
 										placeholder="Select level"
-										value={form.watch("level")}
-										onValueChange={(value) => form.setValue("level", value as any)}
-										options={languageLevels}
+										value={form.watch("level_id")}
+										onValueChange={(value) => form.setValue("level_id", value)}
+										options={languageLevelOptions}
 										disabled={form.watch("result") !== "level_determined"}
 									/>
 								</FormField>
@@ -411,7 +429,10 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 											>
 												<span className="truncate">
 													{form.watch("interview_held_by")
-														? teachers.find(t => t.id === form.watch("interview_held_by"))?.full_name || form.watch("interview_held_by")
+														? (() => {
+															const teacher = teachers.find(t => t.id === form.watch("interview_held_by"));
+															return teacher ? `${teacher.first_name} ${teacher.last_name}` : form.watch("interview_held_by");
+														})()
 														: "Select teacher..."}
 												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -420,26 +441,38 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 										<PopoverContent className="w-[400px] p-0">
 											<Command>
 												<CommandInput placeholder="Search teachers..." />
-												<CommandEmpty>No teacher found.</CommandEmpty>
+												<CommandEmpty>
+													{loadingTeachers ? "Loading teachers..." : 
+													 teachers.length === 0 ? "No teachers available. Please create teachers first." : "No teacher found."}
+												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto">
-													{teachers.map((teacher) => (
-														<CommandItem
-															key={teacher.id}
-															value={teacher.full_name || `${teacher.first_name} ${teacher.last_name}`}
-															onSelect={() => {
-																form.setValue("interview_held_by", teacher.id);
-																setInterviewerPopoverOpen(false);
-															}}
-														>
-															<Check
-																className={cn(
-																	"mr-2 h-4 w-4",
-																	form.watch("interview_held_by") === teacher.id ? "opacity-100" : "opacity-0"
-																)}
-															/>
-															{teacher.full_name || `${teacher.first_name} ${teacher.last_name}`}
-														</CommandItem>
-													))}
+													{teachers.length > 0 ? teachers.map((teacher) => {
+														const teacherName = `${teacher.first_name} ${teacher.last_name}`;
+														return (
+															<CommandItem
+																key={teacher.id}
+																value={teacherName}
+																onSelect={() => {
+																	form.setValue("interview_held_by", teacher.id);
+																	setInterviewerPopoverOpen(false);
+																}}
+															>
+																<Check
+																	className={cn(
+																		"mr-2 h-4 w-4",
+																		form.watch("interview_held_by") === teacher.id ? "opacity-100" : "opacity-0"
+																	)}
+																/>
+																{teacherName}
+															</CommandItem>
+														);
+													}) : (
+														!loadingTeachers && (
+															<div className="p-2 text-sm text-muted-foreground">
+																No teachers available. Please create teachers first.
+															</div>
+														)
+													)}
 												</CommandGroup>
 											</Command>
 										</PopoverContent>
@@ -464,7 +497,10 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 											>
 												<span className="truncate">
 													{form.watch("level_checked_by")
-														? teachers.find(t => t.id === form.watch("level_checked_by"))?.full_name || form.watch("level_checked_by")
+														? (() => {
+															const teacher = teachers.find(t => t.id === form.watch("level_checked_by"));
+															return teacher ? `${teacher.first_name} ${teacher.last_name}` : form.watch("level_checked_by");
+														})()
 														: "Select teacher..."}
 												</span>
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -473,26 +509,38 @@ export function AssessmentFormNew({ assessment, studentId, onSuccess }: Assessme
 										<PopoverContent className="w-[400px] p-0">
 											<Command>
 												<CommandInput placeholder="Search teachers..." />
-												<CommandEmpty>No teacher found.</CommandEmpty>
+												<CommandEmpty>
+													{loadingTeachers ? "Loading teachers..." : 
+													 teachers.length === 0 ? "No teachers available. Please create teachers first." : "No teacher found."}
+												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto">
-													{teachers.map((teacher) => (
-														<CommandItem
-															key={teacher.id}
-															value={teacher.full_name || `${teacher.first_name} ${teacher.last_name}`}
-															onSelect={() => {
-																form.setValue("level_checked_by", teacher.id);
-																setCheckerPopoverOpen(false);
-															}}
-														>
-															<Check
-																className={cn(
-																	"mr-2 h-4 w-4",
-																	form.watch("level_checked_by") === teacher.id ? "opacity-100" : "opacity-0"
-																)}
-															/>
-															{teacher.full_name || `${teacher.first_name} ${teacher.last_name}`}
-														</CommandItem>
-													))}
+													{teachers.length > 0 ? teachers.map((teacher) => {
+														const teacherName = `${teacher.first_name} ${teacher.last_name}`;
+														return (
+															<CommandItem
+																key={teacher.id}
+																value={teacherName}
+																onSelect={() => {
+																	form.setValue("level_checked_by", teacher.id);
+																	setCheckerPopoverOpen(false);
+																}}
+															>
+																<Check
+																	className={cn(
+																		"mr-2 h-4 w-4",
+																		form.watch("level_checked_by") === teacher.id ? "opacity-100" : "opacity-0"
+																	)}
+																/>
+																{teacherName}
+															</CommandItem>
+														);
+													}) : (
+														!loadingTeachers && (
+															<div className="p-2 text-sm text-muted-foreground">
+																No teachers available. Please create teachers first.
+															</div>
+														)
+													)}
 												</CommandGroup>
 											</Command>
 										</PopoverContent>

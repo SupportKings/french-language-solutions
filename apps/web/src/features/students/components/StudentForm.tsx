@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -41,10 +43,7 @@ const studentFormSchema = z.object({
 	email: z.string().email("Invalid email").optional().or(z.literal("")),
 	mobile_phone_number: z.string().max(20).optional().or(z.literal("")),
 	city: z.string().optional().or(z.literal("")),
-	desired_starting_language_level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]).optional(),
+	desired_starting_language_level_id: z.string().optional(),
 	website_quiz_submission_date: z.date().optional(),
 	added_to_email_newsletter: z.boolean(),
 	initial_channel: z.enum([
@@ -75,6 +74,10 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 
+	// Fetch language levels
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(languageLevelQueries.list());
+	const levelOptions = languageLevels || [];
+
 	const form = useForm<StudentFormValues>({
 		resolver: zodResolver(studentFormSchema),
 		defaultValues: {
@@ -82,7 +85,7 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 			email: student?.email || "",
 			mobile_phone_number: student?.mobile_phone_number || "",
 			city: student?.city || "",
-			desired_starting_language_level: student?.desired_starting_language_level,
+			desired_starting_language_level_id: student?.desired_starting_language_level_id,
 			website_quiz_submission_date: student?.website_quiz_submission_date 
 				? new Date(student.website_quiz_submission_date) 
 				: undefined,
@@ -216,28 +219,26 @@ export function StudentForm({ student, onSuccess }: StudentFormProps) {
 						<div className="grid gap-4 md:grid-cols-2">
 							<FormField
 								control={form.control}
-								name="desired_starting_language_level"
+								name="desired_starting_language_level_id"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Desired Starting Level</FormLabel>
 										<Select onValueChange={field.onChange} defaultValue={field.value}>
 											<FormControl>
 												<SelectTrigger>
-													<SelectValue placeholder="Select a level" />
+													<SelectValue placeholder={languageLevelsLoading ? "Loading levels..." : "Select a level"} />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												<SelectItem value="a1">A1</SelectItem>
-												<SelectItem value="a1_plus">A1+</SelectItem>
-												<SelectItem value="a2">A2</SelectItem>
-												<SelectItem value="a2_plus">A2+</SelectItem>
-												<SelectItem value="b1">B1</SelectItem>
-												<SelectItem value="b1_plus">B1+</SelectItem>
-												<SelectItem value="b2">B2</SelectItem>
-												<SelectItem value="b2_plus">B2+</SelectItem>
-												<SelectItem value="c1">C1</SelectItem>
-												<SelectItem value="c1_plus">C1+</SelectItem>
-												<SelectItem value="c2">C2</SelectItem>
+												{languageLevelsLoading ? (
+													<SelectItem value="" disabled>Loading levels...</SelectItem>
+												) : (
+													levelOptions.map((level) => (
+														<SelectItem key={level.id} value={level.id}>
+															{level.display_name}
+														</SelectItem>
+													))
+												)}
 											</SelectContent>
 										</Select>
 										<FormMessage />

@@ -3,8 +3,14 @@ import { AssessmentFormNew } from "@/features/assessments/components/AssessmentF
 export default async function NewAssessmentPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ studentId?: string }>;
+	searchParams: Promise<{ 
+		studentId?: string;
+		redirectTo?: string;
+	}>;
 }) {
 	const params = await searchParams;
-	return <AssessmentFormNew studentId={params.studentId} />;
+	return <AssessmentFormNew 
+		studentId={params.studentId}
+		redirectTo={params.redirectTo}
+	/>;
 }

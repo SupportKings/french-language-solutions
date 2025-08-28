@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +97,11 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 	const [enrollment, setEnrollment] = useState(initialEnrollment);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	
+	// Get redirectTo param from URL
+	const [redirectTo] = useQueryState("redirectTo", {
+		defaultValue: "/admin/students/enrollments"
+	});
 
 	// Get student initials for avatar
 	const studentInitials = enrollment.students?.full_name
@@ -135,7 +141,7 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 			if (!response.ok) throw new Error("Failed to delete enrollment");
 
 			toast.success("Enrollment deleted successfully");
-			router.push("/admin/students/enrollments");
+			router.push(redirectTo);
 		} catch (error) {
 			console.error("Error deleting enrollment:", error);
 			toast.error("Failed to delete enrollment");
@@ -150,6 +156,7 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 			studentId: enrollment.student_id,
 			studentName: enrollment.students?.full_name || '',
 			cohortId: enrollment.cohort_id,
+			redirectTo: redirectTo,
 		});
 		router.push(`/admin/students/enrollments/new?${params.toString()}&edit=${enrollment.id}`);
 	};
@@ -160,10 +167,10 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 				<div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl">
 					{/* Header */}
 					<div className="mb-8">
-						<Link href="/admin/students/enrollments">
+						<Link href={redirectTo}>
 							<Button variant="ghost" size="sm" className="mb-4">
 								<ArrowLeft className="mr-2 h-4 w-4" />
-								All Enrollments
+								Back
 							</Button>
 						</Link>
 						
@@ -186,8 +193,8 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 										</Badge>
 									</div>
 									<p className="text-muted-foreground">
-										{enrollment.cohorts?.format === 'group' ? 'Group Class' : 'Private Class'} • 
-										{' '}{enrollment.cohorts?.starting_level?.toUpperCase() || 'Level TBD'}
+										{enrollment.cohorts?.products?.format === 'group' ? 'Group Class' : 'Private Class'} • 
+										{' '}{enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || 'Level TBD'}
 									</p>
 								</div>
 							</div>
@@ -423,7 +430,7 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 																<div className="flex-1 space-y-0.5">
 																	<p className="text-xs text-muted-foreground">Format:</p>
 																	<p className="text-sm font-medium">
-																		{enrollment.cohorts?.format === 'group' ? 'Group Class' : 'Private Class'}
+																		{enrollment.cohorts?.products?.format === 'group' ? 'Group Class' : 'Private Class'}
 																	</p>
 																</div>
 															</div>
@@ -433,7 +440,7 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 																<div className="flex-1 space-y-0.5">
 																	<p className="text-xs text-muted-foreground">Starting Level:</p>
 																	<p className="text-sm font-medium">
-																		{enrollment.cohorts?.starting_level?.toUpperCase() || "Not set"}
+																		{enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || "Not set"}
 																	</p>
 																</div>
 															</div>
@@ -443,7 +450,7 @@ export function EnrollmentDetailsClient({ enrollment: initialEnrollment }: Enrol
 																<div className="flex-1 space-y-0.5">
 																	<p className="text-xs text-muted-foreground">Current Level:</p>
 																	<p className="text-sm font-medium">
-																		{enrollment.cohorts?.current_level?.toUpperCase() || "Not set"}
+																		{enrollment.cohorts?.current_level?.display_name || enrollment.cohorts?.current_level?.code?.toUpperCase() || "Not set"}
 																	</p>
 																</div>
 															</div>

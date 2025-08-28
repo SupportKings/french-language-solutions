@@ -11,6 +11,8 @@ export * from "./student-assessments";
 export * from "./template-follow-up-sequences";
 export * from "./template-follow-up-messages";
 export * from "./automated-follow-ups";
+export * from "./language-levels";
+export * from "./touchpoints";
 
 // Export all enums
 export * from "./enums";

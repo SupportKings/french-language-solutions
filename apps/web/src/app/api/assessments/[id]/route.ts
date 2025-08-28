@@ -20,7 +20,31 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 					full_name,
 					email,
 					mobile_phone_number,
-					desired_starting_language_level
+					desired_starting_language_level_id,
+					desired_language_level:language_levels!desired_starting_language_level_id (
+						id,
+						code,
+						display_name,
+						level_group,
+						level_number
+					)
+				),
+				language_level:language_levels!level_id (
+					id,
+					code,
+					display_name,
+					level_group,
+					level_number
+				),
+				interview_held_by_teacher:teachers!interview_held_by (
+					id,
+					first_name,
+					last_name
+				),
+				level_checked_by_teacher:teachers!level_checked_by (
+					id,
+					first_name,
+					last_name
 				)
 			`)
 			.eq("id", id)
@@ -74,7 +98,31 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 					full_name,
 					email,
 					mobile_phone_number,
-					desired_starting_language_level
+					desired_starting_language_level_id,
+					desired_language_level:language_levels!desired_starting_language_level_id (
+						id,
+						code,
+						display_name,
+						level_group,
+						level_number
+					)
+				),
+				language_level:language_levels!level_id (
+					id,
+					code,
+					display_name,
+					level_group,
+					level_number
+				),
+				interview_held_by_teacher:teachers!interview_held_by (
+					id,
+					first_name,
+					last_name
+				),
+				level_checked_by_teacher:teachers!level_checked_by (
+					id,
+					first_name,
+					last_name
 				)
 			`)
 			.single();

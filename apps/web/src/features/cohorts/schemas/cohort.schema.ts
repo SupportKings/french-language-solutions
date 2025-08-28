@@ -7,19 +7,6 @@ export const CohortStatusEnum = z.enum([
 	"enrollment_closed",
 	"class_ended"
 ]);
-export const LanguageLevelEnum = z.enum([
-	"a1",
-	"a1_plus",
-	"a2", 
-	"a2_plus",
-	"b1",
-	"b1_plus",
-	"b2",
-	"b2_plus",
-	"c1",
-	"c1_plus",
-	"c2"
-]);
 export const RoomTypeEnum = z.enum([
 	"for_one_to_one",
 	"medium",
@@ -31,15 +18,15 @@ export const RoomTypeEnum = z.enum([
 export const CohortSchema = z.object({
 	id: z.string().uuid(),
 	title: z.string().nullable(), // Custom cohort title
-	format: CohortFormatEnum,
 	product_id: z.string().uuid().nullable(),
 	google_drive_folder_id: z.string().nullable(),
-	starting_level: LanguageLevelEnum.nullable(),
+	starting_level_id: z.string().uuid().nullable(),
 	start_date: z.string().nullable(), // Date string from API
 	cohort_status: CohortStatusEnum,
-	current_level: LanguageLevelEnum.nullable(),
+	current_level_id: z.string().uuid().nullable(),
 	room_type: RoomTypeEnum.nullable(),
 	airtable_record_id: z.string().nullable(),
+	max_students: z.number().int().positive().default(10),
 	created_at: z.string(), // ISO date string
 	updated_at: z.string(), // ISO date string
 });
@@ -72,8 +59,8 @@ export const CohortQuerySchema = z.object({
 	search: z.string().optional(),
 	format: z.union([CohortFormatEnum, z.array(CohortFormatEnum)]).optional(),
 	cohort_status: z.union([CohortStatusEnum, z.array(CohortStatusEnum)]).optional(),
-	starting_level: z.union([LanguageLevelEnum, z.array(LanguageLevelEnum)]).optional(),
-	current_level: z.union([LanguageLevelEnum, z.array(LanguageLevelEnum)]).optional(),
+	starting_level_id: z.union([z.string().uuid(), z.array(z.string().uuid())]).optional(),
+	current_level_id: z.union([z.string().uuid(), z.array(z.string().uuid())]).optional(),
 	room_type: z.union([RoomTypeEnum, z.array(RoomTypeEnum)]).optional(),
 	page: z.number().min(1).default(1),
 	limit: z.number().min(1).max(100).default(20),
@@ -98,6 +85,5 @@ export type CreateCohort = z.infer<typeof CreateCohortSchema>;
 export type UpdateCohort = z.infer<typeof UpdateCohortSchema>;
 export type CohortFormat = z.infer<typeof CohortFormatEnum>;
 export type CohortStatus = z.infer<typeof CohortStatusEnum>;
-export type LanguageLevel = z.infer<typeof LanguageLevelEnum>;
 export type RoomType = z.infer<typeof RoomTypeEnum>;
 export type DayOfWeek = z.infer<typeof DayOfWeekEnum>;

@@ -92,13 +92,10 @@ export default function AssessmentDetailsClient({
 	// Update assessment field
 	const updateAssessmentField = async (field: string, value: any) => {
 		try {
-			// Format field names for API (camelCase to snake_case)
-			const apiField = field.replace(/([A-Z])/g, "_$1").toLowerCase();
-			
 			const response = await fetch(`/api/assessments/${assessment.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [apiField]: value }),
+				body: JSON.stringify({ [field]: value }),
 			});
 
 			if (!response.ok) throw new Error("Failed to update");
@@ -271,7 +268,7 @@ export default function AssessmentDetailsClient({
 											<p className="text-xs text-muted-foreground">Scheduled Date:</p>
 											<InlineEditField
 												value={assessment.scheduled_for || ""}
-												onSave={(value) => updateAssessmentField("scheduledFor", value || null)}
+												onSave={(value) => updateAssessmentField("scheduled_for", value || null)}
 												editing={editing}
 												type="date"
 												placeholder="Select date"
@@ -286,7 +283,7 @@ export default function AssessmentDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={assessment.is_paid ? "true" : "false"}
-													onSave={(value) => updateAssessmentField("isPaid", value === "true")}
+													onSave={(value) => updateAssessmentField("is_paid", value === "true")}
 													editing={editing}
 													type="select"
 													options={[
@@ -349,13 +346,15 @@ export default function AssessmentDetailsClient({
 										</div>
 									)}
 
-									{assessment.students?.desired_starting_language_level && (
+									{(assessment.students?.desired_starting_language_level || assessment.students?.desired_starting_language_level_id) && (
 										<div className="flex items-start gap-3">
 											<GraduationCap className="h-4 w-4 text-muted-foreground mt-0.5" />
 											<div className="flex-1 space-y-0.5">
 												<p className="text-xs text-muted-foreground">Desired Level:</p>
 												<Badge variant="outline">
-													{assessment.students.desired_starting_language_level.toUpperCase()}
+													{typeof assessment.students.desired_starting_language_level === 'object' 
+														? (assessment.students.desired_starting_language_level.display_name || assessment.students.desired_starting_language_level.code?.toUpperCase())
+														: assessment.students.desired_starting_language_level?.toUpperCase() || 'N/A'}
 												</Badge>
 											</div>
 										</div>
@@ -375,7 +374,7 @@ export default function AssessmentDetailsClient({
 											<p className="text-xs text-muted-foreground">Calendar Event:</p>
 											<InlineEditField
 												value={assessment.calendar_event_url || ""}
-												onSave={(value) => updateAssessmentField("calendarEventUrl", value || null)}
+												onSave={(value) => updateAssessmentField("calendar_event_url", value || null)}
 												editing={editing}
 												type="text"
 												placeholder="Enter calendar event URL"
@@ -400,7 +399,7 @@ export default function AssessmentDetailsClient({
 											<p className="text-xs text-muted-foreground">Recording URL:</p>
 											<InlineEditField
 												value={assessment.meeting_recording_url || ""}
-												onSave={(value) => updateAssessmentField("meetingRecordingUrl", value || null)}
+												onSave={(value) => updateAssessmentField("meeting_recording_url", value || null)}
 												editing={editing}
 												type="text"
 												placeholder="Enter recording URL"

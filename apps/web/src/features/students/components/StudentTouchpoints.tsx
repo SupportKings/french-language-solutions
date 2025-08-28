@@ -20,11 +20,12 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 
 interface Touchpoint {
 	id: string;
 	student_id: string;
-	type: "call" | "email" | "sms" | "meeting" | "video_call" | "note";
+	type: "call" | "email" | "sms" | "whatsapp" | "meeting" | "video_call" | "note";
 	title: string;
 	description?: string;
 	contact_date: string;
@@ -63,11 +64,31 @@ const touchpointConfig = {
 		icon: MessageSquare,
 		color: "bg-green-500/10 text-green-700 border-green-200",
 	},
+	meeting: {
+		label: "Meeting",
+		icon: Video,
+		color: "bg-blue-500/10 text-blue-700 border-blue-200",
+	},
+	video_call: {
+		label: "Video Call", 
+		icon: Video,
+		color: "bg-purple-500/10 text-purple-700 border-purple-200",
+	},
+	note: {
+		label: "Note",
+		icon: FileText,
+		color: "bg-gray-500/10 text-gray-700 border-gray-200",
+	},
 };
 
 export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 	const [touchpoints, setTouchpoints] = useState<Touchpoint[]>([]);
 	const [loading, setLoading] = useState(true);
+	const router = useRouter();
+	const pathname = usePathname();
+	
+	// Get current URL for redirectTo
+	const currentUrl = `${pathname}?tab=touchpoints`;
 
 	// Fetch touchpoints data
 	const fetchTouchpoints = async () => {
@@ -87,6 +108,14 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 	useEffect(() => {
 		fetchTouchpoints();
 	}, [studentId]);
+	
+	// Refresh data when returning from forms
+	useEffect(() => {
+		const searchParams = new URLSearchParams(window.location.search);
+		if (searchParams.get('tab') === 'touchpoints') {
+			fetchTouchpoints();
+		}
+	}, [pathname]);
 
 	if (loading) {
 		return (
@@ -192,7 +221,7 @@ export function StudentTouchpoints({ studentId }: StudentTouchpointsProps) {
 												size="sm"
 												className="h-8 px-2 flex-shrink-0"
 											>
-												<Link href={`/admin/touchpoints/${touchpoint.id}`}>
+												<Link href={`/admin/touchpoints/${touchpoint.id}?redirectTo=${encodeURIComponent(currentUrl)}`}>
 													<ExternalLink className="h-3.5 w-3.5" />
 												</Link>
 											</Button>

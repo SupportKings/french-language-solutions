@@ -7,18 +7,18 @@ import {
 	boolean,
 } from "drizzle-orm/pg-core";
 import {
-	languageLevelEnum,
 	assessmentResultEnum,
 } from "./enums";
 import { students } from "./students";
 import { teachers } from "./teachers";
+import { languageLevels } from "./language-levels";
 
 export const studentAssessments = pgTable("student_assessments", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	studentId: uuid("student_id")
 		.notNull()
 		.references(() => students.id),
-	level: languageLevelEnum("level"),
+	levelId: uuid("level_id").references(() => languageLevels.id),
 	scheduledFor: date("scheduled_for"),
 	isPaid: boolean("is_paid").notNull().default(false),
 	result: assessmentResultEnum("result")

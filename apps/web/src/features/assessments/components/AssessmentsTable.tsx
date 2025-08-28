@@ -367,7 +367,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
-													<Link href={`/admin/students/assessments/${assessment.id}`}>
+													<Link href={`/admin/assessments/${assessment.id}`}>
 														<DropdownMenuItem>
 															<Eye className="mr-2 h-4 w-4" />
 															View

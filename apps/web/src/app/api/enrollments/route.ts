@@ -23,7 +23,28 @@ export async function GET(request: NextRequest) {
 			.select(`
 				*,
 				students!inner(id, full_name, email),
-				cohorts!inner(id, format, starting_level, start_date)
+				cohorts!inner(
+					id, 
+					title,
+					starting_level_id, 
+					current_level_id, 
+					start_date,
+					room_type,
+					products (
+						id,
+						format
+					),
+					starting_level:language_levels!starting_level_id (
+						id,
+						code,
+						display_name
+					),
+					current_level:language_levels!current_level_id (
+						id,
+						code,
+						display_name
+					)
+				)
 			`, { count: "exact" });
 		
 		// Apply filters

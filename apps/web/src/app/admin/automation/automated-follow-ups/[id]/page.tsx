@@ -48,7 +48,7 @@ async function getFollowUp(id: string) {
 			full_name: "Marie Dubois",
 			email: "marie@example.com",
 			mobile_phone_number: "+33612345678",
-			desired_starting_language_level: "B1"
+			desired_starting_language_level: { code: "b1.1", display_name: "B1.1", id: "some-uuid" }
 		},
 		sequence: {
 			id: "sequence-456",
@@ -327,7 +327,16 @@ export default async function FollowUpDetailPage({
 											label="Level" 
 											value={
 												<Badge variant="outline" className="h-5 text-xs px-1.5">
-													{followUp.student.desired_starting_language_level.toUpperCase()}
+													{(() => {
+														const level = followUp.student.desired_starting_language_level;
+														if (typeof level === 'object' && level !== null) {
+															return (level as any).display_name || (level as any).code?.toUpperCase() || 'N/A';
+														}
+														if (typeof level === 'string') {
+															return (level as string).toUpperCase();
+														}
+														return 'N/A';
+													})()}
 												</Badge>
 											} 
 										/>

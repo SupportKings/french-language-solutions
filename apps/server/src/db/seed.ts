@@ -12,7 +12,8 @@ import {
 	templateFollowUpMessages,
 	automatedFollowUps,
 	touchpoints,
-	attendanceRecords
+	attendanceRecords,
+	languageLevels
 } from "./schema";
 import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
@@ -37,8 +38,103 @@ async function seed() {
 	await db.delete(products);
 	await db.delete(teachers);
 	await db.delete(students);
+	await db.delete(languageLevels);
 	
 	// Note: Better Auth tables are managed separately
+
+	// Seed Language Levels (73 levels)
+	console.log("🌐 Seeding language levels...");
+	const languageLevelsData = [
+		// A0 - Complete Beginner
+		{ code: 'a0', displayName: 'A0 - Complete Beginner', levelGroup: 'a0', levelNumber: null },
+		
+		// A1 Levels (1-12)
+		{ code: 'a1.1', displayName: 'A1.1', levelGroup: 'a1', levelNumber: 1 },
+		{ code: 'a1.2', displayName: 'A1.2', levelGroup: 'a1', levelNumber: 2 },
+		{ code: 'a1.3', displayName: 'A1.3', levelGroup: 'a1', levelNumber: 3 },
+		{ code: 'a1.4', displayName: 'A1.4', levelGroup: 'a1', levelNumber: 4 },
+		{ code: 'a1.5', displayName: 'A1.5', levelGroup: 'a1', levelNumber: 5 },
+		{ code: 'a1.6', displayName: 'A1.6', levelGroup: 'a1', levelNumber: 6 },
+		{ code: 'a1.7', displayName: 'A1.7', levelGroup: 'a1', levelNumber: 7 },
+		{ code: 'a1.8', displayName: 'A1.8', levelGroup: 'a1', levelNumber: 8 },
+		{ code: 'a1.9', displayName: 'A1.9', levelGroup: 'a1', levelNumber: 9 },
+		{ code: 'a1.10', displayName: 'A1.10', levelGroup: 'a1', levelNumber: 10 },
+		{ code: 'a1.11', displayName: 'A1.11', levelGroup: 'a1', levelNumber: 11 },
+		{ code: 'a1.12', displayName: 'A1.12', levelGroup: 'a1', levelNumber: 12 },
+		
+		// A2 Levels (1-12)
+		{ code: 'a2.1', displayName: 'A2.1', levelGroup: 'a2', levelNumber: 1 },
+		{ code: 'a2.2', displayName: 'A2.2', levelGroup: 'a2', levelNumber: 2 },
+		{ code: 'a2.3', displayName: 'A2.3', levelGroup: 'a2', levelNumber: 3 },
+		{ code: 'a2.4', displayName: 'A2.4', levelGroup: 'a2', levelNumber: 4 },
+		{ code: 'a2.5', displayName: 'A2.5', levelGroup: 'a2', levelNumber: 5 },
+		{ code: 'a2.6', displayName: 'A2.6', levelGroup: 'a2', levelNumber: 6 },
+		{ code: 'a2.7', displayName: 'A2.7', levelGroup: 'a2', levelNumber: 7 },
+		{ code: 'a2.8', displayName: 'A2.8', levelGroup: 'a2', levelNumber: 8 },
+		{ code: 'a2.9', displayName: 'A2.9', levelGroup: 'a2', levelNumber: 9 },
+		{ code: 'a2.10', displayName: 'A2.10', levelGroup: 'a2', levelNumber: 10 },
+		{ code: 'a2.11', displayName: 'A2.11', levelGroup: 'a2', levelNumber: 11 },
+		{ code: 'a2.12', displayName: 'A2.12', levelGroup: 'a2', levelNumber: 12 },
+		
+		// B1 Levels (1-12)
+		{ code: 'b1.1', displayName: 'B1.1', levelGroup: 'b1', levelNumber: 1 },
+		{ code: 'b1.2', displayName: 'B1.2', levelGroup: 'b1', levelNumber: 2 },
+		{ code: 'b1.3', displayName: 'B1.3', levelGroup: 'b1', levelNumber: 3 },
+		{ code: 'b1.4', displayName: 'B1.4', levelGroup: 'b1', levelNumber: 4 },
+		{ code: 'b1.5', displayName: 'B1.5', levelGroup: 'b1', levelNumber: 5 },
+		{ code: 'b1.6', displayName: 'B1.6', levelGroup: 'b1', levelNumber: 6 },
+		{ code: 'b1.7', displayName: 'B1.7', levelGroup: 'b1', levelNumber: 7 },
+		{ code: 'b1.8', displayName: 'B1.8', levelGroup: 'b1', levelNumber: 8 },
+		{ code: 'b1.9', displayName: 'B1.9', levelGroup: 'b1', levelNumber: 9 },
+		{ code: 'b1.10', displayName: 'B1.10', levelGroup: 'b1', levelNumber: 10 },
+		{ code: 'b1.11', displayName: 'B1.11', levelGroup: 'b1', levelNumber: 11 },
+		{ code: 'b1.12', displayName: 'B1.12', levelGroup: 'b1', levelNumber: 12 },
+		
+		// B2 Levels (1-12)
+		{ code: 'b2.1', displayName: 'B2.1', levelGroup: 'b2', levelNumber: 1 },
+		{ code: 'b2.2', displayName: 'B2.2', levelGroup: 'b2', levelNumber: 2 },
+		{ code: 'b2.3', displayName: 'B2.3', levelGroup: 'b2', levelNumber: 3 },
+		{ code: 'b2.4', displayName: 'B2.4', levelGroup: 'b2', levelNumber: 4 },
+		{ code: 'b2.5', displayName: 'B2.5', levelGroup: 'b2', levelNumber: 5 },
+		{ code: 'b2.6', displayName: 'B2.6', levelGroup: 'b2', levelNumber: 6 },
+		{ code: 'b2.7', displayName: 'B2.7', levelGroup: 'b2', levelNumber: 7 },
+		{ code: 'b2.8', displayName: 'B2.8', levelGroup: 'b2', levelNumber: 8 },
+		{ code: 'b2.9', displayName: 'B2.9', levelGroup: 'b2', levelNumber: 9 },
+		{ code: 'b2.10', displayName: 'B2.10', levelGroup: 'b2', levelNumber: 10 },
+		{ code: 'b2.11', displayName: 'B2.11', levelGroup: 'b2', levelNumber: 11 },
+		{ code: 'b2.12', displayName: 'B2.12', levelGroup: 'b2', levelNumber: 12 },
+		
+		// C1 Levels (1-12)
+		{ code: 'c1.1', displayName: 'C1.1', levelGroup: 'c1', levelNumber: 1 },
+		{ code: 'c1.2', displayName: 'C1.2', levelGroup: 'c1', levelNumber: 2 },
+		{ code: 'c1.3', displayName: 'C1.3', levelGroup: 'c1', levelNumber: 3 },
+		{ code: 'c1.4', displayName: 'C1.4', levelGroup: 'c1', levelNumber: 4 },
+		{ code: 'c1.5', displayName: 'C1.5', levelGroup: 'c1', levelNumber: 5 },
+		{ code: 'c1.6', displayName: 'C1.6', levelGroup: 'c1', levelNumber: 6 },
+		{ code: 'c1.7', displayName: 'C1.7', levelGroup: 'c1', levelNumber: 7 },
+		{ code: 'c1.8', displayName: 'C1.8', levelGroup: 'c1', levelNumber: 8 },
+		{ code: 'c1.9', displayName: 'C1.9', levelGroup: 'c1', levelNumber: 9 },
+		{ code: 'c1.10', displayName: 'C1.10', levelGroup: 'c1', levelNumber: 10 },
+		{ code: 'c1.11', displayName: 'C1.11', levelGroup: 'c1', levelNumber: 11 },
+		{ code: 'c1.12', displayName: 'C1.12', levelGroup: 'c1', levelNumber: 12 },
+		
+		// C2 Levels (1-12)
+		{ code: 'c2.1', displayName: 'C2.1', levelGroup: 'c2', levelNumber: 1 },
+		{ code: 'c2.2', displayName: 'C2.2', levelGroup: 'c2', levelNumber: 2 },
+		{ code: 'c2.3', displayName: 'C2.3', levelGroup: 'c2', levelNumber: 3 },
+		{ code: 'c2.4', displayName: 'C2.4', levelGroup: 'c2', levelNumber: 4 },
+		{ code: 'c2.5', displayName: 'C2.5', levelGroup: 'c2', levelNumber: 5 },
+		{ code: 'c2.6', displayName: 'C2.6', levelGroup: 'c2', levelNumber: 6 },
+		{ code: 'c2.7', displayName: 'C2.7', levelGroup: 'c2', levelNumber: 7 },
+		{ code: 'c2.8', displayName: 'C2.8', levelGroup: 'c2', levelNumber: 8 },
+		{ code: 'c2.9', displayName: 'C2.9', levelGroup: 'c2', levelNumber: 9 },
+		{ code: 'c2.10', displayName: 'C2.10', levelGroup: 'c2', levelNumber: 10 },
+		{ code: 'c2.11', displayName: 'C2.11', levelGroup: 'c2', levelNumber: 11 },
+		{ code: 'c2.12', displayName: 'C2.12', levelGroup: 'c2', levelNumber: 12 },
+	];
+
+	const insertedLanguageLevels = await db.insert(languageLevels).values(languageLevelsData).returning();
+	console.log(`✅ Inserted ${insertedLanguageLevels.length} language levels`);
 
 	// Seed Students (50)
 	console.log("👥 Seeding students...");
@@ -47,7 +143,7 @@ async function seed() {
 		email: faker.internet.email().toLowerCase(),
 		mobilePhoneNumber: "+1" + faker.string.numeric(10),
 		city: faker.location.city(),
-		desiredStartingLanguageLevel: faker.helpers.arrayElement(["a1", "a2", "b1", "b2", "c1"] as const),
+		desiredStartingLanguageLevelId: faker.helpers.arrayElement(insertedLanguageLevels).id,
 		initialChannel: faker.helpers.arrayElement(["form", "quiz", "call", "email"] as const),
 		communicationChannel: faker.helpers.arrayElement(["sms_email", "email", "sms"] as const),
 		isFullBeginner: faker.datatype.boolean(),
@@ -140,10 +236,9 @@ async function seed() {
 	const cohortsData = [
 		{
 			title: "Spring 2024 Beginner French",
-			format: "group" as const,
 			productId: insertedProducts[0].id,
-			startingLevel: "a1" as const,
-			currentLevel: "a1_plus" as const,
+			startingLevelId: insertedLanguageLevels.find(l => l.code === 'a1.1')?.id,
+			currentLevelId: insertedLanguageLevels.find(l => l.code === 'a1.6')?.id,
 			startDate: "2024-03-01",
 			cohortStatus: "enrollment_closed" as const,
 			roomType: "medium" as const,
@@ -152,10 +247,9 @@ async function seed() {
 		},
 		{
 			title: "Advanced Business French - Q2 2024",
-			format: "group" as const,
 			productId: insertedProducts[1].id,
-			startingLevel: "b2" as const,
-			currentLevel: "b2_plus" as const,
+			startingLevelId: insertedLanguageLevels.find(l => l.code === 'b2.1')?.id,
+			currentLevelId: insertedLanguageLevels.find(l => l.code === 'b2.6')?.id,
 			startDate: "2024-04-15",
 			cohortStatus: "enrollment_open" as const,
 			roomType: "medium_plus" as const,
@@ -164,10 +258,9 @@ async function seed() {
 		},
 		{
 			title: "Summer Intensive 2024",
-			format: "group" as const,
 			productId: insertedProducts[3].id,
-			startingLevel: "a2" as const,
-			currentLevel: "a2" as const,
+			startingLevelId: insertedLanguageLevels.find(l => l.code === 'a2.1')?.id,
+			currentLevelId: insertedLanguageLevels.find(l => l.code === 'a2.1')?.id,
 			startDate: "2024-06-01",
 			cohortStatus: "enrollment_open" as const,
 			roomType: "large" as const,
@@ -176,10 +269,9 @@ async function seed() {
 		},
 		{
 			title: "Private Tutoring - Sarah M.",
-			format: "private" as const,
 			productId: insertedProducts[2].id,
-			startingLevel: "b1" as const,
-			currentLevel: "b1_plus" as const,
+			startingLevelId: insertedLanguageLevels.find(l => l.code === 'b1.1')?.id,
+			currentLevelId: insertedLanguageLevels.find(l => l.code === 'b1.6')?.id,
 			startDate: "2024-02-15",
 			cohortStatus: "enrollment_closed" as const,
 			roomType: "for_one_to_one" as const,
@@ -188,10 +280,9 @@ async function seed() {
 		},
 		{
 			title: "Kids Saturday Morning French",
-			format: "group" as const,
 			productId: insertedProducts[5].id,
-			startingLevel: "a1" as const,
-			currentLevel: "a1" as const,
+			startingLevelId: insertedLanguageLevels.find(l => l.code === 'a1.1')?.id,
+			currentLevelId: insertedLanguageLevels.find(l => l.code === 'a1.1')?.id,
 			startDate: "2024-09-07",
 			cohortStatus: "enrollment_open" as const,
 			roomType: "medium" as const,
@@ -200,10 +291,9 @@ async function seed() {
 		},
 		{
 			title: "DELF B2 Preparation Fall 2024",
-			format: "group" as const,
 			productId: insertedProducts[4].id,
-			startingLevel: "b2" as const,
-			currentLevel: "b2" as const,
+			startingLevelId: insertedLanguageLevels.find(l => l.code === 'b2.1')?.id,
+			currentLevelId: insertedLanguageLevels.find(l => l.code === 'b2.1')?.id,
 			startDate: "2024-09-15",
 			cohortStatus: "enrollment_open" as const,
 			roomType: "medium_plus" as const,

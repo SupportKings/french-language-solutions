@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@uidotdev/usehooks";
+import { useQuery } from "@tanstack/react-query";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import {
 	Table,
 	TableBody,
@@ -29,19 +31,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
 
-const LANGUAGE_LEVELS = {
-	a1: "A1",
-	a1_plus: "A1+",
-	a2: "A2",
-	a2_plus: "A2+",
-	b1: "B1",
-	b1_plus: "B1+",
-	b2: "B2",
-	b2_plus: "B2+",
-	c1: "C1",
-	c1_plus: "C1+",
-	c2: "C2",
-};
+// This will be replaced with dynamic data from the database
 
 const ENROLLMENT_STATUS_LABELS = {
 	declined_contract: "Declined",
@@ -82,14 +72,11 @@ const studentColumns = [
 	},
 	{
 		id: "desired_starting_language_level",
-		accessor: (student: any) => student.desired_starting_language_level,
+		accessor: (student: any) => student.desired_language_level?.id,
 		displayName: "Language Level",
 		icon: GraduationCap,
 		type: "option" as const,
-		options: Object.entries(LANGUAGE_LEVELS).map(([value, label]) => ({
-			label,
-			value,
-		})),
+		options: [],  // Will be populated dynamically
 	},
 	{
 		id: "initial_channel",
@@ -159,6 +146,9 @@ interface StudentsTableProps {
 
 export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	const router = useRouter();
+	
+	// Fetch language levels for filter options
+	const { data: languageLevels } = useQuery(languageLevelQueries.list());
 	const [query, setQuery] = useState<StudentQuery>({
 		page: 1,
 		limit: 20,
@@ -168,6 +158,23 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	const [searchInput, setSearchInput] = useState("");
 	const debouncedSearch = useDebounce(searchInput, 300);
 
+	// Build dynamic student columns with language levels
+	const dynamicStudentColumns = useMemo(() => {
+		const columns = [...studentColumns];
+		// Find and update the language level column with dynamic options
+		const levelColumnIndex = columns.findIndex(col => col.id === "desired_starting_language_level");
+		if (levelColumnIndex !== -1 && languageLevels) {
+			columns[levelColumnIndex] = {
+				...columns[levelColumnIndex],
+				options: languageLevels.map((level: any) => ({
+					label: level.display_name || level.code?.toUpperCase() || 'Unknown',
+					value: level.id,
+				})),
+			};
+		}
+		return columns;
+	}, [languageLevels]);
+	
 	// Data table filters hook
 	const {
 		columns,
@@ -177,7 +184,7 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	} = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: studentColumns,
+		columnsConfig: dynamicStudentColumns,
 	});
 
 	// Convert filters to query params - support multiple values
@@ -193,12 +200,12 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 		return {
 			// Pass arrays for multi-select filters
 			enrollment_status: enrollmentFilter?.values?.length ? enrollmentFilter.values as any : undefined,
-			desired_starting_language_level: levelFilter?.values?.length ? levelFilter.values as any : undefined,
+			desired_starting_language_level_id: levelFilter?.values?.length ? levelFilter.values as any : undefined,
 			initial_channel: channelFilter?.values?.length ? channelFilter.values as any : undefined,
 			communication_channel: commFilter?.values?.length ? commFilter.values as any : undefined,
-			is_full_beginner: beginnerFilter?.values?.[0] === "true" ? true : beginnerFilter?.values?.[0] === "false" ? false : undefined,
-			added_to_email_newsletter: newsletterFilter?.values?.[0] === "true" ? true : newsletterFilter?.values?.[0] === "false" ? false : undefined,
-			is_under_16: ageFilter?.values?.[0] === "true" ? true : ageFilter?.values?.[0] === "false" ? false : undefined,
+			is_full_beginner: beginnerFilter?.values?.[0] || undefined,
+			added_to_email_newsletter: newsletterFilter?.values?.[0] || undefined,
+			is_under_16: ageFilter?.values?.[0] || undefined,
 		};
 	}, [filters]);
 
@@ -321,9 +328,9 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 											</div>
 										</TableCell>
 										<TableCell>
-											{student.desired_starting_language_level ? (
+											{(student as any).desired_language_level ? (
 												<Badge variant="outline">
-													{LANGUAGE_LEVELS[student.desired_starting_language_level as keyof typeof LANGUAGE_LEVELS]}
+													{(student as any).desired_language_level.display_name || (student as any).desired_language_level.code?.toUpperCase() || 'N/A'}
 												</Badge>
 											) : (
 												<span className="text-muted-foreground">Not set</span>

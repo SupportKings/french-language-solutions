@@ -44,16 +44,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		const transformedFollowUps = (followUps || []).map(followUp => ({
 			id: followUp.id,
 			student_id: followUp.student_id,
-			title: (followUp.template_follow_up_sequences as any)?.display_name || "Follow-up Sequence",
-			description: (followUp.template_follow_up_sequences as any)?.subject || "",
-			follow_up_date: followUp.started_at,
-			status: followUp.status === "activated" ? "pending" : 
-					followUp.status === "answer_received" ? "completed" : 
-					followUp.status === "disabled" ? "cancelled" : "pending",
-			priority: "medium", // Default priority since not in schema
+			sequence_id: (followUp.template_follow_up_sequences as any)?.id,
+			status: followUp.status, // Keep original status
+			started_at: followUp.started_at,
+			last_message_sent_at: followUp.last_message_sent_at,
+			completed_at: followUp.completed_at,
 			created_at: followUp.created_at,
 			updated_at: followUp.updated_at,
-			created_by: undefined, // No teacher relation in this schema
+			sequence: {
+				id: (followUp.template_follow_up_sequences as any)?.id || "",
+				display_name: (followUp.template_follow_up_sequences as any)?.display_name || "Follow-up Sequence",
+				subject: (followUp.template_follow_up_sequences as any)?.subject || "",
+				first_follow_up_delay_minutes: (followUp.template_follow_up_sequences as any)?.first_follow_up_delay_minutes || 0,
+			}
 		}));
 
 		return NextResponse.json(transformedFollowUps);

@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { 
 	CalendarIcon, 
 	GraduationCap,
@@ -56,14 +58,8 @@ const cohortFormSchema = z.object({
 	// Basic Information
 	title: z.string().optional(),
 	format: z.enum(["group", "private"]),
-	starting_level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]),
-	current_level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]).optional(),
+	starting_level_id: z.string(),
+	current_level_id: z.string().optional(),
 	
 	// Schedule
 	start_date: z.date().optional(),
@@ -98,19 +94,6 @@ interface CohortFormProps {
 	onSuccess?: () => void;
 }
 
-const levelOptions = [
-	{ value: "a1", label: "A1" },
-	{ value: "a1_plus", label: "A1+" },
-	{ value: "a2", label: "A2" },
-	{ value: "a2_plus", label: "A2+" },
-	{ value: "b1", label: "B1" },
-	{ value: "b1_plus", label: "B1+" },
-	{ value: "b2", label: "B2" },
-	{ value: "b2_plus", label: "B2+" },
-	{ value: "c1", label: "C1" },
-	{ value: "c1_plus", label: "C1+" },
-	{ value: "c2", label: "C2" },
-];
 
 const roomTypeOptions = [
 	{ value: "for_one_to_one", label: "One-to-One" },
@@ -135,14 +118,18 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const [teachers, setTeachers] = useState<any[]>([]);
 	const [products, setProducts] = useState<any[]>([]);
 	const isEditMode = !!cohort;
+	
+	// Fetch language levels
+	const { data: languageLevels, isLoading: isLoadingLevels } = useQuery(languageLevelQueries.list());
+	const levelOptions = languageLevels || [];
 
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
 		defaultValues: {
 			title: cohort?.title || "",
 			format: cohort?.format || "group",
-			starting_level: cohort?.starting_level || "a1",
-			current_level: cohort?.current_level || cohort?.starting_level,
+			starting_level_id: cohort?.starting_level_id || "",
+			current_level_id: cohort?.current_level_id || cohort?.starting_level_id,
 			start_date: cohort?.start_date ? new Date(cohort.start_date) : undefined,
 			cohort_status: cohort?.cohort_status ?? "enrollment_open",
 			room_type: cohort?.room_type,
@@ -203,7 +190,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			const formattedData = {
 				...data,
 				start_date: data.start_date ? format(data.start_date, "yyyy-MM-dd") : null,
-				current_level: data.current_level || data.starting_level,
+				current_level_id: data.current_level_id || data.starting_level_id,
 			};
 
 			const response = await fetch(
@@ -356,7 +343,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<FormField
 									control={form.control}
-									name="starting_level"
+									name="starting_level_id"
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Starting Level</FormLabel>
@@ -367,11 +354,17 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
-													{levelOptions.map((level) => (
-														<SelectItem key={level.value} value={level.value}>
-															{level.label}
+													{isLoadingLevels ? (
+														<SelectItem value="" disabled>
+															Loading levels...
 														</SelectItem>
-													))}
+													) : (
+														levelOptions.map((level, index) => (
+															<SelectItem key={`level-${level.id}-${index}`} value={level.id}>
+																{level.display_name}
+															</SelectItem>
+														))
+													)}
 												</SelectContent>
 											</Select>
 											<FormMessage />
@@ -381,7 +374,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 								<FormField
 									control={form.control}
-									name="current_level"
+									name="current_level_id"
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Current Level (Optional)</FormLabel>
@@ -392,11 +385,17 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
-													{levelOptions.map((level) => (
-														<SelectItem key={level.value} value={level.value}>
-															{level.label}
+													{isLoadingLevels ? (
+														<SelectItem value="" disabled>
+															Loading levels...
 														</SelectItem>
-													))}
+													) : (
+														levelOptions.map((level, index) => (
+															<SelectItem key={`level-${level.id}-${index}`} value={level.id}>
+																{level.display_name}
+															</SelectItem>
+														))
+													)}
 												</SelectContent>
 											</Select>
 											<FormDescription>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +88,12 @@ export default function StudentDetailsClient({
 	assessmentCount 
 }: StudentDetailsClientProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const [student, setStudent] = useState(initialStudent);
+	
+	// Fetch language levels
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(languageLevelQueries.list());
+	const levelOptions = languageLevels || [];
 	
 	// Get enrollment status from the student data
 	const enrollmentStatus = (student as any).enrollment_status;
@@ -131,6 +138,7 @@ export default function StudentDetailsClient({
 			studentId: student.id,
 			studentName: student.full_name,
 			email: student.email || '',
+			redirectTo: `${pathname}?tab=enrollments`,
 		});
 		router.push(`/admin/students/enrollments/new?${params.toString()}`);
 	};
@@ -139,7 +147,8 @@ export default function StudentDetailsClient({
 		const params = new URLSearchParams({
 			studentId: student.id,
 			studentName: student.full_name,
-			level: student.desired_starting_language_level || '',
+			level: student.desired_starting_language_level?.code || '',
+			redirectTo: `${pathname}?tab=assessments`,
 		});
 		router.push(`/admin/students/assessments/new?${params.toString()}`);
 	};
@@ -150,6 +159,7 @@ export default function StudentDetailsClient({
 			studentName: student.full_name,
 			email: student.email || '',
 			phone: student.mobile_phone_number || '',
+			redirectTo: `${pathname}?tab=followups`,
 		});
 		router.push(`/admin/automation/automated-follow-ups/new?${params.toString()}`);
 	};
@@ -300,27 +310,19 @@ export default function StudentDetailsClient({
 											<p className="text-xs text-muted-foreground">Level:</p>
 											{editing ? (
 												<InlineEditField
-													value={student.desired_starting_language_level}
-													onSave={(value) => updateStudentField("desired_starting_language_level", value)}
+													value={student.desired_starting_language_level_id}
+													onSave={(value) => updateStudentField("desired_starting_language_level_id", value)}
 													editing={editing}
 													type="select"
-													options={[
-														{ label: "A1", value: "a1" },
-														{ label: "A1+", value: "a1_plus" },
-														{ label: "A2", value: "a2" },
-														{ label: "A2+", value: "a2_plus" },
-														{ label: "B1", value: "b1" },
-														{ label: "B1+", value: "b1_plus" },
-														{ label: "B2", value: "b2" },
-														{ label: "B2+", value: "b2_plus" },
-														{ label: "C1", value: "c1" },
-														{ label: "C1+", value: "c1_plus" },
-														{ label: "C2", value: "c2" },
-													]}
+													options={levelOptions.map(level => ({
+														label: level.display_name,
+														value: level.id
+													}))}
+													placeholder={languageLevelsLoading ? "Loading levels..." : "Select level"}
 												/>
 											) : (
 												<Badge variant="outline" className="h-5 text-xs">
-													{student.desired_starting_language_level?.toUpperCase() || "—"}
+													{student.desired_starting_language_level?.display_name || student.desired_starting_language_level?.code?.toUpperCase() || "—"}
 												</Badge>
 											)}
 										</div>
@@ -408,13 +410,27 @@ export default function StudentDetailsClient({
 										<Zap className="h-4 w-4 text-muted-foreground mt-0.5" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-xs text-muted-foreground">Initial Channel:</p>
-											<InlineEditField
-												value={student.initial_channel || ""}
-												onSave={(value) => updateStudentField("initial_channel", value || null)}
-												editing={editing}
-												type="text"
-												placeholder="Enter initial channel"
-											/>
+											{editing ? (
+												<InlineEditField
+													value={student.initial_channel || ""}
+													onSave={(value) => updateStudentField("initial_channel", value || null)}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Form", value: "form" },
+														{ label: "Quiz", value: "quiz" },
+														{ label: "Call", value: "call" },
+														{ label: "Message", value: "message" },
+														{ label: "Email", value: "email" },
+														{ label: "Assessment", value: "assessment" },
+													]}
+													placeholder="Select initial channel"
+												/>
+											) : (
+												<Badge variant="outline" className="h-5 text-xs">
+													{student.initial_channel ? student.initial_channel.charAt(0).toUpperCase() + student.initial_channel.slice(1) : "—"}
+												</Badge>
+											)}
 										</div>
 									</div>
 								</div>
@@ -577,8 +593,9 @@ export default function StudentDetailsClient({
 											const params = new URLSearchParams({
 												studentId: student.id,
 												studentName: student.full_name,
+												redirectTo: `${pathname}?tab=touchpoints`,
 											});
-											window.location.href = `/admin/touchpoints/new?${params.toString()}`;
+											router.push(`/admin/touchpoints/new?${params.toString()}`);
 										}}>
 											<Plus className="mr-1.5 h-3.5 w-3.5" />
 											Log Touchpoint

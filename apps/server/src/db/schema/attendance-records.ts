@@ -20,7 +20,6 @@ export const attendanceRecords = pgTable("attendance_records", {
   classId: uuid("class_id").references(() => classes.id, { onDelete: "cascade" }),
   
   // Attendance data
-  attendanceDate: date("attendance_date").notNull(),
   status: varchar("status", { length: 20 }).notNull().default("unset"),
   
   // Additional fields

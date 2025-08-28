@@ -16,7 +16,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			.select(`
 				*,
 				students(id, full_name, email),
-				cohorts(id, format, starting_level, start_date)
+				cohorts(
+					id, 
+					title,
+					start_date,
+					room_type,
+					products(
+						id,
+						format
+					),
+					starting_level:language_levels!starting_level_id(
+						id,
+						code,
+						display_name
+					)
+				)
 			`)
 			.eq("id", id)
 			.single();
@@ -53,7 +67,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		const body = await request.json();
 		
 		const updateData = {
-			status: body.status,
+			...(body.status && { status: body.status }),
+			...(body.cohortId && { cohort_id: body.cohortId }),
 			updated_at: new Date().toISOString(),
 		};
 		
@@ -61,7 +76,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			.from("enrollments")
 			.update(updateData)
 			.eq("id", id)
-			.select()
+			.select(`
+				*,
+				students(id, full_name, email),
+				cohorts(
+					id, 
+					title,
+					start_date,
+					room_type,
+					products(
+						id,
+						format
+					),
+					starting_level:language_levels!starting_level_id(
+						id,
+						code,
+						display_name
+					)
+				)
+			`)
 			.single();
 		
 		if (error) {

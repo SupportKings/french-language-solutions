@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
 		const search = searchParams.get("search") || "";
 		const format = searchParams.getAll("format");
 		const cohort_status = searchParams.getAll("cohort_status");
-		const starting_level = searchParams.getAll("starting_level");
-		const current_level = searchParams.getAll("current_level");
+		const starting_level_id = searchParams.getAll("starting_level_id");
+		const current_level_id = searchParams.getAll("current_level_id");
 		const room_type = searchParams.getAll("room_type");
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -25,30 +25,51 @@ export async function GET(request: NextRequest) {
 		// Build query - exactly like students
 		let query = supabase
 			.from("cohorts")
-			.select("*", { count: "exact" })
+			.select(`
+				*,
+				products!inner (
+					id,
+					format,
+					display_name
+				),
+				starting_level:language_levels!starting_level_id (
+					id,
+					code,
+					display_name,
+					level_group,
+					level_number
+				),
+				current_level:language_levels!current_level_id (
+					id,
+					code,
+					display_name,
+					level_group,
+					level_number
+				)
+			`, { count: "exact" })
 			.range(offset, offset + limit - 1)
 			.order(sortBy, { ascending: sortOrder === "asc" });
 		
 		// Apply search filter
 		if (search) {
-			query = query.or(`starting_level.ilike.%${search}%,current_level.ilike.%${search}%,format.ilike.%${search}%`);
+			query = query.or(`starting_level.ilike.%${search}%,current_level.ilike.%${search}%,products.format.ilike.%${search}%`);
 		}
 		
 		// Apply filters - handle multiple values with IN operator
 		if (format.length > 0) {
-			query = query.in("format", format);
+			query = query.in("products.format", format);
 		}
 		
 		if (cohort_status.length > 0) {
 			query = query.in("cohort_status", cohort_status);
 		}
 		
-		if (starting_level.length > 0) {
-			query = query.in("starting_level", starting_level);
+		if (starting_level_id.length > 0) {
+			query = query.in("starting_level_id", starting_level_id);
 		}
 		
-		if (current_level.length > 0) {
-			query = query.in("current_level", current_level);
+		if (current_level_id.length > 0) {
+			query = query.in("current_level_id", current_level_id);
 		}
 		
 		if (room_type.length > 0) {

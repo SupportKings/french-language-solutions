@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,6 +108,11 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 	const [assessment, setAssessment] = useState(initialAssessment);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	
+	// Get redirectTo param from URL
+	const [redirectTo] = useQueryState("redirectTo", {
+		defaultValue: "/admin/students/assessments"
+	});
 
 	// Get student initials for avatar
 	const studentInitials = assessment.students?.full_name
@@ -150,7 +156,7 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 			if (!response.ok) throw new Error("Failed to delete assessment");
 
 			toast.success("Assessment deleted successfully");
-			router.push("/admin/students/assessments");
+			router.push(redirectTo);
 		} catch (error) {
 			console.error("Error deleting assessment:", error);
 			toast.error("Failed to delete assessment");
@@ -164,6 +170,7 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 		const params = new URLSearchParams({
 			studentId: assessment.student_id,
 			studentName: assessment.students?.full_name || '',
+			redirectTo: redirectTo,
 		});
 		router.push(`/admin/students/assessments/new?${params.toString()}&edit=${assessment.id}`);
 	};
@@ -174,10 +181,10 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 				<div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl">
 					{/* Header */}
 					<div className="mb-8">
-						<Link href="/admin/students/assessments">
+						<Link href={redirectTo}>
 							<Button variant="ghost" size="sm" className="mb-4">
 								<ArrowLeft className="mr-2 h-4 w-4" />
-								All Assessments
+								Back
 							</Button>
 						</Link>
 						
@@ -262,7 +269,7 @@ export function AssessmentDetailsClient({ assessment: initialAssessment }: Asses
 									<div className="space-y-1">
 										<p className="text-xs text-muted-foreground">Level</p>
 										<p className="text-sm font-medium">
-											{assessment.level ? assessment.level.toUpperCase() : "TBD"}
+											{assessment.language_level?.display_name || assessment.language_level?.code?.toUpperCase() || "TBD"}
 										</p>
 									</div>
 									<div className="space-y-1">

@@ -42,17 +42,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		const transformedTouchpoints = (touchpoints || []).map(touchpoint => ({
 			id: touchpoint.id,
 			student_id: touchpoint.student_id,
-			type: touchpoint.channel, // Map channel to type for display
-			title: `${touchpoint.type.charAt(0).toUpperCase() + touchpoint.type.slice(1)} ${touchpoint.channel.toUpperCase()}`,
+			type: touchpoint.channel, // Use channel as type (call, email, sms, whatsapp)
+			title: `${touchpoint.type.charAt(0).toUpperCase() + touchpoint.type.slice(1)} ${touchpoint.channel.charAt(0).toUpperCase() + touchpoint.channel.slice(1)}`,
 			description: touchpoint.message,
 			contact_date: touchpoint.occurred_at,
-			duration_minutes: undefined, // Not in schema
-			outcome: undefined, // Not in schema
+			duration_minutes: null,
+			outcome: null,
 			created_at: touchpoint.created_at,
 			updated_at: touchpoint.updated_at,
-			created_by: undefined, // No teacher relation in this schema
-			source: touchpoint.source,
-			external_id: touchpoint.external_id,
+			created_by: null,
 		}));
 
 		return NextResponse.json(transformedTouchpoints);

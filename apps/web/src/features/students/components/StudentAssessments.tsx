@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
 	Table, 
 	TableBody, 
@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 const resultColors = {
 	requested: "secondary",
@@ -41,6 +43,21 @@ interface StudentAssessmentsProps {
 }
 
 export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
+	const router = useRouter();
+	const pathname = usePathname();
+	const queryClient = useQueryClient();
+	
+	// Get current URL for redirectTo
+	const currentUrl = `${pathname}?tab=assessments`;
+	
+	// Invalidate cache when component mounts (useful when returning from forms)
+	useEffect(() => {
+		const searchParams = new URLSearchParams(window.location.search);
+		if (searchParams.get('tab') === 'assessments') {
+			queryClient.invalidateQueries({ queryKey: ["student-assessments", studentId] });
+		}
+	}, [queryClient, studentId, pathname]);
+	
 	const { data: assessments, isLoading } = useQuery({
 		queryKey: ["student-assessments", studentId],
 		queryFn: async () => {
@@ -71,7 +88,7 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 		return (
 			<div className="text-center py-8">
 				<p className="text-muted-foreground mb-4">No assessments yet</p>
-				<Link href={`/admin/students/assessments/new?studentId=${studentId}`}>
+				<Link href={`/admin/students/assessments/new?studentId=${studentId}&redirectTo=${encodeURIComponent(currentUrl)}`}>
 					<Button>
 						<Plus className="mr-2 h-4 w-4" />
 						Schedule Assessment
@@ -106,12 +123,12 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 							<TableRow 
 								key={assessment.id}
 								className="cursor-pointer hover:bg-muted/50 transition-colors"
-								onClick={() => window.location.href = `/admin/assessments/${assessment.id}`}
+								onClick={() => router.push(`/admin/assessments/${assessment.id}?redirectTo=${encodeURIComponent(currentUrl)}`)}
 							>
 								<TableCell>
-									{assessment.level ? (
+									{assessment.language_level?.display_name || assessment.language_level?.code ? (
 										<Badge variant="outline">
-											{assessment.level.toUpperCase()}
+											{assessment.language_level.display_name || assessment.language_level.code.toUpperCase()}
 										</Badge>
 									) : (
 										<span className="text-muted-foreground">TBD</span>
@@ -177,25 +194,6 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 					</TableBody>
 				</Table>
 			</div>
-
-			{assessments.length > 0 && (
-				<div className="rounded-lg bg-muted/50 p-4">
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						<div>
-							<p className="font-medium">Latest Assessment</p>
-							<p className="text-muted-foreground">
-								{format(new Date(assessments[0].created_at), "MMM d, yyyy")}
-							</p>
-						</div>
-						<div>
-							<p className="font-medium">Current Level</p>
-							<p className="text-muted-foreground">
-								{assessments.find((a: any) => a.level)?.level?.toUpperCase() || "Not determined"}
-							</p>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

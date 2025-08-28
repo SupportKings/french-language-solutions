@@ -562,9 +562,10 @@ export function CohortDetailPageClient({
   }
 
   // Get initials for avatar
-  const initials = cohort.format === "group" ? "GC" : "PC";
+  const format = cohort.products?.format || 'group';
+  const initials = format === "group" ? "GC" : "PC";
   const cohortName = `${
-    cohort.format.charAt(0).toUpperCase() + cohort.format.slice(1)
+    format.charAt(0).toUpperCase() + format.slice(1)
   } Cohort`;
   const sessionCount = cohortWithSessions?.weekly_sessions?.length || 0;
   const studentCount = enrolledStudents.length;
@@ -673,7 +674,7 @@ export function CohortDetailPageClient({
                       <p className="text-xs text-muted-foreground">Format:</p>
                       {editing ? (
                         <InlineEditField
-                          value={cohort.format}
+                          value={cohort.products?.format || 'N/A'}
                           onSave={(value) => updateCohortField("format", value)}
                           editing={editing}
                           type="select"
@@ -684,8 +685,8 @@ export function CohortDetailPageClient({
                         />
                       ) : (
                         <p className="text-sm font-medium">
-                          {cohort.format.charAt(0).toUpperCase() +
-                            cohort.format.slice(1)}
+                          {cohort.products?.format ? cohort.products.format.charAt(0).toUpperCase() +
+                            cohort.products.format.slice(1) : 'N/A'}
                         </p>
                       )}
                     </div>

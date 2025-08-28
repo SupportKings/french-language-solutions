@@ -10,13 +10,23 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
 import { CohortsTable } from "@/features/cohorts/components/CohortsTable";
 import { useCohorts } from "@/features/cohorts/queries/cohorts.queries";
-import type { Cohort, CohortFormat, CohortStatus, LanguageLevel, RoomType } from "@/features/cohorts/schemas/cohort.schema";
+import type { Cohort, CohortFormat, CohortStatus, RoomType } from "@/features/cohorts/schemas/cohort.schema";
+import type { LanguageLevel } from "@/features/language-levels/queries/language-levels.queries";
+
+// Extended cohort type with relationships
+interface CohortWithRelations extends Cohort {
+	products?: {
+		format: string;
+	} | null;
+	starting_level?: LanguageLevel | null;
+	current_level?: LanguageLevel | null;
+}
 
 // Define column configurations for data-table-filter
 const cohortColumns = [
 	{
 		id: "format",
-		accessor: (cohort: Cohort) => cohort.format,
+		accessor: (cohort: CohortWithRelations) => cohort.products?.format,
 		displayName: "Format",
 		icon: Users,
 		type: "option" as const,
@@ -27,7 +37,7 @@ const cohortColumns = [
 	},
 	{
 		id: "cohort_status",
-		accessor: (cohort: Cohort) => cohort.cohort_status,
+		accessor: (cohort: CohortWithRelations) => cohort.cohort_status,
 		displayName: "Status",
 		icon: Users,
 		type: "option" as const,
@@ -39,27 +49,15 @@ const cohortColumns = [
 	},
 	{
 		id: "starting_level",
-		accessor: (cohort: Cohort) => cohort.starting_level,
+		accessor: (cohort: CohortWithRelations) => cohort.starting_level?.id,
 		displayName: "Starting Level",
 		icon: Users,
 		type: "option" as const,
-		options: [
-			{ label: "A1", value: "a1" },
-			{ label: "A1+", value: "a1_plus" },
-			{ label: "A2", value: "a2" },
-			{ label: "A2+", value: "a2_plus" },
-			{ label: "B1", value: "b1" },
-			{ label: "B1+", value: "b1_plus" },
-			{ label: "B2", value: "b2" },
-			{ label: "B2+", value: "b2_plus" },
-			{ label: "C1", value: "c1" },
-			{ label: "C1+", value: "c1_plus" },
-			{ label: "C2", value: "c2" },
-		],
+		options: [] // Will be populated dynamically
 	},
 	{
 		id: "room_type",
-		accessor: (cohort: Cohort) => cohort.room_type,
+		accessor: (cohort: CohortWithRelations) => cohort.room_type,
 		displayName: "Room Type",
 		icon: Users,
 		type: "option" as const,

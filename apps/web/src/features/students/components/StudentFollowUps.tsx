@@ -18,20 +18,23 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 
-interface FollowUp {
+interface AutomatedFollowUp {
 	id: string;
 	student_id: string;
-	title: string;
-	description?: string;
-	follow_up_date: string;
-	status: "pending" | "completed" | "cancelled";
-	priority: "low" | "medium" | "high";
+	sequence_id: string;
+	status: "activated" | "ongoing" | "answer_received" | "disabled";
+	started_at: string;
+	last_message_sent_at?: string;
+	completed_at?: string;
 	created_at: string;
 	updated_at: string;
-	created_by?: {
+	sequence: {
 		id: string;
-		name: string;
+		display_name: string;
+		subject: string;
+		first_follow_up_delay_minutes: number;
 	};
 }
 
@@ -40,41 +43,36 @@ interface StudentFollowUpsProps {
 }
 
 const statusConfig = {
-	pending: {
-		label: "Pending",
+	activated: {
+		label: "Activated",
 		icon: AlertCircle,
+		color: "bg-blue-500/10 text-blue-700 border-blue-200",
+	},
+	ongoing: {
+		label: "Ongoing",
+		icon: Clock,
 		color: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
 	},
-	completed: {
-		label: "Completed",
+	answer_received: {
+		label: "Answer Received",
 		icon: CheckCircle2,
 		color: "bg-green-500/10 text-green-700 border-green-200",
 	},
-	cancelled: {
-		label: "Cancelled",
+	disabled: {
+		label: "Disabled",
 		icon: XCircle,
-		color: "bg-red-500/10 text-red-700 border-red-200",
-	},
-};
-
-const priorityConfig = {
-	low: {
-		label: "Low",
 		color: "bg-gray-500/10 text-gray-700 border-gray-200",
-	},
-	medium: {
-		label: "Medium", 
-		color: "bg-blue-500/10 text-blue-700 border-blue-200",
-	},
-	high: {
-		label: "High",
-		color: "bg-red-500/10 text-red-700 border-red-200",
 	},
 };
 
 export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
-	const [followUps, setFollowUps] = useState<FollowUp[]>([]);
+	const [followUps, setFollowUps] = useState<AutomatedFollowUp[]>([]);
 	const [loading, setLoading] = useState(true);
+	const router = useRouter();
+	const pathname = usePathname();
+	
+	// Get current URL for redirectTo
+	const currentUrl = `${pathname}?tab=followups`;
 
 	// Fetch follow-ups data
 	const fetchFollowUps = async () => {
@@ -94,6 +92,14 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 	useEffect(() => {
 		fetchFollowUps();
 	}, [studentId]);
+	
+	// Refresh data when returning from forms
+	useEffect(() => {
+		const searchParams = new URLSearchParams(window.location.search);
+		if (searchParams.get('tab') === 'followups') {
+			fetchFollowUps();
+		}
+	}, [pathname]);
 
 	if (loading) {
 		return (
@@ -127,31 +133,30 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 		);
 	}
 
-	// Sort follow-ups by date (newest first)
+	// Sort follow-ups by started date (newest first)
 	const sortedFollowUps = followUps.sort((a, b) => 
-		new Date(b.follow_up_date).getTime() - new Date(a.follow_up_date).getTime()
+		new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
 	);
 
 	return (
 		<div className="space-y-3">
 			{sortedFollowUps.map((followUp) => {
-				const statusInfo = statusConfig[followUp.status];
-				const priorityInfo = priorityConfig[followUp.priority];
+				const statusInfo = statusConfig[followUp.status] || statusConfig.activated; // Default to activated if status not found
 				const StatusIcon = statusInfo.icon;
-				const isOverdue = new Date(followUp.follow_up_date) < new Date() && followUp.status === 'pending';
+				const isOngoing = followUp.status === 'ongoing';
 
 				return (
 					<div
 						key={followUp.id}
 						className={cn(
 							"border rounded-lg p-4 transition-all duration-200 hover:shadow-md",
-							isOverdue && "border-red-200 bg-red-50/30"
+							isOngoing && "border-yellow-200 bg-yellow-50/30"
 						)}
 					>
 						<div className="flex items-start gap-4">
 							<div className={cn(
 								"h-10 w-10 rounded-lg flex items-center justify-center",
-								isOverdue ? "bg-red-100 text-red-600" : "bg-muted/50 text-muted-foreground"
+								isOngoing ? "bg-yellow-100 text-yellow-600" : "bg-muted/50 text-muted-foreground"
 							)}>
 								<StatusIcon className="h-5 w-5" />
 							</div>
@@ -160,13 +165,11 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 								<div className="flex items-start justify-between gap-3">
 									<div className="flex-1">
 										<h3 className="font-medium text-sm leading-tight mb-1">
-											{followUp.title}
+											{followUp.sequence.display_name}
 										</h3>
-										{followUp.description && (
-											<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-												{followUp.description}
-											</p>
-										)}
+										<p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+											{followUp.sequence.subject}
+										</p>
 									</div>
 									
 									<Button
@@ -175,7 +178,7 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 										size="sm"
 										className="h-8 px-2 flex-shrink-0"
 									>
-										<Link href={`/admin/follow-ups/${followUp.id}`}>
+										<Link href={`/admin/follow-ups/${followUp.id}?redirectTo=${encodeURIComponent(currentUrl)}`}>
 											<ExternalLink className="h-3.5 w-3.5" />
 										</Link>
 									</Button>
@@ -185,25 +188,23 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 									<Badge variant="outline" className={cn("text-xs", statusInfo.color)}>
 										{statusInfo.label}
 									</Badge>
-									
-									<Badge variant="outline" className={cn("text-xs", priorityInfo.color)}>
-										{priorityInfo.label} Priority
-									</Badge>
 
 									<div className="flex items-center gap-1 text-xs text-muted-foreground">
 										<Calendar className="h-3 w-3" />
-										<span>
-											{format(new Date(followUp.follow_up_date), "MMM d, yyyy")}
-											{isOverdue && (
-												<span className="text-red-600 font-medium ml-1">(Overdue)</span>
-											)}
-										</span>
+										<span>Started: {format(new Date(followUp.started_at), "MMM d, yyyy")}</span>
 									</div>
 
-									{followUp.created_by && (
+									{followUp.last_message_sent_at && (
 										<div className="flex items-center gap-1 text-xs text-muted-foreground">
-											<User className="h-3 w-3" />
-											<span>{followUp.created_by.name}</span>
+											<Clock className="h-3 w-3" />
+											<span>Last message: {format(new Date(followUp.last_message_sent_at), "MMM d, yyyy")}</span>
+										</div>
+									)}
+
+									{followUp.completed_at && (
+										<div className="flex items-center gap-1 text-xs text-muted-foreground">
+											<CheckCircle2 className="h-3 w-3" />
+											<span>Completed: {format(new Date(followUp.completed_at), "MMM d, yyyy")}</span>
 										</div>
 									)}
 								</div>

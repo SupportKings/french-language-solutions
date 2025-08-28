@@ -343,21 +343,22 @@ export function EnrollmentFormNew({
 											</Button>
 										</PopoverTrigger>
 										<PopoverContent className="w-[400px] p-0">
-											<Command>
+											<Command className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground">
 												<CommandInput placeholder="Search cohorts..." />
 												<CommandEmpty>
 													{loadingCohorts ? "Loading cohorts..." : "No cohort found."}
 												</CommandEmpty>
-												<CommandGroup className="max-h-64 overflow-auto">
+												<CommandGroup className="max-h-64 overflow-auto [&_[cmdk-item]]:cursor-pointer">
 													{cohorts.length > 0 ? (
-														cohorts.map((cohort) => (
+														cohorts.map((cohort, index) => (
 															<CommandItem
-																key={cohort.id}
-																value={`${cohort.format || ''} ${cohort.starting_level || ''}`.toLowerCase()}
+																key={`cohort-${cohort.id}-${index}`}
+																value={`${cohort.title || 'No Title'} ${cohort.format || ''} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ''}`.toLowerCase()}
 																onSelect={() => {
 																	form.setValue("cohort_id", cohort.id);
 																	setCohortPopoverOpen(false);
 																}}
+																className="cursor-pointer"
 															>
 																<Check
 																	className={cn(
@@ -376,7 +377,7 @@ export function EnrollmentFormNew({
 																			)}
 																		</span>
 																		<span className="text-xs text-muted-foreground">
-																			{cohort.format} - {cohort.starting_level?.toUpperCase()}
+																			{cohort.products?.format || 'N/A'} - {cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || 'N/A'}
 																			{cohort.start_date && ` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
 																		</span>
 																	</div>
@@ -419,7 +420,7 @@ export function EnrollmentFormNew({
 													<>
 														{selectedCohort.title}
 														<span className="text-xs text-muted-foreground">
-															({selectedCohort.format} - {selectedCohort.starting_level?.toUpperCase()})
+															({selectedCohort.format} - {selectedCohort.starting_level?.display_name || selectedCohort.starting_level?.code?.toUpperCase() || 'N/A'})
 														</span>
 													</>
 												) : (
@@ -427,7 +428,7 @@ export function EnrollmentFormNew({
 														<span className="text-muted-foreground">Title Missing</span>
 														<AlertCircle className="h-3 w-3 text-warning" />
 														<span className="text-xs text-muted-foreground">
-															({selectedCohort.format} - {selectedCohort.starting_level?.toUpperCase()})
+															({selectedCohort.format} - {selectedCohort.starting_level?.display_name || selectedCohort.starting_level?.code?.toUpperCase() || 'N/A'})
 														</span>
 													</>
 												)}

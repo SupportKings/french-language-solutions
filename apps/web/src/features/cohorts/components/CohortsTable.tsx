@@ -29,6 +29,19 @@ interface CohortsTableProps {
 interface CohortWithStats extends Cohort {
 	activeEnrollments?: number;
 	totalEnrollments?: number;
+	products?: {
+		format: string;
+	} | null;
+	starting_level?: {
+		id: string;
+		code: string;
+		display_name: string;
+	} | null;
+	current_level?: {
+		id: string;
+		code: string;
+		display_name: string;
+	} | null;
 }
 
 // Status badge variant mapping
@@ -67,9 +80,17 @@ const formatStatus = (status: CohortStatus) => {
 };
 
 // Format level for display
-const formatLevel = (level: string | null) => {
+const formatLevel = (level: any) => {
 	if (!level) return "—";
-	return level.replace("_", "+").toUpperCase();
+	// Handle new database structure (language level object)
+	if (typeof level === 'object' && level.display_name) {
+		return level.display_name;
+	}
+	// Handle legacy string format
+	if (typeof level === 'string') {
+		return level.replace("_", "+").toUpperCase();
+	}
+	return "—";
 };
 
 // Format day and time
@@ -130,7 +151,6 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 						<TableHead>Level Progress</TableHead>
 						<TableHead>Status</TableHead>
 						<TableHead>Start Date</TableHead>
-						<TableHead>Setup</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -149,7 +169,7 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 					) : cohortsWithStats.length === 0 ? (
 						// Empty state
 						<TableRow>
-							<TableCell colSpan={7} className="text-center py-12">
+							<TableCell colSpan={6} className="text-center py-12">
 								<Users className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
 								<h3 className="text-lg font-semibold mb-2">No cohorts found</h3>
 								<p className="text-muted-foreground mb-4">Create your first cohort to get started.</p>
@@ -162,6 +182,8 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 						// Data rows - no expandable functionality
 						cohortsWithStats.map((cohort) => {
 							const enrollmentCount = cohort.activeEnrollments || 0;
+							const maxStudents = cohort.max_students || 0;
+							const progressPercentage = maxStudents > 0 ? (enrollmentCount / maxStudents) * 100 : 0;
 							
 							return (
 								<TableRow 
@@ -172,14 +194,14 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 									<TableCell>
 										<div className="h-12 flex items-center">
 											<p className="font-medium">
-												{cohort.title || `${cohort.format.charAt(0).toUpperCase() + cohort.format.slice(1)} Cohort`}
+												{cohort.title || `${cohort.products?.format ? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1) : ''} Cohort`}
 											</p>
 										</div>
 									</TableCell>
 									<TableCell>
 										<div className="h-12 flex items-center">
 											<p className="text-sm">
-												{cohort.format.charAt(0).toUpperCase() + cohort.format.slice(1)}
+												{cohort.products?.format ? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1) : 'N/A'}
 											</p>
 										</div>
 									</TableCell>
@@ -188,17 +210,19 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 											<div className="flex items-center gap-2 mb-1">
 												<Users className="h-3.5 w-3.5 text-muted-foreground" />
 												<span className="text-sm font-medium">
-													{enrollmentCount} enrolled
+													{enrollmentCount}{maxStudents > 0 ? `/${maxStudents}` : ''}
 												</span>
 											</div>
-											<div className="w-20">
-												<div className="w-full bg-muted rounded-full h-1.5">
-													<div 
-														className="h-1.5 rounded-full transition-all bg-primary"
-														style={{ width: enrollmentCount > 0 ? "100%" : "0%" }}
-													/>
+											{maxStudents > 0 && (
+												<div className="w-20">
+													<div className="w-full bg-muted rounded-full h-1.5">
+														<div 
+															className="h-1.5 rounded-full transition-all bg-primary"
+															style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+														/>
+													</div>
 												</div>
-											</div>
+											)}
 										</div>
 									</TableCell>
 									<TableCell>
@@ -224,13 +248,6 @@ export function CohortsTable({ cohorts, isLoading, hideWrapper = false }: Cohort
 											) : (
 												<span className="text-muted-foreground">-</span>
 											)}
-										</div>
-									</TableCell>
-									<TableCell>
-										<div className="h-12 flex items-center">
-											<Badge variant="outline" className="text-xs">
-												Setup
-											</Badge>
 										</div>
 									</TableCell>
 								</TableRow>

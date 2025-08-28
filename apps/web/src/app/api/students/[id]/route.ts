@@ -15,6 +15,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			.from("students")
 			.select(`
 				*,
+				desired_starting_language_level:language_levels!desired_starting_language_level_id (
+					id,
+					code,
+					display_name
+				),
 				enrollments (
 					id,
 					status,
@@ -86,7 +91,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			.update(updateData)
 			.eq("id", id)
 			.is("deleted_at", null)
-			.select()
+			.select(`
+				*,
+				desired_starting_language_level:language_levels!desired_starting_language_level_id (
+					id,
+					code,
+					display_name
+				)
+			`)
 			.single();
 		
 		if (error) {

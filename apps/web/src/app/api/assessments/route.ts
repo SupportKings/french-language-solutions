@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 		const limit = parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
 		const result = searchParams.get("result") || "";
-		const level = searchParams.get("level") || "";
+		const level_id = searchParams.get("level_id") || "";
 		const studentId = searchParams.get("studentId") || "";
 		const isPaid = searchParams.get("isPaid") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
@@ -23,7 +23,14 @@ export async function GET(request: NextRequest) {
 			.from("student_assessments")
 			.select(`
 				*,
-				students(id, full_name, email)
+				students(id, full_name, email),
+				language_level:language_levels!level_id (
+					id,
+					code,
+					display_name,
+					level_group,
+					level_number
+				)
 			`, { count: "exact" });
 		
 		// Apply filters
@@ -31,8 +38,8 @@ export async function GET(request: NextRequest) {
 			query = query.eq("result", result);
 		}
 		
-		if (level) {
-			query = query.eq("level", level);
+		if (level_id) {
+			query = query.eq("level_id", level_id);
 		}
 		
 		if (studentId) {
@@ -103,7 +110,7 @@ export async function POST(request: NextRequest) {
 			.from("student_assessments")
 			.insert({
 				student_id: body.studentId,
-				level: body.level || null,
+				level_id: body.levelId || null,
 				scheduled_for: body.scheduledFor || null,
 				is_paid: body.isPaid || false,
 				result: body.result || "requested",
