@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 async function getStudent(id: string) {
-	const baseUrl = process.env.VERCEL_URL || "http://localhost:3001";
+	const baseUrl = `https://${process.env.VERCEL_URL}` || "http://localhost:3001";
 	const response = await fetch(`${baseUrl}/api/students/${id}`, {
 		cache: "no-store",
 	});
