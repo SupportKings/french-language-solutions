@@ -53,10 +53,10 @@ import { z } from "zod";
 // Schema for the cohort form
 const cohortFormSchema = z.object({
 	// Basic Information
-	format: z.enum(["group", "private"]),
 	starting_level_id: z.string().min(1, "Starting level is required"),
 	current_level_id: z.string().optional(),
 	max_students: z.number().min(1).max(100).optional(),
+	product_id: z.string().optional(),
 	
 	// Schedule
 	start_date: z.date().optional(),
@@ -70,10 +70,8 @@ const cohortFormSchema = z.object({
 	room_type: z
 		.enum(["for_one_to_one", "medium", "medium_plus", "large"])
 		.optional(),
-	room: z.string().optional(),
 	
 	// Resources
-	product_id: z.string().optional(),
 	google_drive_folder_id: z.string().optional(),
 	
 	// Weekly Sessions
@@ -156,14 +154,12 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
 		defaultValues: {
-			format: cohort?.format || "group",
 			starting_level_id: cohort?.starting_level_id || "",
 			current_level_id: cohort?.current_level_id || "",
 			max_students: cohort?.max_students || 20,
 			start_date: cohort?.start_date ? new Date(cohort.start_date) : undefined,
 			cohort_status: cohort?.cohort_status ?? "enrollment_open",
 			room_type: cohort?.room_type || undefined,
-			room: cohort?.room || "",
 			product_id: cohort?.product_id || "",
 			google_drive_folder_id: cohort?.google_drive_folder_id || "",
 			weekly_sessions: cohort?.weekly_sessions ?? [],
@@ -278,7 +274,7 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 			if (onSuccess) {
 				onSuccess();
 			} else {
-				router.push(`/admin/classes/${savedCohort.id}`);
+				router.push(`/admin/cohorts/${savedCohort.id}`);
 				router.refresh();
 			}
 		} catch (error) {
@@ -292,7 +288,7 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 	};
 	
 	const handleCancel = () => {
-		router.push("/admin/classes");
+		router.push("/admin/cohorts");
 	};
 	
 	// Transform language levels for select options
@@ -316,7 +312,7 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 	return (
 		<FormLayout>
 			<FormHeader
-				backUrl="/admin/classes"
+				backUrl="/admin/cohorts"
 				backLabel="Classes"
 				title={isEditMode ? "Edit Cohort" : "New Cohort"}
 				subtitle={
@@ -350,17 +346,17 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 						>
 							<FormRow>
 								<FormField
-									label="Format"
-									required
-									error={form.formState.errors.format?.message}
+									label="Product"
+									hint="Select the product/format for this cohort"
+									error={form.formState.errors.product_id?.message}
 								>
 									<SelectField
-										placeholder="Select format"
-										value={form.watch("format") || ""}
+										placeholder="Select a product"
+										value={form.watch("product_id") || ""}
 										onValueChange={(value) =>
-											form.setValue("format", value as "group" | "private")
+											form.setValue("product_id", value)
 										}
-										options={formatOptions}
+										options={productOptions}
 									/>
 								</FormField>
 								<FormField
@@ -480,72 +476,45 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 						{/* Location */}
 						<FormSection
 							title="Location"
-							description="Physical or virtual location settings"
+							description="Physical or virtual classroom settings"
 							icon={MapPin}
 						>
-							<FormRow>
-								<FormField
-									label="Room Type"
-									error={form.formState.errors.room_type?.message}
-								>
-									<SelectField
-										placeholder="Select room type"
-										value={form.watch("room_type") || ""}
-										onValueChange={(value) =>
-											form.setValue(
-												"room_type",
-												value as "for_one_to_one" | "medium" | "medium_plus" | "large",
-											)
-										}
-										options={roomTypeOptions}
-									/>
-								</FormField>
-								<FormField
-									label="Room/Location"
-									hint="e.g., Room 201, Online, Building A"
-									error={form.formState.errors.room?.message}
-								>
-									<InputField
-										placeholder="Enter location"
-										error={!!form.formState.errors.room}
-										{...form.register("room")}
-									/>
-								</FormField>
-							</FormRow>
+							<FormField
+								label="Room Type"
+								hint="Select the appropriate classroom size"
+								error={form.formState.errors.room_type?.message}
+							>
+								<SelectField
+									placeholder="Select room type"
+									value={form.watch("room_type") || ""}
+									onValueChange={(value) =>
+										form.setValue(
+											"room_type",
+											value as "for_one_to_one" | "medium" | "medium_plus" | "large",
+										)
+									}
+									options={roomTypeOptions}
+								/>
+							</FormField>
 						</FormSection>
 						
 						{/* Resources */}
 						<FormSection
 							title="Resources"
-							description="Product and learning materials"
+							description="Learning materials and resources"
 							icon={FolderOpen}
 						>
-							<FormRow>
-								<FormField
-									label="Product"
-									error={form.formState.errors.product_id?.message}
-								>
-									<SelectField
-										placeholder="Select a product"
-										value={form.watch("product_id") || ""}
-										onValueChange={(value) =>
-											form.setValue("product_id", value)
-										}
-										options={productOptions}
-									/>
-								</FormField>
-								<FormField
-									label="Google Drive Folder ID"
-									hint="The ID from the Google Drive folder URL"
-									error={form.formState.errors.google_drive_folder_id?.message}
-								>
-									<InputField
-										placeholder="Folder ID"
-										error={!!form.formState.errors.google_drive_folder_id}
-										{...form.register("google_drive_folder_id")}
-									/>
-								</FormField>
-							</FormRow>
+							<FormField
+								label="Google Drive Folder ID"
+								hint="The ID from the Google Drive folder URL"
+								error={form.formState.errors.google_drive_folder_id?.message}
+							>
+								<InputField
+									placeholder="Folder ID"
+									error={!!form.formState.errors.google_drive_folder_id}
+									{...form.register("google_drive_folder_id")}
+								/>
+							</FormField>
 						</FormSection>
 						
 						{/* Weekly Sessions */}

@@ -110,7 +110,7 @@ export default function TeacherDetailsClient({
 			teacherId: teacher.id,
 			teacherName: fullName,
 		});
-		router.push(`/admin/classes/new?${params.toString()}`);
+		router.push(`/admin/cohorts/new?${params.toString()}`);
 	};
 
 	const navigateToSetFollowUp = () => {

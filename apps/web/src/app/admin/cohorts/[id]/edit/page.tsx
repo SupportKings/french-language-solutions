@@ -43,7 +43,7 @@ export default async function EditClassPage({
 				{/* Page Header */}
 				<div className="flex items-center gap-4">
 					<Link
-						href={`/admin/classes/${id}`}
+						href={`/admin/cohorts/${id}`}
 						className="inline-flex items-center text-muted-foreground text-sm transition-colors hover:text-foreground"
 					>
 						<ChevronLeft className="mr-1 h-4 w-4" />

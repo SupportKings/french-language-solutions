@@ -58,12 +58,12 @@ const data = {
 			icon: Calendar,
 			items: [
 				{
-					title: "All Classes",
-					url: "/admin/classes",
+					title: "All Cohorts",
+					url: "/admin/cohorts",
 				},
 				{
 					title: "Products & Pricing",
-					url: "/admin/classes/products",
+					url: "/admin/cohorts/products",
 				},
 			],
 		},

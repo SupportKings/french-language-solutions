@@ -29,11 +29,11 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Progress Tracking",
 		description: "Track student progress and performance",
 	},
-	"/admin/classes": {
-		title: "All Classes",
+	"/admin/cohorts": {
+		title: "All Cohorts",
 		description: "Manage cohorts and their weekly sessions",
 	},
-	"/admin/classes/products": {
+	"/admin/cohorts/products": {
 		title: "Products & Pricing",
 		description: "Manage products and pricing",
 	},
