@@ -23,7 +23,6 @@ import {
 	admin as adminPlugin,
 	createAuthMiddleware,
 	emailOTP,
-
 } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { Pool } from "pg";
@@ -36,23 +35,21 @@ export const auth = betterAuth({
 		additionalFields: {
 			bio: {
 				type: "string",
-
 			},
 			calendar_link: {
-				type: "string", 
-
+				type: "string",
 			},
 		},
 	},
 	session: {
 		cookieCache: {
-		  enabled: true,
-		  maxAge: 5 * 60, // Cache duration in seconds
+			enabled: true,
+			maxAge: 5 * 60, // Cache duration in seconds
 		},
-	  },
+	},
 	//needs for consistent ip tracking for sessions
 	trustedOrigins: [
-		"http://localhost:3000", 
+		"http://localhost:3000",
 		"http://localhost:3001",
 		"https://frenchlanguagesolutions.vercel.app/",
 		process.env.NEXT_PUBLIC_VERCEL_URL,
@@ -61,7 +58,6 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		disableSignUp: true,
-
 	},
 	hooks: {
 		after: createAuthMiddleware(async (ctx) => {
@@ -79,7 +75,7 @@ export const auth = betterAuth({
 		}),
 	},
 	plugins: [
-		passkey(), 
+		passkey(),
 
 		adminPlugin({
 			ac,

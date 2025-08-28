@@ -1,0 +1,1 @@
+ALTER TABLE "attendance_records" ADD COLUMN "homework_completed" boolean DEFAULT false;

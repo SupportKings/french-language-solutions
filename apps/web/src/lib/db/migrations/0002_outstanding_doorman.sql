@@ -1,0 +1,2 @@
+ALTER TABLE "cohorts" ADD COLUMN "teacher_id" uuid;--> statement-breakpoint
+ALTER TABLE "cohorts" ADD CONSTRAINT "cohorts_teacher_id_teachers_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teachers"("id") ON DELETE no action ON UPDATE no action;
