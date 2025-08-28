@@ -6,40 +6,47 @@ import { useQueryState } from "nuqs";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { 
-	User,
-	Calendar,
-	Clock,
-	Play,
-	Pause,
-	CheckCircle,
-	XCircle,
-	MessageSquare,
+	User, 
+	Calendar, 
 	Mail,
 	Phone,
+	MapPin,
+	Clock,
+	CheckCircle,
+	XCircle,
+	Eye,
 	ArrowLeft,
+	UserCircle,
 	Activity,
-	Send
+	Send,
+	MessageSquare
 } from "lucide-react";
 import Link from "next/link";
 
-const statusOptions = [
-	{ value: "activated", label: "Activated" },
-	{ value: "in_progress", label: "In Progress" },
-	{ value: "completed", label: "Completed" },
-	{ value: "stopped", label: "Stopped" }
-];
-
 const statusColors = {
 	activated: "info",
-	in_progress: "warning", 
+	in_progress: "warning",
 	completed: "success",
-	stopped: "destructive"
-} as const;
+	stopped: "destructive",
+};
+
+const statusLabels = {
+	activated: "Activated",
+	in_progress: "In Progress",
+	completed: "Completed",
+	stopped: "Stopped",
+};
+
+const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
+	value,
+	label,
+}));
 
 interface FollowUpDetailsClientProps {
 	followUp: any;
@@ -54,8 +61,17 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 		defaultValue: "/admin/automation/automated-follow-ups"
 	});
 
+	// Get student initials for avatar
+	const studentInitials = followUp.student?.full_name
+		?.split(' ')
+		.map((n: string) => n[0])
+		.join('')
+		.toUpperCase()
+		.slice(0, 2) || 'FU';
+
 	const handleUpdate = async (field: string, value: any) => {
 		try {
+			// Convert field names to API format
 			const apiField = field.includes('_') ? field : 
 				field.replace(/([A-Z])/g, '_$1').toLowerCase();
 
@@ -77,13 +93,6 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 		}
 	};
 
-	const studentInitials = followUp.student?.full_name
-		?.split(' ')
-		.map((n: string) => n[0])
-		.join('')
-		.toUpperCase()
-		.slice(0, 2) || 'FU';
-
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
 			<div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -98,6 +107,7 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 					
 					<div className="flex items-start justify-between">
 						<div className="flex items-start gap-4">
+							{/* Student Avatar */}
 							<div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
 								<span className="text-xl font-semibold text-primary">
 									{studentInitials}
@@ -107,23 +117,26 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 							<div className="space-y-1">
 								<div className="flex items-center gap-3">
 									<h1 className="text-3xl font-bold tracking-tight">
-										{followUp.sequence?.display_name || 'Follow-up'}
+										{followUp.student?.full_name || 'Follow-up Details'}
 									</h1>
-									<Badge variant={statusColors[followUp.status as keyof typeof statusColors] as any} className="px-3 py-1">
-										{followUp.status?.charAt(0).toUpperCase() + followUp.status?.slice(1)}
+									<Badge variant={(statusColors as any)[followUp.status] || "default"} className="px-3 py-1">
+										{(statusLabels as any)[followUp.status] || followUp.status}
 									</Badge>
 								</div>
 								<p className="text-muted-foreground">
-									For {followUp.student?.full_name || 'Unknown Student'} • 
-									{' '}{followUp.started_at ? format(new Date(followUp.started_at), "MMM d, yyyy") : 'Not started'}
+									Sequence: {followUp.sequence?.display_name || 'Unknown'} • 
+									{' '}{followUp.started_at ? 
+										`Started ${format(new Date(followUp.started_at), "MMM d, yyyy")}` : 
+										'Not started'}
 								</p>
 							</div>
 						</div>
 
+						{/* Actions */}
 						<div className="flex items-center gap-2">
 							<Link href={`/admin/students/${followUp.student_id}`}>
 								<Button variant="outline" size="sm">
-									<User className="mr-2 h-4 w-4" />
+									<Eye className="mr-2 h-4 w-4" />
 									View Student
 								</Button>
 							</Link>
@@ -139,8 +152,8 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 								<div className="space-y-1">
 									<p className="text-xs text-muted-foreground">Status</p>
-									<Badge variant={statusColors[followUp.status as keyof typeof statusColors] as any}>
-										{followUp.status?.charAt(0).toUpperCase() + followUp.status?.slice(1)}
+									<Badge variant={(statusColors as any)[followUp.status] || "default"}>
+										{(statusLabels as any)[followUp.status] || followUp.status}
 									</Badge>
 								</div>
 								<div className="space-y-1">
@@ -175,7 +188,7 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 									<div className="grid gap-8 lg:grid-cols-2">
 										<div className="space-y-4">
 											<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-												Status & Timeline
+												Follow-up Details
 											</h3>
 											<div className="space-y-3">
 												<div className="flex items-start gap-3">
@@ -191,8 +204,8 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 																options={statusOptions}
 															/>
 														) : (
-															<Badge variant={statusColors[followUp.status as keyof typeof statusColors] as any} className="mt-1">
-																{followUp.status?.charAt(0).toUpperCase() + followUp.status?.slice(1)}
+															<Badge variant={(statusColors as any)[followUp.status] || "default"} className="mt-1">
+																{(statusLabels as any)[followUp.status] || followUp.status}
 															</Badge>
 														)}
 													</div>
@@ -205,7 +218,7 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 														{editing ? (
 															<InlineEditField
 																value={followUp.started_at ? new Date(followUp.started_at).toISOString().slice(0, 16) : ""}
-																onSave={(value) => handleUpdate("startedAt", value ? new Date(value).toISOString() : null)}
+																onSave={(value) => handleUpdate("started_at", value ? new Date(value).toISOString() : null)}
 																editing={editing}
 																type="text"
 																placeholder="YYYY-MM-DDTHH:MM"
@@ -257,49 +270,70 @@ export function FollowUpDetailsClient({ followUp: initialFollowUp }: FollowUpDet
 								)}
 							</EditableSection>
 
-							{/* Student Information */}
-							<Card className="border-border/50">
-								<CardHeader className="pb-3">
-									<CardTitle className="text-base">Student Information</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<div className="grid gap-6 lg:grid-cols-2">
-										<div className="space-y-3">
-											<div className="flex items-start gap-3">
-												<User className="h-4 w-4 text-muted-foreground mt-0.5" />
-												<div className="flex-1 space-y-0.5">
-													<p className="text-xs text-muted-foreground">Full Name:</p>
-													<p className="text-sm font-medium">
-														{followUp.student?.full_name || 'Unknown Student'}
-													</p>
-												</div>
-											</div>
-											
-											<div className="flex items-start gap-3">
-												<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-												<div className="flex-1 space-y-0.5">
-													<p className="text-xs text-muted-foreground">Email:</p>
-													<p className="text-sm font-medium">
-														{followUp.student?.email || "Not provided"}
-													</p>
-												</div>
-											</div>
-										</div>
+							{/* Tabs for Student Information */}
+							<div className="mt-6">
+								<Tabs defaultValue="student" className="w-full">
+									<TabsList className="grid grid-cols-1 w-[150px]">
+										<TabsTrigger value="student" className="flex items-center gap-2">
+											<UserCircle className="h-3.5 w-3.5" />
+											Student Info
+										</TabsTrigger>
+									</TabsList>
 
-										<div className="space-y-3">
-											<div className="flex items-start gap-3">
-												<Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
-												<div className="flex-1 space-y-0.5">
-													<p className="text-xs text-muted-foreground">Phone:</p>
-													<p className="text-sm font-medium">
-														{followUp.student?.mobile_phone_number || "Not provided"}
-													</p>
+									{/* Student Information Tab */}
+									<TabsContent value="student" className="mt-4">
+										<Card className="border-border/50">
+											<CardHeader className="pb-3">
+												<CardTitle className="text-base">Student Information</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<div className="grid gap-6 lg:grid-cols-2">
+													<div className="space-y-3">
+														<div className="flex items-start gap-3">
+															<User className="h-4 w-4 text-muted-foreground mt-0.5" />
+															<div className="flex-1 space-y-0.5">
+																<p className="text-xs text-muted-foreground">Full Name:</p>
+																<div className="flex items-center gap-2">
+																	<p className="text-sm font-medium">
+																		{followUp.student?.full_name}
+																	</p>
+																	<Link href={`/admin/students/${followUp.student_id}`}>
+																		<Button variant="ghost" size="sm" className="h-6 px-2">
+																			<Eye className="h-3 w-3" />
+																		</Button>
+																	</Link>
+																</div>
+															</div>
+														</div>
+														
+														<div className="flex items-start gap-3">
+															<Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+															<div className="flex-1 space-y-0.5">
+																<p className="text-xs text-muted-foreground">Email:</p>
+																<p className="text-sm font-medium">
+																	{followUp.student?.email || "Not provided"}
+																</p>
+															</div>
+														</div>
+													</div>
+
+													<div className="space-y-3">
+														<div className="flex items-start gap-3">
+															<Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+															<div className="flex-1 space-y-0.5">
+																<p className="text-xs text-muted-foreground">Phone:</p>
+																<p className="text-sm font-medium">
+																	{followUp.student?.mobile_phone_number || "Not provided"}
+																</p>
+															</div>
+														</div>
+													</div>
 												</div>
-											</div>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+											</CardContent>
+										</Card>
+									</TabsContent>
+								</Tabs>
+							</div>
 
 							{/* System Information */}
 							<Card className="border-border/50 bg-muted/10">

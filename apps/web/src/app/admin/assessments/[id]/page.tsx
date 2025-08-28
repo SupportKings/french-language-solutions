@@ -8,15 +8,15 @@ interface PageProps {
 
 async function getAssessment(id: string) {
 	// For server-side fetching in Next.js App Router, we need to construct the full URL
-	// Using localhost for internal API calls
-	const baseUrl = process.env.NODE_ENV === 'production' 
-		? `https://${process.env.VERCEL_URL || 'localhost:3001'}`
-		: 'http://localhost:3001';
+	const baseUrl = `https://${process.env.NEXT_PUBLIC_APP_URL}`;
 	
 	const response = await fetch(
 		`${baseUrl}/api/assessments/${id}`,
 		{
 			cache: "no-store",
+			headers: {
+				'Content-Type': 'application/json',
+			},
 		}
 	);
 
@@ -24,6 +24,7 @@ async function getAssessment(id: string) {
 		if (response.status === 404) {
 			return null;
 		}
+		console.error(`Failed to fetch assessment ${id}: ${response.status} ${response.statusText}`);
 		throw new Error("Failed to fetch assessment");
 	}
 
