@@ -522,8 +522,6 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 							title="Weekly Sessions"
 							description="Regular weekly class schedule"
 							icon={Clock}
-							collapsible
-							defaultExpanded={showSessions}
 						>
 							<div className="space-y-4">
 								{(form.watch("weekly_sessions") || []).map((session, index) => (
@@ -665,25 +663,21 @@ export function CohortFormNew({ cohort, onSuccess }: CohortFormNewProps) {
 					</div>
 				</FormContent>
 				
-				<FormActions>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={handleCancel}
-						disabled={isLoading}
-					>
-						Cancel
-					</Button>
-					<Button type="submit" disabled={isLoading}>
-						{isLoading
+				<FormActions
+					primaryLabel={
+						isLoading
 							? isEditMode
 								? "Updating..."
 								: "Creating..."
 							: isEditMode
 								? "Update Cohort"
-								: "Create Cohort"}
-					</Button>
-				</FormActions>
+								: "Create Cohort"
+					}
+					primaryLoading={isLoading}
+					primaryType="submit"
+					secondaryLabel="Cancel"
+					onSecondaryClick={handleCancel}
+				/>
 			</form>
 		</FormLayout>
 	);

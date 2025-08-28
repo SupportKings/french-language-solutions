@@ -11,7 +11,10 @@ const getBaseUrl = () => {
 		return "";
 	}
 	// SSR should use absolute URL
-	return process.env.VERCEL_URL || "http://localhost:3001";
+	if (process.env.VERCEL_URL) {
+		return `https://${process.env.VERCEL_URL}`;
+	}
+	return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 };
 
 export interface PaginatedResponse<T> {
