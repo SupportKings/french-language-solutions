@@ -1,5 +1,5 @@
-import { CohortForm } from "@/features/cohorts/components/CohortForm";
+import { CohortFormNew } from "@/features/cohorts/components/CohortFormNew";
 
 export default function NewCohortPage() {
-	return <CohortForm />;
+	return <CohortFormNew />;
 }
