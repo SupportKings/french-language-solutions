@@ -111,8 +111,8 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 			);
 		} else {
 			createClass.mutate(data, {
-				onSuccess: () => {
-					router.push("/admin/cohorts");
+				onSuccess: (createdClass) => {
+					router.push(`/admin/cohorts/${createdClass.cohort_id}`);
 				},
 			});
 		}

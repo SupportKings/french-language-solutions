@@ -152,6 +152,7 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 												<Link
 													href={`/admin/cohorts/${enrollment.cohort_id}`}
 													className="block truncate font-medium text-sm transition-colors hover:text-primary hover:underline"
+													onClick={(e: React.MouseEvent) => e.stopPropagation()}
 												>
 													{enrollment.cohorts?.products?.format
 														? `${enrollment.cohorts.products.format.charAt(0).toUpperCase() + enrollment.cohorts.products.format.slice(1)} Cohort`

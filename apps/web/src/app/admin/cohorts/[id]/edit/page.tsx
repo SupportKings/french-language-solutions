@@ -47,14 +47,14 @@ export default async function EditClassPage({
 						className="inline-flex items-center text-muted-foreground text-sm transition-colors hover:text-foreground"
 					>
 						<ChevronLeft className="mr-1 h-4 w-4" />
-						Back to Class Details
+						Back to Cohort Details
 					</Link>
 				</div>
 
 				<div>
-					<h1 className="font-bold text-2xl tracking-tight">Edit Class</h1>
+					<h1 className="font-bold text-2xl tracking-tight">Edit Cohort</h1>
 					<p className="text-muted-foreground">
-						Update class information and schedule
+						Update cohort information and schedule
 					</p>
 				</div>
 

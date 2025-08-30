@@ -561,7 +561,7 @@ export function CohortDetailPageClient({
 						The cohort you're looking for doesn't exist or couldn't be loaded.
 					</p>
 					<Button onClick={() => router.push("/admin/cohorts")}>
-						Back to Classes
+						Back to Cohorts
 					</Button>
 				</div>
 			</div>

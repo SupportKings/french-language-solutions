@@ -9,7 +9,7 @@ interface PageProps {
 
 async function getAssessment(id: string) {
 	// For server-side fetching in Next.js App Router, we need to construct the full URL
-	const baseUrl = `https://${process.env.VERCEL_URL}`;
+	const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3001";
 
 	const response = await fetch(`${baseUrl}/api/assessments/${id}`, {
 		cache: "no-store",
