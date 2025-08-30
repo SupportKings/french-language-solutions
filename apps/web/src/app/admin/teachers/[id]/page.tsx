@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 
 import TeacherDetailsClient from "./page-client";
+import { getApiUrl } from "@/lib/api-utils";
 
 async function getTeacher(id: string) {
-	const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/teachers/${id}`, {
+	const response = await fetch(getApiUrl(`/api/teachers/${id}`), {
 		cache: "no-store",
 	});
 

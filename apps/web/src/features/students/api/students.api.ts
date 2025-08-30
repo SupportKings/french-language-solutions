@@ -15,6 +15,17 @@ export interface PaginatedResponse<T> {
 	};
 }
 
+// Helper to get the correct base URL for API calls
+function getApiUrl(path: string): string {
+	if (typeof window === "undefined") {
+		// Server-side: use absolute URL
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:3001`;
+		return `${baseUrl}${path}`;
+	}
+	// Client-side: use relative URL
+	return path;
+}
+
 export const studentsApi = {
 	// List students with pagination and filters
 	async list(params: StudentQuery): Promise<PaginatedResponse<Student>> {
@@ -30,7 +41,7 @@ export const studentsApi = {
 			}
 		});
 
-		const response = await fetch(`/api/students?${searchParams}`, {
+		const response = await fetch(getApiUrl(`/api/students?${searchParams}`), {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -46,7 +57,7 @@ export const studentsApi = {
 
 	// Get single student
 	async getById(id: string): Promise<Student> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -62,7 +73,7 @@ export const studentsApi = {
 
 	// Create student
 	async create(data: CreateStudent): Promise<Student> {
-		const response = await fetch("/api/students", {
+		const response = await fetch(getApiUrl("/api/students"), {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -79,7 +90,7 @@ export const studentsApi = {
 
 	// Update student
 	async update(id: string, data: UpdateStudent): Promise<Student> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -96,7 +107,7 @@ export const studentsApi = {
 
 	// Delete student
 	async delete(id: string): Promise<void> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",

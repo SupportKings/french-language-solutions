@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
+import { getApiUrl } from "@/lib/api-utils";
 
 async function getEnrollment(id: string) {
-	const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/enrollments/${id}`, {
+	const response = await fetch(getApiUrl(`/api/enrollments/${id}`), {
 		cache: "no-store",
 	});
 

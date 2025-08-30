@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { AssessmentForm } from "@/features/assessments/components/AssessmentForm";
+import { getApiUrl } from "@/lib/api-utils";
 
 async function getAssessment(id: string) {
-	const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/assessments/${id}`, {
+	const response = await fetch(getApiUrl(`/api/assessments/${id}`), {
 		cache: "no-store",
 	});
 
