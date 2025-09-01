@@ -222,8 +222,8 @@ export function AttendanceSection({ cohortId }: AttendanceSectionProps) {
 				student_id: enrollment.student_id,
 				cohort_id: cohortId,
 				class_id: selectedClassId,
-				attendance_date: selectedClass.start_time.split("T")[0], // Extract date from start_time
 				status: "unset",
+				homework_completed: false,
 			}));
 
 			const response = await fetch("/api/attendance/bulk", {

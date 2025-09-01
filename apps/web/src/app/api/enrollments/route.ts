@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 		let query = supabase.from("enrollments").select(
 			`
 				*,
-				students!inner(id, full_name, email),
+				students!inner(id, full_name, email, mobile_phone_number),
 				cohorts!inner(
 					id, 
 					title,

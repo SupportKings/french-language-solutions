@@ -22,7 +22,8 @@ export async function GET(
 				classes(
 					id,
 					start_time,
-					end_time
+					end_time,
+					status
 				),
 				teachers(
 					id,
@@ -31,7 +32,7 @@ export async function GET(
 				)
 			`)
 			.eq("cohort_id", id)
-			.order("attendance_date", { ascending: false });
+			.order("created_at", { ascending: false });
 
 		if (error) {
 			console.error("Error fetching attendance records:", error);
@@ -47,7 +48,8 @@ export async function GET(
 			studentId: record.student_id,
 			cohortId: record.cohort_id,
 			classId: record.class_id,
-			attendanceDate: record.attendance_date,
+			// Use the date from the class's start_time
+			attendanceDate: record.classes?.start_time ? record.classes.start_time.split('T')[0] : null,
 			status: record.status,
 			notes: record.notes,
 			markedBy: record.marked_by,
@@ -66,6 +68,7 @@ export async function GET(
 						id: record.classes.id,
 						start_time: record.classes.start_time,
 						end_time: record.classes.end_time,
+						status: record.classes.status,
 					}
 				: undefined,
 			teacher: record.teachers

@@ -26,9 +26,24 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 
-import { AttendanceSection } from "@/features/attendance/components/AttendanceSection";
+import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance";
 import { ClassDetailsModal } from "@/features/classes/components/ClassDetailsModal";
 import { WeeklySessionModal } from "@/features/cohorts/components/WeeklySessionModal";
 import {
@@ -44,6 +59,7 @@ import {
 	BookOpen,
 	Calendar,
 	CheckCircle2,
+	ChevronLeft,
 	ChevronRight,
 	Clock,
 	Edit2,
@@ -57,6 +73,7 @@ import {
 	Phone,
 	Plus,
 	School,
+	Search,
 	Trash2,
 	UserPlus,
 	Users,
@@ -83,20 +100,6 @@ const roomTypeOptions = [
 	{ value: "large", label: "Large" },
 ];
 
-// Language level options
-const levelOptions = [
-	{ value: "a1", label: "A1" },
-	{ value: "a1_plus", label: "A1+" },
-	{ value: "a2", label: "A2" },
-	{ value: "a2_plus", label: "A2+" },
-	{ value: "b1", label: "B1" },
-	{ value: "b1_plus", label: "B1+" },
-	{ value: "b2", label: "B2" },
-	{ value: "b2_plus", label: "B2+" },
-	{ value: "c1", label: "C1" },
-	{ value: "c1_plus", label: "C1+" },
-	{ value: "c2", label: "C2" },
-];
 
 // Status badge variant mapping
 const getStatusVariant = (status: CohortStatus) => {
@@ -113,9 +116,20 @@ const getStatusVariant = (status: CohortStatus) => {
 };
 
 // Format level for display
-const formatLevel = (level: string | null) => {
-	if (!level) return "Not set";
-	return level.replace("_", "+").toUpperCase();
+const formatLevel = (levelId: string | null | undefined, levels: any[] = []) => {
+	if (!levelId) return "Not set";
+	
+	// Try to find the level in the fetched language levels
+	if (levels && levels.length > 0) {
+		const level = levels.find(l => l.id === levelId);
+		if (level) {
+			return level.display_name || level.code || levelId;
+		}
+	}
+	
+	// If levels haven't loaded yet or level not found, show the ID nicely formatted
+	// This prevents showing "Not set" when the level is actually set
+	return levelId;
 };
 
 // Format status for display
@@ -160,11 +174,26 @@ export function CohortDetailPageClient({
 	const [loadingClasses, setLoadingClasses] = useState(false);
 	const [selectedClass, setSelectedClass] = useState<any>(null);
 	const [classModalOpen, setClassModalOpen] = useState(false);
+	const [attendanceClassId, setAttendanceClassId] = useState<string | undefined>(undefined);
+	const [activeTab, setActiveTab] = useState("enrollments");
+	
+	// Pagination and filtering state for enrollments
+	const [enrollmentPage, setEnrollmentPage] = useState(1);
+	const enrollmentsPerPage = 10;
+	const [studentSearch, setStudentSearch] = useState("");
+	const [statusFilter, setStatusFilter] = useState<string>("all");
+	
+	// Language levels from database
+	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
+	
+	// Local state for edited values
+	const [editedCohort, setEditedCohort] = useState<any>(null);
 
 	// Update the cohort when data changes
 	useEffect(() => {
 		if (cohortData) {
 			setCohort(cohortData);
+			setEditedCohort(cohortData); // Initialize edited state
 		}
 	}, [cohortData]);
 
@@ -231,22 +260,99 @@ export function CohortDetailPageClient({
 		fetchClasses();
 	}, [cohortId]);
 
-	// Update cohort field
-	const updateCohortField = async (field: string, value: any) => {
+	// Fetch language levels
+	useEffect(() => {
+		async function fetchLanguageLevels() {
+			try {
+				const response = await fetch("/api/language-levels");
+				if (response.ok) {
+					const result = await response.json();
+					// The API returns { data: [...], meta: {...} }
+					setLanguageLevels(result.data || []);
+				}
+			} catch (error) {
+				console.error("Error fetching language levels:", error);
+				setLanguageLevels([]); // Ensure it's always an array
+			}
+		}
+		fetchLanguageLevels();
+	}, []);
+
+	// Update edited cohort field locally
+	const updateEditedField = async (field: string, value: any) => {
+		// Handle nested fields like products.format
+		if (field === 'format') {
+			setEditedCohort({
+				...editedCohort,
+				products: {
+					...editedCohort?.products,
+					format: value
+				}
+			});
+		} else {
+			setEditedCohort({
+				...editedCohort,
+				[field]: value
+			});
+		}
+		// Return a resolved promise to match the expected type
+		return Promise.resolve();
+	};
+
+	// Save all changes to the API
+	const saveAllChanges = async () => {
 		try {
+			// Collect all changes
+			const changes: any = {};
+			
+			// Check for changes in basic fields
+			if (editedCohort.cohort_status !== cohort.cohort_status) {
+				changes.cohort_status = editedCohort.cohort_status;
+			}
+			if (editedCohort.start_date !== cohort.start_date) {
+				changes.start_date = editedCohort.start_date;
+			}
+			if (editedCohort.max_students !== cohort.max_students) {
+				changes.max_students = editedCohort.max_students;
+			}
+			if (editedCohort.starting_level_id !== cohort.starting_level_id) {
+				changes.starting_level_id = editedCohort.starting_level_id;
+			}
+			if (editedCohort.current_level_id !== cohort.current_level_id) {
+				changes.current_level_id = editedCohort.current_level_id;
+			}
+			if (editedCohort.room_type !== cohort.room_type) {
+				changes.room_type = editedCohort.room_type;
+			}
+			if (editedCohort.products?.format !== cohort.products?.format) {
+				changes.format = editedCohort.products?.format;
+			}
+			if (editedCohort.meeting_url !== cohort.meeting_url) {
+				changes.meeting_url = editedCohort.meeting_url;
+			}
+			if (editedCohort.folder_url !== cohort.folder_url) {
+				changes.folder_url = editedCohort.folder_url;
+			}
+			
+			// If no changes, return early
+			if (Object.keys(changes).length === 0) {
+				return;
+			}
+			
 			const response = await fetch(`/api/cohorts/${cohortId}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value }),
+				body: JSON.stringify(changes),
 			});
 
 			if (!response.ok) throw new Error("Failed to update");
 
 			const updated = await response.json();
 			setCohort(updated);
-			toast.success("Updated successfully");
+			setEditedCohort(updated);
+			toast.success("Changes saved successfully");
 		} catch (error) {
-			toast.error("Failed to update");
+			toast.error("Failed to save changes");
 			throw error;
 		}
 	};
@@ -255,7 +361,7 @@ export function CohortDetailPageClient({
 	const navigateToCreateEnrollment = () => {
 		const params = new URLSearchParams({
 			cohortId: cohortId,
-			cohortName: `${cohort?.format} - ${formatLevel(cohort?.starting_level)}`,
+			cohortName: `${cohort?.format} - ${formatLevel(cohort?.starting_level, languageLevels)}`,
 			redirectTo: `/admin/cohorts/${cohortId}`,
 		});
 		router.push(`/admin/students/enrollments/new?${params.toString()}`);
@@ -265,7 +371,7 @@ export function CohortDetailPageClient({
 	const navigateToCreateClass = () => {
 		const params = new URLSearchParams({
 			cohortId: cohortId,
-			cohortName: `${cohort?.format} - ${formatLevel(cohort?.starting_level)}`,
+			cohortName: `${cohort?.format} - ${formatLevel(cohort?.starting_level, languageLevels)}`,
 		});
 		router.push(`/admin/cohorts/new?${params.toString()}`);
 	};
@@ -357,6 +463,12 @@ export function CohortDetailPageClient({
 	const handleClassClick = (classItem: any) => {
 		setSelectedClass(classItem);
 		setClassModalOpen(true);
+	};
+	
+	// Handle view attendance for a class
+	const handleViewAttendance = (classId: string) => {
+		setAttendanceClassId(classId);
+		setActiveTab("attendance");
 	};
 
 	// Handle class update from modal
@@ -574,10 +686,10 @@ export function CohortDetailPageClient({
 	}
 
 	// Get initials for avatar
-	const format = cohort.products?.format || "group";
-	const initials = format === "group" ? "GC" : "PC";
+	const cohortFormat = cohort.products?.format || "group";
+	const initials = cohortFormat === "group" ? "GC" : "PC";
 	const cohortName = `${
-		format.charAt(0).toUpperCase() + format.slice(1)
+		cohortFormat.charAt(0).toUpperCase() + cohortFormat.slice(1)
 	} Cohort`;
 	const sessionCount = cohortWithSessions?.weekly_sessions?.length || 0;
 	const studentCount = enrolledStudents.length;
@@ -614,8 +726,8 @@ export function CohortDetailPageClient({
 										{formatStatus(cohort.cohort_status)}
 									</Badge>
 									<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-										{formatLevel(cohort.starting_level)} →{" "}
-										{formatLevel(cohort.current_level || cohort.starting_level)}
+										{formatLevel(cohort.starting_level_id, languageLevels)} →{" "}
+										{formatLevel(cohort.current_level_id || cohort.starting_level_id, languageLevels)}
 									</Badge>
 									{cohort.room_type && (
 										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
@@ -671,7 +783,18 @@ export function CohortDetailPageClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Cohort Information with inline editing */}
-				<EditableSection title="Cohort Information">
+				<EditableSection 
+					title="Cohort Information"
+					onEditStart={() => {
+						// Reset to current values when starting to edit
+						setEditedCohort(cohort);
+					}}
+					onSave={saveAllChanges}
+					onCancel={() => {
+						// Reset to original values when canceling
+						setEditedCohort(cohort);
+					}}
+				>
 					{(editing) => (
 						<div className="grid gap-8 lg:grid-cols-3">
 							{/* Basic Details */}
@@ -686,8 +809,8 @@ export function CohortDetailPageClient({
 											<p className="text-muted-foreground text-xs">Format:</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.products?.format || "N/A"}
-													onSave={(value) => updateCohortField("format", value)}
+													value={editedCohort?.products?.format || "N/A"}
+													onSave={(value) => updateEditedField("format", value)}
 													editing={editing}
 													type="select"
 													options={[
@@ -712,9 +835,9 @@ export function CohortDetailPageClient({
 											<p className="text-muted-foreground text-xs">Status:</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.cohort_status}
+													value={editedCohort?.cohort_status}
 													onSave={(value) =>
-														updateCohortField("cohort_status", value)
+														updateEditedField("cohort_status", value)
 													}
 													editing={editing}
 													type="select"
@@ -738,9 +861,9 @@ export function CohortDetailPageClient({
 												Start Date:
 											</p>
 											<InlineEditField
-												value={cohort.start_date || ""}
+												value={editedCohort?.start_date || ""}
 												onSave={(value) =>
-													updateCohortField("start_date", value || null)
+													updateEditedField("start_date", value || null)
 												}
 												editing={editing}
 												type="date"
@@ -757,9 +880,9 @@ export function CohortDetailPageClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.max_students || 10}
+													value={editedCohort?.max_students || 10}
 													onSave={(value) =>
-														updateCohortField(
+														updateEditedField(
 															"max_students",
 															Number.parseInt(value) || 10,
 														)
@@ -792,17 +915,20 @@ export function CohortDetailPageClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.starting_level || ""}
+													value={editedCohort?.starting_level_id || ""}
 													onSave={(value) =>
-														updateCohortField("starting_level", value || null)
+														updateEditedField("starting_level_id", value || null)
 													}
 													editing={editing}
 													type="select"
-													options={levelOptions}
+													options={(Array.isArray(languageLevels) ? languageLevels : []).map(level => ({
+														value: level.id,
+														label: level.display_name || level.code || level.id
+													}))}
 												/>
 											) : (
 												<Badge variant="outline" className="h-5 text-xs">
-													{formatLevel(cohort.starting_level)}
+													{formatLevel(cohort.starting_level_id, languageLevels)}
 												</Badge>
 											)}
 										</div>
@@ -816,18 +942,22 @@ export function CohortDetailPageClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.current_level || ""}
+													value={editedCohort?.current_level_id || ""}
 													onSave={(value) =>
-														updateCohortField("current_level", value || null)
+														updateEditedField("current_level_id", value || null)
 													}
 													editing={editing}
 													type="select"
-													options={levelOptions}
+													options={(Array.isArray(languageLevels) ? languageLevels : []).map(level => ({
+														value: level.id,
+														label: level.display_name || level.code || level.id
+													}))}
 												/>
 											) : (
 												<Badge variant="outline" className="h-5 text-xs">
 													{formatLevel(
-														cohort.current_level || cohort.starting_level,
+														cohort.current_level_id || cohort.starting_level_id,
+														languageLevels
 													)}
 												</Badge>
 											)}
@@ -842,9 +972,9 @@ export function CohortDetailPageClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.room_type || ""}
+													value={editedCohort?.room_type || ""}
 													onSave={(value) =>
-														updateCohortField("room_type", value || null)
+														updateEditedField("room_type", value || null)
 													}
 													editing={editing}
 													type="select"
@@ -894,9 +1024,9 @@ export function CohortDetailPageClient({
 											<p className="text-muted-foreground text-xs">Product:</p>
 											{editing ? (
 												<InlineEditField
-													value={cohort.product_id || ""}
+													value={editedCohort?.product_id || ""}
 													onSave={(value) =>
-														updateCohortField("product_id", value || null)
+														updateEditedField("product_id", value || null)
 													}
 													editing={editing}
 													type="select"
@@ -921,33 +1051,164 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
-
-									{cohort.products?.signup_link_for_self_checkout && (
-										<div className="flex items-start gap-3">
-											<LinkIcon className="mt-0.5 h-4 w-4 text-muted-foreground" />
-											<div className="flex-1 space-y-0.5">
-												<p className="text-muted-foreground text-xs">
-													Signup Link:
-												</p>
-												<a
-													href={cohort.products.signup_link_for_self_checkout}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="text-primary text-sm hover:underline"
-												>
-													View Signup Page
-												</a>
-											</div>
-										</div>
-									)}
 								</div>
 							</div>
 						</div>
 					)}
 				</EditableSection>
 
+				{/* Weekly Schedule Section */}
+				<div className="rounded-lg border bg-card">
+					<div className="border-b p-4">
+						<div className="flex items-center justify-between">
+							<h2 className="font-semibold text-lg">Weekly Schedule</h2>
+							{sessionCount > 0 && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={navigateToAddSession}
+								>
+									<Plus className="mr-2 h-4 w-4" />
+									Add Session
+								</Button>
+							)}
+						</div>
+					</div>
+					<div className="p-4">
+						{sessionCount === 0 ? (
+							<div className="rounded-lg bg-muted/30 py-8 text-center">
+								<Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+								<p className="mb-4 text-muted-foreground">
+									No weekly sessions scheduled
+								</p>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={navigateToAddSession}
+								>
+									<Plus className="mr-2 h-4 w-4" />
+									Add First Session
+								</Button>
+							</div>
+						) : (
+							<div className="grid gap-2 lg:grid-cols-2">
+								{cohortWithSessions?.weekly_sessions?.map(
+									(session: any) => (
+										<div
+											key={session.id}
+											className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
+											onClick={() => handleEditSession(session)}
+										>
+											{/* Day and Time Header */}
+											<div className="flex items-center justify-between border-b bg-muted/30 p-3">
+												<div className="flex items-center gap-2">
+													<Calendar className="h-4 w-4 text-primary" />
+													<span className="font-medium text-sm">
+														{session.day_of_week.charAt(0).toUpperCase() +
+															session.day_of_week.slice(1)}
+													</span>
+												</div>
+												<div className="flex items-center gap-2">
+													<Clock className="h-3.5 w-3.5 text-muted-foreground" />
+													<span className="font-mono text-sm">
+														{formatTime(session.start_time)} -{" "}
+														{formatTime(session.end_time)}
+													</span>
+												</div>
+											</div>
+
+											{/* Content */}
+											<div className="space-y-2 p-3">
+												{/* Teacher Info */}
+												{session.teachers && (
+													<div className="flex items-center justify-between">
+														<div className="flex items-center gap-2">
+															<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+																<Users className="h-4 w-4 text-primary" />
+															</div>
+															<div>
+																<Link
+																	href={`/admin/teachers/${session.teacher_id}`}
+																	className="cursor-pointer font-medium text-sm transition-colors hover:text-primary hover:underline"
+																>
+																	{session.teachers.first_name}{" "}
+																	{session.teachers.last_name}
+																</Link>
+																<p className="text-muted-foreground text-xs">
+																	Teacher
+																</p>
+															</div>
+														</div>
+
+														{/* Duration Badge */}
+														<Badge variant="secondary" className="text-xs">
+															{(() => {
+																const start = session.start_time.split(":");
+																const end = session.end_time.split(":");
+																const startMinutes =
+																	Number.parseInt(start[0]) * 60 +
+																	Number.parseInt(start[1]);
+																const endMinutes =
+																	Number.parseInt(end[0]) * 60 +
+																	Number.parseInt(end[1]);
+																const duration = endMinutes - startMinutes;
+																const hours = Math.floor(duration / 60);
+																const minutes = duration % 60;
+																return hours > 0
+																	? `${hours}h${
+																			minutes > 0 ? ` ${minutes}m` : ""
+																		}`
+																	: `${minutes}m`;
+															})()}
+														</Badge>
+													</div>
+												)}
+
+												{/* Bottom Status Row */}
+												<div className="flex items-center justify-between pt-1">
+													<div className="flex items-center gap-1.5">
+														{session.teachers
+															?.available_for_online_classes && (
+															<Badge
+																variant="outline"
+																className="h-5 px-1.5 text-xs"
+															>
+																<span className="mr-1 h-1.5 w-1.5 rounded-full bg-green-500" />
+																Online
+															</Badge>
+														)}
+														{session.teachers
+															?.available_for_in_person_classes && (
+															<Badge
+																variant="outline"
+																className="h-5 px-1.5 text-xs"
+															>
+																<MapPin className="mr-0.5 h-3 w-3" />
+																In-Person
+															</Badge>
+														)}
+													</div>
+													{session.google_calendar_event_id && (
+														<Badge
+															variant="default"
+															className="h-5 px-1.5 text-xs"
+														>
+															<Calendar className="mr-0.5 h-3 w-3" />
+															Synced
+														</Badge>
+													)}
+												</div>
+											</div>
+										</div>
+									),
+								)}
+							</div>
+						)}
+					</div>
+				</div>
+
 				{/* Tabs Section */}
-				<Tabs defaultValue="enrollments" className="space-y-4">
+				<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
 					<TabsList className="grid w-full grid-cols-3">
 						<TabsTrigger value="enrollments">Enrollments</TabsTrigger>
 						<TabsTrigger value="classes">Classes</TabsTrigger>
@@ -966,6 +1227,14 @@ export function CohortDetailPageClient({
 										</span>
 									)}
 								</h2>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={navigateToCreateEnrollment}
+								>
+									<UserPlus className="mr-2 h-4 w-4" />
+									Enroll Student
+								</Button>
 							</div>
 							<div className="space-y-4">
 								{loadingStudents ? (
@@ -1002,182 +1271,289 @@ export function CohortDetailPageClient({
 								) : enrolledStudents.length === 0 ? (
 									<div className="rounded-lg bg-muted/30 py-8 text-center">
 										<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-										<p className="mb-4 text-muted-foreground">
+										<p className="text-muted-foreground">
 											No students enrolled yet
 										</p>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={navigateToCreateEnrollment}
-										>
-											<UserPlus className="mr-2 h-4 w-4" />
-											Enroll First Student
-										</Button>
 									</div>
 								) : (
 									<>
-										<div className="grid gap-2">
-											{enrolledStudents.map((enrollment) => {
-												const enrollmentDate = enrollment.created_at
-													? new Date(enrollment.created_at)
-													: null;
-												const statusColors = {
-													paid: "bg-green-500/10 text-green-700 border-green-200",
-													welcome_package_sent:
-														"bg-blue-500/10 text-blue-700 border-blue-200",
-													contract_signed:
-														"bg-purple-500/10 text-purple-700 border-purple-200",
-													interested:
-														"bg-yellow-500/10 text-yellow-700 border-yellow-200",
-													beginner_form_filled:
-														"bg-indigo-500/10 text-indigo-700 border-indigo-200",
-													dropped_out:
-														"bg-red-500/10 text-red-700 border-red-200",
-													declined_contract:
-														"bg-red-500/10 text-red-700 border-red-200",
-													contract_abandoned:
-														"bg-orange-500/10 text-orange-700 border-orange-200",
-													payment_abandoned:
-														"bg-orange-500/10 text-orange-700 border-orange-200",
-												};
-												const statusColor =
-													statusColors[
-														enrollment.status as keyof typeof statusColors
-													] || "bg-gray-500/10 text-gray-700 border-gray-200";
+										{/* Filters */}
+										<div className="mb-4 flex items-center gap-3">
+											<div className="relative flex-1">
+												<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+												<input
+													type="text"
+													placeholder="Search students..."
+													value={studentSearch}
+													onChange={(e) => {
+														setStudentSearch(e.target.value);
+														setEnrollmentPage(1); // Reset to first page on search
+													}}
+													className="h-9 w-full rounded-md border bg-background px-3 pl-9 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+												/>
+											</div>
+											
+											<Select
+												value={statusFilter}
+												onValueChange={(value) => {
+													setStatusFilter(value);
+													setEnrollmentPage(1); // Reset to first page on filter change
+												}}
+											>
+												<SelectTrigger className="w-[200px]">
+													<SelectValue placeholder="Filter by status" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="all">All Statuses</SelectItem>
+													<SelectItem value="interested">Interested</SelectItem>
+													<SelectItem value="beginner_form_filled">Form Filled</SelectItem>
+													<SelectItem value="contract_signed">Contract Signed</SelectItem>
+													<SelectItem value="paid">Paid</SelectItem>
+													<SelectItem value="welcome_package_sent">Welcome Sent</SelectItem>
+													<SelectItem value="payment_abandoned">Payment Abandoned</SelectItem>
+													<SelectItem value="dropped_out">Dropped Out</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
 
-												return (
-													<div
-														key={enrollment.id}
-														className="group relative overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
-													>
-														<div className="p-3">
-															<div className="flex items-start justify-between gap-3">
-																<div className="flex min-w-0 flex-1 items-start gap-3">
-																	<div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-																		<span className="font-semibold text-primary text-xs">
-																			{enrollment.students?.full_name
-																				?.split(" ")
-																				.map((n: string) => n[0])
-																				.join("")
-																				.slice(0, 2)
-																				.toUpperCase() || "ST"}
-																		</span>
-																	</div>
-																	<div className="min-w-0 flex-1">
-																		<div className="flex items-start justify-between gap-2">
-																			<div className="min-w-0 flex-1">
-																				<Link
-																					href={`/admin/students/${enrollment.student_id}`}
-																					className="block truncate font-medium text-sm transition-colors hover:text-primary hover:underline"
-																				>
-																					{enrollment.students?.full_name ||
-																						"Unknown Student"}
-																				</Link>
-																				<div className="mt-1 flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
-																					{enrollment.students?.email && (
-																						<div className="flex items-center gap-1">
-																							<Mail className="h-3 w-3" />
-																							<span className="truncate">
-																								{enrollment.students.email}
-																							</span>
-																						</div>
-																					)}
-																					{enrollment.students?.phone && (
-																						<div className="flex items-center gap-1">
-																							<Phone className="h-3 w-3" />
-																							<span>
-																								{enrollment.students.phone}
-																							</span>
-																						</div>
-																					)}
-																					{enrollmentDate && (
-																						<div className="flex items-center gap-1">
-																							<Calendar className="h-3 w-3" />
-																							<span>
-																								Enrolled{" "}
-																								{enrollmentDate.toLocaleDateString(
-																									"en-US",
-																									{
-																										month: "short",
-																										day: "numeric",
-																										year: "numeric",
-																									},
-																								)}
-																							</span>
-																						</div>
-																					)}
-																				</div>
-																			</div>
+										{/* Table */}
+										<div className="overflow-hidden rounded-lg border">
+											<Table>
+												<TableHeader>
+													<TableRow className="bg-muted/30">
+														<TableHead className="w-[250px]">Student</TableHead>
+														<TableHead className="w-[200px]">Contact</TableHead>
+														<TableHead className="w-[150px]">Status</TableHead>
+														<TableHead className="w-[130px]">Created at</TableHead>
+														<TableHead className="w-[100px] text-right">Actions</TableHead>
+													</TableRow>
+												</TableHeader>
+												<TableBody>
+													{(() => {
+														// Filter enrollments
+														const filtered = enrolledStudents.filter((enrollment: any) => {
+															const searchMatch = studentSearch === "" || 
+																enrollment.students?.full_name?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+																enrollment.students?.email?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+																enrollment.students?.phone?.includes(studentSearch);
+															
+															const statusMatch = statusFilter === "all" || enrollment.status === statusFilter;
+															
+															return searchMatch && statusMatch;
+														});
+														
+														// Paginate
+														const paginated = filtered.slice(
+															(enrollmentPage - 1) * enrollmentsPerPage,
+															enrollmentPage * enrollmentsPerPage
+														);
+														
+														if (paginated.length === 0) {
+															return (
+																<TableRow>
+																	<TableCell colSpan={5} className="h-32 text-center">
+																		<div className="flex flex-col items-center justify-center">
+																			<Users className="mb-2 h-8 w-8 text-muted-foreground/30" />
+																			<p className="text-muted-foreground text-sm">
+																				{studentSearch || statusFilter !== "all" 
+																					? "No students found matching filters" 
+																					: "No students enrolled yet"}
+																			</p>
 																		</div>
+																	</TableCell>
+																</TableRow>
+															);
+														}
+														
+														return paginated.map((enrollment) => {
+															const enrollmentDate = enrollment.created_at
+																? new Date(enrollment.created_at)
+																: null;
+															const statusColors = {
+																paid: "bg-green-500/10 text-green-700 border-green-200",
+																welcome_package_sent:
+																	"bg-blue-500/10 text-blue-700 border-blue-200",
+																contract_signed:
+																	"bg-purple-500/10 text-purple-700 border-purple-200",
+																interested:
+																	"bg-yellow-500/10 text-yellow-700 border-yellow-200",
+																beginner_form_filled:
+																	"bg-indigo-500/10 text-indigo-700 border-indigo-200",
+																dropped_out:
+																	"bg-red-500/10 text-red-700 border-red-200",
+																declined_contract:
+																	"bg-red-500/10 text-red-700 border-red-200",
+																contract_abandoned:
+																	"bg-orange-500/10 text-orange-700 border-orange-200",
+																payment_abandoned:
+																	"bg-orange-500/10 text-orange-700 border-orange-200",
+															};
+															const statusColor =
+																statusColors[
+																	enrollment.status as keyof typeof statusColors
+																] || "bg-gray-500/10 text-gray-700 border-gray-200";
 
-																		<div className="mt-2 flex items-center gap-2">
-																			<Badge
-																				variant="outline"
-																				className={`h-5 px-2 font-medium text-[10px] ${statusColor}`}
+															return (
+																<TableRow key={enrollment.id} className="group hover:bg-muted/5">
+																	{/* Student Column */}
+																	<TableCell>
+																		<div className="flex items-center gap-3">
+																			<div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+																				<span className="font-semibold text-primary text-xs">
+																					{enrollment.students?.full_name
+																						?.split(" ")
+																						.map((n: string) => n[0])
+																						.join("")
+																						.slice(0, 2)
+																						.toUpperCase() || "ST"}
+																				</span>
+																			</div>
+																			<Link
+																				href={`/admin/students/${enrollment.student_id}`}
+																				className="font-medium text-sm transition-colors hover:text-primary hover:underline"
 																			>
-																				{enrollment.status
-																					?.replace(/_/g, " ")
-																					.replace(/\b\w/g, (l: string) =>
-																						l.toUpperCase(),
-																					)}
-																			</Badge>
+																				{enrollment.students?.full_name || "Unknown Student"}
+																			</Link>
+																		</div>
+																	</TableCell>
 
-																			{enrollment.status && (
-																				<div className="flex items-center gap-1">
-																					<div className="flex gap-0.5">
-																						{[
-																							"interested",
-																							"beginner_form_filled",
-																							"contract_signed",
-																							"paid",
-																							"welcome_package_sent",
-																						].map((step, index) => {
-																							const currentIndex = [
-																								"interested",
-																								"beginner_form_filled",
-																								"contract_signed",
-																								"paid",
-																								"welcome_package_sent",
-																							].indexOf(enrollment.status);
-																							const isCompleted =
-																								index <= currentIndex;
-																							return (
-																								<div
-																									key={step}
-																									className={`h-1 w-3 rounded-full transition-colors ${
-																										isCompleted
-																											? "bg-primary"
-																											: "bg-muted"
-																									}`}
-																								/>
-																							);
-																						})}
-																					</div>
+																	{/* Contact Column */}
+																	<TableCell>
+																		<div className="space-y-1">
+																			{enrollment.students?.email && (
+																				<div className="flex items-center gap-1 text-muted-foreground text-xs">
+																					<Mail className="h-3 w-3" />
+																					<span className="truncate">{enrollment.students.email}</span>
 																				</div>
 																			)}
+																			{enrollment.students?.mobile_phone_number && (
+																				<div className="flex items-center gap-1 text-muted-foreground text-xs">
+																					<Phone className="h-3 w-3" />
+																					<span>{enrollment.students.mobile_phone_number}</span>
+																				</div>
+																			)}
+																			{!enrollment.students?.email && !enrollment.students?.mobile_phone_number && (
+																				<span className="text-muted-foreground text-xs">No contact info</span>
+																			)}
 																		</div>
-																	</div>
+																	</TableCell>
 
-																	<Button
-																		variant="outline"
-																		size="sm"
-																		className="h-7 px-2 opacity-0 transition-opacity group-hover:opacity-100"
-																		onClick={() =>
-																			router.push(
-																				`/admin/students/enrollments/${enrollment.id}/edit`,
-																			)
-																		}
-																	>
-																		<Edit2 className="mr-1 h-3.5 w-3.5" />
-																		Edit
-																	</Button>
-																</div>
-															</div>
-														</div>
-													</div>
+																	{/* Status Column */}
+																	<TableCell>
+																		<Badge
+																			variant="outline"
+																			className={`font-medium text-[10px] ${statusColor}`}
+																		>
+																			{enrollment.status
+																				?.replace(/_/g, " ")
+																				.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+																		</Badge>
+																	</TableCell>
+
+																	{/* Enrolled Column */}
+																	<TableCell>
+																		{enrollmentDate && (
+																			<div className="text-muted-foreground text-xs">
+																				{enrollmentDate.toLocaleDateString("en-US", {
+																					month: "short",
+																					day: "numeric",
+																					year: "numeric",
+																				})}
+																			</div>
+																		)}
+																	</TableCell>
+
+																	{/* Actions Column */}
+																	<TableCell className="text-right">
+																		<Button
+																			variant="outline"
+																			size="sm"
+																			className="h-7 px-2 opacity-0 transition-opacity group-hover:opacity-100"
+																			onClick={() =>
+																				router.push(
+																					`/admin/students/enrollments/${enrollment.id}/edit`
+																				)
+																			}
+																		>
+																			<Edit2 className="mr-1 h-3.5 w-3.5" />
+																			Edit
+																		</Button>
+																	</TableCell>
+																</TableRow>
 												);
-											})}
+														});
+													})()}
+												</TableBody>
+											</Table>
 										</div>
+										
+										{/* Pagination Controls */}
+										{(() => {
+											const filtered = enrolledStudents.filter((enrollment: any) => {
+												const searchMatch = studentSearch === "" || 
+													enrollment.students?.full_name?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+													enrollment.students?.email?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+													enrollment.students?.phone?.includes(studentSearch);
+												
+												const statusMatch = statusFilter === "all" || enrollment.status === statusFilter;
+												
+												return searchMatch && statusMatch;
+											});
+											
+											return filtered.length > enrollmentsPerPage && (
+											<div className="flex items-center justify-between mt-4">
+												<p className="text-muted-foreground text-sm">
+													Showing {(enrollmentPage - 1) * enrollmentsPerPage + 1} to{" "}
+													{Math.min(enrollmentPage * enrollmentsPerPage, filtered.length)} of{" "}
+													{filtered.length} students
+													{studentSearch || statusFilter !== "all" ? " (filtered)" : ""}
+												</p>
+												<div className="flex items-center gap-2">
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => setEnrollmentPage(Math.max(1, enrollmentPage - 1))}
+														disabled={enrollmentPage === 1}
+													>
+														<ChevronLeft className="h-4 w-4" />
+														Previous
+													</Button>
+													<div className="flex items-center gap-1">
+														{Array.from(
+															{ length: Math.ceil(filtered.length / enrollmentsPerPage) },
+															(_, i) => i + 1
+														).map((page) => (
+															<Button
+																key={page}
+																variant={page === enrollmentPage ? "default" : "outline"}
+																size="sm"
+																className="h-8 w-8 p-0"
+																onClick={() => setEnrollmentPage(page)}
+															>
+																{page}
+															</Button>
+														))}
+													</div>
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={() => 
+															setEnrollmentPage(
+																Math.min(
+																	Math.ceil(filtered.length / enrollmentsPerPage),
+																	enrollmentPage + 1
+																)
+															)
+														}
+														disabled={enrollmentPage === Math.ceil(filtered.length / enrollmentsPerPage)}
+													>
+														Next
+														<ChevronRight className="h-4 w-4" />
+													</Button>
+												</div>
+											</div>
+										);
+										})()}
 									</>
 								)}
 							</div>
@@ -1186,155 +1562,6 @@ export function CohortDetailPageClient({
 					{/* Classes Tab */}
 
 					<TabsContent value="classes" className="space-y-4">
-						{/* Weekly Schedule */}
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<h2 className="font-semibold text-lg">Weekly Schedule</h2>
-							</div>
-							<div className="space-y-4">
-								{sessionCount === 0 ? (
-									<div className="rounded-lg bg-muted/30 py-8 text-center">
-										<Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-										<p className="mb-4 text-muted-foreground">
-											No weekly sessions scheduled
-										</p>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={navigateToAddSession}
-										>
-											<Plus className="mr-2 h-4 w-4" />
-											Add First Session
-										</Button>
-									</div>
-								) : (
-									<div className="grid gap-2 lg:grid-cols-2">
-										{cohortWithSessions?.weekly_sessions?.map(
-											(session: any) => (
-												<div
-													key={session.id}
-													className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
-													onClick={() => handleEditSession(session)}
-												>
-													{/* Day and Time Header */}
-													<div className="flex items-center justify-between border-b bg-muted/30 p-3">
-														<div className="flex items-center gap-2">
-															<Calendar className="h-4 w-4 text-primary" />
-															<span className="font-medium text-sm">
-																{session.day_of_week.charAt(0).toUpperCase() +
-																	session.day_of_week.slice(1)}
-															</span>
-														</div>
-														<div className="flex items-center gap-2">
-															<Clock className="h-3.5 w-3.5 text-muted-foreground" />
-															<span className="font-mono text-sm">
-																{formatTime(session.start_time)} -{" "}
-																{formatTime(session.end_time)}
-															</span>
-														</div>
-													</div>
-
-													{/* Content */}
-													<div className="space-y-2 p-3">
-														{/* Teacher Info */}
-														{session.teachers && (
-															<div className="flex items-center justify-between">
-																<div className="flex items-center gap-2">
-																	<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-																		<Users className="h-4 w-4 text-primary" />
-																	</div>
-																	<div>
-																		<Link
-																			href={`/admin/teachers/${session.teacher_id}`}
-																			className="cursor-pointer font-medium text-sm transition-colors hover:text-primary hover:underline"
-																		>
-																			{session.teachers.first_name}{" "}
-																			{session.teachers.last_name}
-																		</Link>
-																		<p className="text-muted-foreground text-xs">
-																			Teacher
-																		</p>
-																	</div>
-																</div>
-
-																{/* Duration Badge */}
-																<Badge variant="secondary" className="text-xs">
-																	{(() => {
-																		const start = session.start_time.split(":");
-																		const end = session.end_time.split(":");
-																		const startMinutes =
-																			Number.parseInt(start[0]) * 60 +
-																			Number.parseInt(start[1]);
-																		const endMinutes =
-																			Number.parseInt(end[0]) * 60 +
-																			Number.parseInt(end[1]);
-																		const duration = endMinutes - startMinutes;
-																		const hours = Math.floor(duration / 60);
-																		const minutes = duration % 60;
-																		return hours > 0
-																			? `${hours}h${
-																					minutes > 0 ? ` ${minutes}m` : ""
-																				}`
-																			: `${minutes}m`;
-																	})()}
-																</Badge>
-															</div>
-														)}
-
-														{/* Bottom Status Row */}
-														<div className="flex items-center justify-between pt-1">
-															<div className="flex items-center gap-1.5">
-																{session.teachers
-																	?.available_for_online_classes && (
-																	<Badge
-																		variant="outline"
-																		className="h-5 px-1.5 text-xs"
-																	>
-																		<span className="mr-1 h-1.5 w-1.5 rounded-full bg-green-500" />
-																		Online
-																	</Badge>
-																)}
-																{session.teachers
-																	?.available_for_in_person_classes && (
-																	<Badge
-																		variant="outline"
-																		className="h-5 px-1.5 text-xs"
-																	>
-																		<MapPin className="mr-0.5 h-3 w-3" />
-																		In-Person
-																	</Badge>
-																)}
-															</div>
-															{session.google_calendar_event_id && (
-																<Badge
-																	variant="default"
-																	className="h-5 px-1.5 text-xs"
-																>
-																	<Calendar className="mr-0.5 h-3 w-3" />
-																	Synced
-																</Badge>
-															)}
-														</div>
-													</div>
-												</div>
-											),
-										)}
-									</div>
-								)}
-								{sessionCount > 0 && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={navigateToAddSession}
-										className="w-full"
-									>
-										<Plus className="mr-2 h-4 w-4" />
-										Add Another Session
-									</Button>
-								)}
-							</div>
-						</div>
-
 						{/* Classes (Individual Instances) */}
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
@@ -1394,187 +1621,231 @@ export function CohortDetailPageClient({
 										</p>
 									</div>
 								) : (
-									<div className="grid gap-2">
-										{classes.map((classItem) => {
-											const classDate = new Date(classItem.start_time);
-											const startTime = new Date(classItem.start_time);
-											const endTime = new Date(classItem.end_time);
-											const statusColors = {
-												scheduled:
-													"bg-blue-500/10 text-blue-700 border-blue-200",
-												in_progress:
-													"bg-yellow-500/10 text-yellow-700 border-yellow-200",
-												completed:
-													"bg-green-500/10 text-green-700 border-green-200",
-												cancelled: "bg-red-500/10 text-red-700 border-red-200",
-											};
-											const statusColor =
-												statusColors[
-													classItem.status as keyof typeof statusColors
-												] || "bg-gray-500/10 text-gray-700 border-gray-200";
+									<div className="overflow-hidden rounded-lg border">
+										<Table>
+											<TableHeader>
+												<TableRow className="bg-muted/30">
+													<TableHead className="w-[150px]">Date</TableHead>
+													<TableHead className="w-[120px]">Time</TableHead>
+													<TableHead className="w-[100px]">Duration</TableHead>
+													<TableHead className="w-[150px]">Teacher</TableHead>
+													<TableHead className="w-[100px]">Status</TableHead>
+													<TableHead className="w-[120px]">Attendance</TableHead>
+													<TableHead className="w-[150px]">Resources</TableHead>
+													<TableHead className="w-[80px] text-right">Actions</TableHead>
+												</TableRow>
+											</TableHeader>
+											<TableBody>
+												{classes.map((classItem) => {
+													const classDate = new Date(classItem.start_time);
+													const startTime = new Date(classItem.start_time);
+													const endTime = new Date(classItem.end_time);
+													const statusColors = {
+														scheduled:
+															"bg-blue-500/10 text-blue-700 border-blue-200",
+														in_progress:
+															"bg-yellow-500/10 text-yellow-700 border-yellow-200",
+														completed:
+															"bg-green-500/10 text-green-700 border-green-200",
+														cancelled: "bg-red-500/10 text-red-700 border-red-200",
+													};
+													const statusColor =
+														statusColors[
+															classItem.status as keyof typeof statusColors
+														] || "bg-gray-500/10 text-gray-700 border-gray-200";
 
-											// Calculate duration
-											const duration = (() => {
-												const start = classItem.start_time
-													.split("T")[1]
-													?.split(":");
-												const end = classItem.end_time
-													.split("T")[1]
-													?.split(":");
-												if (start && end) {
-													const startMinutes =
-														Number.parseInt(start[0]) * 60 +
-														Number.parseInt(start[1]);
-													const endMinutes =
-														Number.parseInt(end[0]) * 60 +
-														Number.parseInt(end[1]);
-													const diff = endMinutes - startMinutes;
-													const hours = Math.floor(diff / 60);
-													const minutes = diff % 60;
-													return hours > 0
-														? `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}`
-														: `${minutes}m`;
-												}
-												return "";
-											})();
+													// Calculate duration
+													const duration = (() => {
+														const start = classItem.start_time
+															.split("T")[1]
+															?.split(":");
+														const end = classItem.end_time
+															.split("T")[1]
+															?.split(":");
+														if (start && end) {
+															const startMinutes =
+																Number.parseInt(start[0]) * 60 +
+																Number.parseInt(start[1]);
+															const endMinutes =
+																Number.parseInt(end[0]) * 60 +
+																Number.parseInt(end[1]);
+															const diff = endMinutes - startMinutes;
+															const hours = Math.floor(diff / 60);
+															const minutes = diff % 60;
+															return hours > 0
+																? `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}`
+																: `${minutes}m`;
+														}
+														return "";
+													})();
 
-											return (
-												<div
-													key={classItem.id}
-													className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
-													onClick={() => handleClassClick(classItem)}
-												>
-													<div className="p-3">
-														<div className="flex items-start justify-between gap-3">
-															<div className="flex min-w-0 flex-1 items-start gap-3">
-																<div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-																	<Calendar className="h-4 w-4 text-primary" />
-																</div>
-																<div className="min-w-0 flex-1">
-																	<div className="flex items-start justify-between gap-2">
-																		<div className="min-w-0 flex-1">
-																			<h3 className="font-medium text-sm">
-																				{format(classDate, "EEEE, MMMM d")}
-																			</h3>
-																			<div className="mt-1 flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
-																				<div className="flex items-center gap-1">
-																					<Clock className="h-3 w-3" />
-																					<span>
-																						{format(startTime, "h:mm a")} -{" "}
-																						{format(endTime, "h:mm a")}
-																					</span>
-																				</div>
-																				{duration && (
-																					<div className="flex items-center gap-1">
-																						<span className="text-muted-foreground/60">
-																							•
-																						</span>
-																						<span>{duration}</span>
-																					</div>
-																				)}
-																				{classItem.teachers && (
-																					<div className="flex items-center gap-1">
-																						<Users className="h-3 w-3" />
-																						<span>
-																							{classItem.teachers.first_name}{" "}
-																							{classItem.teachers.last_name}
-																						</span>
-																					</div>
-																				)}
-																				{classItem.attendance_count !==
-																					undefined && (
-																					<div className="flex items-center gap-1">
-																						<CheckCircle2 className="h-3 w-3 text-green-600" />
-																						<span>
-																							{classItem.attendance_count}{" "}
-																							attended
-																						</span>
-																					</div>
-																				)}
-																			</div>
+													return (
+														<TableRow 
+															key={classItem.id} 
+															className="hover:bg-muted/5"
+														>
+															{/* Date */}
+															<TableCell>
+																<div className="flex items-center gap-2">
+																	<Calendar className="h-4 w-4 text-muted-foreground" />
+																	<div>
+																		<div className="font-medium text-sm">
+																			{format(classDate, "MMM d, yyyy")}
+																		</div>
+																		<div className="text-muted-foreground text-xs">
+																			{format(classDate, "EEEE")}
 																		</div>
 																	</div>
+																</div>
+															</TableCell>
 
-																	<div className="mt-2 flex items-center justify-between">
-																		<div className="flex items-center gap-2">
-																			<Badge
-																				variant="outline"
-																				className={`h-5 px-2 font-medium text-[10px] ${statusColor}`}
-																			>
-																				{classItem.status
-																					?.replace(/_/g, " ")
-																					.replace(/\b\w/g, (l: string) =>
-																						l.toUpperCase(),
-																					)}
-																			</Badge>
+															{/* Time */}
+															<TableCell>
+																<div className="flex items-center gap-1">
+																	<Clock className="h-3.5 w-3.5 text-muted-foreground" />
+																	<span className="text-sm">
+																		{format(startTime, "h:mm a")}
+																	</span>
+																</div>
+															</TableCell>
 
-																			{cohort?.format === "online" &&
-																				classItem.meeting_link && (
-																					<a
-																						href={classItem.meeting_link}
-																						target="_blank"
-																						rel="noopener noreferrer"
-																						onClick={(e) => e.stopPropagation()}
-																						className="inline-flex items-center gap-1 text-primary text-xs hover:underline"
-																					>
-																						<Video className="h-3 w-3" />
-																						<span>Meeting Link</span>
-																					</a>
-																				)}
+															{/* Duration */}
+															<TableCell>
+																<span className="text-sm text-muted-foreground">
+																	{duration}
+																</span>
+															</TableCell>
 
-																			{cohort?.format === "in-person" &&
-																				cohort?.room && (
-																					<div className="flex items-center gap-1 text-muted-foreground text-xs">
-																						<MapPin className="h-3 w-3" />
-																						<span>{cohort.room}</span>
-																					</div>
-																				)}
+															{/* Teacher */}
+															<TableCell>
+																{classItem.teachers ? (
+																	<div className="flex items-center gap-2">
+																		<Users className="h-3.5 w-3.5 text-muted-foreground" />
+																		<span className="text-sm">
+																			{classItem.teachers.first_name}{" "}
+																			{classItem.teachers.last_name}
+																		</span>
+																	</div>
+																) : (
+																	<span className="text-muted-foreground text-sm">—</span>
+																)}
+															</TableCell>
+
+															{/* Status */}
+															<TableCell>
+																<Badge
+																	variant="outline"
+																	className={`text-xs ${statusColor}`}
+																>
+																	{classItem.status
+																		?.replace(/_/g, " ")
+																		.replace(/\b\w/g, (l: string) =>
+																			l.toUpperCase(),
+																		)}
+																</Badge>
+															</TableCell>
+
+															{/* Attendance */}
+															<TableCell>
+																{classItem.attendance_count !== undefined ? (
+																	<div className="flex items-center gap-1.5">
+																		<CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+																		<span className="text-sm">
+																			{classItem.attendance_count} attended
+																		</span>
+																	</div>
+																) : (
+																	<span className="text-muted-foreground text-sm">—</span>
+																)}
+															</TableCell>
+
+															{/* Resources */}
+															<TableCell>
+																<div className="flex items-center gap-2">
+																	{cohort?.format === "online" && classItem.meeting_link && (
+																		<a
+																			href={classItem.meeting_link}
+																			target="_blank"
+																			rel="noopener noreferrer"
+																			onClick={(e) => e.stopPropagation()}
+																			className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-primary text-xs transition-colors hover:bg-muted"
+																		>
+																			<Video className="h-3 w-3" />
+																			<span>Meet</span>
+																		</a>
+																	)}
+
+																	{cohort?.format === "in-person" && cohort?.room && (
+																		<div className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-muted-foreground text-xs">
+																			<MapPin className="h-3 w-3" />
+																			<span>{cohort.room}</span>
 																		</div>
+																	)}
 
-																		{/* Drive Button - Always visible */}
+																	<Button
+																		variant="outline"
+																		size="sm"
+																		className={`h-7 px-2 text-xs ${!classItem.google_drive_folder_id ? "cursor-not-allowed opacity-50" : ""}`}
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			if (classItem.google_drive_folder_id) {
+																				window.open(
+																					`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`,
+																					"_blank",
+																				);
+																			}
+																		}}
+																		disabled={!classItem.google_drive_folder_id}
+																	>
+																		<FolderOpen className="mr-1 h-3 w-3" />
+																		Drive
+																		{classItem.google_drive_folder_id && (
+																			<ExternalLink className="ml-1 h-2.5 w-2.5" />
+																		)}
+																	</Button>
+																</div>
+															</TableCell>
+
+															{/* Actions */}
+															<TableCell className="text-right">
+																<DropdownMenu>
+																	<DropdownMenuTrigger asChild>
 																		<Button
 																			variant="ghost"
-																			size="sm"
-																			className={`h-7 px-2 text-xs ${!classItem.google_drive_folder_id ? "cursor-not-allowed opacity-50" : "hover:bg-muted"}`}
+																			size="icon"
+																			className="h-8 w-8"
+																			onClick={(e) => e.stopPropagation()}
+																		>
+																			<MoreVertical className="h-4 w-4" />
+																		</Button>
+																	</DropdownMenuTrigger>
+																	<DropdownMenuContent align="end">
+																		<DropdownMenuItem
 																			onClick={(e) => {
 																				e.stopPropagation();
-																				if (classItem.google_drive_folder_id) {
-																					window.open(
-																						`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`,
-																						"_blank",
-																					);
-																				}
+																				handleClassClick(classItem);
 																			}}
-																			disabled={
-																				!classItem.google_drive_folder_id
-																			}
 																		>
-																			<FolderOpen className="mr-1 h-3.5 w-3.5" />
-																			Drive
-																			{classItem.google_drive_folder_id && (
-																				<ExternalLink className="ml-1 h-2.5 w-2.5" />
-																			)}
-																		</Button>
-																	</div>
-																</div>
-
-																<Button
-																	variant="ghost"
-																	size="icon"
-																	className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		handleClassClick(classItem);
-																	}}
-																>
-																	<ChevronRight className="h-4 w-4" />
-																</Button>
-															</div>
-														</div>
-													</div>
-												</div>
-											);
-										})}
+																			<Edit2 className="mr-2 h-3.5 w-3.5" />
+																			View Details
+																		</DropdownMenuItem>
+																		<DropdownMenuItem
+																			onClick={(e) => {
+																				e.stopPropagation();
+																				handleViewAttendance(classItem.id);
+																			}}
+																		>
+																			<CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+																			View Attendance
+																		</DropdownMenuItem>
+																	</DropdownMenuContent>
+																</DropdownMenu>
+															</TableCell>
+														</TableRow>
+													);
+												})}
+											</TableBody>
+										</Table>
 									</div>
 								)}
 							</div>
@@ -1583,7 +1854,7 @@ export function CohortDetailPageClient({
 
 					{/* Attendance Tab */}
 					<TabsContent value="attendance" className="space-y-4">
-						<AttendanceSection cohortId={cohortId} />
+						<CohortAttendance cohortId={cohortId} initialClassId={attendanceClassId} />
 					</TabsContent>
 				</Tabs>
 
@@ -1591,20 +1862,6 @@ export function CohortDetailPageClient({
 				<div className="mt-8 border-t pt-6">
 					<div className="mx-auto max-w-3xl">
 						<div className="flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground/70 text-xs">
-							<div className="flex items-center gap-2">
-								<span>ID:</span>
-								<code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono">
-									{cohort.id.slice(0, 8)}
-								</code>
-							</div>
-							{cohort.product_id && (
-								<div className="flex items-center gap-2">
-									<span>Product:</span>
-									<code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono">
-										{cohort.product_id.slice(0, 8)}
-									</code>
-								</div>
-							)}
 							{cohort.airtable_record_id && (
 								<div className="flex items-center gap-2">
 									<span>Airtable:</span>
