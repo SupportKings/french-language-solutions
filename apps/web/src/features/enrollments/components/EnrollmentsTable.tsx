@@ -149,7 +149,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		const dateValues = dateFilter?.values || [];
 		let dateFrom = "";
 		let dateTo = "";
-		
+
 		if (dateValues.length > 0 && dateValues[0]) {
 			// Format date to ISO string for API
 			dateFrom = new Date(dateValues[0]).toISOString();
@@ -160,7 +160,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			// Single date selected - use same date for both from and to
 			dateTo = new Date(dateValues[0]).toISOString();
 		}
-		
+
 		return {
 			status: statusFilter?.values || [],
 			productIds: productFilter?.values || [],
@@ -169,20 +169,13 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		};
 	}, [filters]);
 
-
 	// Reset page when filters change
 	useEffect(() => {
 		setPage(1);
 	}, [filters, debouncedSearch]);
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: [
-			"enrollments",
-			page,
-			limit,
-			debouncedSearch,
-			filterQuery,
-		],
+		queryKey: ["enrollments", page, limit, debouncedSearch, filterQuery],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
@@ -354,18 +347,25 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 												{enrollment.cohorts?.products?.display_name || "N/A"}
 												{enrollment.cohorts?.starting_level?.code ? (
 													<span className="font-normal text-muted-foreground">
-														{" "}({enrollment.cohorts.starting_level.code.toUpperCase()}
-														{enrollment.cohorts?.current_level?.code !== 
+														{" "}
+														(
+														{enrollment.cohorts.starting_level.code.toUpperCase()}
+														{enrollment.cohorts?.current_level?.code !==
 															enrollment.cohorts?.starting_level?.code && (
 															<>
-																{" "}→{" "}
+																{" "}
+																→{" "}
 																{enrollment.cohorts.current_level?.code?.toUpperCase()}
 															</>
-														)})
+														)}
+														)
 													</span>
 												) : (
 													enrollment.cohorts?.products?.display_name && (
-														<span className="font-normal text-muted-foreground"> (N/A)</span>
+														<span className="font-normal text-muted-foreground">
+															{" "}
+															(N/A)
+														</span>
 													)
 												)}
 											</div>
@@ -376,17 +376,18 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 													<div className="flex flex-wrap gap-1">
 														{enrollment.cohorts.weekly_sessions.map(
 															(session: any) => {
-																const dayAbbrev =
-																	{
-																		monday: "Mon",
-																		tuesday: "Tue",
-																		wednesday: "Wed",
-																		thursday: "Thu",
-																		friday: "Fri",
-																		saturday: "Sat",
-																		sunday: "Sun",
-																	}[session.day_of_week?.toLowerCase()] ||
-																	session.day_of_week;
+																const dayMap: Record<string, string> = {
+																	monday: "Mon",
+																	tuesday: "Tue",
+																	wednesday: "Wed",
+																	thursday: "Thu",
+																	friday: "Fri",
+																	saturday: "Sat",
+																	sunday: "Sun",
+																};
+																const dayAbbrev = session.day_of_week 
+																	? dayMap[session.day_of_week.toLowerCase()] || session.day_of_week
+																	: "";
 
 																return (
 																	<Badge
