@@ -4,6 +4,7 @@ import type {
 	StudentQuery,
 	UpdateStudent,
 } from "../schemas/student.schema";
+import { getApiUrl } from "@/lib/api-utils";
 
 export interface PaginatedResponse<T> {
 	data: T[];
@@ -15,16 +16,6 @@ export interface PaginatedResponse<T> {
 	};
 }
 
-// Helper to get the correct base URL for API calls
-function getApiUrl(path: string): string {
-	if (typeof window === "undefined") {
-		// Server-side: use absolute URL
-		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:3001`;
-		return `${baseUrl}${path}`;
-	}
-	// Client-side: use relative URL
-	return path;
-}
 
 export const studentsApi = {
 	// List students with pagination and filters
