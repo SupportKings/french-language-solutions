@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 
@@ -34,11 +34,13 @@ import { format } from "date-fns";
 import {
 	Building,
 	Calendar,
+	CalendarDays,
 	CheckCircle,
 	Edit,
 	Eye,
 	GraduationCap,
 	MoreHorizontal,
+	Package,
 	Plus,
 	Search,
 	Trash,
@@ -70,8 +72,8 @@ const statusLabels = {
 	welcome_package_sent: "Welcome Package Sent",
 };
 
-// Define column configurations for data-table-filter
-const enrollmentColumns = [
+// Function to get column configurations - needs products for options
+const getEnrollmentColumns = (products: any[]) => [
 	{
 		id: "status",
 		accessor: (enrollment: any) => enrollment.status,
@@ -84,60 +86,22 @@ const enrollmentColumns = [
 		})),
 	},
 	{
-		id: "cohort_format",
-		accessor: (enrollment: any) => enrollment.cohorts?.products?.format,
-		displayName: "Class Format",
-		icon: Users,
+		id: "product",
+		accessor: (enrollment: any) => enrollment.cohorts?.products?.id,
+		displayName: "Product",
+		icon: Package,
 		type: "option" as const,
-		options: [
-			{ label: "Group Class", value: "group" },
-			{ label: "Private Class", value: "private" },
-		],
+		options: products.map((product) => ({
+			label: product.display_name,
+			value: product.id,
+		})),
 	},
 	{
-		id: "cohort_status",
-		accessor: (enrollment: any) => enrollment.cohorts?.cohort_status,
-		displayName: "Cohort Status",
-		icon: Calendar,
-		type: "option" as const,
-		options: [
-			{ label: "Enrollment Open", value: "enrollment_open" },
-			{ label: "Enrollment Closed", value: "enrollment_closed" },
-			{ label: "Class Ended", value: "class_ended" },
-		],
-	},
-	{
-		id: "starting_level",
-		accessor: (enrollment: any) => enrollment.cohorts?.starting_level?.code,
-		displayName: "Starting Level",
-		icon: GraduationCap,
-		type: "option" as const,
-		options: [
-			{ label: "A1", value: "a1" },
-			{ label: "A1+", value: "a1_plus" },
-			{ label: "A2", value: "a2" },
-			{ label: "A2+", value: "a2_plus" },
-			{ label: "B1", value: "b1" },
-			{ label: "B1+", value: "b1_plus" },
-			{ label: "B2", value: "b2" },
-			{ label: "B2+", value: "b2_plus" },
-			{ label: "C1", value: "c1" },
-			{ label: "C1+", value: "c1_plus" },
-			{ label: "C2", value: "c2" },
-		],
-	},
-	{
-		id: "room_type",
-		accessor: (enrollment: any) => enrollment.cohorts?.room_type,
-		displayName: "Room Type",
-		icon: Building,
-		type: "option" as const,
-		options: [
-			{ label: "One-to-One", value: "for_one_to_one" },
-			{ label: "Medium", value: "medium" },
-			{ label: "Medium+", value: "medium_plus" },
-			{ label: "Large", value: "large" },
-		],
+		id: "created_at",
+		accessor: (enrollment: any) => enrollment.created_at,
+		displayName: "Created Date",
+		icon: CalendarDays,
+		type: "date" as const,
 	},
 ];
 
@@ -148,71 +112,106 @@ interface EnrollmentsTableProps {
 export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
+	const [products, setProducts] = useState<any[]>([]);
 	const debouncedSearch = useDebounce(search, 300);
+	const limit = 20;
 
-	// Data table filters hook
+	// Fetch products for filter options
+	useEffect(() => {
+		async function fetchProducts() {
+			try {
+				const response = await fetch("/api/products?limit=100");
+				if (response.ok) {
+					const result = await response.json();
+					setProducts(result.data || []);
+				}
+			} catch (error) {
+				console.error("Error fetching products:", error);
+			}
+		}
+		fetchProducts();
+	}, []);
+
+	// Data table filters hook - use dynamic columns with products
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: enrollmentColumns,
+		columnsConfig: getEnrollmentColumns(products),
 	});
 
-	// Convert filters to query params - support multiple values
+	// Convert filters to query params
 	const filterQuery = useMemo(() => {
 		const statusFilter = filters.find((f) => f.columnId === "status");
-		const formatFilter = filters.find((f) => f.columnId === "cohort_format");
-		const cohortStatusFilter = filters.find(
-			(f) => f.columnId === "cohort_status",
-		);
-		const levelFilter = filters.find((f) => f.columnId === "starting_level");
-		const roomFilter = filters.find((f) => f.columnId === "room_type");
+		const productFilter = filters.find((f) => f.columnId === "product");
+		const dateFilter = filters.find((f) => f.columnId === "created_at");
 
+		// Date filter values are stored as [from, to] for ranges or [date] for single dates
+		const dateValues = dateFilter?.values || [];
+		let dateFrom = "";
+		let dateTo = "";
+		
+		if (dateValues.length > 0 && dateValues[0]) {
+			// Format date to ISO string for API
+			dateFrom = new Date(dateValues[0]).toISOString();
+		}
+		if (dateValues.length > 1 && dateValues[1]) {
+			dateTo = new Date(dateValues[1]).toISOString();
+		} else if (dateValues.length === 1 && dateValues[0]) {
+			// Single date selected - use same date for both from and to
+			dateTo = new Date(dateValues[0]).toISOString();
+		}
+		
 		return {
-			// Pass arrays for multi-select filters
-			status: statusFilter?.values?.length ? statusFilter.values : undefined,
-			cohort_format: formatFilter?.values?.length
-				? formatFilter.values
-				: undefined,
-			cohort_status: cohortStatusFilter?.values?.length
-				? cohortStatusFilter.values
-				: undefined,
-			starting_level: levelFilter?.values?.length
-				? levelFilter.values
-				: undefined,
-			room_type: roomFilter?.values?.length ? roomFilter.values : undefined,
+			status: statusFilter?.values || [],
+			productIds: productFilter?.values || [],
+			dateFrom,
+			dateTo,
 		};
 	}, [filters]);
 
+
+	// Reset page when filters change
+	useEffect(() => {
+		setPage(1);
+	}, [filters, debouncedSearch]);
+
 	const { data, isLoading, error } = useQuery({
-		queryKey: ["enrollments", page, debouncedSearch, filterQuery],
+		queryKey: [
+			"enrollments",
+			page,
+			limit,
+			debouncedSearch,
+			filterQuery,
+		],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
-				limit: "20",
-				...(debouncedSearch && { search: debouncedSearch }),
+				limit: limit.toString(),
+				sortBy: "created_at",
+				sortOrder: "desc",
 			});
 
-			// Add array filters
-			if (filterQuery.status) {
-				filterQuery.status.forEach((v) => params.append("status", v));
+			// Add search if present
+			if (debouncedSearch) {
+				params.append("search", debouncedSearch);
 			}
-			if (filterQuery.cohort_format) {
-				filterQuery.cohort_format.forEach((v) =>
-					params.append("cohort_format", v),
-				);
+
+			// Add product filters (multiple values)
+			if (filterQuery.productIds && filterQuery.productIds.length > 0) {
+				filterQuery.productIds.forEach((id) => params.append("productId", id));
 			}
-			if (filterQuery.cohort_status) {
-				filterQuery.cohort_status.forEach((v) =>
-					params.append("cohort_status", v),
-				);
+
+			// Add status filters (multiple values)
+			if (filterQuery.status && filterQuery.status.length > 0) {
+				filterQuery.status.forEach((s) => params.append("status", s));
 			}
-			if (filterQuery.starting_level) {
-				filterQuery.starting_level.forEach((v) =>
-					params.append("starting_level", v),
-				);
+
+			// Add date filters
+			if (filterQuery.dateFrom) {
+				params.append("dateFrom", filterQuery.dateFrom);
 			}
-			if (filterQuery.room_type) {
-				filterQuery.room_type.forEach((v) => params.append("room_type", v));
+			if (filterQuery.dateTo) {
+				params.append("dateTo", filterQuery.dateTo);
 			}
 
 			const response = await fetch(`/api/enrollments?${params}`);
@@ -293,7 +292,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<TableHead>Student</TableHead>
 							<TableHead>Cohort</TableHead>
 							<TableHead>Status</TableHead>
-							<TableHead>Enrolled</TableHead>
+							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
 					</TableHeader>
@@ -349,22 +348,60 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										</Link>
 									</TableCell>
 									<TableCell>
-										<div>
-											<p className="font-medium">
-												{enrollment.cohorts?.products?.format || "N/A"} -{" "}
-												{enrollment.cohorts?.starting_level?.display_name ||
-													enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
-													"N/A"}
-											</p>
-											{enrollment.cohorts?.start_date && (
-												<p className="text-muted-foreground text-sm">
-													Starts{" "}
-													{format(
-														new Date(enrollment.cohorts.start_date),
-														"MMM d, yyyy",
-													)}
-												</p>
-											)}
+										<div className="space-y-1">
+											{/* Product Name with Level Progression */}
+											<div className="font-medium">
+												{enrollment.cohorts?.products?.display_name || "N/A"}
+												{enrollment.cohorts?.starting_level?.code ? (
+													<span className="font-normal text-muted-foreground">
+														{" "}({enrollment.cohorts.starting_level.code.toUpperCase()}
+														{enrollment.cohorts?.current_level?.code !== 
+															enrollment.cohorts?.starting_level?.code && (
+															<>
+																{" "}→{" "}
+																{enrollment.cohorts.current_level?.code?.toUpperCase()}
+															</>
+														)})
+													</span>
+												) : (
+													enrollment.cohorts?.products?.display_name && (
+														<span className="font-normal text-muted-foreground"> (N/A)</span>
+													)
+												)}
+											</div>
+
+											{/* Weekly Sessions */}
+											{enrollment.cohorts?.weekly_sessions &&
+												enrollment.cohorts.weekly_sessions.length > 0 && (
+													<div className="flex flex-wrap gap-1">
+														{enrollment.cohorts.weekly_sessions.map(
+															(session: any) => {
+																const dayAbbrev =
+																	{
+																		monday: "Mon",
+																		tuesday: "Tue",
+																		wednesday: "Wed",
+																		thursday: "Thu",
+																		friday: "Fri",
+																		saturday: "Sat",
+																		sunday: "Sun",
+																	}[session.day_of_week?.toLowerCase()] ||
+																	session.day_of_week;
+
+																return (
+																	<Badge
+																		key={session.id}
+																		variant="secondary"
+																		className="text-xs"
+																	>
+																		{dayAbbrev}{" "}
+																		{session.start_time?.slice(0, 5)}
+																	</Badge>
+																);
+															},
+														)}
+													</div>
+												)}
 										</div>
 									</TableCell>
 									<TableCell>

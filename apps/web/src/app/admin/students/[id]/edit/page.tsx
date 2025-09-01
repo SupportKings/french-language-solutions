@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { StudentFormNew } from "@/features/students/components/StudentFormNew";
 import { getApiUrl } from "@/lib/api-utils";
+
+import { StudentFormNew } from "@/features/students/components/StudentFormNew";
 
 async function getStudent(id: string) {
 	const response = await fetch(getApiUrl(`/api/students/${id}`), {

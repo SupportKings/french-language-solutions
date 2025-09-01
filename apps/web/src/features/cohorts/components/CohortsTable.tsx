@@ -127,7 +127,12 @@ export function CohortsTable({
 	isLoading,
 	hideWrapper = false,
 }: CohortsTableProps) {
-	console.log("📊 CohortsTable received cohorts:", cohorts?.length || 0, "isLoading:", isLoading);
+	console.log(
+		"📊 CohortsTable received cohorts:",
+		cohorts?.length || 0,
+		"isLoading:",
+		isLoading,
+	);
 	const router = useRouter();
 	const [cohortsWithStats, setCohortsWithStats] = useState<CohortWithStats[]>(
 		[],
@@ -185,7 +190,12 @@ export function CohortsTable({
 	}, [cohorts]);
 
 	// Debug logging for state
-	console.log("📈 cohortsWithStats:", cohortsWithStats.length, "loadingStats:", loadingStats);
+	console.log(
+		"📈 cohortsWithStats:",
+		cohortsWithStats.length,
+		"loadingStats:",
+		loadingStats,
+	);
 
 	const tableContent = (
 		<Table>

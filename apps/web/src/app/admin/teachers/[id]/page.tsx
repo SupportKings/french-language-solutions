@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
-import TeacherDetailsClient from "./page-client";
 import { getApiUrl } from "@/lib/api-utils";
+
+import TeacherDetailsClient from "./page-client";
 
 async function getTeacher(id: string) {
 	const response = await fetch(getApiUrl(`/api/teachers/${id}`), {

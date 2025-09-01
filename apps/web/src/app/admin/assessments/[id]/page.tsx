@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import { QueryClient } from "@tanstack/react-query";
 import AssessmentDetailsClient from "./page-client";
-import { getApiUrl } from "@/lib/api-utils";
 
 interface PageProps {
 	params: Promise<{ id: string }>;

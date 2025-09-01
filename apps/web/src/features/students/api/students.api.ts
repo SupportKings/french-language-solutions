@@ -1,10 +1,11 @@
+import { getApiUrl } from "@/lib/api-utils";
+
 import type {
 	CreateStudent,
 	Student,
 	StudentQuery,
 	UpdateStudent,
 } from "../schemas/student.schema";
-import { getApiUrl } from "@/lib/api-utils";
 
 export interface PaginatedResponse<T> {
 	data: T[];
@@ -15,7 +16,6 @@ export interface PaginatedResponse<T> {
 		totalPages: number;
 	};
 }
-
 
 export const studentsApi = {
 	// List students with pagination and filters
