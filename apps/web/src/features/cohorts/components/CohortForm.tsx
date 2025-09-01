@@ -581,7 +581,10 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
               <div className="space-y-4">
                 {(form.watch("weekly_sessions") || []).map((session, index) => (
                   <div
-                    key={index}
+                    key={
+                      session.id ??
+                      `${session.day_of_week}-${session.start_time}-${index}`
+                    }
                     className="relative rounded-lg border bg-muted/30 p-4"
                   >
                     <Button

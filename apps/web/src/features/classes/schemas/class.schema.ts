@@ -30,7 +30,6 @@ export const classFormSchema = z.object({
 	google_drive_folder_id: z.string().optional().nullable(),
 	materials: z.string().optional().nullable(),
 	max_students: z.number().int().positive("Must be a positive number"),
-	current_enrollment: z.number().int().min(0, "Cannot be negative"),
 	teacher_id: z
 		.string()
 		.uuid("Invalid teacher ID")

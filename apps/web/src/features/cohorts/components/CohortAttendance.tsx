@@ -117,6 +117,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 	const [records, setRecords] = useState<AttendanceRecord[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState<string | null>(null);
+	const [updatingTo, setUpdatingTo] = useState<{ recordId: string; status?: string } | null>(null);
 	const [filter, setFilter] = useState<
 		"all" | "attended" | "not_attended" | "unset"
 	>("all");
@@ -188,7 +189,12 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 		recordId: string,
 		updates: { status?: string; notes?: string; homeworkCompleted?: boolean },
 	) => {
+		// Store both the record ID and what we're updating to
 		setUpdating(recordId);
+		if (updates.status) {
+			setUpdatingTo({ recordId, status: updates.status });
+		}
+		
 		try {
 			const response = await fetch(`/api/attendance/${recordId}`, {
 				method: "PATCH",
@@ -196,16 +202,27 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				body: JSON.stringify(updates),
 			});
 
-			if (!response.ok) throw new Error("Failed to update attendance");
+			if (!response.ok) {
+				throw new Error("Failed to update attendance");
+			}
 
-			// Refresh data
-			await fetchAttendance();
+			// Update the local record without changing order
+			const updatedRecord = await response.json();
+			setRecords(prevRecords => 
+				prevRecords.map(r => 
+					r.id === recordId 
+						? { ...r, ...updates, student: r.student } // Preserve student info
+						: r
+				)
+			);
+			
 			toast.success("Attendance updated successfully");
 		} catch (error) {
 			console.error("Error updating attendance:", error);
 			toast.error("Failed to update attendance");
 		} finally {
 			setUpdating(null);
+			setUpdatingTo(null);
 		}
 	};
 
@@ -226,8 +243,13 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				existingAttendance.map((r) => r.studentId),
 			);
 
+			// Only create attendance for students with "paid" or "welcome_package_sent" status
+			const eligibleStatuses = ["paid", "welcome_package_sent"];
 			const studentsNeedingAttendance = enrolledStudents
-				.filter((enrollment) => !studentsWithAttendance.has(enrollment.student_id))
+				.filter((enrollment) => 
+					!studentsWithAttendance.has(enrollment.student_id) &&
+					eligibleStatuses.includes(enrollment.status)
+				)
 				.map((enrollment) => ({
 					student_id: enrollment.student_id,
 					cohort_id: cohortId,
@@ -237,7 +259,17 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				}));
 
 			if (studentsNeedingAttendance.length === 0) {
-				toast.info("All students already have attendance records for this class");
+				// Check if there are any enrolled students without attendance but with wrong status
+				const ineligibleStudents = enrolledStudents.filter((enrollment) => 
+					!studentsWithAttendance.has(enrollment.student_id) &&
+					!eligibleStatuses.includes(enrollment.status)
+				);
+				
+				if (ineligibleStudents.length > 0) {
+					toast.info(`${ineligibleStudents.length} students were skipped (only students with 'Paid' or 'Welcome Package Sent' status can have attendance)`);
+				} else {
+					toast.info("All eligible students already have attendance records for this class");
+				}
 				return;
 			}
 
@@ -252,7 +284,17 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				throw new Error(error.error || "Failed to create attendance records");
 			}
 
-			toast.success(`Created attendance records for ${studentsNeedingAttendance.length} students`);
+			// Check how many were skipped
+			const totalEligible = enrolledStudents.filter((enrollment) => 
+				eligibleStatuses.includes(enrollment.status)
+			).length;
+			const skippedCount = enrolledStudents.length - totalEligible;
+			
+			if (skippedCount > 0) {
+				toast.success(`Created attendance records for ${studentsNeedingAttendance.length} eligible students (${skippedCount} students skipped due to enrollment status)`);
+			} else {
+				toast.success(`Created attendance records for ${studentsNeedingAttendance.length} students`);
+			}
 			setCreateDialogOpen(false);
 			setSelectedClassId("");
 			await fetchAttendance();
@@ -339,15 +381,50 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 			groups.get(classId)!.push(record);
 		});
 
+		// Sort records within each group by student name (stable sort)
+		groups.forEach((records, classId) => {
+			records.sort((a, b) => {
+				const nameA = a.student?.full_name || '';
+				const nameB = b.student?.full_name || '';
+				return nameA.localeCompare(nameB);
+			});
+		});
+
+		// Helper function to get a reliable timestamp for a group
+		const getGroupTimestamp = (classId: string, records: AttendanceRecord[]): number => {
+			// First try to find the class by ID in the classes array
+			const classData = classes.find(c => c.id === classId);
+			if (classData?.start_time) {
+				const timestamp = new Date(classData.start_time).getTime();
+				if (!isNaN(timestamp)) return timestamp;
+			}
+			
+			// Fall back to the first record's class start_time
+			const firstRecord = records[0];
+			if (firstRecord?.class?.start_time) {
+				const timestamp = new Date(firstRecord.class.start_time).getTime();
+				if (!isNaN(timestamp)) return timestamp;
+			}
+			
+			// Fall back to attendanceDate
+			if (firstRecord?.attendanceDate) {
+				const timestamp = new Date(firstRecord.attendanceDate).getTime();
+				if (!isNaN(timestamp)) return timestamp;
+			}
+			
+			// Default to 0 for consistent ordering
+			return 0;
+		};
+
 		// Sort groups by class date (descending)
 		const sortedGroups = Array.from(groups.entries()).sort((a, b) => {
-			const dateA = a[1][0]?.class?.start_time || a[1][0]?.attendanceDate || '';
-			const dateB = b[1][0]?.class?.start_time || b[1][0]?.attendanceDate || '';
-			return new Date(dateB).getTime() - new Date(dateA).getTime();
+			const timestampA = getGroupTimestamp(a[0], a[1]);
+			const timestampB = getGroupTimestamp(b[0], b[1]);
+			return timestampB - timestampA; // Descending order
 		});
 
 		return sortedGroups;
-	}, [filteredRecords]);
+	}, [filteredRecords, classes]);
 
 	// Pagination
 	const totalPages = Math.ceil(groupedRecords.length / recordsPerPage);
@@ -715,7 +792,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 															<TableCell>
 																<Badge
 																	variant="outline"
-																	className={cn("text-xs", config.color)}
+																	className={cn("text-xs", config.textColor)}
 																>
 																	{config.label}
 																</Badge>
@@ -801,7 +878,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																		disabled={isUpdating}
 																		title="Mark as Present"
 																	>
-																		{isUpdating && record.status === "attended" ? (
+																		{isUpdating && updatingTo?.recordId === record.id && updatingTo?.status === "attended" ? (
 																			<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 																		) : (
 																			<CheckCircle className="h-3.5 w-3.5" />
@@ -823,7 +900,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																		disabled={isUpdating}
 																		title="Mark as Absent"
 																	>
-																		{isUpdating && record.status === "not_attended" ? (
+																		{isUpdating && updatingTo?.recordId === record.id && updatingTo?.status === "not_attended" ? (
 																			<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 																		) : (
 																			<XCircle className="h-3.5 w-3.5" />
@@ -841,7 +918,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																		disabled={isUpdating}
 																		title="Clear Status"
 																	>
-																		{isUpdating && record.status === "unset" ? (
+																		{isUpdating && updatingTo?.recordId === record.id && updatingTo?.status === "unset" ? (
 																			<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 																		) : (
 																			<MinusCircle className="h-3.5 w-3.5" />
@@ -928,9 +1005,9 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 					</DialogHeader>
 					<div className="space-y-4 py-4">
 						<div className="space-y-2">
-							<label className="font-medium text-sm">Select Class</label>
+							<label htmlFor="select-class" className="font-medium text-sm">Select Class</label>
 							<Select value={selectedClassId} onValueChange={setSelectedClassId}>
-								<SelectTrigger>
+								<SelectTrigger aria-labelledby="create-class-label">
 									<SelectValue placeholder="Choose a class..." />
 								</SelectTrigger>
 								<SelectContent>
@@ -943,10 +1020,37 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 							</Select>
 						</div>
 						<div className="rounded-lg bg-muted p-3">
-							<p className="text-muted-foreground text-sm">
-								This will create attendance records for{" "}
-								<strong>{enrolledStudents.length} students</strong> in this cohort.
-							</p>
+							{(() => {
+								const eligibleCount = enrolledStudents.filter(e => 
+									["paid", "welcome_package_sent"].includes(e.status)
+								).length;
+								const totalCount = enrolledStudents.length;
+								const ineligibleCount = totalCount - eligibleCount;
+								
+								if (eligibleCount === 0) {
+									return (
+										<p className="text-amber-600 text-sm">
+											<strong>No eligible students found.</strong> All {totalCount} enrolled student{totalCount !== 1 ? 's' : ''} 
+											{totalCount === 1 ? ' has' : ' have'} a status that doesn't allow attendance tracking. 
+											Only students with 'Paid' or 'Welcome Package Sent' status can have attendance.
+										</p>
+									);
+								}
+								
+								return (
+									<p className="text-muted-foreground text-sm">
+										This will create attendance records for{" "}
+										<strong>{eligibleCount} eligible student{eligibleCount !== 1 ? 's' : ''}</strong>{" "}
+										in this cohort
+										{ineligibleCount > 0 && (
+											<span>
+												{" "}({ineligibleCount} student{ineligibleCount !== 1 ? 's' : ''} will be skipped due to enrollment status)
+											</span>
+										)}
+										.
+									</p>
+								);
+							})()}
 						</div>
 					</div>
 					<DialogFooter>
@@ -961,7 +1065,11 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 						</Button>
 						<Button
 							onClick={createAttendanceRecords}
-							disabled={!selectedClassId || creatingAttendance}
+							disabled={
+								!selectedClassId || 
+								creatingAttendance || 
+								enrolledStudents.filter(e => ["paid", "welcome_package_sent"].includes(e.status)).length === 0
+							}
 						>
 							{creatingAttendance ? (
 								<>

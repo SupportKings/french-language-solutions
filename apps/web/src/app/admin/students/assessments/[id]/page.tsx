@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 
-import { QueryClient } from "@tanstack/react-query";
 import AssessmentDetailsClient from "./page-client";
 import { getApiUrl } from "@/lib/api-utils";
 

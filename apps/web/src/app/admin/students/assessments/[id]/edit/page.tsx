@@ -1,8 +1,6 @@
+import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
-
-import { Card, CardContent } from "@/components/ui/card";
-
-import { AssessmentForm } from "@/features/assessments/components/AssessmentForm";
+import { AssessmentFormNew } from "@/features/assessments/components/AssessmentFormNew";
 import { getApiUrl } from "@/lib/api-utils";
 
 async function getAssessment(id: string) {
@@ -29,18 +27,16 @@ export default async function EditAssessmentPage({
 		notFound();
 	}
 
-	return (
-		<div className="p-6">
-			<div className="mb-6">
-				<h1 className="font-bold text-2xl">Edit Assessment</h1>
-				<p className="text-muted-foreground">Update assessment information</p>
-			</div>
+	const queryClient = new QueryClient();
 
-			<Card>
-				<CardContent className="pt-6">
-					<AssessmentForm assessment={assessment} />
-				</CardContent>
-			</Card>
-		</div>
+	await queryClient.prefetchQuery({
+		queryKey: ["assessment", id],
+		queryFn: () => assessment,
+	});
+
+	return (
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<AssessmentFormNew assessment={assessment} />
+		</HydrationBoundary>
 	);
 }

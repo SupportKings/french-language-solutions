@@ -18,7 +18,6 @@ export const classes = pgTable("classes", {
 	googleDriveFolderId: text("google_drive_folder_id"),
 
 	// Capacity
-	currentEnrollment: integer("current_enrollment").default(0),
 
 	// Teacher assignment
 	teacherId: uuid("teacher_id").references(() => teachers.id, {
