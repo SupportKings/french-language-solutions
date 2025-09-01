@@ -579,24 +579,15 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
               icon={Clock}
             >
               <div className="space-y-4">
-                {(form.watch("weekly_sessions") || []).map((session, index) => {
-                  const key =
-                    session.id ??
-                    `${session.day_of_week}-${session.start_time}-${session.end_time}-${session.teacher_id ?? "unknown"}-${index}`;
-                  return (
-                    <div
-                      key={key}
-                      className="relative rounded-lg border bg-muted/30 p-4"
-                    >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                      />
-                      {/* …the rest of your session markup… */}
-                    </div>
-                  );
-                })}
+                {(form.watch("weekly_sessions") || []).map((session, index) => (
+                  <div
+                    key={index}
+                    className="relative rounded-lg border bg-muted/30 p-4"
+                  >
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
                       className="absolute top-2 right-2 h-8 w-8"
                       onClick={() => removeWeeklySession(index)}
                     >
