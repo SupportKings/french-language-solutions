@@ -49,9 +49,9 @@ export const teacherQuerySchema = z.object({
 	search: z.string().optional(),
 	sortBy: z.string().default("created_at"),
 	sortOrder: z.enum(["asc", "desc"]).default("desc"),
-	// Filters
-	onboarding_status: z.string().optional(),
-	contract_type: z.string().optional(),
+	// Filters - support arrays for multi-select
+	onboarding_status: z.union([z.string(), z.array(z.string())]).optional(),
+	contract_type: z.union([z.string(), z.array(z.string())]).optional(),
 	qualified_for_under_16: z.boolean().optional(),
 	available_for_booking: z.boolean().optional(),
 	available_for_online_classes: z.boolean().optional(),
