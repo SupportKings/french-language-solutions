@@ -211,7 +211,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 			setRecords(prevRecords => 
 				prevRecords.map(r => 
 					r.id === recordId 
-						? { ...r, ...updates, student: r.student } // Preserve student info
+						? { ...r, ...updates, student: r.student } as AttendanceRecord // Type assertion to ensure correct type
 						: r
 				)
 			);
