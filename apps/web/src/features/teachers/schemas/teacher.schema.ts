@@ -29,6 +29,10 @@ export const teacherFormSchema = z.object({
   contract_type: contractTypeEnum.optional(),
   available_for_online_classes: z.boolean(),
   available_for_in_person_classes: z.boolean(),
+  max_students_in_person: z.number().min(0).optional(),
+  max_students_online: z.number().min(0).optional(),
+  days_available_online: z.array(z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])).optional(),
+  days_available_in_person: z.array(z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])).optional(),
   mobile_phone_number: z.string().optional(),
   admin_notes: z.string().optional(),
 });
@@ -58,6 +62,8 @@ export const teacherQuerySchema = z.object({
   available_for_booking: z.boolean().optional(),
   available_for_online_classes: z.boolean().optional(),
   available_for_in_person_classes: z.boolean().optional(),
+  days_available_online: z.array(z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])).optional(),
+  days_available_in_person: z.array(z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])).optional(),
 });
 
 export type TeacherFormData = z.infer<typeof teacherFormSchema>;

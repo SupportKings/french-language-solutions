@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import {
 	Briefcase,
 	Calendar,
+	CalendarDays,
 	ChevronRight,
 	Clock,
 	CreditCard,
@@ -34,6 +35,7 @@ import {
 	Shield,
 	Trash2,
 	User,
+	Users,
 	Video,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,6 +73,7 @@ export default function TeacherDetailsClient({
 }: TeacherDetailsClientProps) {
 	const router = useRouter();
 	const [teacher, setTeacher] = useState(initialTeacher);
+	const [pendingChanges, setPendingChanges] = useState<Record<string, any>>({});
 
 	// Construct full name from first and last name
 	const fullName =
@@ -84,7 +87,7 @@ export default function TeacherDetailsClient({
 		.toUpperCase()
 		.slice(0, 2);
 
-	// Update teacher field
+	// Update teacher field (immediate save)
 	const updateTeacherField = async (field: string, value: any) => {
 		try {
 			const response = await fetch(`/api/teachers/${teacher.id}`, {
@@ -96,12 +99,43 @@ export default function TeacherDetailsClient({
 			if (!response.ok) throw new Error("Failed to update");
 
 			const updated = await response.json();
-			setTeacher(updated);
+			setTeacher((prevTeacher: any) => ({ ...prevTeacher, ...updated }));
 			toast.success("Updated successfully");
 		} catch (error) {
 			toast.error("Failed to update");
 			throw error;
 		}
+	};
+
+	// Update pending change (for form-like sections)
+	const updatePendingChange = (field: string, value: any) => {
+		setPendingChanges(prev => ({ ...prev, [field]: value }));
+	};
+
+	// Save all pending changes for Teaching Preferences
+	const saveTeachingPreferences = async () => {
+		if (Object.keys(pendingChanges).length === 0) return;
+
+		try {
+			const response = await fetch(`/api/teachers/${teacher.id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(pendingChanges),
+			});
+
+			if (!response.ok) throw new Error("Failed to update");
+
+			const updated = await response.json();
+			setTeacher((prevTeacher: any) => ({ ...prevTeacher, ...updated }));
+			setPendingChanges({});
+		} catch (error) {
+			throw error;
+		}
+	};
+
+	// Cancel pending changes for Teaching Preferences
+	const cancelTeachingPreferences = () => {
+		setPendingChanges({});
 	};
 
 	// Navigate to create forms with pre-filled data
@@ -218,7 +252,7 @@ export default function TeacherDetailsClient({
 											<p className="text-muted-foreground text-xs">Phone:</p>
 											<InlineEditField
 												value={teacher.mobile_phone_number}
-												onSave={(value) =>
+												onSave={async (value) =>
 													updateTeacherField("mobile_phone_number", value)
 												}
 												editing={editing}
@@ -236,7 +270,7 @@ export default function TeacherDetailsClient({
 											</p>
 											<InlineEditField
 												value={teacher.first_name}
-												onSave={(value) =>
+												onSave={async (value) =>
 													updateTeacherField("first_name", value)
 												}
 												editing={editing}
@@ -254,7 +288,7 @@ export default function TeacherDetailsClient({
 											</p>
 											<InlineEditField
 												value={teacher.last_name}
-												onSave={(value) =>
+												onSave={async (value) =>
 													updateTeacherField("last_name", value)
 												}
 												editing={editing}
@@ -281,7 +315,7 @@ export default function TeacherDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={teacher.contract_type}
-													onSave={(value) =>
+													onSave={async (value) =>
 														updateTeacherField("contract_type", value)
 													}
 													editing={editing}
@@ -312,7 +346,7 @@ export default function TeacherDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={teacher.onboarding_status}
-													onSave={(value) =>
+													onSave={async (value) =>
 														updateTeacherField("onboarding_status", value)
 													}
 													editing={editing}
@@ -357,7 +391,7 @@ export default function TeacherDetailsClient({
 													value={
 														teacher.available_for_booking ? "true" : "false"
 													}
-													onSave={(value) =>
+													onSave={async (value) =>
 														updateTeacherField(
 															"available_for_booking",
 															value === "true",
@@ -396,48 +430,6 @@ export default function TeacherDetailsClient({
 								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Max Hours/Week:
-											</p>
-											<InlineEditField
-												value={teacher.maximum_hours_per_week}
-												onSave={(value) =>
-													updateTeacherField(
-														"maximum_hours_per_week",
-														value ? Number.parseInt(value) : null,
-													)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter max hours"
-											/>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Max Hours/Day:
-											</p>
-											<InlineEditField
-												value={teacher.maximum_hours_per_day}
-												onSave={(value) =>
-													updateTeacherField(
-														"maximum_hours_per_day",
-														value ? Number.parseInt(value) : null,
-													)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter max hours"
-											/>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
 										<CreditCard className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">
@@ -446,7 +438,7 @@ export default function TeacherDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={teacher.group_class_bonus_terms}
-													onSave={(value) =>
+													onSave={async (value) =>
 														updateTeacherField("group_class_bonus_terms", value)
 													}
 													editing={editing}
@@ -479,128 +471,272 @@ export default function TeacherDetailsClient({
 				</EditableSection>
 
 				{/* Teaching Information */}
-				<EditableSection title="Teaching Preferences">
+				<EditableSection 
+					title="Teaching Preferences" 
+					onSave={saveTeachingPreferences}
+					onCancel={cancelTeachingPreferences}
+				>
 					{(editing) => (
-						<div className="grid gap-6 lg:grid-cols-3">
-							<div className="space-y-3">
-								<div className="flex items-start gap-3">
-									<Video className="mt-0.5 h-4 w-4 text-muted-foreground" />
-									<div className="flex-1 space-y-0.5">
-										<p className="text-muted-foreground text-xs">
-											Available for Online:
-										</p>
-										{editing ? (
+						<div className="space-y-8">
+							{/* Working Hours */}
+							<div>
+								<h4 className="mb-4 font-medium text-sm">Working Hours</h4>
+								<div className="grid gap-6 lg:grid-cols-2">
+									<div className="flex items-start gap-3">
+										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Max Hours/Week:
+											</p>
 											<InlineEditField
-												value={
-													teacher.available_for_online_classes
-														? "true"
-														: "false"
-												}
-												onSave={(value) =>
-													updateTeacherField(
-														"available_for_online_classes",
-														value === "true",
+												value={pendingChanges.maximum_hours_per_week ?? teacher.maximum_hours_per_week}
+												onSave={async (value) =>
+													updatePendingChange(
+														"maximum_hours_per_week",
+														value ? Number.parseInt(value) : null,
 													)
 												}
 												editing={editing}
-												type="select"
-												options={[
-													{ label: "Yes", value: "true" },
-													{ label: "No", value: "false" },
-												]}
+												type="text"
+												placeholder="Enter max hours"
 											/>
-										) : (
-											<Badge
-												variant={
-													teacher.available_for_online_classes
-														? "success"
-														: "secondary"
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Max Hours/Day:
+											</p>
+											<InlineEditField
+												value={pendingChanges.maximum_hours_per_day ?? teacher.maximum_hours_per_day}
+												onSave={async (value) =>
+													updatePendingChange(
+														"maximum_hours_per_day",
+														value ? Number.parseInt(value) : null,
+													)
 												}
-												className="h-5 text-xs"
-											>
-												{teacher.available_for_online_classes ? "Yes" : "No"}
-											</Badge>
-										)}
+												editing={editing}
+												type="text"
+												placeholder="Enter max hours"
+											/>
+										</div>
 									</div>
 								</div>
 							</div>
-							<div className="space-y-3">
-								<div className="flex items-start gap-3">
-									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-									<div className="flex-1 space-y-0.5">
-										<p className="text-muted-foreground text-xs">
-											Available for In-Person:
-										</p>
-										{editing ? (
-											<InlineEditField
-												value={
-													teacher.available_for_in_person_classes
-														? "true"
-														: "false"
-												}
-												onSave={(value) =>
-													updateTeacherField(
-														"available_for_in_person_classes",
-														value === "true",
-													)
-												}
-												editing={editing}
-												type="select"
-												options={[
-													{ label: "Yes", value: "true" },
-													{ label: "No", value: "false" },
-												]}
-											/>
-										) : (
-											<Badge
-												variant={
-													teacher.available_for_in_person_classes
-														? "success"
-														: "secondary"
-												}
-												className="h-5 text-xs"
-											>
-												{teacher.available_for_in_person_classes ? "Yes" : "No"}
-											</Badge>
-										)}
+
+							{/* Class Availability */}
+							<div>
+								<h4 className="mb-4 font-medium text-sm">Class Availability</h4>
+								<div className="grid gap-6 lg:grid-cols-3">
+									<div className="flex items-start gap-3">
+										<Video className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Available for Online:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={
+														(pendingChanges.available_for_online_classes ?? teacher.available_for_online_classes)
+															? "true"
+															: "false"
+													}
+													onSave={async (value) =>
+														updatePendingChange(
+															"available_for_online_classes",
+															value === "true",
+														)
+													}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Yes", value: "true" },
+														{ label: "No", value: "false" },
+													]}
+												/>
+											) : (
+												<Badge
+													variant={
+														teacher.available_for_online_classes
+															? "success"
+															: "secondary"
+													}
+													className="h-5 text-xs"
+												>
+													{teacher.available_for_online_classes ? "Yes" : "No"}
+												</Badge>
+											)}
+										</div>
+									</div>
+									
+									<div className="flex items-start gap-3">
+										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Available for In-Person:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={
+														(pendingChanges.available_for_in_person_classes ?? teacher.available_for_in_person_classes)
+															? "true"
+															: "false"
+													}
+													onSave={async (value) =>
+														updatePendingChange(
+															"available_for_in_person_classes",
+															value === "true",
+														)
+													}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Yes", value: "true" },
+														{ label: "No", value: "false" },
+													]}
+												/>
+											) : (
+												<Badge
+													variant={
+														teacher.available_for_in_person_classes
+															? "success"
+															: "secondary"
+													}
+													className="h-5 text-xs"
+												>
+													{teacher.available_for_in_person_classes ? "Yes" : "No"}
+												</Badge>
+											)}
+										</div>
+									</div>
+									
+									<div className="flex items-start gap-3">
+										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Qualified for Under 16:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={
+														(pendingChanges.qualified_for_under_16 ?? teacher.qualified_for_under_16) ? "true" : "false"
+													}
+													onSave={async (value) =>
+														updatePendingChange(
+															"qualified_for_under_16",
+															value === "true",
+														)
+													}
+													editing={editing}
+													type="select"
+													options={[
+														{ label: "Yes", value: "true" },
+														{ label: "No", value: "false" },
+													]}
+												/>
+											) : (
+												<Badge
+													variant={
+														teacher.qualified_for_under_16 ? "info" : "secondary"
+													}
+													className="h-5 text-xs"
+												>
+													{teacher.qualified_for_under_16 ? "Yes" : "No"}
+												</Badge>
+											)}
+										</div>
 									</div>
 								</div>
 							</div>
-							<div className="space-y-3">
-								<div className="flex items-start gap-3">
-									<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
-									<div className="flex-1 space-y-0.5">
-										<p className="text-muted-foreground text-xs">
-											Qualified for Under 16:
-										</p>
-										{editing ? (
+
+							{/* Student Capacity */}
+							<div>
+								<h4 className="mb-4 font-medium text-sm">Student Capacity</h4>
+								<div className="grid gap-6 lg:grid-cols-2">
+									<div className="flex items-start gap-3">
+										<Users className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Max Students (In-Person):
+											</p>
 											<InlineEditField
-												value={
-													teacher.qualified_for_under_16 ? "true" : "false"
-												}
-												onSave={(value) =>
-													updateTeacherField(
-														"qualified_for_under_16",
-														value === "true",
+												value={pendingChanges.max_students_in_person ?? teacher.max_students_in_person}
+												onSave={async (value) =>
+													updatePendingChange(
+														"max_students_in_person",
+														value ? Number.parseInt(value) : null,
 													)
 												}
 												editing={editing}
-												type="select"
-												options={[
-													{ label: "Yes", value: "true" },
-													{ label: "No", value: "false" },
-												]}
+												type="text"
+												placeholder="Enter max students"
 											/>
-										) : (
-											<Badge
-												variant={
-													teacher.qualified_for_under_16 ? "info" : "secondary"
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Users className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Max Students (Online):
+											</p>
+											<InlineEditField
+												value={pendingChanges.max_students_online ?? teacher.max_students_online}
+												onSave={async (value) =>
+													updatePendingChange(
+														"max_students_online",
+														value ? Number.parseInt(value) : null,
+													)
 												}
-												className="h-5 text-xs"
-											>
-												{teacher.qualified_for_under_16 ? "Yes" : "No"}
-											</Badge>
-										)}
+												editing={editing}
+												type="text"
+												placeholder="Enter max students"
+											/>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Schedule Availability */}
+							<div>
+								<h4 className="mb-4 font-medium text-sm">Schedule Availability</h4>
+								<div className="grid gap-6 lg:grid-cols-2">
+									<div className="flex items-start gap-3">
+										<CalendarDays className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Days Available (Online):
+											</p>
+											<InlineEditField
+												value={pendingChanges.days_available_online ?? (teacher.days_available_online || [])}
+												onSave={async (value) =>
+													updatePendingChange("days_available_online", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter days (e.g., monday, tuesday)"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<CalendarDays className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Days Available (In-Person):
+											</p>
+											<InlineEditField
+												value={pendingChanges.days_available_in_person ?? (teacher.days_available_in_person || [])}
+												onSave={async (value) =>
+													updatePendingChange("days_available_in_person", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter days (e.g., monday, tuesday)"
+											/>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -614,7 +750,7 @@ export default function TeacherDetailsClient({
 						<div className="space-y-3">
 							<InlineEditField
 								value={teacher.admin_notes}
-								onSave={(value) => updateTeacherField("admin_notes", value)}
+								onSave={async (value) => updateTeacherField("admin_notes", value)}
 								editing={editing}
 								type="textarea"
 								placeholder="Enter admin notes"

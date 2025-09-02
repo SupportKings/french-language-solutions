@@ -346,7 +346,7 @@ export function SwitchField({
 }: SwitchFieldProps) {
 	return (
 		<div
-			className={cn("flex items-center justify-between space-x-2", className)}
+			className={cn("flex items-center max-w-[500px] w-full justify-between space-x-2", className)}
 		>
 			<div className="space-y-0.5">
 				<Label htmlFor={label} className="font-medium text-sm">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -69,20 +69,6 @@ const RESULT_COLORS = {
 	level_determined: "success",
 };
 
-// Language level options
-const LEVEL_OPTIONS = [
-	{ label: "A1", value: "a1" },
-	{ label: "A1+", value: "a1_plus" },
-	{ label: "A2", value: "a2" },
-	{ label: "A2+", value: "a2_plus" },
-	{ label: "B1", value: "b1" },
-	{ label: "B1+", value: "b1_plus" },
-	{ label: "B2", value: "b2" },
-	{ label: "B2+", value: "b2_plus" },
-	{ label: "C1", value: "c1" },
-	{ label: "C1+", value: "c1_plus" },
-	{ label: "C2", value: "c2" },
-];
 
 export default function AssessmentDetailsClient({
 	assessment: initialAssessment,
@@ -91,6 +77,24 @@ export default function AssessmentDetailsClient({
 	const [assessment, setAssessment] = useState(initialAssessment);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
+
+	// Fetch language levels from API
+	useEffect(() => {
+		const fetchLanguageLevels = async () => {
+			try {
+				const response = await fetch("/api/language-levels");
+				if (response.ok) {
+					const result = await response.json();
+					setLanguageLevels(result.data || []);
+				}
+			} catch (error) {
+				console.error("Error fetching language levels:", error);
+			}
+		};
+
+		fetchLanguageLevels();
+	}, []);
 
 	// Update assessment field
 	const updateAssessmentField = async (field: string, value: any) => {
@@ -172,9 +176,9 @@ export default function AssessmentDetailsClient({
 										{(RESULT_LABELS as any)[assessment.result] ||
 											assessment.result}
 									</Badge>
-									{assessment.level && (
+									{assessment.language_level && (
 										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-											Level {assessment.level.toUpperCase()}
+											Level {assessment.language_level.display_name || assessment.language_level.code?.toUpperCase()}
 										</Badge>
 									)}
 									{assessment.is_paid && (
@@ -268,23 +272,24 @@ export default function AssessmentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={assessment.level || "not_set"}
+													value={assessment.level_id || ""}
 													onSave={(value) =>
 														updateAssessmentField(
-															"level",
-															value === "not_set" ? null : value,
+															"level_id",
+															value || null,
 														)
 													}
 													editing={editing}
 													type="select"
-													options={[
-														{ label: "Not Set", value: "not_set" },
-														...LEVEL_OPTIONS,
-													]}
+													options={languageLevels.map((level) => ({
+														value: level.id,
+														label: level.display_name || level.code?.toUpperCase(),
+													}))}
+													placeholder="Select level"
 												/>
-											) : assessment.level ? (
+											) : assessment.language_level ? (
 												<Badge variant="outline">
-													{assessment.level.toUpperCase()}
+													{assessment.language_level.display_name || assessment.language_level.code?.toUpperCase()}
 												</Badge>
 											) : (
 												<span className="text-muted-foreground text-sm">
@@ -328,7 +333,7 @@ export default function AssessmentDetailsClient({
 													type="select"
 													options={[
 														{ label: "Paid", value: "true" },
-														{ label: "Not Paid", value: "false" },
+														{ label: "Free", value: "false" },
 													]}
 												/>
 											) : assessment.is_paid ? (
@@ -339,7 +344,7 @@ export default function AssessmentDetailsClient({
 											) : (
 												<div className="flex items-center gap-1.5 text-muted-foreground">
 													<XCircle className="h-4 w-4" />
-													<span className="text-sm">Not Paid</span>
+													<span className="text-sm">Free</span>
 												</div>
 											)}
 										</div>

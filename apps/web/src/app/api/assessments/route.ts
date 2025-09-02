@@ -12,10 +12,15 @@ export async function GET(request: NextRequest) {
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
-		const result = searchParams.get("result") || "";
-		const level_id = searchParams.get("level_id") || "";
+		const results = searchParams.getAll("result");
+		const levelIds = searchParams.getAll("level_id");
 		const studentId = searchParams.get("studentId") || "";
-		const isPaid = searchParams.get("isPaid") || "";
+		const isPaid = searchParams.get("is_paid") || "";
+		const hasTeachers = searchParams.getAll("has_teacher");
+		const scheduledStatuses = searchParams.getAll("scheduled_status");
+		const dateFrom = searchParams.get("date_from") || "";
+		const dateTo = searchParams.get("date_to") || "";
+		const dateOperator = searchParams.get("date_operator") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -29,18 +34,20 @@ export async function GET(request: NextRequest) {
 					code,
 					display_name,
 					level_group
-				)
+				),
+				interview_held_by:teachers!interview_held_by(id, first_name, last_name),
+				level_checked_by:teachers!level_checked_by(id, first_name, last_name)
 			`,
 			{ count: "exact" },
 		);
 
 		// Apply filters
-		if (result) {
-			query = query.eq("result", result);
+		if (results.length > 0) {
+			query = query.in("result", results);
 		}
 
-		if (level_id) {
-			query = query.eq("level_id", level_id);
+		if (levelIds.length > 0) {
+			query = query.in("level_id", levelIds);
 		}
 
 		if (studentId) {
@@ -49,6 +56,90 @@ export async function GET(request: NextRequest) {
 
 		if (isPaid !== "") {
 			query = query.eq("is_paid", isPaid === "true");
+		}
+
+		// Handle teacher assignment filter
+		if (hasTeachers.length > 0) {
+			if (hasTeachers.includes("assigned") && hasTeachers.includes("unassigned")) {
+				// Both selected, no filter needed
+			} else if (hasTeachers.includes("assigned")) {
+				query = query.or("interview_held_by.not.is.null,level_checked_by.not.is.null");
+			} else if (hasTeachers.includes("unassigned")) {
+				query = query.is("interview_held_by", null).is("level_checked_by", null);
+			}
+		}
+
+		// Handle scheduling status filter
+		if (scheduledStatuses.length > 0) {
+			const conditions = [];
+			if (scheduledStatuses.includes("scheduled")) {
+				conditions.push("scheduled_for.not.is.null");
+			}
+			if (scheduledStatuses.includes("not_scheduled")) {
+				conditions.push("scheduled_for.is.null");
+			}
+			if (scheduledStatuses.includes("overdue")) {
+				// Overdue means scheduled_for is in the past and result is still 'scheduled'
+				const now = new Date().toISOString();
+				conditions.push(`and(scheduled_for.lt.${now},result.eq.scheduled)`);
+			}
+			
+			if (conditions.length > 0) {
+				query = query.or(conditions.join(","));
+			}
+		}
+
+		// Handle date filtering for scheduled_for based on operator
+		if (dateOperator && (dateFrom || dateTo)) {
+			switch (dateOperator) {
+				case "is":
+					if (dateFrom) query = query.eq("scheduled_for", dateFrom);
+					break;
+				case "is not":
+					if (dateFrom) query = query.neq("scheduled_for", dateFrom);
+					break;
+				case "is before":
+					if (dateFrom) query = query.lt("scheduled_for", dateFrom);
+					break;
+				case "is on or after":
+					if (dateFrom) query = query.gte("scheduled_for", dateFrom);
+					break;
+				case "is after":
+					if (dateFrom) query = query.gt("scheduled_for", dateFrom);
+					break;
+				case "is on or before":
+					if (dateFrom) query = query.lte("scheduled_for", dateFrom);
+					break;
+				case "is between":
+					if (dateFrom && dateTo) {
+						query = query.gte("scheduled_for", dateFrom).lte("scheduled_for", dateTo);
+					}
+					break;
+				case "is not between":
+					if (dateFrom && dateTo) {
+						query = query.or(`scheduled_for.lt.${dateFrom},scheduled_for.gt.${dateTo}`);
+					}
+					break;
+				default:
+					// Fallback to range filtering
+					if (dateFrom && dateTo) {
+						query = query.gte("scheduled_for", dateFrom).lte("scheduled_for", dateTo);
+					} else if (dateFrom) {
+						query = query.gte("scheduled_for", dateFrom);
+					} else if (dateTo) {
+						query = query.lte("scheduled_for", dateTo);
+					}
+					break;
+			}
+		} else if (dateFrom || dateTo) {
+			// Fallback for when no operator is specified
+			if (dateFrom && dateTo) {
+				query = query.gte("scheduled_for", dateFrom).lte("scheduled_for", dateTo);
+			} else if (dateFrom) {
+				query = query.gte("scheduled_for", dateFrom);
+			} else if (dateTo) {
+				query = query.lte("scheduled_for", dateTo);
+			}
 		}
 
 		if (search) {

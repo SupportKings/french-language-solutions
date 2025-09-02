@@ -45,11 +45,7 @@ const data = {
 				{
 					title: "Assessments",
 					url: "/admin/students/assessments",
-				},
-				{
-					title: "Progress Tracking",
-					url: "/admin/students/progress",
-				},
+				}
 			],
 		},
 		{

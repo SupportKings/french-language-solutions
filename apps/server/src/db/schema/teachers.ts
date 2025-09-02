@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import {
 	contractTypeEnum,
+	dayOfWeekEnum,
 	groupClassBonusTermsEnum,
 	onboardingStatusEnum,
 } from "./enums";
@@ -34,6 +35,10 @@ export const teachers = pgTable("teachers", {
 	availableForInPersonClasses: boolean(
 		"available_for_in_person_classes",
 	).default(false),
+	maxStudentsInPerson: integer("max_students_in_person"),
+	maxStudentsOnline: integer("max_students_online"),
+	daysAvailableOnline: dayOfWeekEnum("days_available_online").array(),
+	daysAvailableInPerson: dayOfWeekEnum("days_available_in_person").array(),
 	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }), // E.164 format
 	adminNotes: text("admin_notes"),
 	airtableRecordId: text("airtable_record_id"), // For migration tracking
