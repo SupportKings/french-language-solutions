@@ -3,16 +3,7 @@ import type {
 	ClassFilters,
 	ClassFormValues,
 } from "../schemas/class.schema";
-
-// Get the base URL from environment or use localhost as fallback
-const getBaseUrl = () => {
-	if (typeof window !== "undefined") {
-		// Browser should use relative URLs
-		return "";
-	}
-	// SSR should use absolute URL
-	return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-};
+import { getBaseUrl } from "@/lib/api-utils";
 
 export interface PaginatedResponse<T> {
 	data: T[];

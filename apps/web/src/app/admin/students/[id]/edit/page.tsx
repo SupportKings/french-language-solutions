@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { StudentFormNew } from "@/features/students/components/StudentFormNew";
+import { getApiUrl } from "@/lib/api-utils";
 
 async function getStudent(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/students/${id}`, {
+	const response = await fetch(getApiUrl(`/api/students/${id}`), {
 		cache: "no-store",
 	});
 

@@ -53,6 +53,7 @@ export const auth = betterAuth({
 		"http://localhost:3001",
 		"https://frenchlanguagesolutions.vercel.app/",
 		process.env.NEXT_PUBLIC_VERCEL_URL,
+		process.env.NEXT_PUBLIC_APP_URL,
 	].filter(Boolean) as string[],
 
 	emailAndPassword: {

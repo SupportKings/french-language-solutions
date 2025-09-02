@@ -1,19 +1,9 @@
 import { notFound } from "next/navigation";
+import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 
 import StudentDetailsClient from "./page-client";
-
-async function getStudent(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/students/${id}`, {
-		cache: "no-store",
-	});
-
-	if (!response.ok) {
-		return null;
-	}
-
-	return response.json();
-}
+import { studentsApi } from "@/features/students/api/students.api";
+import { studentsKeys } from "@/features/students/queries/students.queries";
 
 export default async function StudentDetailPage({
 	params,
@@ -21,7 +11,18 @@ export default async function StudentDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const student = await getStudent(id);
+	const queryClient = new QueryClient();
+
+	try {
+		await queryClient.prefetchQuery({
+			queryKey: studentsKeys.detail(id),
+			queryFn: () => studentsApi.getById(id),
+		});
+	} catch (error) {
+		notFound();
+	}
+
+	const student = queryClient.getQueryData(studentsKeys.detail(id));
 
 	if (!student) {
 		notFound();
@@ -32,10 +33,12 @@ export default async function StudentDetailPage({
 	const assessmentCount = 0; // Would be calculated from actual assessments
 
 	return (
-		<StudentDetailsClient
-			student={student}
-			enrollmentCount={enrollmentCount}
-			assessmentCount={assessmentCount}
-		/>
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<StudentDetailsClient
+				student={student}
+				enrollmentCount={enrollmentCount}
+				assessmentCount={assessmentCount}
+			/>
+		</HydrationBoundary>
 	);
 }
