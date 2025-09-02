@@ -23,6 +23,12 @@ export async function GET(request: NextRequest) {
 		const cohortId = searchParams.get("cohortId") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
+		
+		// Get additional filter arrays
+		const cohortFormatArray = searchParams.getAll("cohort_format");
+		const cohortStatusArray = searchParams.getAll("cohort_status");
+		const startingLevelArray = searchParams.getAll("starting_level");
+		const roomTypeArray = searchParams.getAll("room_type");
 
 		// Build query - use inner join when filtering by products to exclude N/A records
 		const cohortJoin = productIds.length > 0 ? "cohorts!inner" : "cohorts";
@@ -90,6 +96,23 @@ export async function GET(request: NextRequest) {
 
 		if (cohortId) {
 			query = query.eq("cohort_id", cohortId);
+		}
+
+		// Apply cohort-related filters
+		if (cohortFormatArray.length > 0) {
+			query = query.in("cohorts.products.format", cohortFormatArray);
+		}
+
+		if (cohortStatusArray.length > 0) {
+			query = query.in("cohorts.cohort_status", cohortStatusArray);
+		}
+
+		if (startingLevelArray.length > 0) {
+			query = query.in("cohorts.starting_level.code", startingLevelArray);
+		}
+
+		if (roomTypeArray.length > 0) {
+			query = query.in("cohorts.room_type", roomTypeArray);
 		}
 
 		if (search) {

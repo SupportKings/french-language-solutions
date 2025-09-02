@@ -127,13 +127,41 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Transform data to match frontend expectations
-		const transformedData =
-			data?.map((teacher) => ({
-				...teacher,
-				full_name: `${teacher.first_name} ${teacher.last_name}`.trim(),
-			})) || [];
-
-		// Calculate pagination metadata
+		// Fetch active cohorts count for each teacher
+		const teacherIds = (data || []).map((t) => t.id);
+		let countsByTeacher = new Map<string, number>();
+		if (teacherIds.length > 0) {
+			const { data: sessionRows, error: sessionsError } = await supabase
+				.from("weekly_sessions")
+				.select(`
+					teacher_id,
+					cohort_id,
+					cohorts!inner(
+						cohort_status
+					)
+				`)
+				.in("teacher_id", teacherIds)
+				.neq("cohorts.cohort_status", "class_ended");
+			if (!sessionsError) {
+				const uniq = new Map<string, Set<string>>();
+				(sessionRows || []).forEach((r: any) => {
+					if (!uniq.has(r.teacher_id)) uniq.set(r.teacher_id, new Set());
+					uniq.get(r.teacher_id)!.add(r.cohort_id);
+				});
+				countsByTeacher = new Map(
+					Array.from(uniq.entries()).map(([k, v]) => [k, v.size]),
+				);
+			} else {
+				console.warn("Failed to fetch active cohorts per teacher:", sessionsError);
+			}
+		}
+		
+		const transformedData = (data || []).map((teacher) => ({
+			...teacher,
+			full_name: `${teacher.first_name} ${teacher.last_name}`.trim(),
+			active_cohorts_count: countsByTeacher.get(teacher.id) ?? 0,
+		}));
+				// Calculate pagination metadata
 		const totalPages = Math.ceil((count || 0) / limit);
 
 		return NextResponse.json({
