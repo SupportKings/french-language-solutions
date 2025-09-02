@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/popover";
 
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+import { createStudentSchema } from "@/features/students/schemas/student.schema";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -49,28 +50,24 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const studentFormSchema = z.object({
-	full_name: z.string().min(1, "Full name is required"),
-	email: z.string().email("Invalid email").optional().or(z.literal("")),
-	mobile_phone_number: z.string().max(20).optional().or(z.literal("")),
-	city: z.string().optional().or(z.literal("")),
-	desired_starting_language_level_id: z.string().optional(),
-	initial_channel: z
-		.enum(["form", "quiz", "call", "message", "email", "assessment"])
-		.optional(),
-	communication_channel: z.enum(["sms_email", "email", "sms"]),
-	is_full_beginner: z.boolean(),
-	is_under_16: z.boolean(),
-	subjective_deadline_for_student: z.date().optional(),
-	purpose_to_learn: z.string().optional().or(z.literal("")),
-	// External IDs
-	convertkit_id: z.string().optional().or(z.literal("")),
-	openphone_contact_id: z.string().optional().or(z.literal("")),
-	tally_form_submission_id: z.string().optional().or(z.literal("")),
-	respondent_id: z.string().optional().or(z.literal("")),
-	stripe_customer_id: z.string().optional().or(z.literal("")),
-	airtable_record_id: z.string().optional().or(z.literal("")),
-});
+// Extend the createStudentSchema for form-specific needs
+// Convert date strings to Date objects for the form and make fields optional for empty strings
+const studentFormSchema = createStudentSchema
+	.extend({
+		subjective_deadline_for_student: z.date().optional().nullable(),
+		email: z.string().email("Invalid email").optional().nullable().or(z.literal("")),
+		mobile_phone_number: z.string().max(20).optional().nullable().or(z.literal("")),
+		city: z.string().optional().nullable().or(z.literal("")),
+		purpose_to_learn: z.string().optional().nullable().or(z.literal("")),
+		desired_starting_language_level_id: z.string().optional().nullable(),
+		communication_channel: z.enum(["sms_email", "email", "sms"]).optional().nullable(),
+		is_full_beginner: z.boolean().optional().nullable(),
+		is_under_16: z.boolean().optional().nullable(),
+	})
+	.refine((data) => {
+		// Ensure required fields are present
+		return true;
+	});
 
 type StudentFormValues = z.infer<typeof studentFormSchema>;
 
