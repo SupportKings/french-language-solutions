@@ -1,6 +1,7 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { studentsApi } from "@/features/students/api/students.api";
+import { getApiUrl } from "@/lib/api-utils";
 import { studentsKeys } from "@/features/students/queries/students.queries";
 
 import {
@@ -10,6 +11,23 @@ import {
 } from "@tanstack/react-query";
 import StudentDetailsClient from "./page-client";
 
+// Force dynamic rendering to ensure params work correctly on Vercel
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+
+async function getStudent(id: string) {
+	const response = await fetch(getApiUrl(`/api/students/${id}`), {
+		cache: "no-store",
+		headers: { cookie: (await headers()).get("cookie") ?? "" },
+	});
+
+	if (!response.ok) {
+		return null;
+	}
+
+	return response.json();
+}
+
 export default async function StudentDetailPage({
 	params,
 }: {
@@ -18,26 +36,18 @@ export default async function StudentDetailPage({
 	const { id } = await params;
 	const queryClient = new QueryClient();
 
-	try {
-		// Log for debugging on Vercel
-		console.log("[StudentDetailPage] Fetching student with ID:", id);
-		console.log("[StudentDetailPage] VERCEL_URL:", process.env.VERCEL_URL);
-		console.log("[StudentDetailPage] NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
-		
-		await queryClient.prefetchQuery({
-			queryKey: studentsKeys.detail(id),
-			queryFn: () => studentsApi.getById(id),
-		});
-	} catch (error) {
-		console.error("[StudentDetailPage] Error fetching student:", error);
-		notFound();
-	}
-
-	const student = queryClient.getQueryData(studentsKeys.detail(id));
+	// Fetch directly with cookies like the working teachers page
+	const student = await getStudent(id);
 
 	if (!student) {
 		notFound();
 	}
+
+	// Prefetch for client-side navigation
+	await queryClient.prefetchQuery({
+		queryKey: studentsKeys.detail(id),
+		queryFn: () => Promise.resolve(student),
+	});
 
 	// Calculate student metrics (would come from actual data)
 	const enrollmentCount = 1; // Would be calculated from actual enrollments
