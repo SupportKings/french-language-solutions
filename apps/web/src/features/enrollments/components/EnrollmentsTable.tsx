@@ -452,11 +452,11 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
 												<Link
-													href={`/admin/students/enrollments/${enrollment.id}`}
+													href={`/admin/students/enrollment/${enrollment.id}`}
 												>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />
-														View
+														View Details
 													</DropdownMenuItem>
 												</Link>
 												<DropdownMenuItem

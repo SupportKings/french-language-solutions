@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
 					start_date,
 					room_type,
 					product_id,
+					cohort_status,
+					max_students,
 					products (
 						id,
 						format,
