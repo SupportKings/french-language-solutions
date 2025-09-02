@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import { Card, CardContent } from "@/components/ui/card";
 
 import { AssessmentForm } from "@/features/assessments/components/AssessmentForm";
-import { getApiUrl } from "@/lib/api-utils";
 
 async function getAssessment(id: string) {
 	const response = await fetch(getApiUrl(`/api/assessments/${id}`), {

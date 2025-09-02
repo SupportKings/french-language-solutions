@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
 import { getApiUrl } from "@/lib/api-utils";
+
+import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
 
 async function getEnrollment(id: string) {
 	const response = await fetch(getApiUrl(`/api/enrollments/${id}`), {

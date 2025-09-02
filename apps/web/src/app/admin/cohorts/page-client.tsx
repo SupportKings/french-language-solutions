@@ -147,33 +147,33 @@ export function ClassesPageClient() {
 	}, [filters]);
 
 	// Build query filters - pass arrays for multi-select
-	const queryFilters = useMemo(
-		() => {
-			const query: any = {
-				page,
-				limit: 20,
-			};
-			
-			// Only add filters if they have values
-			if (debouncedSearch) query.search = debouncedSearch;
-			if (filterParams.format && filterParams.format.length > 0) {
-				query.format = filterParams.format as CohortFormat[];
-			}
-			if (filterParams.cohort_status && filterParams.cohort_status.length > 0) {
-				query.cohort_status = filterParams.cohort_status as CohortStatus[];
-			}
-			if (filterParams.starting_level_id && filterParams.starting_level_id.length > 0) {
-				query.starting_level_id = filterParams.starting_level_id as string[];
-			}
-			if (filterParams.room_type && filterParams.room_type.length > 0) {
-				query.room_type = filterParams.room_type as RoomType[];
-			}
-			
-			console.log("🎯 Final queryFilters:", query);
-			return query;
-		},
-		[debouncedSearch, filterParams, page],
-	);
+	const queryFilters = useMemo(() => {
+		const query: any = {
+			page,
+			limit: 20,
+		};
+
+		// Only add filters if they have values
+		if (debouncedSearch) query.search = debouncedSearch;
+		if (filterParams.format && filterParams.format.length > 0) {
+			query.format = filterParams.format as CohortFormat[];
+		}
+		if (filterParams.cohort_status && filterParams.cohort_status.length > 0) {
+			query.cohort_status = filterParams.cohort_status as CohortStatus[];
+		}
+		if (
+			filterParams.starting_level_id &&
+			filterParams.starting_level_id.length > 0
+		) {
+			query.starting_level_id = filterParams.starting_level_id as string[];
+		}
+		if (filterParams.room_type && filterParams.room_type.length > 0) {
+			query.room_type = filterParams.room_type as RoomType[];
+		}
+
+		console.log("🎯 Final queryFilters:", query);
+		return query;
+	}, [debouncedSearch, filterParams, page]);
 
 	// Fetch cohorts data
 	console.log("🔍 Query filters being sent:", queryFilters);

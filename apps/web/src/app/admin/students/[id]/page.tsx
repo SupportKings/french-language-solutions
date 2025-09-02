@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 
-import StudentDetailsClient from "./page-client";
 import { studentsApi } from "@/features/students/api/students.api";
 import { studentsKeys } from "@/features/students/queries/students.queries";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import StudentDetailsClient from "./page-client";
 
 export default async function StudentDetailPage({
 	params,

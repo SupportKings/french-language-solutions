@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +21,6 @@ import {
 	Phone,
 	User,
 } from "lucide-react";
-
-import { getApiUrl } from "@/lib/api-utils";
 
 async function getStudent(id: string) {
 	const response = await fetch(getApiUrl(`/api/students/${id}`), {
