@@ -1,10 +1,8 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import MainLayout from "@/components/layout/main-layout";
 import { getEnrollment } from "@/features/enrollments/actions/getEnrollment";
 import EnrollmentDetailSkeleton from "@/features/enrollments/components/enrollment.detail.skeleton";
 import EnrollmentDetailView from "@/features/enrollments/components/enrollment.detail.view";
-import EnrollmentDetailHeader from "@/features/enrollments/layout/enrollment.detail.header";
 import { getUser } from "@/queries/getUser";
 import {
 	dehydrate,
@@ -49,13 +47,7 @@ async function EnrollmentDetailPageAsync({ params }: EnrollmentDetailPageProps) 
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<MainLayout
-				headers={[
-					<EnrollmentDetailHeader key="enrollment-detail-header" enrollmentId={id} />,
-				]}
-			>
-				<EnrollmentDetailView enrollmentId={id} />
-			</MainLayout>
+			<EnrollmentDetailView enrollmentId={id} />
 		</HydrationBoundary>
 	);
 }
