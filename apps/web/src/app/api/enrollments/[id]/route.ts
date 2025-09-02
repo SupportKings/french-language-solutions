@@ -19,14 +19,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				students(id, full_name, email),
 				cohorts(
 					id, 
-					title,
+					starting_level_id,
+					current_level_id,
 					start_date,
 					room_type,
+					cohort_status,
+					max_students,
 					products(
 						id,
-						format
+						format,
+						display_name
 					),
 					starting_level:language_levels!starting_level_id(
+						id,
+						code,
+						display_name
+					),
+					current_level:language_levels!current_level_id(
 						id,
 						code,
 						display_name
@@ -82,14 +91,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 				students(id, full_name, email),
 				cohorts(
 					id, 
-					title,
+					starting_level_id,
+					current_level_id,
 					start_date,
 					room_type,
+					cohort_status,
+					max_students,
 					products(
 						id,
-						format
+						format,
+						display_name
 					),
 					starting_level:language_levels!starting_level_id(
+						id,
+						code,
+						display_name
+					),
+					current_level:language_levels!current_level_id(
 						id,
 						code,
 						display_name
