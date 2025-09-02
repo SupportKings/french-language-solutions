@@ -104,12 +104,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				? new Date(student.subjective_deadline_for_student)
 				: undefined,
 			purpose_to_learn: student?.purpose_to_learn || "",
-			convertkit_id: student?.convertkit_id || "",
-			openphone_contact_id: student?.openphone_contact_id || "",
-			tally_form_submission_id: student?.tally_form_submission_id || "",
-			respondent_id: student?.respondent_id || "",
-			stripe_customer_id: student?.stripe_customer_id || "",
-			airtable_record_id: student?.airtable_record_id || "",
 		},
 	});
 
@@ -329,7 +323,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 										<PopoverContent className="w-auto p-0" align="start">
 											<Calendar
 												mode="single"
-												selected={form.watch("subjective_deadline_for_student")}
+												selected={form.watch("subjective_deadline_for_student") ?? undefined}
 												onSelect={(date) =>
 													form.setValue("subjective_deadline_for_student", date)
 												}
@@ -356,7 +350,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								<SwitchField
 									label="Full Beginner"
 									description="Student has no prior French knowledge"
-									checked={form.watch("is_full_beginner")}
+									checked={form.watch("is_full_beginner") ?? false}
 									onCheckedChange={(checked) =>
 										form.setValue("is_full_beginner", checked)
 									}
@@ -364,7 +358,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								<SwitchField
 									label="Under 16 Years Old"
 									description="Student requires age-appropriate materials"
-									checked={form.watch("is_under_16")}
+									checked={form.watch("is_under_16") ?? false}
 									onCheckedChange={(checked) =>
 										form.setValue("is_under_16", checked)
 									}
@@ -384,7 +378,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 									error={form.formState.errors.communication_channel?.message}
 								>
 									<SelectField
-										value={form.watch("communication_channel")}
+										value={form.watch("communication_channel") ?? undefined}
 										onValueChange={(value) =>
 											form.setValue("communication_channel", value as any)
 										}
@@ -398,7 +392,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								>
 									<SelectField
 										placeholder="Select channel"
-										value={form.watch("initial_channel")}
+										value={form.watch("initial_channel") ?? undefined}
 										onValueChange={(value) =>
 											form.setValue("initial_channel", value as any)
 										}
@@ -408,57 +402,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 							</FormRow>
 						</FormSection>
 
-						{/* External Integrations - Collapsible or hidden by default */}
-						{isEditMode && (
-							<FormSection
-								title="External Integrations"
-								description="IDs from third-party services (optional)"
-								icon={ExternalLink}
-							>
-								<FormRow>
-									<FormField label="Stripe Customer ID">
-										<InputField
-											placeholder="cus_..."
-											{...form.register("stripe_customer_id")}
-										/>
-									</FormField>
-									<FormField label="ConvertKit ID">
-										<InputField
-											placeholder="12345678"
-											{...form.register("convertkit_id")}
-										/>
-									</FormField>
-								</FormRow>
-								<FormRow>
-									<FormField label="OpenPhone Contact ID">
-										<InputField
-											placeholder="contact_..."
-											{...form.register("openphone_contact_id")}
-										/>
-									</FormField>
-									<FormField label="Airtable Record ID">
-										<InputField
-											placeholder="rec..."
-											{...form.register("airtable_record_id")}
-										/>
-									</FormField>
-								</FormRow>
-								<FormRow>
-									<FormField label="Tally Form Submission ID">
-										<InputField
-											placeholder="submission_..."
-											{...form.register("tally_form_submission_id")}
-										/>
-									</FormField>
-									<FormField label="Respondent ID">
-										<InputField
-											placeholder="resp_..."
-											{...form.register("respondent_id")}
-										/>
-									</FormField>
-								</FormRow>
-							</FormSection>
-						)}
 					</div>
 				</FormContent>
 
