@@ -19,11 +19,17 @@ export default async function StudentDetailPage({
 	const queryClient = new QueryClient();
 
 	try {
+		// Log for debugging on Vercel
+		console.log("[StudentDetailPage] Fetching student with ID:", id);
+		console.log("[StudentDetailPage] VERCEL_URL:", process.env.VERCEL_URL);
+		console.log("[StudentDetailPage] NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
+		
 		await queryClient.prefetchQuery({
 			queryKey: studentsKeys.detail(id),
 			queryFn: () => studentsApi.getById(id),
 		});
 	} catch (error) {
+		console.error("[StudentDetailPage] Error fetching student:", error);
 		notFound();
 	}
 

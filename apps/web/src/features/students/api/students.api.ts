@@ -48,7 +48,10 @@ export const studentsApi = {
 
 	// Get single student
 	async getById(id: string): Promise<Student> {
-		const response = await fetch(getApiUrl(`/api/students/${id}`), {
+		const url = getApiUrl(`/api/students/${id}`);
+		console.log("[studentsApi.getById] Fetching from URL:", url);
+		
+		const response = await fetch(url, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -56,7 +59,8 @@ export const studentsApi = {
 		});
 
 		if (!response.ok) {
-			throw new Error("Failed to fetch student");
+			console.error(`[studentsApi.getById] Failed with status ${response.status} for URL:`, url);
+			throw new Error(`Failed to fetch student: ${response.status}`);
 		}
 
 		return response.json();
