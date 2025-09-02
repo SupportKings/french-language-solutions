@@ -11,6 +11,8 @@ export function BackButton() {
 		<Button
 			variant="ghost"
 			size="sm"
+			aria-label="Go back"
+			type="button"
 			onClick={() => router.back()}
 			className="h-8 px-2"
 		>

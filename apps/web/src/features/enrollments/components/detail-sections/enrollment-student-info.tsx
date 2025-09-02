@@ -91,11 +91,12 @@ export function EnrollmentStudentInfo({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div>
-					<label className="font-medium text-muted-foreground text-sm">
+					<label htmlFor="student-fullname" className="font-medium text-muted-foreground text-sm">
 						Full Name
 					</label>
 					{isEditing ? (
 						<Input
+							id="student-fullname"
 							value={formData.full_name}
 							onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
 							className="mt-1"
@@ -105,11 +106,12 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label className="font-medium text-muted-foreground text-sm">
+					<label htmlFor="student-email" className="font-medium text-muted-foreground text-sm">
 						Email
 					</label>
 					{isEditing ? (
 						<Input
+							id="student-email"
 							type="email"
 							value={formData.email}
 							onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -120,11 +122,12 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label className="font-medium text-muted-foreground text-sm">
+					<label htmlFor="student-phone" className="font-medium text-muted-foreground text-sm">
 						Phone Number
 					</label>
 					{isEditing ? (
 						<Input
+							id="student-phone"
 							value={formData.mobile_phone_number}
 							onChange={(e) => setFormData(prev => ({ ...prev, mobile_phone_number: e.target.value }))}
 							placeholder="Enter phone number"
@@ -135,11 +138,12 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label className="font-medium text-muted-foreground text-sm">
+					<label htmlFor="student-city" className="font-medium text-muted-foreground text-sm">
 						City
 					</label>
 					{isEditing ? (
 						<Input
+							id="student-city"
 							value={formData.city}
 							onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
 							placeholder="Enter city"
@@ -150,7 +154,7 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label className="font-medium text-muted-foreground text-sm">
+					<label htmlFor="student-communication-channel" className="font-medium text-muted-foreground text-sm">
 						Communication Channel
 					</label>
 					{isEditing ? (
@@ -158,7 +162,7 @@ export function EnrollmentStudentInfo({
 							value={formData.communication_channel}
 							onValueChange={(value) => setFormData(prev => ({ ...prev, communication_channel: value as CommunicationChannel }))}
 						>
-							<SelectTrigger className="mt-1">
+							<SelectTrigger id="student-communication-channel" className="mt-1">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>

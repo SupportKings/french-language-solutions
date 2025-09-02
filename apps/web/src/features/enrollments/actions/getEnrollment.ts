@@ -1,8 +1,21 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { z } from "zod";
+
+const uuidSchema = z.string().regex(
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+	"Invalid UUID format"
+);
 
 export async function getEnrollment(id: string) {
+	// Validate id is a valid UUID
+	const validationResult = uuidSchema.safeParse(id);
+	
+	if (!validationResult.success) {
+		throw new Error(`Invalid enrollment ID format: ${validationResult.error.message}`);
+	}
+	
 	const supabase = await createClient();
 
 	const { data, error } = await supabase
@@ -69,7 +82,7 @@ export async function getEnrollment(id: string) {
 
 	if (error) {
 		console.error("Error fetching enrollment:", error);
-		return null;
+		throw new Error("Failed to load enrollment");
 	}
 
 	return data;

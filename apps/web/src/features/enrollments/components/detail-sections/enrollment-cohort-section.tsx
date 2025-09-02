@@ -63,27 +63,27 @@ export function EnrollmentCohortSection({ cohort }: EnrollmentCohortSectionProps
 				{/* Product Information */}
 				<div className="grid gap-4 md:grid-cols-2">
 					<div>
-						<label className="font-medium text-muted-foreground text-sm">
+						<div className="font-medium text-muted-foreground text-sm">
 							Linked Product
-						</label>
+						</div>
 						<p className="text-sm font-medium">{cohort.product?.display_name || "Not set"}</p>
 					</div>
 					<div>
-						<label className="font-medium text-muted-foreground text-sm">
+						<div className="font-medium text-muted-foreground text-sm">
 							Product Format
-						</label>
+						</div>
 						<p className="text-sm capitalize">{cohort.product?.format || "Not set"}</p>
 					</div>
 					<div>
-						<label className="font-medium text-muted-foreground text-sm">
+						<div className="font-medium text-muted-foreground text-sm">
 							Location
-						</label>
+						</div>
 						<p className="text-sm capitalize">{cohort.product?.location || "Not set"}</p>
 					</div>
 					<div>
-						<label className="font-medium text-muted-foreground text-sm">
+						<div className="font-medium text-muted-foreground text-sm">
 							Room Type
-						</label>
+						</div>
 						<p className="text-sm capitalize">{cohort.room_type?.replace(/_/g, ' ') || "Not set"}</p>
 					</div>
 				</div>
@@ -93,9 +93,9 @@ export function EnrollmentCohortSection({ cohort }: EnrollmentCohortSectionProps
 					<div className="flex items-start gap-2">
 						<BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
 						<div>
-							<label className="font-medium text-muted-foreground text-sm">
+							<div className="font-medium text-muted-foreground text-sm">
 								Starting Level
-							</label>
+							</div>
 							<p className="text-sm font-medium">
 								{cohort.starting_level?.display_name || "Not set"}
 								{cohort.starting_level?.code && (
@@ -107,9 +107,9 @@ export function EnrollmentCohortSection({ cohort }: EnrollmentCohortSectionProps
 					<div className="flex items-start gap-2">
 						<GraduationCap className="h-4 w-4 text-muted-foreground mt-0.5" />
 						<div>
-							<label className="font-medium text-muted-foreground text-sm">
+							<div className="font-medium text-muted-foreground text-sm">
 								Current Level
-							</label>
+							</div>
 							<p className="text-sm font-medium">
 								{cohort.current_level?.display_name || "Not set"}
 								{cohort.current_level?.code && (
@@ -125,18 +125,18 @@ export function EnrollmentCohortSection({ cohort }: EnrollmentCohortSectionProps
 					<div className="flex items-start gap-2">
 						<Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
 						<div>
-							<label className="font-medium text-muted-foreground text-sm">
+							<div className="font-medium text-muted-foreground text-sm">
 								Start Date
-							</label>
+							</div>
 							<p className="text-sm">{formatDate(cohort.start_date)}</p>
 						</div>
 					</div>
 					<div className="flex items-start gap-2">
 						<Users className="h-4 w-4 text-muted-foreground mt-0.5" />
 						<div>
-							<label className="font-medium text-muted-foreground text-sm">
+							<div className="font-medium text-muted-foreground text-sm">
 								Cohort Status
-							</label>
+							</div>
 							<StatusBadge className="mt-1">
 								{cohort.cohort_status?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || "Unknown"}
 							</StatusBadge>
@@ -178,9 +178,9 @@ export function EnrollmentCohortSection({ cohort }: EnrollmentCohortSectionProps
 					<div className="flex items-start gap-2">
 						<Users className="h-4 w-4 text-muted-foreground mt-0.5" />
 						<div>
-							<label className="font-medium text-muted-foreground text-sm">
+							<div className="font-medium text-muted-foreground text-sm">
 								Maximum Students
-							</label>
+							</div>
 							<p className="text-sm">{cohort.max_students} students</p>
 						</div>
 					</div>
