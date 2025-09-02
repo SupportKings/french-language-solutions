@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/popover";
 
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+import { createStudentSchema } from "@/features/students/schemas/student.schema";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -49,28 +50,24 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const studentFormSchema = z.object({
-	full_name: z.string().min(1, "Full name is required"),
-	email: z.string().email("Invalid email").optional().or(z.literal("")),
-	mobile_phone_number: z.string().max(20).optional().or(z.literal("")),
-	city: z.string().optional().or(z.literal("")),
-	desired_starting_language_level_id: z.string().optional(),
-	initial_channel: z
-		.enum(["form", "quiz", "call", "message", "email", "assessment"])
-		.optional(),
-	communication_channel: z.enum(["sms_email", "email", "sms"]),
-	is_full_beginner: z.boolean(),
-	is_under_16: z.boolean(),
-	subjective_deadline_for_student: z.date().optional(),
-	purpose_to_learn: z.string().optional().or(z.literal("")),
-	// External IDs
-	convertkit_id: z.string().optional().or(z.literal("")),
-	openphone_contact_id: z.string().optional().or(z.literal("")),
-	tally_form_submission_id: z.string().optional().or(z.literal("")),
-	respondent_id: z.string().optional().or(z.literal("")),
-	stripe_customer_id: z.string().optional().or(z.literal("")),
-	airtable_record_id: z.string().optional().or(z.literal("")),
-});
+// Extend the createStudentSchema for form-specific needs
+// Convert date strings to Date objects for the form and make fields optional for empty strings
+const studentFormSchema = createStudentSchema
+	.extend({
+		subjective_deadline_for_student: z.date().optional().nullable(),
+		email: z.string().email("Invalid email").optional().nullable().or(z.literal("")),
+		mobile_phone_number: z.string().max(20).optional().nullable().or(z.literal("")),
+		city: z.string().optional().nullable().or(z.literal("")),
+		purpose_to_learn: z.string().optional().nullable().or(z.literal("")),
+		desired_starting_language_level_id: z.string().optional().nullable(),
+		communication_channel: z.enum(["sms_email", "email", "sms"]).optional().nullable(),
+		is_full_beginner: z.boolean().optional().nullable(),
+		is_under_16: z.boolean().optional().nullable(),
+	})
+	.refine((data) => {
+		// Ensure required fields are present
+		return true;
+	});
 
 type StudentFormValues = z.infer<typeof studentFormSchema>;
 
@@ -107,12 +104,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				? new Date(student.subjective_deadline_for_student)
 				: undefined,
 			purpose_to_learn: student?.purpose_to_learn || "",
-			convertkit_id: student?.convertkit_id || "",
-			openphone_contact_id: student?.openphone_contact_id || "",
-			tally_form_submission_id: student?.tally_form_submission_id || "",
-			respondent_id: student?.respondent_id || "",
-			stripe_customer_id: student?.stripe_customer_id || "",
-			airtable_record_id: student?.airtable_record_id || "",
 		},
 	});
 
@@ -332,7 +323,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 										<PopoverContent className="w-auto p-0" align="start">
 											<Calendar
 												mode="single"
-												selected={form.watch("subjective_deadline_for_student")}
+												selected={form.watch("subjective_deadline_for_student") ?? undefined}
 												onSelect={(date) =>
 													form.setValue("subjective_deadline_for_student", date)
 												}
@@ -359,7 +350,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								<SwitchField
 									label="Full Beginner"
 									description="Student has no prior French knowledge"
-									checked={form.watch("is_full_beginner")}
+									checked={form.watch("is_full_beginner") ?? false}
 									onCheckedChange={(checked) =>
 										form.setValue("is_full_beginner", checked)
 									}
@@ -367,7 +358,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								<SwitchField
 									label="Under 16 Years Old"
 									description="Student requires age-appropriate materials"
-									checked={form.watch("is_under_16")}
+									checked={form.watch("is_under_16") ?? false}
 									onCheckedChange={(checked) =>
 										form.setValue("is_under_16", checked)
 									}
@@ -387,7 +378,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 									error={form.formState.errors.communication_channel?.message}
 								>
 									<SelectField
-										value={form.watch("communication_channel")}
+										value={form.watch("communication_channel") ?? undefined}
 										onValueChange={(value) =>
 											form.setValue("communication_channel", value as any)
 										}
@@ -401,7 +392,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								>
 									<SelectField
 										placeholder="Select channel"
-										value={form.watch("initial_channel")}
+										value={form.watch("initial_channel") ?? undefined}
 										onValueChange={(value) =>
 											form.setValue("initial_channel", value as any)
 										}
@@ -411,57 +402,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 							</FormRow>
 						</FormSection>
 
-						{/* External Integrations - Collapsible or hidden by default */}
-						{isEditMode && (
-							<FormSection
-								title="External Integrations"
-								description="IDs from third-party services (optional)"
-								icon={ExternalLink}
-							>
-								<FormRow>
-									<FormField label="Stripe Customer ID">
-										<InputField
-											placeholder="cus_..."
-											{...form.register("stripe_customer_id")}
-										/>
-									</FormField>
-									<FormField label="ConvertKit ID">
-										<InputField
-											placeholder="12345678"
-											{...form.register("convertkit_id")}
-										/>
-									</FormField>
-								</FormRow>
-								<FormRow>
-									<FormField label="OpenPhone Contact ID">
-										<InputField
-											placeholder="contact_..."
-											{...form.register("openphone_contact_id")}
-										/>
-									</FormField>
-									<FormField label="Airtable Record ID">
-										<InputField
-											placeholder="rec..."
-											{...form.register("airtable_record_id")}
-										/>
-									</FormField>
-								</FormRow>
-								<FormRow>
-									<FormField label="Tally Form Submission ID">
-										<InputField
-											placeholder="submission_..."
-											{...form.register("tally_form_submission_id")}
-										/>
-									</FormField>
-									<FormField label="Respondent ID">
-										<InputField
-											placeholder="resp_..."
-											{...form.register("respondent_id")}
-										/>
-									</FormField>
-								</FormRow>
-							</FormSection>
-						)}
 					</div>
 				</FormContent>
 

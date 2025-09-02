@@ -1,7 +1,9 @@
-import { CohortForm } from "@/features/cohorts/components/CohortForm";
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { getQueryClient } from "@/utils/queryClient"; // adjust to your helper path
+
+import { CohortForm } from "@/features/cohorts/components/CohortForm";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 export default async function NewCohortPage() {
 	const qc = getQueryClient();

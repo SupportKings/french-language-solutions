@@ -104,7 +104,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 				{ id: initialData.id, data },
 				{
 					onSuccess: () => {
-						router.push(`/admin/cohorts/${initialData.id}`);
+						router.push(`/admin/cohorts/${initialData.cohort_id}`);
 					},
 				},
 			);

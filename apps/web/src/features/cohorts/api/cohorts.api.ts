@@ -27,7 +27,7 @@ export const cohortsApi = {
 	// List cohorts with pagination and filters
 	async list(params: CohortQuery): Promise<PaginatedResponse<Cohort>> {
 		console.log("🚀 API call started with params:", params);
-		
+
 		// Log specific filter values
 		if (params.cohort_status) {
 			console.log("🔍 cohort_status filter:", params.cohort_status);

@@ -1,9 +1,10 @@
+import { getBaseUrl } from "@/lib/api-utils";
+
 import type {
 	Class,
 	ClassFilters,
 	ClassFormValues,
 } from "../schemas/class.schema";
-import { getBaseUrl } from "@/lib/api-utils";
 
 export interface PaginatedResponse<T> {
 	data: T[];

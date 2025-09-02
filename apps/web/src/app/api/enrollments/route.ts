@@ -9,30 +9,46 @@ export async function GET(request: NextRequest) {
 		const searchParams = request.nextUrl.searchParams;
 
 		// Get query parameters
-		const page = Number.parseInt(searchParams.get("page") || "1");
-		const limit = Number.parseInt(searchParams.get("limit") || "10");
+		const rawPage = Number.parseInt(searchParams.get("page") || "1");
+		const rawLimit = Number.parseInt(searchParams.get("limit") || "20");
+		const page = isNaN(rawPage) ? 1 : rawPage;
+		const limit = isNaN(rawLimit) ? 20 : rawLimit;
+
 		const search = searchParams.get("search") || "";
-		const status = searchParams.get("status") || "";
+		const status = searchParams.getAll("status"); // Support multiple statuses
+		const productIds = searchParams.getAll("productId"); // Support multiple products
+		const dateFrom = searchParams.get("dateFrom") || "";
+		const dateTo = searchParams.get("dateTo") || "";
 		const studentId = searchParams.get("studentId") || "";
 		const cohortId = searchParams.get("cohortId") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
+		
+		// Get additional filter arrays
+		const cohortFormatArray = searchParams.getAll("cohort_format");
+		const cohortStatusArray = searchParams.getAll("cohort_status");
+		const startingLevelArray = searchParams.getAll("starting_level");
+		const roomTypeArray = searchParams.getAll("room_type");
 
-		// Build query
+		// Build query - use inner join when filtering by products to exclude N/A records
+		const cohortJoin = productIds.length > 0 ? "cohorts!inner" : "cohorts";
 		let query = supabase.from("enrollments").select(
 			`
 				*,
-				students!inner(id, full_name, email, mobile_phone_number),
-				cohorts!inner(
+				students!inner(id, full_name, email),
+				${cohortJoin}(
 					id, 
-					title,
 					starting_level_id, 
 					current_level_id, 
 					start_date,
 					room_type,
+					product_id,
+					cohort_status,
+					max_students,
 					products (
 						id,
-						format
+						format,
+						display_name
 					),
 					starting_level:language_levels!starting_level_id (
 						id,
@@ -43,6 +59,12 @@ export async function GET(request: NextRequest) {
 						id,
 						code,
 						display_name
+					),
+					weekly_sessions (
+						id,
+						day_of_week,
+						start_time,
+						end_time
 					)
 				)
 			`,
@@ -50,8 +72,22 @@ export async function GET(request: NextRequest) {
 		);
 
 		// Apply filters
-		if (status) {
-			query = query.eq("status", status);
+		if (status.length > 0) {
+			query = query.in("status", status);
+		}
+
+		if (productIds.length > 0) {
+			// When products are selected, only show enrollments with those products
+			// This will exclude enrollments where cohort has no product (null product_id)
+			query = query.in("cohorts.product_id", productIds);
+		}
+
+		if (dateFrom) {
+			query = query.gte("created_at", dateFrom);
+		}
+
+		if (dateTo) {
+			query = query.lte("created_at", dateTo);
 		}
 
 		if (studentId) {
@@ -62,10 +98,28 @@ export async function GET(request: NextRequest) {
 			query = query.eq("cohort_id", cohortId);
 		}
 
+		// Apply cohort-related filters
+		if (cohortFormatArray.length > 0) {
+			query = query.in("cohorts.products.format", cohortFormatArray);
+		}
+
+		if (cohortStatusArray.length > 0) {
+			query = query.in("cohorts.cohort_status", cohortStatusArray);
+		}
+
+		if (startingLevelArray.length > 0) {
+			query = query.in("cohorts.starting_level.code", startingLevelArray);
+		}
+
+		if (roomTypeArray.length > 0) {
+			query = query.in("cohorts.room_type", roomTypeArray);
+		}
+
 		if (search) {
-			query = query.or(
-				`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%`,
-			);
+			const s = search.replace(/,/g, "\\,");
+			query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%`, {
+				foreignTable: "students",
+			});
 		}
 
 		// Apply sorting

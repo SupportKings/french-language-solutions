@@ -13,7 +13,7 @@ import {
 	user,
 } from "@/lib/permissions";
 
-import { createClient } from "@/utils/supabase/server";
+// import { createClient } from "@/utils/supabase/server";
 
 import { sendOTP } from "@/features/auth/actions/sendOtp";
 
@@ -66,13 +66,14 @@ export const auth = betterAuth({
 
 			if (!userId) return;
 
-			const supabase = await createClient();
+			// TODO: Implement set_user_id RPC function in Supabase
+			// const supabase = await createClient();
 
-			try {
-				await supabase.rpc("set_user_id", { user_id: userId });
-			} catch (err) {
-				console.error("Failed to set user_id", err);
-			}
+			// try {
+			// 	await supabase.rpc("set_user_id", { user_id: userId });
+			// } catch (err) {
+			// 	console.error("Failed to set user_id", err);
+			// }
 		}),
 	},
 	plugins: [

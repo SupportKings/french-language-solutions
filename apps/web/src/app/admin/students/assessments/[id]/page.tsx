@@ -1,7 +1,9 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-import AssessmentDetailsClient from "./page-client";
 import { getApiUrl } from "@/lib/api-utils";
+
+import AssessmentDetailsClient from "./page-client";
 
 interface PageProps {
 	params: Promise<{ id: string }>;
@@ -13,6 +15,7 @@ async function getAssessment(id: string) {
 		cache: "no-store",
 		headers: {
 			"Content-Type": "application/json",
+			cookie: (await headers()).get("cookie") ?? "",
 		},
 	});
 
