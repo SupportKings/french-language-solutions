@@ -6,6 +6,9 @@ export function getApiUrl(path: string): string {
 	if (typeof window === "undefined") {
 		// Server-side: use absolute URL
 		// Priority: VERCEL_URL (for Vercel deployments) > NEXT_PUBLIC_APP_URL > localhost
+		console.log("Server-side: use absolute URL");
+		console.log(process.env.VERCEL_URL, "VERCEL_URL");
+		console.log(process.env.NEXT_PUBLIC_APP_URL, "NEXT_PUBLIC_APP_URL");
 		if (process.env.VERCEL_URL) {
 			return `https://${process.env.VERCEL_URL}${path}`;
 		}
