@@ -251,8 +251,8 @@ export function CohortsTable({
 							<p className="mb-4 text-muted-foreground">
 								Create your first cohort to get started.
 							</p>
-							<Button onClick={() => router.push("/admin/cohorts/new")}>
-								New Cohort
+							<Button asChild>
+								<Link href="/admin/cohorts/new">New Cohort</Link>
 							</Button>
 						</TableCell>
 					</TableRow>

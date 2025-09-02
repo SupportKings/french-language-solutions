@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import {
 	DataTableFilter,
 	useDataTableFilters,
@@ -118,18 +120,35 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 
 	// Fetch products for filter options
 	useEffect(() => {
+		const controller = new AbortController();
+
 		async function fetchProducts() {
 			try {
-				const response = await fetch("/api/products?limit=100");
+				const response = await fetch(getApiUrl("/api/products?limit=100"), {
+					signal: controller.signal,
+				});
+
 				if (response.ok) {
 					const result = await response.json();
-					setProducts(result.data || []);
+					// Only update state if the fetch wasn't aborted
+					if (!controller.signal.aborted) {
+						setProducts(result.data || []);
+					}
 				}
 			} catch (error) {
-				console.error("Error fetching products:", error);
+				// Only log error if it's not an abort error
+				if (error instanceof Error && error.name !== "AbortError") {
+					console.error("Error fetching products:", error);
+				}
 			}
 		}
+
 		fetchProducts();
+
+		// Cleanup function to abort fetch on unmount
+		return () => {
+			controller.abort();
+		};
 	}, []);
 
 	// Data table filters hook - use dynamic columns with products
@@ -151,14 +170,22 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		let dateTo = "";
 
 		if (dateValues.length > 0 && dateValues[0]) {
-			// Format date to ISO string for API
-			dateFrom = new Date(dateValues[0]).toISOString();
+			// Create date and set to start of day (00:00:00.000)
+			const fromDate = new Date(dateValues[0]);
+			fromDate.setHours(0, 0, 0, 0);
+			dateFrom = fromDate.toISOString();
 		}
+
 		if (dateValues.length > 1 && dateValues[1]) {
-			dateTo = new Date(dateValues[1]).toISOString();
+			// Range selected - set end date to end of day (23:59:59.999)
+			const toDate = new Date(dateValues[1]);
+			toDate.setHours(23, 59, 59, 999);
+			dateTo = toDate.toISOString();
 		} else if (dateValues.length === 1 && dateValues[0]) {
-			// Single date selected - use same date for both from and to
-			dateTo = new Date(dateValues[0]).toISOString();
+			// Single date selected - set to end of same day
+			const toDate = new Date(dateValues[0]);
+			toDate.setHours(23, 59, 59, 999);
+			dateTo = toDate.toISOString();
 		}
 
 		return {
@@ -385,8 +412,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																	saturday: "Sat",
 																	sunday: "Sun",
 																};
-																const dayAbbrev = session.day_of_week 
-																	? dayMap[session.day_of_week.toLowerCase()] || session.day_of_week
+																const dayAbbrev = session.day_of_week
+																	? dayMap[session.day_of_week.toLowerCase()] ||
+																		session.day_of_week
 																	: "";
 
 																return (

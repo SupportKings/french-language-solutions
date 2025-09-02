@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
@@ -15,6 +16,7 @@ async function getAssessment(id: string) {
 		cache: "no-store",
 		headers: {
 			"Content-Type": "application/json",
+			cookie: (await headers()).get("cookie") ?? "",
 		},
 	});
 

@@ -55,7 +55,7 @@ const cohortFormSchema = z.object({
 	// Basic Information
 	starting_level_id: z.string().min(1, "Starting level is required"),
 	current_level_id: z.string().optional(),
-	max_students: z.number().min(1).max(100).optional(),
+	max_students: z.number().int().min(1).max(100).optional(),
 	product_id: z.string().optional(),
 
 	// Schedule
@@ -146,6 +146,11 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		cohort?.weekly_sessions?.length > 0 || false,
 	);
 	const isEditMode = !!cohort;
+	// Track original weekly sessions to detect removals
+	const [originalSessionIds] = useState<string[]>(
+		cohort?.weekly_sessions?.filter((s: any) => s.id).map((s: any) => s.id) ||
+			[],
+	);
 
 	// Fetch language levels
 	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
@@ -249,6 +254,52 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			}
 
 			const savedCohort = await response.json();
+
+			// Delete removed weekly sessions
+			if (isEditMode && originalSessionIds.length > 0) {
+				const currentSessionIds =
+					formattedData.weekly_sessions
+						?.filter((s: any) => s.id)
+						.map((s: any) => s.id) || [];
+
+				const sessionsToDelete = originalSessionIds.filter(
+					(id) => !currentSessionIds.includes(id),
+				);
+
+				if (sessionsToDelete.length > 0) {
+					try {
+						const deletePromises = sessionsToDelete.map(async (sessionId) => {
+							const deleteResponse = await fetch(
+								`/api/weekly-sessions/${sessionId}`,
+								{ method: "DELETE" },
+							);
+
+							if (!deleteResponse.ok) {
+								const errorText = await deleteResponse.text();
+								console.error(`Failed to delete session ${sessionId}:`, {
+									status: deleteResponse.status,
+									response: errorText,
+								});
+								throw new Error(
+									`Failed to delete session ${sessionId}: ${deleteResponse.status}`,
+								);
+							}
+
+							return sessionId;
+						});
+
+						const deletedIds = await Promise.all(deletePromises);
+						console.log("Successfully deleted sessions:", deletedIds);
+					} catch (error) {
+						console.error("Error deleting weekly sessions:", error);
+						throw new Error(
+							`Failed to delete removed sessions: ${
+								error instanceof Error ? error.message : "Unknown error"
+							}`,
+						);
+					}
+				}
+			}
 
 			// Save weekly sessions in parallel
 			if (
@@ -424,7 +475,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 										min={1}
 										max={100}
 										error={!!form.formState.errors.max_students}
-										{...form.register("max_students", { valueAsNumber: true })}
+										{...form.register("max_students", {
+											setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+										})}
 									/>
 								</FormField>
 							</FormRow>

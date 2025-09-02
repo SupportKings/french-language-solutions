@@ -9,8 +9,11 @@ export async function GET(request: NextRequest) {
 		const searchParams = request.nextUrl.searchParams;
 
 		// Get query parameters
-		const page = Number.parseInt(searchParams.get("page") || "1");
-		const limit = Number.parseInt(searchParams.get("limit") || "20");
+		const rawPage = Number.parseInt(searchParams.get("page") || "1");
+		const rawLimit = Number.parseInt(searchParams.get("limit") || "20");
+		const page = isNaN(rawPage) ? 1 : rawPage;
+		const limit = isNaN(rawLimit) ? 20 : rawLimit;
+
 		const search = searchParams.get("search") || "";
 		const status = searchParams.getAll("status"); // Support multiple statuses
 		const productIds = searchParams.getAll("productId"); // Support multiple products
@@ -89,8 +92,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		if (search) {
-			query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`, {
-				referencedTable: "students",
+			const s = search.replace(/,/g, "\\,");
+			query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%`, {
+				foreignTable: "students",
 			});
 		}
 
