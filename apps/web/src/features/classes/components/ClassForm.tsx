@@ -92,7 +92,6 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 			meeting_link: "",
 			materials: "",
 			max_students: 10,
-			current_enrollment: 0,
 			teacher_id: "",
 			is_active: true,
 			notes: "",
@@ -438,26 +437,7 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 								)}
 							/>
 
-							<FormField
-								control={form.control}
-								name="current_enrollment"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Current Enrollment</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												min="0"
-												{...field}
-												onChange={(e) =>
-													field.onChange(Number.parseInt(e.target.value))
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+					
 						</div>
 
 						<FormField

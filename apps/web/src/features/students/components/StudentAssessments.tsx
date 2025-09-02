@@ -137,7 +137,7 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 								className="cursor-pointer transition-colors hover:bg-muted/50"
 								onClick={() =>
 									router.push(
-										`/admin/assessments/${assessment.id}?redirectTo=${encodeURIComponent(currentUrl)}`,
+										`/admin/students/assessments/${assessment.id}?redirectTo=${encodeURIComponent(currentUrl)}`,
 									)
 								}
 							>

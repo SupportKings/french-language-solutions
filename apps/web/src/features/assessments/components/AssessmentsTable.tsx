@@ -335,7 +335,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 									key={assessment.id}
 									className="cursor-pointer transition-colors hover:bg-muted/50"
 									onClick={() =>
-										(window.location.href = `/admin/assessments/${assessment.id}`)
+										(window.location.href = `/admin/students/assessments/${assessment.id}`)
 									}
 								>
 									<TableCell>
@@ -414,7 +414,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
-												<Link href={`/admin/assessments/${assessment.id}`}>
+												<Link href={`/admin/students/assessments/${assessment.id}`}>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />
 														View

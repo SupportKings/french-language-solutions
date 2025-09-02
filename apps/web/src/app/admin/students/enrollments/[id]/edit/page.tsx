@@ -1,3 +1,4 @@
+import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
@@ -31,5 +32,16 @@ export default async function EditEnrollmentPage({
 		notFound();
 	}
 
-	return <EnrollmentFormNew enrollment={enrollment} redirectTo={redirectTo} />;
+	const queryClient = new QueryClient();
+
+	await queryClient.prefetchQuery({
+		queryKey: ["enrollment", id],
+		queryFn: () => enrollment,
+	});
+
+	return (
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<EnrollmentFormNew enrollment={enrollment} redirectTo={redirectTo} />
+		</HydrationBoundary>
+	);
 }

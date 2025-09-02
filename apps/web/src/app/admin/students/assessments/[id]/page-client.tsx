@@ -123,7 +123,7 @@ export default function AssessmentDetailsClient({
 			if (!response.ok) throw new Error("Failed to delete");
 
 			toast.success("Assessment deleted successfully");
-			router.push("/admin/assessments");
+			router.push("/admin/students/assessments");
 		} catch (error) {
 			toast.error("Failed to delete assessment");
 			setIsDeleting(false);
@@ -137,7 +137,7 @@ export default function AssessmentDetailsClient({
 				<div className="px-6 py-3">
 					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
 						<Link
-							href="/admin/assessments"
+							href="/admin/students/assessments"
 							className="transition-colors hover:text-foreground"
 						>
 							Assessments

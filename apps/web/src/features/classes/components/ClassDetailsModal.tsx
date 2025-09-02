@@ -47,7 +47,6 @@ interface ClassDetails {
 	status: "scheduled" | "in_progress" | "completed" | "cancelled";
 	meeting_link?: string;
 	notes?: string;
-	current_enrollment?: number;
 	attendance_count?: number;
 	google_drive_folder_id?: string;
 	teacher_id?: string;
@@ -325,22 +324,7 @@ export function ClassDetailsModal({
 						)}
 					</div>
 
-					{/* Enrollment Info */}
-					{(classItem.attendance_count !== undefined ||
-						classItem.current_enrollment !== undefined) && (
-						<div className="space-y-2">
-							<Label>Attendance</Label>
-							<div className="flex items-center gap-2 text-sm">
-								<Users className="h-4 w-4 text-muted-foreground" />
-								<span>
-									{classItem.attendance_count ??
-										classItem.current_enrollment ??
-										0}{" "}
-									students attended
-								</span>
-							</div>
-						</div>
-					)}
+				
 
 					{/* Google Drive */}
 					<div className="space-y-2">

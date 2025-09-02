@@ -14,6 +14,8 @@ interface EditableSectionProps {
 	title: string;
 	children: (editing: boolean) => React.ReactNode;
 	onSave?: () => Promise<void>;
+	onCancel?: () => void;
+	onEditStart?: () => void;
 	className?: string;
 	cardClassName?: string;
 }
@@ -22,6 +24,8 @@ export function EditableSection({
 	title,
 	children,
 	onSave,
+	onCancel,
+	onEditStart,
 	className,
 	cardClassName,
 }: EditableSectionProps) {
@@ -46,6 +50,9 @@ export function EditableSection({
 	};
 
 	const handleCancel = () => {
+		if (onCancel) {
+			onCancel();
+		}
 		setEditing(false);
 	};
 
@@ -85,7 +92,12 @@ export function EditableSection({
 							<Button
 								size="sm"
 								variant="ghost"
-								onClick={() => setEditing(true)}
+								onClick={() => {
+									if (onEditStart) {
+										onEditStart();
+									}
+									setEditing(true);
+								}}
 								className="h-8"
 							>
 								<Edit className="mr-1 h-3.5 w-3.5" />

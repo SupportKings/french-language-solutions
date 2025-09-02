@@ -72,7 +72,6 @@ const updateClassSchema = z.object({
 	google_calendar_event_id: z.string().optional().nullable(),
 	meeting_link: z.string().url().optional().nullable(),
 	google_drive_folder_id: z.string().optional().nullable(),
-	current_enrollment: z.number().int().min(0).optional(),
 	teacher_id: z.string().uuid().optional().nullable(),
 	notes: z.string().optional().nullable(),
 });

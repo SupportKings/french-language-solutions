@@ -81,26 +81,18 @@ export async function GET(request: NextRequest) {
 	}
 }
 
-// POST /api/classes - Create a new class
+// POST /api/classes - Create a new class (matching actual DB schema)
 const createClassSchema = z.object({
 	cohort_id: z.string().uuid(),
-	name: z.string().min(1, "Name is required"),
-	description: z.string().optional().nullable(),
 	start_time: z.string().datetime(),
 	end_time: z.string().datetime(),
 	status: z
 		.enum(["scheduled", "in_progress", "completed", "cancelled"])
 		.default("scheduled"),
-	mode: z.enum(["online", "in_person", "hybrid"]).default("online"),
 	google_calendar_event_id: z.string().optional().nullable(),
-	room: z.string().optional().nullable(),
-	meeting_link: z.string().url().optional().nullable(),
+	meeting_link: z.string().optional().nullable(),
 	google_drive_folder_id: z.string().optional().nullable(),
-	materials: z.string().optional().nullable(),
-	max_students: z.number().int().positive().default(10),
-	current_enrollment: z.number().int().min(0).default(0),
 	teacher_id: z.string().uuid().optional().nullable(),
-	is_active: z.boolean().default(true),
 	notes: z.string().optional().nullable(),
 });
 
@@ -113,7 +105,10 @@ export async function POST(request: NextRequest) {
 		const { data, error } = await supabase
 			.from("classes")
 			.insert([validatedData])
-			.select()
+			.select(`
+				*,
+				teachers(id, first_name, last_name, email)
+			`)
 			.single();
 
 		if (error) {
