@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import { Card, CardContent } from "@/components/ui/card";
 
 import { AssessmentForm } from "@/features/assessments/components/AssessmentForm";
 
 async function getAssessment(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/assessments/${id}`, {
+	const response = await fetch(getApiUrl(`/api/assessments/${id}`), {
 		cache: "no-store",
 	});
 

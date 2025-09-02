@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
 
 async function getEnrollment(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/enrollments/${id}`, {
+	const response = await fetch(getApiUrl(`/api/enrollments/${id}`), {
 		cache: "no-store",
 	});
 

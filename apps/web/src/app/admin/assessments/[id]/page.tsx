@@ -1,4 +1,7 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+
+import { getApiUrl } from "@/lib/api-utils";
 
 import { QueryClient } from "@tanstack/react-query";
 import AssessmentDetailsClient from "./page-client";
@@ -9,12 +12,11 @@ interface PageProps {
 
 async function getAssessment(id: string) {
 	// For server-side fetching in Next.js App Router, we need to construct the full URL
-	const baseUrl = `https://${process.env.NEXT_PUBLIC_APP_URL}`;
-
-	const response = await fetch(`${baseUrl}/api/assessments/${id}`, {
+	const response = await fetch(getApiUrl(`/api/assessments/${id}`), {
 		cache: "no-store",
 		headers: {
 			"Content-Type": "application/json",
+			cookie: (await headers()).get("cookie") ?? "",
 		},
 	});
 

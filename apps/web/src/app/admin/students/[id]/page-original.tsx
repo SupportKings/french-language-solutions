@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getApiUrl } from "@/lib/api-utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,8 +23,7 @@ import {
 } from "lucide-react";
 
 async function getStudent(id: string) {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-	const response = await fetch(`${baseUrl}/api/students/${id}`, {
+	const response = await fetch(getApiUrl(`/api/students/${id}`), {
 		cache: "no-store",
 	});
 

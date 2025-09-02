@@ -127,7 +127,12 @@ export function CohortsTable({
 	isLoading,
 	hideWrapper = false,
 }: CohortsTableProps) {
-	console.log("📊 CohortsTable received cohorts:", cohorts?.length || 0, "isLoading:", isLoading);
+	console.log(
+		"📊 CohortsTable received cohorts:",
+		cohorts?.length || 0,
+		"isLoading:",
+		isLoading,
+	);
 	const router = useRouter();
 	const [cohortsWithStats, setCohortsWithStats] = useState<CohortWithStats[]>(
 		[],
@@ -185,7 +190,12 @@ export function CohortsTable({
 	}, [cohorts]);
 
 	// Debug logging for state
-	console.log("📈 cohortsWithStats:", cohortsWithStats.length, "loadingStats:", loadingStats);
+	console.log(
+		"📈 cohortsWithStats:",
+		cohortsWithStats.length,
+		"loadingStats:",
+		loadingStats,
+	);
 
 	const tableContent = (
 		<Table>
@@ -241,8 +251,8 @@ export function CohortsTable({
 							<p className="mb-4 text-muted-foreground">
 								Create your first cohort to get started.
 							</p>
-							<Button onClick={() => router.push("/admin/classes/new")}>
-								New Cohort
+							<Button asChild>
+								<Link href="/admin/cohorts/new">New Cohort</Link>
 							</Button>
 						</TableCell>
 					</TableRow>
@@ -258,7 +268,7 @@ export function CohortsTable({
 							<TableRow
 								key={cohort.id}
 								className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
-								onClick={() => router.push(`/admin/classes/${cohort.id}`)}
+								onClick={() => router.push(`/admin/cohorts/${cohort.id}`)}
 							>
 								<TableCell>
 									<div className="flex h-12 items-center">

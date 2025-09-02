@@ -256,7 +256,7 @@ export function CohortDetailPageClient({
 		const params = new URLSearchParams({
 			cohortId: cohortId,
 			cohortName: `${cohort?.format} - ${formatLevel(cohort?.starting_level)}`,
-			redirectTo: `/admin/classes/${cohortId}`,
+			redirectTo: `/admin/cohorts/${cohortId}`,
 		});
 		router.push(`/admin/students/enrollments/new?${params.toString()}`);
 	};
@@ -267,7 +267,7 @@ export function CohortDetailPageClient({
 			cohortId: cohortId,
 			cohortName: `${cohort?.format} - ${formatLevel(cohort?.starting_level)}`,
 		});
-		router.push(`/admin/classes/new?${params.toString()}`);
+		router.push(`/admin/cohorts/new?${params.toString()}`);
 	};
 
 	// Open weekly session modal for create
@@ -296,7 +296,7 @@ export function CohortDetailPageClient({
 			}
 
 			toast.success("Cohort deleted successfully");
-			router.push("/admin/classes");
+			router.push("/admin/cohorts");
 			router.refresh();
 		} catch (error: any) {
 			toast.error(error.message || "Failed to delete cohort");
@@ -560,8 +560,8 @@ export function CohortDetailPageClient({
 					<p className="mb-4 text-muted-foreground">
 						The cohort you're looking for doesn't exist or couldn't be loaded.
 					</p>
-					<Button onClick={() => router.push("/admin/classes")}>
-						Back to Classes
+					<Button onClick={() => router.push("/admin/cohorts")}>
+						Back to Cohorts
 					</Button>
 				</div>
 			</div>
@@ -589,7 +589,7 @@ export function CohortDetailPageClient({
 				<div className="px-6 py-3">
 					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
 						<Link
-							href="/admin/classes"
+							href="/admin/cohorts"
 							className="transition-colors hover:text-foreground"
 						>
 							Classes

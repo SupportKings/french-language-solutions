@@ -1,3 +1,5 @@
+import { getApiUrl } from "@/lib/api-utils";
+
 import type {
 	CreateStudent,
 	Student,
@@ -30,7 +32,7 @@ export const studentsApi = {
 			}
 		});
 
-		const response = await fetch(`/api/students?${searchParams}`, {
+		const response = await fetch(getApiUrl(`/api/students?${searchParams}`), {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -46,7 +48,7 @@ export const studentsApi = {
 
 	// Get single student
 	async getById(id: string): Promise<Student> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -62,7 +64,7 @@ export const studentsApi = {
 
 	// Create student
 	async create(data: CreateStudent): Promise<Student> {
-		const response = await fetch("/api/students", {
+		const response = await fetch(getApiUrl("/api/students"), {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -79,7 +81,7 @@ export const studentsApi = {
 
 	// Update student
 	async update(id: string, data: UpdateStudent): Promise<Student> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -96,7 +98,7 @@ export const studentsApi = {
 
 	// Delete student
 	async delete(id: string): Promise<void> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",

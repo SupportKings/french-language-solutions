@@ -181,10 +181,10 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 		return {
 			// Pass arrays for multi-select filters
 			onboarding_status: onboardingFilter?.values?.length
-				? (onboardingFilter.values[0] as any)
+				? onboardingFilter.values
 				: undefined,
 			contract_type: contractFilter?.values?.length
-				? (contractFilter.values[0] as any)
+				? contractFilter.values
 				: undefined,
 			available_for_booking:
 				bookingFilter?.values?.[0] === "true"
@@ -289,8 +289,9 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 							<TableHead>Teacher</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Contract</TableHead>
+							<TableHead>Active Cohorts</TableHead>
 							<TableHead>Availability</TableHead>
-							<TableHead>Classes</TableHead>
+							<TableHead>Class Preferences</TableHead>
 							<TableHead>Hours</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
@@ -309,6 +310,9 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 										<Skeleton className="h-5 w-24" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-12" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-20" />
 									</TableCell>
 									<TableCell>
@@ -325,7 +329,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 						) : data?.data?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={7}
+									colSpan={8}
 									className="text-center text-muted-foreground"
 								>
 									No teachers found
@@ -372,6 +376,15 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 										)}
 									</TableCell>
 									<TableCell>
+										{teacher.active_cohorts_count > 0 ? (
+											<Badge variant="default" className="text-xs">
+												{teacher.active_cohorts_count} {teacher.active_cohorts_count === 1 ? 'cohort' : 'cohorts'}
+											</Badge>
+										) : (
+											<span className="text-muted-foreground text-sm">None</span>
+										)}
+									</TableCell>
+									<TableCell>
 										<div className="flex items-center gap-2">
 											{teacher.available_for_booking ? (
 												<Badge variant="success" className="text-xs">
@@ -384,23 +397,29 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 											)}
 											{teacher.qualified_for_under_16 && (
 												<Badge variant="outline" className="text-xs">
-													U16
+													U16 Qualified
 												</Badge>
 											)}
 										</div>
 									</TableCell>
 									<TableCell>
-										<div className="flex items-center gap-1">
+										<div className="flex items-center gap-2">
 											{teacher.available_for_online_classes && (
-												<Video className="h-4 w-4 text-muted-foreground" />
+												<Badge variant="outline" className="text-xs">
+													<Video className="mr-1 h-3 w-3" />
+													Online
+												</Badge>
 											)}
 											{teacher.available_for_in_person_classes && (
-												<MapPin className="h-4 w-4 text-muted-foreground" />
+												<Badge variant="outline" className="text-xs">
+													<MapPin className="mr-1 h-3 w-3" />
+													In-Person
+												</Badge>
 											)}
 											{!teacher.available_for_online_classes &&
 												!teacher.available_for_in_person_classes && (
 													<span className="text-muted-foreground text-sm">
-														None
+														Not specified
 													</span>
 												)}
 										</div>
