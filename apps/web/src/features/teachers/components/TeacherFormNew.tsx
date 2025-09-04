@@ -22,15 +22,10 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Briefcase,
-	Calendar,
+	CalendarDays,
 	Clock,
 	FileText,
-	MapPin,
-	Phone,
-	Settings,
-	Shield,
 	User,
-	Video,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -72,6 +67,10 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 				teacher?.available_for_online_classes ?? true,
 			available_for_in_person_classes:
 				teacher?.available_for_in_person_classes || false,
+			max_students_in_person: teacher?.max_students_in_person || undefined,
+			max_students_online: teacher?.max_students_online || undefined,
+			days_available_online: teacher?.days_available_online || [],
+			days_available_in_person: teacher?.days_available_in_person || [],
 			mobile_phone_number: teacher?.mobile_phone_number || "",
 			admin_notes: teacher?.admin_notes || "",
 		},
@@ -116,6 +115,16 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 	const bonusTerms = [
 		{ label: "Per Student Per Hour", value: "per_student_per_hour" },
 		{ label: "Per Hour", value: "per_hour" },
+	];
+
+	const daysOfWeek = [
+		{ label: "Monday", value: "monday" },
+		{ label: "Tuesday", value: "tuesday" },
+		{ label: "Wednesday", value: "wednesday" },
+		{ label: "Thursday", value: "thursday" },
+		{ label: "Friday", value: "friday" },
+		{ label: "Saturday", value: "saturday" },
+		{ label: "Sunday", value: "sunday" },
 	];
 
 	return (
@@ -304,6 +313,53 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 								</FormField>
 							</FormRow>
 
+							<FormRow>
+								<FormField
+									label="Max Students (In-Person)"
+									hint="Maximum students for in-person classes"
+									error={form.formState.errors.max_students_in_person?.message}
+								>
+									<InputField
+										type="number"
+										placeholder="10"
+										min="0"
+										max="50"
+										error={!!form.formState.errors.max_students_in_person}
+										value={form.watch("max_students_in_person") || ""}
+										onChange={(e) =>
+											form.setValue(
+												"max_students_in_person",
+												e.target.value
+													? Number.parseInt(e.target.value)
+													: undefined,
+											)
+										}
+									/>
+								</FormField>
+								<FormField
+									label="Max Students (Online)"
+									hint="Maximum students for online classes"
+									error={form.formState.errors.max_students_online?.message}
+								>
+									<InputField
+										type="number"
+										placeholder="15"
+										min="0"
+										max="50"
+										error={!!form.formState.errors.max_students_online}
+										value={form.watch("max_students_online") || ""}
+										onChange={(e) =>
+											form.setValue(
+												"max_students_online",
+												e.target.value
+													? Number.parseInt(e.target.value)
+													: undefined,
+											)
+										}
+									/>
+								</FormField>
+							</FormRow>
+
 							<div className="space-y-3">
 								<SwitchField
 									label="Available for Booking"
@@ -337,6 +393,72 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 										form.setValue("available_for_in_person_classes", checked)
 									}
 								/>
+							</div>
+
+							{/* Days Availability */}
+							<div className="space-y-4 pt-4 border-t border-border/50">
+								<div className="flex items-center gap-2 mb-2">
+									<CalendarDays className="h-4 w-4 text-muted-foreground" />
+									<h4 className="text-sm font-medium">Days Available</h4>
+								</div>
+								
+								<FormField
+									label="Days Available for Online Classes"
+									hint="Select the days when this teacher can conduct online classes"
+								>
+									<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+										{daysOfWeek.map((day) => (
+											<label
+												key={day.value}
+												className="flex items-center space-x-2 cursor-pointer"
+											>
+												<input
+													type="checkbox"
+													checked={(form.watch("days_available_online") || []).includes(day.value as any)}
+													onChange={(e) => {
+														const current = form.watch("days_available_online") || [];
+														if (e.target.checked) {
+															form.setValue("days_available_online", [...current, day.value as any]);
+														} else {
+															form.setValue("days_available_online", current.filter(d => d !== day.value));
+														}
+													}}
+													className="rounded border-gray-300 text-primary focus:ring-primary"
+												/>
+												<span className="text-sm">{day.label}</span>
+											</label>
+										))}
+									</div>
+								</FormField>
+
+								<FormField
+									label="Days Available for In-Person Classes"
+									hint="Select the days when this teacher can conduct in-person classes"
+								>
+									<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+										{daysOfWeek.map((day) => (
+											<label
+												key={day.value}
+												className="flex items-center space-x-2 cursor-pointer"
+											>
+												<input
+													type="checkbox"
+													checked={(form.watch("days_available_in_person") || []).includes(day.value as any)}
+													onChange={(e) => {
+														const current = form.watch("days_available_in_person") || [];
+														if (e.target.checked) {
+															form.setValue("days_available_in_person", [...current, day.value as any]);
+														} else {
+															form.setValue("days_available_in_person", current.filter(d => d !== day.value));
+														}
+													}}
+													className="rounded border-gray-300 text-primary focus:ring-primary"
+												/>
+												<span className="text-sm">{day.label}</span>
+											</label>
+										))}
+									</div>
+								</FormField>
 							</div>
 						</FormSection>
 

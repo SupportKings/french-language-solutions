@@ -129,7 +129,7 @@ export function EnrollmentDetailsClient({
 			if (!response.ok) throw new Error("Failed to update enrollment");
 
 			const updated = await response.json();
-			setEnrollment({ ...enrollment, ...updated });
+			setEnrollment((prevEnrollment: any) => ({ ...prevEnrollment, ...updated }));
 			toast.success("Enrollment updated successfully");
 		} catch (error) {
 			console.error("Error updating enrollment:", error);

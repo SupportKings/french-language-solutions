@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
 		const availableForInPersonClasses = searchParams.get(
 			"available_for_in_person_classes",
 		);
+		const daysAvailableOnline = searchParams.getAll("days_available_online");
+		const daysAvailableInPerson = searchParams.getAll("days_available_in_person");
 
 		// Calculate offset
 		const offset = (page - 1) * limit;
@@ -55,6 +57,10 @@ export async function GET(request: NextRequest) {
 				contract_type,
 				available_for_online_classes,
 				available_for_in_person_classes,
+				max_students_in_person,
+				max_students_online,
+				days_available_online,
+				days_available_in_person,
 				mobile_phone_number,
 				admin_notes,
 				airtable_record_id,
@@ -110,6 +116,19 @@ export async function GET(request: NextRequest) {
 			const value = availableForInPersonClasses === "true";
 			countQuery = countQuery.eq("available_for_in_person_classes", value);
 			dataQuery = dataQuery.eq("available_for_in_person_classes", value);
+		}
+
+		// Handle array filtering for availability days - OR logic (teacher available on ANY of selected days)
+		if (daysAvailableOnline.length > 0) {
+			const orConditions = daysAvailableOnline.map(day => `days_available_online.cs.{${day}}`).join(',');
+			countQuery = countQuery.or(orConditions);
+			dataQuery = dataQuery.or(orConditions);
+		}
+
+		if (daysAvailableInPerson.length > 0) {
+			const orConditions = daysAvailableInPerson.map(day => `days_available_in_person.cs.{${day}}`).join(',');
+			countQuery = countQuery.or(orConditions);
+			dataQuery = dataQuery.or(orConditions);
 		}
 
 		// Execute queries
@@ -209,6 +228,10 @@ export async function POST(request: NextRequest) {
 					validatedData.available_for_online_classes,
 				available_for_in_person_classes:
 					validatedData.available_for_in_person_classes,
+				max_students_in_person: validatedData.max_students_in_person,
+				max_students_online: validatedData.max_students_online,
+				days_available_online: validatedData.days_available_online,
+				days_available_in_person: validatedData.days_available_in_person,
 				mobile_phone_number: validatedData.mobile_phone_number,
 				admin_notes: validatedData.admin_notes,
 			})

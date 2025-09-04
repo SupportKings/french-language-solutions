@@ -34,6 +34,7 @@ import { format } from "date-fns";
 import {
 	Briefcase,
 	Calendar,
+	CalendarDays,
 	Eye,
 	MapPin,
 	MoreHorizontal,
@@ -135,6 +136,38 @@ const teacherColumns = [
 			{ label: "Not Available", value: "false" },
 		],
 	},
+	{
+		id: "days_available_online",
+		accessor: (teacher: any) => teacher.days_available_online,
+		displayName: "Online Days Available",
+		icon: CalendarDays,
+		type: "option" as const,
+		options: [
+			{ label: "Monday", value: "monday" },
+			{ label: "Tuesday", value: "tuesday" },
+			{ label: "Wednesday", value: "wednesday" },
+			{ label: "Thursday", value: "thursday" },
+			{ label: "Friday", value: "friday" },
+			{ label: "Saturday", value: "saturday" },
+			{ label: "Sunday", value: "sunday" },
+		],
+	},
+	{
+		id: "days_available_in_person",
+		accessor: (teacher: any) => teacher.days_available_in_person,
+		displayName: "In-Person Days Available",
+		icon: CalendarDays,
+		type: "option" as const,
+		options: [
+			{ label: "Monday", value: "monday" },
+			{ label: "Tuesday", value: "tuesday" },
+			{ label: "Wednesday", value: "wednesday" },
+			{ label: "Thursday", value: "thursday" },
+			{ label: "Friday", value: "friday" },
+			{ label: "Saturday", value: "saturday" },
+			{ label: "Sunday", value: "sunday" },
+		],
+	},
 ];
 
 interface TeachersTableProps {
@@ -177,6 +210,12 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 		const inPersonFilter = filters.find(
 			(f) => f.columnId === "available_for_in_person_classes",
 		);
+		const onlineDaysFilter = filters.find(
+			(f) => f.columnId === "days_available_online",
+		);
+		const inPersonDaysFilter = filters.find(
+			(f) => f.columnId === "days_available_in_person",
+		);
 
 		return {
 			// Pass arrays for multi-select filters
@@ -210,6 +249,12 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 					: inPersonFilter?.values?.[0] === "false"
 						? false
 						: undefined,
+			days_available_online: onlineDaysFilter?.values?.length
+				? onlineDaysFilter.values
+				: undefined,
+			days_available_in_person: inPersonDaysFilter?.values?.length
+				? inPersonDaysFilter.values
+				: undefined,
 		};
 	}, [filters]);
 
@@ -293,6 +338,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 							<TableHead>Availability</TableHead>
 							<TableHead>Class Preferences</TableHead>
 							<TableHead>Hours</TableHead>
+							<TableHead>Student Capacity</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
 					</TableHeader>
@@ -322,6 +368,9 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 										<Skeleton className="h-5 w-20" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-8" />
 									</TableCell>
 								</TableRow>
@@ -329,7 +378,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 						) : data?.data?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={8}
+									colSpan={9}
 									className="text-center text-muted-foreground"
 								>
 									No teachers found
@@ -432,6 +481,24 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 													{teacher.maximum_hours_per_day && (
 														<p className="text-muted-foreground">
 															{teacher.maximum_hours_per_day}h/day
+														</p>
+													)}
+												</>
+											) : (
+												<span className="text-muted-foreground">Not set</span>
+											)}
+										</div>
+									</TableCell>
+									<TableCell>
+										<div className="text-sm">
+											{teacher.max_students_in_person != null || teacher.max_students_online != null ? (
+												<>
+													{teacher.max_students_in_person != null && (
+														<p>{teacher.max_students_in_person} in-person</p>
+													)}
+													{teacher.max_students_online != null && (
+														<p className="text-muted-foreground">
+															{teacher.max_students_online} online
 														</p>
 													)}
 												</>

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
 
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
@@ -29,34 +28,20 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 
 import { format } from "date-fns";
 import {
-	AlertCircle,
 	ArrowLeft,
-	BookOpen,
 	Calendar,
 	CheckCircle,
 	ClipboardCheck,
-	Clock,
 	DollarSign,
 	Edit,
 	ExternalLink,
 	Eye,
-	FileText,
 	GraduationCap,
-	Link as LinkIcon,
 	Mail,
 	MapPin,
 	MoreHorizontal,
@@ -89,19 +74,6 @@ const resultOptions = Object.entries(resultLabels).map(([value, label]) => ({
 	label,
 }));
 
-const levelOptions = [
-	{ value: "a1", label: "A1" },
-	{ value: "a1_plus", label: "A1+" },
-	{ value: "a2", label: "A2" },
-	{ value: "a2_plus", label: "A2+" },
-	{ value: "b1", label: "B1" },
-	{ value: "b1_plus", label: "B1+" },
-	{ value: "b2", label: "B2" },
-	{ value: "b2_plus", label: "B2+" },
-	{ value: "c1", label: "C1" },
-	{ value: "c1_plus", label: "C1+" },
-	{ value: "c2", label: "C2" },
-];
 
 interface AssessmentDetailsClientProps {
 	assessment: any;
@@ -114,11 +86,31 @@ export function AssessmentDetailsClient({
 	const [assessment, setAssessment] = useState(initialAssessment);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
 
 	// Get redirectTo param from URL
 	const [redirectTo] = useQueryState("redirectTo", {
 		defaultValue: "/admin/students/assessments",
 	});
+
+	// Fetch language levels for the select options
+	useEffect(() => {
+		const fetchLanguageLevels = async () => {
+			try {
+				const response = await fetch("/api/language-levels");
+				if (response.ok) {
+					const result = await response.json();
+					setLanguageLevels(result.data || []);
+				} else {
+					console.error("Failed to fetch language levels:", response.status);
+				}
+			} catch (error) {
+				console.error("Error fetching language levels:", error);
+			}
+		};
+
+		fetchLanguageLevels();
+	}, []);
 
 	// Get student initials for avatar
 	const studentInitials =
@@ -145,7 +137,7 @@ export function AssessmentDetailsClient({
 			if (!response.ok) throw new Error("Failed to update assessment");
 
 			const updated = await response.json();
-			setAssessment({ ...assessment, ...updated });
+			setAssessment((prevAssessment: any) => ({ ...prevAssessment, ...updated }));
 			toast.success("Assessment updated successfully");
 		} catch (error) {
 			console.error("Error updating assessment:", error);
@@ -230,9 +222,9 @@ export function AssessmentDetailsClient({
 									</div>
 									<p className="text-muted-foreground">
 										Level:{" "}
-										{assessment.level
-											? assessment.level.toUpperCase()
-											: "To Be Determined"}{" "}
+										{assessment.language_level?.display_name ||
+											assessment.language_level?.code?.toUpperCase() ||
+											"To Be Determined"}{" "}
 										•{" "}
 										{assessment.scheduled_for
 											? `Scheduled for ${format(new Date(assessment.scheduled_for), "MMM d, yyyy")}`
@@ -317,7 +309,7 @@ export function AssessmentDetailsClient({
 												<>
 													<XCircle className="h-3.5 w-3.5 text-muted-foreground" />
 													<span className="font-medium text-muted-foreground text-sm">
-														Unpaid
+														Free
 													</span>
 												</>
 											)}
@@ -388,18 +380,21 @@ export function AssessmentDetailsClient({
 															</p>
 															{editing ? (
 																<InlineEditField
-																	value={assessment.level || ""}
+																	value={String(assessment.level_id || "")}
 																	onSave={(value) =>
-																		handleUpdate("level", value || null)
+																		handleUpdate("level_id", value || null)
 																	}
 																	editing={editing}
 																	type="select"
-																	options={levelOptions}
+																	options={languageLevels.map((level) => ({
+																		value: String(level.id),
+																		label: level.display_name || level.code?.toUpperCase() || "Unknown",
+																	}))}
 																	placeholder="Select level"
 																/>
-															) : assessment.level ? (
+															) : assessment.language_level ? (
 																<Badge variant="outline" className="mt-1">
-																	{assessment.level.toUpperCase()}
+																	{assessment.language_level.display_name || assessment.language_level.code?.toUpperCase()}
 																</Badge>
 															) : (
 																<span className="text-muted-foreground text-sm">
@@ -498,15 +493,15 @@ export function AssessmentDetailsClient({
 																	placeholder="https://calendar.google.com/..."
 																/>
 															) : assessment.calendar_event_url ? (
-																<a
-																	href={assessment.calendar_event_url}
-																	target="_blank"
-																	rel="noopener noreferrer"
-																	className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
+																<Button
+																	variant="outline"
+																	size="sm"
+																	className="h-7"
+																	onClick={() => window.open(assessment.calendar_event_url, "_blank")}
 																>
-																	<ExternalLink className="h-3 w-3" />
+																	<ExternalLink className="mr-1.5 h-3 w-3" />
 																	View Calendar Event
-																</a>
+																</Button>
 															) : (
 																<span className="text-muted-foreground text-sm">
 																	No calendar event
@@ -535,15 +530,15 @@ export function AssessmentDetailsClient({
 																	placeholder="https://zoom.us/rec/..."
 																/>
 															) : assessment.meeting_recording_url ? (
-																<a
-																	href={assessment.meeting_recording_url}
-																	target="_blank"
-																	rel="noopener noreferrer"
-																	className="inline-flex items-center gap-1 text-primary text-sm hover:underline"
+																<Button
+																	variant="outline"
+																	size="sm"
+																	className="h-7"
+																	onClick={() => window.open(assessment.meeting_recording_url, "_blank")}
 																>
-																	<Video className="h-3 w-3" />
+																	<Video className="mr-1.5 h-3 w-3" />
 																	View Recording
-																</a>
+																</Button>
 															) : (
 																<span className="text-muted-foreground text-sm">
 																	No recording available

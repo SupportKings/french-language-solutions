@@ -25,10 +25,7 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Assessments",
 		description: "Manage student language assessments",
 	},
-	"/admin/students/progress": {
-		title: "Progress Tracking",
-		description: "Track student progress and performance",
-	},
+
 	"/admin/cohorts": {
 		title: "All Cohorts",
 		description: "Manage cohorts and their weekly sessions",

@@ -32,7 +32,13 @@ import type {
 } from "../schemas/cohort.schema";
 
 interface CohortsTableProps {
-	cohorts: Cohort[];
+	cohorts: (Cohort & {
+		products?: {
+			id: string;
+			format: string;
+			display_name?: string;
+		};
+	})[];
 	isLoading: boolean;
 	hideWrapper?: boolean;
 }
@@ -41,7 +47,9 @@ interface CohortWithStats extends Cohort {
 	activeEnrollments?: number;
 	totalEnrollments?: number;
 	products?: {
+		id: string;
 		format: string;
+		display_name?: string;
 	} | null;
 	starting_level?: {
 		id: string;
@@ -201,7 +209,7 @@ export function CohortsTable({
 		<Table>
 			<TableHeader>
 				<TableRow>
-					<TableHead>Title</TableHead>
+					<TableHead>Product Name</TableHead>
 					<TableHead>Format</TableHead>
 					<TableHead>Students</TableHead>
 					<TableHead>Level Progress</TableHead>
@@ -273,9 +281,10 @@ export function CohortsTable({
 								<TableCell>
 									<div className="flex h-12 items-center">
 										<p className="font-medium">
-											{cohort.products?.format
-												? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Cohort`
-												: "Cohort"}
+											{cohort.products?.display_name ||
+												(cohort.products?.format
+													? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+													: "Course")}
 										</p>
 									</div>
 								</TableCell>

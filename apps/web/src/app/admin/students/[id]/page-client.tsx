@@ -128,7 +128,7 @@ export default function StudentDetailsClient({
 			if (!response.ok) throw new Error("Failed to update");
 
 			const updated = await response.json();
-			setStudent(updated);
+			setStudent((prevStudent: any) => ({ ...prevStudent, ...updated }));
 			toast.success("Updated successfully");
 		} catch (error) {
 			toast.error("Failed to update");
@@ -136,11 +136,6 @@ export default function StudentDetailsClient({
 		}
 	};
 
-	// Save contact section
-	const saveContactSection = async () => {
-		// This would batch update all contact fields
-		// For now, fields save individually on blur
-	};
 
 	// Navigate to create forms with pre-filled data
 	const navigateToCreateEnrollment = () => {
@@ -343,7 +338,7 @@ export default function StudentDetailsClient({
 									<div className="flex items-start gap-3">
 										<GraduationCap className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Level:</p>
+											<p className="text-muted-foreground text-xs">Desired Starting Level:</p>
 											{editing ? (
 												<InlineEditField
 													value={student.desired_starting_language_level_id}

@@ -359,9 +359,10 @@ export function EnrollmentFormNew({
 												<span className="flex items-center gap-2 truncate">
 													{selectedCohort ? (
 														<>
-															{selectedCohort.products?.format
-																? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort`
-																: "Cohort"}
+															{selectedCohort.products?.display_name ||
+																(selectedCohort.products?.format
+																	? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Course`
+																	: "Course")}
 														</>
 													) : (
 														"Select cohort..."
@@ -383,7 +384,7 @@ export function EnrollmentFormNew({
 														? cohorts.map((cohort, index) => (
 																<CommandItem
 																	key={`cohort-${cohort.id}-${index}`}
-																	value={`${cohort.products?.format || "cohort"} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ""}`.toLowerCase()}
+																	value={`${cohort.products?.display_name || cohort.products?.format || "course"} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ""}`.toLowerCase()}
 																	onSelect={() => {
 																		form.setValue("cohort_id", cohort.id);
 																		setCohortPopoverOpen(false);
@@ -401,13 +402,16 @@ export function EnrollmentFormNew({
 																	<div className="flex flex-1 items-start gap-2">
 																		<div className="flex flex-1 flex-col">
 																			<span className="flex items-center gap-2 font-medium">
-																				{cohort.products?.format
-																					? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Cohort`
-																					: "Cohort"}
+																				{cohort.products?.display_name ||
+																					(cohort.products?.format
+																						? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+																						: "Course")}
 																			</span>
 																			<span className="text-muted-foreground text-xs">
 																				{cohort.starting_level?.display_name ||
 																					cohort.starting_level?.code?.toUpperCase() ||
+																					"N/A"} → {cohort.current_level?.display_name ||
+																					cohort.current_level?.code?.toUpperCase() ||
 																					"N/A"}
 																				{cohort.start_date &&
 																					` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
@@ -451,13 +455,16 @@ export function EnrollmentFormNew({
 											<Users className="h-4 w-4 text-muted-foreground" />
 											<span className="text-muted-foreground">Cohort:</span>
 											<span className="flex items-center gap-2 font-medium">
-												{selectedCohort.products?.format
-													? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Cohort`
-													: "Cohort"}
+												{selectedCohort.products?.display_name ||
+													(selectedCohort.products?.format
+														? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Course`
+														: "Course")}
 												<span className="text-muted-foreground text-xs">
 													(
 													{selectedCohort.starting_level?.display_name ||
 														selectedCohort.starting_level?.code?.toUpperCase() ||
+														"N/A"} → {selectedCohort.current_level?.display_name ||
+														selectedCohort.current_level?.code?.toUpperCase() ||
 														"N/A"}
 													)
 												</span>

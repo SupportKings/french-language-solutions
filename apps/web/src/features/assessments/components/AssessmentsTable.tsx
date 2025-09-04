@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import Link from "next/link";
 
@@ -30,6 +30,7 @@ import {
 
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@uidotdev/usehooks";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { format } from "date-fns";
 import {
 	Calendar,
@@ -90,15 +91,12 @@ const assessmentColumns = [
 		})),
 	},
 	{
-		id: "level",
-		accessor: (assessment: any) => assessment.level,
+		id: "level_id",
+		accessor: (assessment: any) => assessment.level_id,
 		displayName: "Determined Level",
 		icon: GraduationCap,
-		type: "option" as const,
-		options: Object.entries(LANGUAGE_LEVELS).map(([value, label]) => ({
-			label,
-			value,
-		})),
+		type: "async_option" as const,
+		// We'll need to fetch language levels dynamically
 	},
 	{
 		id: "is_paid",
@@ -134,6 +132,13 @@ const assessmentColumns = [
 			{ label: "Overdue", value: "overdue" },
 		],
 	},
+	{
+		id: "scheduled_date",
+		accessor: (assessment: any) => assessment.scheduled_for ? new Date(assessment.scheduled_for) : null,
+		displayName: "Scheduled Date",
+		icon: Calendar,
+		type: "date" as const,
+	},
 ];
 
 interface AssessmentsTableProps {
@@ -145,32 +150,53 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 	const [search, setSearch] = useState("");
 	const debouncedSearch = useDebounce(search, 300);
 
+	// Fetch language levels for the level filter
+	const { data: languageLevels } = useQuery(languageLevelQueries.list());
+
+	// Update level column with dynamic options
+	const dynamicAssessmentColumns = useMemo(() => {
+		return assessmentColumns.map(column => {
+			if (column.id === "level_id" && languageLevels) {
+				return {
+					...column,
+					type: "option" as const,
+					options: languageLevels.map(level => ({
+						label: level.display_name,
+						value: level.id,
+					})),
+				};
+			}
+			return column;
+		});
+	}, [languageLevels]);
+
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: assessmentColumns,
+		columnsConfig: dynamicAssessmentColumns,
 	});
 
 	// Convert filters to query params - support multiple values
 	const filterQuery = useMemo(() => {
 		const resultFilter = filters.find((f) => f.columnId === "result");
-		const levelFilter = filters.find((f) => f.columnId === "level");
+		const levelFilter = filters.find((f) => f.columnId === "level_id");
 		const paidFilter = filters.find((f) => f.columnId === "is_paid");
 		const teacherFilter = filters.find((f) => f.columnId === "has_teacher");
 		const scheduledFilter = filters.find(
 			(f) => f.columnId === "scheduled_status",
 		);
+		const dateFilter = filters.find((f) => f.columnId === "scheduled_date");
 
 		return {
 			// Pass arrays for multi-select filters
 			result: resultFilter?.values?.length ? resultFilter.values : undefined,
-			level: levelFilter?.values?.length ? levelFilter.values : undefined,
+			level_id: levelFilter?.values?.length ? levelFilter.values : undefined,
 			is_paid:
 				paidFilter?.values?.[0] === "true"
-					? true
+					? "true"
 					: paidFilter?.values?.[0] === "false"
-						? false
+						? "false"
 						: undefined,
 			has_teacher: teacherFilter?.values?.length
 				? teacherFilter.values
@@ -178,8 +204,17 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 			scheduled_status: scheduledFilter?.values?.length
 				? scheduledFilter.values
 				: undefined,
+			// Date filter - can be single date or date range
+			date_from: dateFilter?.values?.[0] ? new Date(dateFilter.values[0]).toISOString().split('T')[0] : undefined,
+			date_to: dateFilter?.values?.[1] ? new Date(dateFilter.values[1]).toISOString().split('T')[0] : undefined,
+			date_operator: dateFilter?.operator,
 		};
 	}, [filters]);
+
+	// Reset page when filters or search change
+	useEffect(() => {
+		setPage(1);
+	}, [filterQuery, debouncedSearch]);
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["assessments", page, debouncedSearch, filterQuery],
@@ -189,16 +224,19 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 				limit: "20",
 				...(debouncedSearch && { search: debouncedSearch }),
 				...(filterQuery.is_paid !== undefined && {
-					is_paid: filterQuery.is_paid.toString(),
+					is_paid: filterQuery.is_paid,
 				}),
+				...(filterQuery.date_from && { date_from: filterQuery.date_from }),
+				...(filterQuery.date_to && { date_to: filterQuery.date_to }),
+				...(filterQuery.date_operator && { date_operator: filterQuery.date_operator }),
 			});
 
 			// Add array filters
 			if (filterQuery.result) {
 				filterQuery.result.forEach((v) => params.append("result", v));
 			}
-			if (filterQuery.level) {
-				filterQuery.level.forEach((v) => params.append("level", v));
+			if (filterQuery.level_id) {
+				filterQuery.level_id.forEach((v) => params.append("level_id", v));
 			}
 			if (filterQuery.has_teacher) {
 				filterQuery.has_teacher.forEach((v) => params.append("has_teacher", v));
@@ -288,8 +326,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 							<TableHead>Level</TableHead>
 							<TableHead>Scheduled</TableHead>
 							<TableHead>Status</TableHead>
-							<TableHead>Paid</TableHead>
-							<TableHead>Teacher</TableHead>
+							<TableHead>Payment</TableHead>
+							<TableHead>Interview Held By</TableHead>
+							<TableHead>Level Determined By</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
 					</TableHeader>
@@ -316,6 +355,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 										<Skeleton className="h-5 w-28" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-28" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-8" />
 									</TableCell>
 								</TableRow>
@@ -323,7 +365,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 						) : data?.assessments?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={7}
+									colSpan={8}
 									className="text-center text-muted-foreground"
 								>
 									No assessments found
@@ -339,11 +381,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 									}
 								>
 									<TableCell>
-										<Link
-											href={`/admin/students/${assessment.student_id}`}
-											className="hover:underline"
-											onClick={(e) => e.stopPropagation()}
-										>
+										<div>
 											<div>
 												<p className="font-medium">
 													{assessment.students?.full_name}
@@ -352,10 +390,14 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 													{assessment.students?.email || "No email"}
 												</p>
 											</div>
-										</Link>
+										</div>
 									</TableCell>
 									<TableCell>
-										{assessment.level ? (
+										{assessment.language_level ? (
+											<Badge variant="outline">
+												{assessment.language_level.display_name}
+											</Badge>
+										) : assessment.level ? (
 											<Badge variant="outline">
 												{assessment.level.toUpperCase()}
 											</Badge>
@@ -392,18 +434,27 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 									</TableCell>
 									<TableCell>
 										{assessment.is_paid ? (
-											<CheckCircle className="h-4 w-4 text-green-600" />
+											<Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+												Paid
+											</Badge>
 										) : (
-											<XCircle className="h-4 w-4 text-muted-foreground" />
+											<Badge variant="default" className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+												Free
+											</Badge>
 										)}
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
 											{assessment.interview_held_by
 												? `${assessment.interview_held_by.first_name} ${assessment.interview_held_by.last_name}`.trim()
-												: assessment.level_checked_by
-													? `${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`.trim()
-													: "-"}
+												: "-"}
+										</p>
+									</TableCell>
+									<TableCell>
+										<p className="text-sm">
+											{assessment.level_checked_by
+												? `${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`.trim()
+												: "-"}
 										</p>
 									</TableCell>
 									<TableCell>

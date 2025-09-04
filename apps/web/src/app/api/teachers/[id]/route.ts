@@ -30,6 +30,10 @@ export async function GET(
 				contract_type,
 				available_for_online_classes,
 				available_for_in_person_classes,
+				max_students_in_person,
+				max_students_online,
+				days_available_online,
+				days_available_in_person,
 				mobile_phone_number,
 				admin_notes,
 				airtable_record_id,
@@ -117,6 +121,18 @@ export async function PATCH(
 				...(validatedData.available_for_in_person_classes !== undefined && {
 					available_for_in_person_classes:
 						validatedData.available_for_in_person_classes,
+				}),
+				...(validatedData.max_students_in_person !== undefined && {
+					max_students_in_person: validatedData.max_students_in_person,
+				}),
+				...(validatedData.max_students_online !== undefined && {
+					max_students_online: validatedData.max_students_online,
+				}),
+				...(validatedData.days_available_online !== undefined && {
+					days_available_online: validatedData.days_available_online,
+				}),
+				...(validatedData.days_available_in_person !== undefined && {
+					days_available_in_person: validatedData.days_available_in_person,
 				}),
 				...(validatedData.mobile_phone_number !== undefined && {
 					mobile_phone_number: validatedData.mobile_phone_number,

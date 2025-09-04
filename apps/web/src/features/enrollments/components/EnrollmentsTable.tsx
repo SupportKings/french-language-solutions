@@ -354,8 +354,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 								>
 									<TableCell>
 										<Link
-											href={`/admin/students/${enrollment.student_id}`}
-											className="hover:underline"
+											href={`/admin/students/enrollment/${enrollment.id}`}
 										>
 											<div>
 												<p className="font-medium">

@@ -1,0 +1,2 @@
+ALTER TABLE "teachers" ALTER COLUMN "days_available_online" SET DATA TYPE "public"."day_of_week"[] USING "days_available_online"::"public"."day_of_week"[];--> statement-breakpoint
+ALTER TABLE "teachers" ALTER COLUMN "days_available_in_person" SET DATA TYPE "public"."day_of_week"[] USING "days_available_in_person"::"public"."day_of_week"[];
