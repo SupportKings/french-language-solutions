@@ -353,9 +353,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									className="transition-colors duration-150 hover:bg-muted/50"
 								>
 									<TableCell>
-										<Link
-											href={`/admin/students/enrollment/${enrollment.id}`}
-										>
+										<Link href={`/admin/students/enrollment/${enrollment.id}`}>
 											<div>
 												<p className="font-medium">
 													{enrollment.students?.full_name}

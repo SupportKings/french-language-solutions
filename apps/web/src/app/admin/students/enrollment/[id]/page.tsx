@@ -1,9 +1,13 @@
 import { Suspense } from "react";
+
 import { notFound, redirect } from "next/navigation";
+
 import { getEnrollment } from "@/features/enrollments/actions/getEnrollment";
 import EnrollmentDetailSkeleton from "@/features/enrollments/components/enrollment.detail.skeleton";
 import EnrollmentDetailView from "@/features/enrollments/components/enrollment.detail.view";
+
 import { getUser } from "@/queries/getUser";
+
 import {
 	dehydrate,
 	HydrationBoundary,
@@ -16,7 +20,9 @@ interface EnrollmentDetailPageProps {
 	}>;
 }
 
-export default function EnrollmentDetailPage({ params }: EnrollmentDetailPageProps) {
+export default function EnrollmentDetailPage({
+	params,
+}: EnrollmentDetailPageProps) {
 	return (
 		<Suspense fallback={<EnrollmentDetailSkeleton enrollmentId="" />}>
 			<EnrollmentDetailPageAsync params={params} />
@@ -24,7 +30,9 @@ export default function EnrollmentDetailPage({ params }: EnrollmentDetailPagePro
 	);
 }
 
-async function EnrollmentDetailPageAsync({ params }: EnrollmentDetailPageProps) {
+async function EnrollmentDetailPageAsync({
+	params,
+}: EnrollmentDetailPageProps) {
 	const { id } = await params;
 
 	// Validate that id is provided

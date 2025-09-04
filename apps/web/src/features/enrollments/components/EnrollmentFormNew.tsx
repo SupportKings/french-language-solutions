@@ -410,7 +410,9 @@ export function EnrollmentFormNew({
 																			<span className="text-muted-foreground text-xs">
 																				{cohort.starting_level?.display_name ||
 																					cohort.starting_level?.code?.toUpperCase() ||
-																					"N/A"} → {cohort.current_level?.display_name ||
+																					"N/A"}{" "}
+																				→{" "}
+																				{cohort.current_level?.display_name ||
 																					cohort.current_level?.code?.toUpperCase() ||
 																					"N/A"}
 																				{cohort.start_date &&
@@ -463,7 +465,9 @@ export function EnrollmentFormNew({
 													(
 													{selectedCohort.starting_level?.display_name ||
 														selectedCohort.starting_level?.code?.toUpperCase() ||
-														"N/A"} → {selectedCohort.current_level?.display_name ||
+														"N/A"}{" "}
+													→{" "}
+													{selectedCohort.current_level?.display_name ||
 														selectedCohort.current_level?.code?.toUpperCase() ||
 														"N/A"}
 													)

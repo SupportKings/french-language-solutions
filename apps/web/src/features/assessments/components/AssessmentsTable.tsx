@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 
@@ -28,9 +28,10 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@uidotdev/usehooks";
-import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { format } from "date-fns";
 import {
 	Calendar,
@@ -134,7 +135,8 @@ const assessmentColumns = [
 	},
 	{
 		id: "scheduled_date",
-		accessor: (assessment: any) => assessment.scheduled_for ? new Date(assessment.scheduled_for) : null,
+		accessor: (assessment: any) =>
+			assessment.scheduled_for ? new Date(assessment.scheduled_for) : null,
 		displayName: "Scheduled Date",
 		icon: Calendar,
 		type: "date" as const,
@@ -155,12 +157,12 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 
 	// Update level column with dynamic options
 	const dynamicAssessmentColumns = useMemo(() => {
-		return assessmentColumns.map(column => {
+		return assessmentColumns.map((column) => {
 			if (column.id === "level_id" && languageLevels) {
 				return {
 					...column,
 					type: "option" as const,
-					options: languageLevels.map(level => ({
+					options: languageLevels.map((level) => ({
 						label: level.display_name,
 						value: level.id,
 					})),
@@ -205,8 +207,12 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 				? scheduledFilter.values
 				: undefined,
 			// Date filter - can be single date or date range
-			date_from: dateFilter?.values?.[0] ? new Date(dateFilter.values[0]).toISOString().split('T')[0] : undefined,
-			date_to: dateFilter?.values?.[1] ? new Date(dateFilter.values[1]).toISOString().split('T')[0] : undefined,
+			date_from: dateFilter?.values?.[0]
+				? new Date(dateFilter.values[0]).toISOString().split("T")[0]
+				: undefined,
+			date_to: dateFilter?.values?.[1]
+				? new Date(dateFilter.values[1]).toISOString().split("T")[0]
+				: undefined,
 			date_operator: dateFilter?.operator,
 		};
 	}, [filters]);
@@ -228,7 +234,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 				}),
 				...(filterQuery.date_from && { date_from: filterQuery.date_from }),
 				...(filterQuery.date_to && { date_to: filterQuery.date_to }),
-				...(filterQuery.date_operator && { date_operator: filterQuery.date_operator }),
+				...(filterQuery.date_operator && {
+					date_operator: filterQuery.date_operator,
+				}),
 			});
 
 			// Add array filters
@@ -434,11 +442,17 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 									</TableCell>
 									<TableCell>
 										{assessment.is_paid ? (
-											<Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+											<Badge
+												variant="default"
+												className="bg-green-100 text-green-800 hover:bg-green-100"
+											>
 												Paid
 											</Badge>
 										) : (
-											<Badge variant="default" className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+											<Badge
+												variant="default"
+												className="bg-gray-100 text-gray-800 hover:bg-gray-100"
+											>
 												Free
 											</Badge>
 										)}
@@ -465,7 +479,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
-												<Link href={`/admin/students/assessments/${assessment.id}`}>
+												<Link
+													href={`/admin/students/assessments/${assessment.id}`}
+												>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />
 														View

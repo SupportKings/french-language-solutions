@@ -60,12 +60,19 @@ export async function GET(request: NextRequest) {
 
 		// Handle teacher assignment filter
 		if (hasTeachers.length > 0) {
-			if (hasTeachers.includes("assigned") && hasTeachers.includes("unassigned")) {
+			if (
+				hasTeachers.includes("assigned") &&
+				hasTeachers.includes("unassigned")
+			) {
 				// Both selected, no filter needed
 			} else if (hasTeachers.includes("assigned")) {
-				query = query.or("interview_held_by.not.is.null,level_checked_by.not.is.null");
+				query = query.or(
+					"interview_held_by.not.is.null,level_checked_by.not.is.null",
+				);
 			} else if (hasTeachers.includes("unassigned")) {
-				query = query.is("interview_held_by", null).is("level_checked_by", null);
+				query = query
+					.is("interview_held_by", null)
+					.is("level_checked_by", null);
 			}
 		}
 
@@ -83,7 +90,7 @@ export async function GET(request: NextRequest) {
 				const now = new Date().toISOString();
 				conditions.push(`and(scheduled_for.lt.${now},result.eq.scheduled)`);
 			}
-			
+
 			if (conditions.length > 0) {
 				query = query.or(conditions.join(","));
 			}
@@ -112,18 +119,24 @@ export async function GET(request: NextRequest) {
 					break;
 				case "is between":
 					if (dateFrom && dateTo) {
-						query = query.gte("scheduled_for", dateFrom).lte("scheduled_for", dateTo);
+						query = query
+							.gte("scheduled_for", dateFrom)
+							.lte("scheduled_for", dateTo);
 					}
 					break;
 				case "is not between":
 					if (dateFrom && dateTo) {
-						query = query.or(`scheduled_for.lt.${dateFrom},scheduled_for.gt.${dateTo}`);
+						query = query.or(
+							`scheduled_for.lt.${dateFrom},scheduled_for.gt.${dateTo}`,
+						);
 					}
 					break;
 				default:
 					// Fallback to range filtering
 					if (dateFrom && dateTo) {
-						query = query.gte("scheduled_for", dateFrom).lte("scheduled_for", dateTo);
+						query = query
+							.gte("scheduled_for", dateFrom)
+							.lte("scheduled_for", dateTo);
 					} else if (dateFrom) {
 						query = query.gte("scheduled_for", dateFrom);
 					} else if (dateTo) {
@@ -134,7 +147,9 @@ export async function GET(request: NextRequest) {
 		} else if (dateFrom || dateTo) {
 			// Fallback for when no operator is specified
 			if (dateFrom && dateTo) {
-				query = query.gte("scheduled_for", dateFrom).lte("scheduled_for", dateTo);
+				query = query
+					.gte("scheduled_for", dateFrom)
+					.lte("scheduled_for", dateTo);
 			} else if (dateFrom) {
 				query = query.gte("scheduled_for", dateFrom);
 			} else if (dateTo) {

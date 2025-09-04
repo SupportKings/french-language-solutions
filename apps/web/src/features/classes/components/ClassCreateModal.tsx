@@ -23,7 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { format } from "date-fns";
-import { Calendar, Clock, Link, Users, Save, X } from "lucide-react";
+import { Calendar, Clock, Link, Save, Users, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Teacher {
@@ -49,7 +49,7 @@ export function ClassCreateModal({
 	const [loading, setLoading] = useState(false);
 	const [teachers, setTeachers] = useState<Teacher[]>([]);
 	const [loadingTeachers, setLoadingTeachers] = useState(false);
-	
+
 	// Form state
 	const [formData, setFormData] = useState({
 		cohort_id: cohortId,
@@ -95,7 +95,7 @@ export function ClassCreateModal({
 	};
 
 	const handleInputChange = (field: string, value: string) => {
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
 			[field]: value,
 		}));
@@ -105,7 +105,7 @@ export function ClassCreateModal({
 			const startDate = new Date(value);
 			const endDate = new Date(startDate.getTime() + 90 * 60000); // Add 90 minutes
 			const endTimeString = endDate.toISOString().slice(0, 16);
-			setFormData(prev => ({
+			setFormData((prev) => ({
 				...prev,
 				end_time: endTimeString,
 			}));
@@ -139,7 +139,10 @@ export function ClassCreateModal({
 				start_time: new Date(formData.start_time).toISOString(),
 				end_time: new Date(formData.end_time).toISOString(),
 				status: formData.status,
-				teacher_id: formData.teacher_id === "none" || !formData.teacher_id ? null : formData.teacher_id,
+				teacher_id:
+					formData.teacher_id === "none" || !formData.teacher_id
+						? null
+						: formData.teacher_id,
 				notes: formData.notes || null,
 			};
 
@@ -161,34 +164,43 @@ export function ClassCreateModal({
 				try {
 					errorData = await response.json();
 				} catch (e) {
-					errorData = { error: `Request failed with status ${response.status}` };
+					errorData = {
+						error: `Request failed with status ${response.status}`,
+					};
 				}
-				
+
 				console.error("Error response:", errorData);
-				
+
 				// Handle validation errors with details
-				if (errorData && errorData.details && Array.isArray(errorData.details)) {
-					const errorMessages = errorData.details.map((detail: any) => 
-						detail.message || detail.path?.join('.') || 'Validation error'
+				if (
+					errorData &&
+					errorData.details &&
+					Array.isArray(errorData.details)
+				) {
+					const errorMessages = errorData.details.map(
+						(detail: any) =>
+							detail.message || detail.path?.join(".") || "Validation error",
 					);
-					throw new Error(errorMessages.join(', '));
+					throw new Error(errorMessages.join(", "));
 				}
-				
-				const errorMessage = errorData?.error || errorData?.message || "Failed to create class";
+
+				const errorMessage =
+					errorData?.error || errorData?.message || "Failed to create class";
 				throw new Error(errorMessage);
 			}
 
 			const newClass = await response.json();
 			toast.success("Class created successfully");
-			
+
 			if (onSuccess) {
 				onSuccess(newClass);
 			}
-			
+
 			onClose();
 		} catch (error) {
 			console.error("Error creating class:", error);
-			const errorMessage = error instanceof Error ? error.message : "Failed to create class";
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to create class";
 			toast.error(errorMessage);
 		} finally {
 			setLoading(false);
@@ -209,7 +221,8 @@ export function ClassCreateModal({
 						Create New Class
 					</DialogTitle>
 					<DialogDescription>
-						Schedule a new class for this cohort. You can assign a teacher and set up meeting details.
+						Schedule a new class for this cohort. You can assign a teacher and
+						set up meeting details.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -227,7 +240,9 @@ export function ClassCreateModal({
 									id="start_time"
 									type="datetime-local"
 									value={formatDateTimeLocal(formData.start_time)}
-									onChange={(e) => handleInputChange("start_time", e.target.value)}
+									onChange={(e) =>
+										handleInputChange("start_time", e.target.value)
+									}
 									className="w-full"
 									min={new Date().toISOString().slice(0, 16)}
 								/>
@@ -241,7 +256,9 @@ export function ClassCreateModal({
 									id="end_time"
 									type="datetime-local"
 									value={formatDateTimeLocal(formData.end_time)}
-									onChange={(e) => handleInputChange("end_time", e.target.value)}
+									onChange={(e) =>
+										handleInputChange("end_time", e.target.value)
+									}
 									className="w-full"
 									min={formData.start_time}
 								/>
@@ -252,11 +269,13 @@ export function ClassCreateModal({
 								Duration: {(() => {
 									const start = new Date(formData.start_time);
 									const end = new Date(formData.end_time);
-									const diff = Math.round((end.getTime() - start.getTime()) / 60000);
+									const diff = Math.round(
+										(end.getTime() - start.getTime()) / 60000,
+									);
 									const hours = Math.floor(diff / 60);
 									const minutes = diff % 60;
 									return hours > 0
-										? `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` ${minutes} minutes` : ''}`
+										? `${hours} hour${hours > 1 ? "s" : ""}${minutes > 0 ? ` ${minutes} minutes` : ""}`
 										: `${minutes} minutes`;
 								})()}
 							</p>
@@ -275,7 +294,11 @@ export function ClassCreateModal({
 							disabled={loadingTeachers}
 						>
 							<SelectTrigger id="teacher">
-								<SelectValue placeholder={loadingTeachers ? "Loading teachers..." : "Select a teacher"} />
+								<SelectValue
+									placeholder={
+										loadingTeachers ? "Loading teachers..." : "Select a teacher"
+									}
+								/>
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="none">No teacher assigned</SelectItem>
@@ -283,7 +306,7 @@ export function ClassCreateModal({
 									<SelectItem key={teacher.id} value={teacher.id}>
 										{teacher.first_name} {teacher.last_name}
 										{teacher.email && (
-											<span className="text-muted-foreground ml-2">
+											<span className="ml-2 text-muted-foreground">
 												({teacher.email})
 											</span>
 										)}
@@ -304,7 +327,9 @@ export function ClassCreateModal({
 							type="url"
 							placeholder="https://meet.google.com/..."
 							value={formData.meeting_link}
-							onChange={(e) => handleInputChange("meeting_link", e.target.value)}
+							onChange={(e) =>
+								handleInputChange("meeting_link", e.target.value)
+							}
 						/>
 						<p className="text-muted-foreground text-xs">
 							Add a video conferencing link for online classes
@@ -344,11 +369,7 @@ export function ClassCreateModal({
 				</div>
 
 				<DialogFooter>
-					<Button
-						variant="outline"
-						onClick={onClose}
-						disabled={loading}
-					>
+					<Button variant="outline" onClick={onClose} disabled={loading}>
 						<X className="mr-2 h-4 w-4" />
 						Cancel
 					</Button>

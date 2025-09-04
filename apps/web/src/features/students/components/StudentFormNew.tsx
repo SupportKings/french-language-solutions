@@ -55,12 +55,25 @@ import { z } from "zod";
 const studentFormSchema = createStudentSchema
 	.extend({
 		subjective_deadline_for_student: z.date().optional().nullable(),
-		email: z.string().email("Invalid email").optional().nullable().or(z.literal("")),
-		mobile_phone_number: z.string().max(20).optional().nullable().or(z.literal("")),
+		email: z
+			.string()
+			.email("Invalid email")
+			.optional()
+			.nullable()
+			.or(z.literal("")),
+		mobile_phone_number: z
+			.string()
+			.max(20)
+			.optional()
+			.nullable()
+			.or(z.literal("")),
 		city: z.string().optional().nullable().or(z.literal("")),
 		purpose_to_learn: z.string().optional().nullable().or(z.literal("")),
 		desired_starting_language_level_id: z.string().optional().nullable(),
-		communication_channel: z.enum(["sms_email", "email", "sms"]).optional().nullable(),
+		communication_channel: z
+			.enum(["sms_email", "email", "sms"])
+			.optional()
+			.nullable(),
 		is_full_beginner: z.boolean().optional().nullable(),
 		is_under_16: z.boolean().optional().nullable(),
 	})
@@ -323,7 +336,10 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 										<PopoverContent className="w-auto p-0" align="start">
 											<Calendar
 												mode="single"
-												selected={form.watch("subjective_deadline_for_student") ?? undefined}
+												selected={
+													form.watch("subjective_deadline_for_student") ??
+													undefined
+												}
 												onSelect={(date) =>
 													form.setValue("subjective_deadline_for_student", date)
 												}
@@ -401,7 +417,6 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 								</FormField>
 							</FormRow>
 						</FormSection>
-
 					</div>
 				</FormContent>
 

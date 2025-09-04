@@ -69,7 +69,6 @@ const RESULT_COLORS = {
 	level_determined: "success",
 };
 
-
 export default function AssessmentDetailsClient({
 	assessment: initialAssessment,
 }: AssessmentDetailsClientProps) {
@@ -79,7 +78,8 @@ export default function AssessmentDetailsClient({
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
 	// Local state for edited values
-	const [editedAssessment, setEditedAssessment] = useState<any>(initialAssessment);
+	const [editedAssessment, setEditedAssessment] =
+		useState<any>(initialAssessment);
 
 	// Update the assessment when data changes
 	useEffect(() => {
@@ -110,7 +110,7 @@ export default function AssessmentDetailsClient({
 	const updateEditedField = async (field: string, value: any) => {
 		setEditedAssessment({
 			...editedAssessment,
-			[field]: value
+			[field]: value,
 		});
 		// Return a resolved promise to match the expected type
 		return Promise.resolve();
@@ -121,7 +121,7 @@ export default function AssessmentDetailsClient({
 		try {
 			// Collect all changes
 			const changes: any = {};
-			
+
 			// Check for changes in fields
 			if (editedAssessment.result !== assessment.result) {
 				changes.result = editedAssessment.result;
@@ -135,21 +135,26 @@ export default function AssessmentDetailsClient({
 			if (editedAssessment.is_paid !== assessment.is_paid) {
 				changes.is_paid = editedAssessment.is_paid;
 			}
-			if (editedAssessment.calendar_event_url !== assessment.calendar_event_url) {
+			if (
+				editedAssessment.calendar_event_url !== assessment.calendar_event_url
+			) {
 				changes.calendar_event_url = editedAssessment.calendar_event_url;
 			}
-			if (editedAssessment.meeting_recording_url !== assessment.meeting_recording_url) {
+			if (
+				editedAssessment.meeting_recording_url !==
+				assessment.meeting_recording_url
+			) {
 				changes.meeting_recording_url = editedAssessment.meeting_recording_url;
 			}
 			if (editedAssessment.notes !== assessment.notes) {
 				changes.notes = editedAssessment.notes;
 			}
-			
+
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
 				return;
 			}
-			
+
 			const response = await fetch(`/api/assessments/${assessment.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -230,7 +235,9 @@ export default function AssessmentDetailsClient({
 									</Badge>
 									{assessment.language_level && (
 										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-											Level {assessment.language_level.display_name || assessment.language_level.code?.toUpperCase()}
+											Level{" "}
+											{assessment.language_level.display_name ||
+												assessment.language_level.code?.toUpperCase()}
 										</Badge>
 									)}
 									{assessment.is_paid && (
@@ -271,7 +278,7 @@ export default function AssessmentDetailsClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Assessment Information */}
-				<EditableSection 
+				<EditableSection
 					title="Assessment Information"
 					onEditStart={() => setEditedAssessment(assessment)}
 					onSave={saveAllChanges}
@@ -292,9 +299,7 @@ export default function AssessmentDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={editedAssessment.result}
-													onSave={(value) =>
-														updateEditedField("result", value)
-													}
+													onSave={(value) => updateEditedField("result", value)}
 													editing={editing}
 													type="select"
 													options={[
@@ -337,13 +342,15 @@ export default function AssessmentDetailsClient({
 													type="select"
 													options={languageLevels.map((level) => ({
 														value: level.id,
-														label: level.display_name || level.code?.toUpperCase(),
+														label:
+															level.display_name || level.code?.toUpperCase(),
 													}))}
 													placeholder="Select level"
 												/>
 											) : assessment.language_level ? (
 												<Badge variant="outline">
-													{assessment.language_level.display_name || assessment.language_level.code?.toUpperCase()}
+													{assessment.language_level.display_name ||
+														assessment.language_level.code?.toUpperCase()}
 												</Badge>
 											) : (
 												<span className="text-muted-foreground text-sm">
@@ -515,7 +522,10 @@ export default function AssessmentDetailsClient({
 											<InlineEditField
 												value={editedAssessment.meeting_recording_url || ""}
 												onSave={(value) =>
-													updateEditedField("meeting_recording_url", value || null)
+													updateEditedField(
+														"meeting_recording_url",
+														value || null,
+													)
 												}
 												editing={editing}
 												type="text"

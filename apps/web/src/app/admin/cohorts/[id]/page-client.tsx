@@ -26,9 +26,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance";
-import { CohortEnrollments } from "@/features/cohorts/components/CohortEnrollments";
 import { CohortClasses } from "@/features/cohorts/components/CohortClasses";
+import { CohortEnrollments } from "@/features/cohorts/components/CohortEnrollments";
 import { WeeklySessionModal } from "@/features/cohorts/components/WeeklySessionModal";
 import {
 	useCohort,
@@ -75,7 +76,6 @@ const roomTypeOptions = [
 	{ value: "large", label: "Large" },
 ];
 
-
 // Status badge variant mapping
 const getStatusVariant = (status: CohortStatus) => {
 	switch (status) {
@@ -91,17 +91,20 @@ const getStatusVariant = (status: CohortStatus) => {
 };
 
 // Format level for display
-const formatLevel = (levelId: string | null | undefined, levels: any[] = []) => {
+const formatLevel = (
+	levelId: string | null | undefined,
+	levels: any[] = [],
+) => {
 	if (!levelId) return "Not set";
-	
+
 	// Try to find the level in the fetched language levels
 	if (levels && levels.length > 0) {
-		const level = levels.find(l => l.id === levelId);
+		const level = levels.find((l) => l.id === levelId);
 		if (level) {
 			return level.display_name || level.code || levelId;
 		}
 	}
-	
+
 	// If levels haven't loaded yet or level not found, show the ID nicely formatted
 	// This prevents showing "Not set" when the level is actually set
 	return levelId;
@@ -143,12 +146,14 @@ export function CohortDetailPageClient({
 	const [isFinalizing, setIsFinalizing] = useState(false);
 	const [products, setProducts] = useState<any[]>([]);
 	const [loadingProducts, setLoadingProducts] = useState(false);
-	const [attendanceClassId, setAttendanceClassId] = useState<string | undefined>(undefined);
+	const [attendanceClassId, setAttendanceClassId] = useState<
+		string | undefined
+	>(undefined);
 	const [activeTab, setActiveTab] = useState("enrollments");
-	
+
 	// Language levels from database
 	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
-	
+
 	// Local state for edited values
 	const [editedCohort, setEditedCohort] = useState<any>(null);
 
@@ -200,18 +205,18 @@ export function CohortDetailPageClient({
 	// Update edited cohort field locally
 	const updateEditedField = async (field: string, value: any) => {
 		// Handle nested fields like products.format
-		if (field === 'format') {
+		if (field === "format") {
 			setEditedCohort({
 				...editedCohort,
 				products: {
 					...editedCohort?.products,
-					format: value
-				}
+					format: value,
+				},
 			});
 		} else {
 			setEditedCohort({
 				...editedCohort,
-				[field]: value
+				[field]: value,
 			});
 		}
 		// Return a resolved promise to match the expected type
@@ -223,7 +228,7 @@ export function CohortDetailPageClient({
 		try {
 			// Collect all changes
 			const changes: any = {};
-			
+
 			// Check for changes in basic fields
 			if (editedCohort.cohort_status !== cohort.cohort_status) {
 				changes.cohort_status = editedCohort.cohort_status;
@@ -252,12 +257,12 @@ export function CohortDetailPageClient({
 			if (editedCohort.folder_url !== cohort.folder_url) {
 				changes.folder_url = editedCohort.folder_url;
 			}
-			
+
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
 				return;
 			}
-			
+
 			const response = await fetch(`/api/cohorts/${cohortId}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -275,7 +280,6 @@ export function CohortDetailPageClient({
 			throw error;
 		}
 	};
-
 
 	// Open weekly session modal for create
 	const navigateToAddSession = () => {
@@ -589,7 +593,10 @@ export function CohortDetailPageClient({
 									</Badge>
 									<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
 										{formatLevel(cohort.starting_level_id, languageLevels)} →{" "}
-										{formatLevel(cohort.current_level_id || cohort.starting_level_id, languageLevels)}
+										{formatLevel(
+											cohort.current_level_id || cohort.starting_level_id,
+											languageLevels,
+										)}
 									</Badge>
 									{cohort.room_type && (
 										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
@@ -645,7 +652,7 @@ export function CohortDetailPageClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Cohort Information with inline editing */}
-				<EditableSection 
+				<EditableSection
 					title="Cohort Information"
 					onEditStart={() => {
 						// Reset to current values when starting to edit
@@ -779,18 +786,27 @@ export function CohortDetailPageClient({
 												<InlineEditField
 													value={editedCohort?.starting_level_id || ""}
 													onSave={(value) =>
-														updateEditedField("starting_level_id", value || null)
+														updateEditedField(
+															"starting_level_id",
+															value || null,
+														)
 													}
 													editing={editing}
 													type="select"
-													options={(Array.isArray(languageLevels) ? languageLevels : []).map(level => ({
+													options={(Array.isArray(languageLevels)
+														? languageLevels
+														: []
+													).map((level) => ({
 														value: level.id,
-														label: level.display_name || level.code || level.id
+														label: level.display_name || level.code || level.id,
 													}))}
 												/>
 											) : (
 												<Badge variant="outline" className="h-5 text-xs">
-													{formatLevel(cohort.starting_level_id, languageLevels)}
+													{formatLevel(
+														cohort.starting_level_id,
+														languageLevels,
+													)}
 												</Badge>
 											)}
 										</div>
@@ -810,16 +826,19 @@ export function CohortDetailPageClient({
 													}
 													editing={editing}
 													type="select"
-													options={(Array.isArray(languageLevels) ? languageLevels : []).map(level => ({
+													options={(Array.isArray(languageLevels)
+														? languageLevels
+														: []
+													).map((level) => ({
 														value: level.id,
-														label: level.display_name || level.code || level.id
+														label: level.display_name || level.code || level.id,
 													}))}
 												/>
 											) : (
 												<Badge variant="outline" className="h-5 text-xs">
 													{formatLevel(
 														cohort.current_level_id || cohort.starting_level_id,
-														languageLevels
+														languageLevels,
 													)}
 												</Badge>
 											)}
@@ -954,125 +973,126 @@ export function CohortDetailPageClient({
 							</div>
 						) : (
 							<div className="grid gap-2 lg:grid-cols-2">
-								{cohortWithSessions?.weekly_sessions?.map(
-									(session: any) => (
-										<div
-											key={session.id}
-											className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
-											onClick={() => handleEditSession(session)}
-											role="button"
-											tabIndex={0}
-										>
-											{/* Day and Time Header */}
-											<div className="flex items-center justify-between border-b bg-muted/30 p-3">
-												<div className="flex items-center gap-2">
-													<Calendar className="h-4 w-4 text-primary" />
-													<span className="font-medium text-sm">
-														{session.day_of_week.charAt(0).toUpperCase() +
-															session.day_of_week.slice(1)}
-													</span>
-												</div>
-												<div className="flex items-center gap-2">
-													<Clock className="h-3.5 w-3.5 text-muted-foreground" />
-													<span className="font-mono text-sm">
-														{formatTime(session.start_time)} -{" "}
-														{formatTime(session.end_time)}
-													</span>
-												</div>
+								{cohortWithSessions?.weekly_sessions?.map((session: any) => (
+									<div
+										key={session.id}
+										className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
+										onClick={() => handleEditSession(session)}
+										role="button"
+										tabIndex={0}
+									>
+										{/* Day and Time Header */}
+										<div className="flex items-center justify-between border-b bg-muted/30 p-3">
+											<div className="flex items-center gap-2">
+												<Calendar className="h-4 w-4 text-primary" />
+												<span className="font-medium text-sm">
+													{session.day_of_week.charAt(0).toUpperCase() +
+														session.day_of_week.slice(1)}
+												</span>
 											</div>
+											<div className="flex items-center gap-2">
+												<Clock className="h-3.5 w-3.5 text-muted-foreground" />
+												<span className="font-mono text-sm">
+													{formatTime(session.start_time)} -{" "}
+													{formatTime(session.end_time)}
+												</span>
+											</div>
+										</div>
 
-											{/* Content */}
-											<div className="space-y-2 p-3">
-												{/* Teacher Info */}
-												{session.teachers && (
-													<div className="flex items-center justify-between">
-														<div className="flex items-center gap-2">
-															<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-																<Users className="h-4 w-4 text-primary" />
-															</div>
-															<div>
-																<Link
-																	href={`/admin/teachers/${session.teacher_id}`}
-																	className="cursor-pointer font-medium text-sm transition-colors hover:text-primary hover:underline"
-																>
-																	{session.teachers.first_name}{" "}
-																	{session.teachers.last_name}
-																</Link>
-																<p className="text-muted-foreground text-xs">
-																	Teacher
-																</p>
-															</div>
+										{/* Content */}
+										<div className="space-y-2 p-3">
+											{/* Teacher Info */}
+											{session.teachers && (
+												<div className="flex items-center justify-between">
+													<div className="flex items-center gap-2">
+														<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+															<Users className="h-4 w-4 text-primary" />
 														</div>
-
-														{/* Duration Badge */}
-														<Badge variant="secondary" className="text-xs">
-															{(() => {
-																const start = session.start_time.split(":");
-																const end = session.end_time.split(":");
-																const startMinutes =
-																	Number.parseInt(start[0]) * 60 +
-																	Number.parseInt(start[1]);
-																const endMinutes =
-																	Number.parseInt(end[0]) * 60 +
-																	Number.parseInt(end[1]);
-																const duration = endMinutes - startMinutes;
-																const hours = Math.floor(duration / 60);
-																const minutes = duration % 60;
-																return hours > 0
-																	? `${hours}h${
-																			minutes > 0 ? ` ${minutes}m` : ""
-																		}`
-																	: `${minutes}m`;
-															})()}
-														</Badge>
-													</div>
-												)}
-
-												{/* Bottom Status Row */}
-												<div className="flex items-center justify-between pt-1">
-													<div className="flex items-center gap-1.5">
-														{session.teachers
-															?.available_for_online_classes && (
-															<Badge
-																variant="outline"
-																className="h-5 px-1.5 text-xs"
+														<div>
+															<Link
+																href={`/admin/teachers/${session.teacher_id}`}
+																className="cursor-pointer font-medium text-sm transition-colors hover:text-primary hover:underline"
 															>
-																<span className="mr-1 h-1.5 w-1.5 rounded-full bg-green-500" />
-																Online
-															</Badge>
-														)}
-														{session.teachers
-															?.available_for_in_person_classes && (
-															<Badge
-																variant="outline"
-																className="h-5 px-1.5 text-xs"
-															>
-																<MapPin className="mr-0.5 h-3 w-3" />
-																In-Person
-															</Badge>
-														)}
+																{session.teachers.first_name}{" "}
+																{session.teachers.last_name}
+															</Link>
+															<p className="text-muted-foreground text-xs">
+																Teacher
+															</p>
+														</div>
 													</div>
-													{session.google_calendar_event_id && (
+
+													{/* Duration Badge */}
+													<Badge variant="secondary" className="text-xs">
+														{(() => {
+															const start = session.start_time.split(":");
+															const end = session.end_time.split(":");
+															const startMinutes =
+																Number.parseInt(start[0]) * 60 +
+																Number.parseInt(start[1]);
+															const endMinutes =
+																Number.parseInt(end[0]) * 60 +
+																Number.parseInt(end[1]);
+															const duration = endMinutes - startMinutes;
+															const hours = Math.floor(duration / 60);
+															const minutes = duration % 60;
+															return hours > 0
+																? `${hours}h${
+																		minutes > 0 ? ` ${minutes}m` : ""
+																	}`
+																: `${minutes}m`;
+														})()}
+													</Badge>
+												</div>
+											)}
+
+											{/* Bottom Status Row */}
+											<div className="flex items-center justify-between pt-1">
+												<div className="flex items-center gap-1.5">
+													{session.teachers?.available_for_online_classes && (
 														<Badge
-															variant="default"
+															variant="outline"
 															className="h-5 px-1.5 text-xs"
 														>
-															<Calendar className="mr-0.5 h-3 w-3" />
-															Synced
+															<span className="mr-1 h-1.5 w-1.5 rounded-full bg-green-500" />
+															Online
+														</Badge>
+													)}
+													{session.teachers
+														?.available_for_in_person_classes && (
+														<Badge
+															variant="outline"
+															className="h-5 px-1.5 text-xs"
+														>
+															<MapPin className="mr-0.5 h-3 w-3" />
+															In-Person
 														</Badge>
 													)}
 												</div>
+												{session.google_calendar_event_id && (
+													<Badge
+														variant="default"
+														className="h-5 px-1.5 text-xs"
+													>
+														<Calendar className="mr-0.5 h-3 w-3" />
+														Synced
+													</Badge>
+												)}
 											</div>
 										</div>
-									),
-								)}
+									</div>
+								))}
 							</div>
 						)}
 					</div>
 				</div>
 
 				{/* Tabs Section */}
-				<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+				<Tabs
+					value={activeTab}
+					onValueChange={setActiveTab}
+					className="space-y-4"
+				>
 					<TabsList className="grid w-full grid-cols-3">
 						<TabsTrigger value="enrollments">Enrollments</TabsTrigger>
 						<TabsTrigger value="classes">Classes</TabsTrigger>
@@ -1081,16 +1101,19 @@ export function CohortDetailPageClient({
 
 					{/* Enrollments Tab */}
 					<TabsContent value="enrollments" className="space-y-4">
-						<CohortEnrollments 
+						<CohortEnrollments
 							cohortId={cohortId}
 							cohortName={cohort?.products?.format || "Cohort"}
-							cohortLevel={formatLevel(cohort?.starting_level_id, languageLevels)}
+							cohortLevel={formatLevel(
+								cohort?.starting_level_id,
+								languageLevels,
+							)}
 						/>
 					</TabsContent>
 
 					{/* Classes Tab */}
 					<TabsContent value="classes" className="space-y-4">
-						<CohortClasses 
+						<CohortClasses
 							cohortId={cohortId}
 							cohortFormat={cohort?.products?.format}
 							cohortRoom={cohort?.room}
@@ -1100,7 +1123,10 @@ export function CohortDetailPageClient({
 
 					{/* Attendance Tab */}
 					<TabsContent value="attendance" className="space-y-4">
-						<CohortAttendance cohortId={cohortId} initialClassId={attendanceClassId} />
+						<CohortAttendance
+							cohortId={cohortId}
+							initialClassId={attendanceClassId}
+						/>
 					</TabsContent>
 				</Tabs>
 

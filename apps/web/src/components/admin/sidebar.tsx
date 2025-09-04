@@ -1,5 +1,6 @@
 "use client";
 import type * as React from "react";
+
 import Image from "next/image";
 
 import { NavMain } from "@/components/nav-main";
@@ -14,14 +15,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import {
-	Bot,
-	Building2,
-	Calendar,
-	GraduationCap,
-	Settings,
-	Users,
-} from "lucide-react";
+import { Bot, Calendar, GraduationCap, Settings, Users } from "lucide-react";
 
 const data = {
 	user: {
@@ -46,7 +40,7 @@ const data = {
 				{
 					title: "Assessments",
 					url: "/admin/students/assessments",
-				}
+				},
 			],
 		},
 		{
@@ -113,7 +107,7 @@ export function AdminSidebar({
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" className="flex h-20 flex-col" asChild>
 							<a href="/admin/students">
-								<div className="flex !w-18 items-center justify-center rounded-lg overflow-hidden">
+								<div className="!w-18 flex items-center justify-center overflow-hidden rounded-lg">
 									<Image
 										src="/logo.png"
 										alt="FLS Logo"
@@ -122,7 +116,6 @@ export function AdminSidebar({
 										className="size-[150px] object-contain"
 									/>
 								</div>
-							
 							</a>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
