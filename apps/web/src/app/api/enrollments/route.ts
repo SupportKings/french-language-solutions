@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 		const cohortId = searchParams.get("cohortId") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
-		
+
 		// Get additional filter arrays
 		const cohortFormatArray = searchParams.getAll("cohort_format");
 		const cohortStatusArray = searchParams.getAll("cohort_status");

@@ -436,8 +436,6 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 									</FormItem>
 								)}
 							/>
-
-					
 						</div>
 
 						<FormField

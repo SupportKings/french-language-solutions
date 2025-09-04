@@ -1,9 +1,14 @@
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
 
 import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
 
 async function getEnrollment(id: string) {
 	const response = await fetch(getApiUrl(`/api/enrollments/${id}`), {

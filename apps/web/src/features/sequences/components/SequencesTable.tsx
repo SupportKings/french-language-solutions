@@ -28,13 +28,10 @@ import {
 import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
-	Clock,
-	Edit,
 	Eye,
 	Mail,
 	MessageSquare,
 	MoreHorizontal,
-	Plus,
 	Search,
 	Timer,
 	Trash,
@@ -42,6 +39,7 @@ import {
 } from "lucide-react";
 import { useDeleteSequence, useSequences } from "../queries/sequences.queries";
 import type { SequenceQuery } from "../schemas/sequence.schema";
+import { SequenceCreateModal } from "./SequenceCreateModal";
 
 export function SequencesTable() {
 	const router = useRouter();
@@ -101,9 +99,9 @@ export function SequencesTable() {
 	}
 
 	return (
-		<div className="space-y-4">
+		<div className="">
 			{/* Compact toolbar with search and action button */}
-			<div className="flex items-center gap-3">
+			<div className="flex items-center gap-3 px-4 py-2">
 				<div className="relative max-w-sm flex-1">
 					<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 					<Input
@@ -115,12 +113,7 @@ export function SequencesTable() {
 				</div>
 
 				<div className="ml-auto">
-					<Link href="/admin/automation/sequences/new">
-						<Button size="sm" className="h-9">
-							<Plus className="mr-1.5 h-4 w-4" />
-							New Sequence
-						</Button>
-					</Link>
+					<SequenceCreateModal />
 				</div>
 			</div>
 
@@ -177,7 +170,13 @@ export function SequencesTable() {
 							data?.data?.map((sequence: any) => (
 								<TableRow
 									key={sequence.id}
-									className="transition-colors duration-150 hover:bg-muted/50"
+									className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+									onClick={(e) => {
+										// Don't navigate if clicking on the dropdown menu
+										if (!(e.target as HTMLElement).closest("button")) {
+											router.push(`/admin/automation/sequences/${sequence.id}`);
+										}
+									}}
 								>
 									<TableCell>
 										<div className="flex items-center gap-2">
@@ -240,14 +239,7 @@ export function SequencesTable() {
 														View Details
 													</DropdownMenuItem>
 												</Link>
-												<Link
-													href={`/admin/automation/sequences/${sequence.id}/edit`}
-												>
-													<DropdownMenuItem>
-														<Edit className="mr-2 h-4 w-4" />
-														Edit
-													</DropdownMenuItem>
-												</Link>
+
 												<DropdownMenuItem
 													onClick={() => handleDelete(sequence.id)}
 													className="text-destructive"

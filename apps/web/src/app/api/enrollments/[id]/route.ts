@@ -1,22 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+
+import { z } from "zod";
 
 interface RouteParams {
 	params: Promise<{ id: string }>;
 }
 
-const uuidSchema = z.string().regex(
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-	"Invalid UUID format"
-);
+const uuidSchema = z
+	.string()
+	.regex(
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+		"Invalid UUID format",
+	);
 
 // GET /api/enrollments/[id] - Get a single enrollment
 export async function GET(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
-		
+
 		// Validate UUID format
 		const validationResult = uuidSchema.safeParse(id);
 		if (!validationResult.success) {
@@ -25,7 +28,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				{ status: 400 },
 			);
 		}
-		
+
 		const supabase = await createClient();
 
 		const { data, error } = await supabase

@@ -37,3 +37,20 @@ export const sequenceQuerySchema = z.object({
 });
 
 export type SequenceQuery = z.infer<typeof sequenceQuerySchema>;
+
+export const createSequenceSchema = z.object({
+	display_name: z
+		.string()
+		.min(1, "Name is required")
+		.max(100, "Name is too long"),
+	subject: z
+		.string()
+		.min(1, "Subject is required")
+		.max(200, "Subject is too long"),
+	first_follow_up_delay_minutes: z
+		.number()
+		.min(1, "Delay must be at least 1 minute")
+		.max(43200, "Delay cannot exceed 30 days"),
+});
+
+export type CreateSequence = z.infer<typeof createSequenceSchema>;

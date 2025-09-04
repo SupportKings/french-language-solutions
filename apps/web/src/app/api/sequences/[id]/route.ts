@@ -59,6 +59,58 @@ export async function GET(
 	}
 }
 
+export async function PATCH(
+	request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> },
+) {
+	try {
+		const { id } = await params;
+		const body = await request.json();
+		const supabase = await createClient();
+
+		const { data, error } = await supabase
+			.from("template_follow_up_sequences")
+			.update(body)
+			.eq("id", id)
+			.select(`
+				*,
+				template_follow_up_messages (
+					id,
+					step_index,
+					status,
+					time_delay_hours,
+					message_content,
+					created_at,
+					updated_at
+				)
+			`)
+			.single();
+
+		if (error) {
+			console.error("Error updating sequence:", error);
+			return NextResponse.json(
+				{ error: "Failed to update sequence" },
+				{ status: 500 },
+			);
+		}
+
+		// Sort messages by step_index
+		if (data.template_follow_up_messages) {
+			data.template_follow_up_messages.sort(
+				(a: any, b: any) => a.step_index - b.step_index,
+			);
+		}
+
+		return NextResponse.json(data);
+	} catch (error) {
+		console.error("Sequence update error:", error);
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 },
+		);
+	}
+}
+
 export async function DELETE(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },

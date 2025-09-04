@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { ClassDetailsModal } from "@/features/classes/components/ClassDetailsModal";
 import { ClassCreateModal } from "@/features/classes/components/ClassCreateModal";
+import { ClassDetailsModal } from "@/features/classes/components/ClassDetailsModal";
 
 import { format } from "date-fns";
 import {
@@ -58,7 +58,7 @@ export function CohortClasses({
 	const [selectedClass, setSelectedClass] = useState<any>(null);
 	const [classModalOpen, setClassModalOpen] = useState(false);
 	const [createModalOpen, setCreateModalOpen] = useState(false);
-	
+
 	// Pagination state
 	const [currentPage, setCurrentPage] = useState(1);
 	const classesPerPage = 10;
@@ -98,9 +98,11 @@ export function CohortClasses({
 
 	// Handle class update from modal
 	const handleClassUpdate = (updatedClass: any) => {
-		setClasses(prevClasses => {
+		setClasses((prevClasses) => {
 			// Update the class and re-sort
-			const updated = prevClasses.map((c) => (c.id === updatedClass.id ? updatedClass : c));
+			const updated = prevClasses.map((c) =>
+				c.id === updatedClass.id ? updatedClass : c,
+			);
 			return updated.sort((a, b) => {
 				const dateA = new Date(a.start_time);
 				const dateB = new Date(b.start_time);
@@ -126,7 +128,7 @@ export function CohortClasses({
 	// Handle class created successfully
 	const handleClassCreated = (newClass: any) => {
 		// Add the new class to the list and re-sort
-		setClasses(prevClasses => {
+		setClasses((prevClasses) => {
 			const updatedClasses = [...prevClasses, newClass];
 			return updatedClasses.sort((a, b) => {
 				const dateA = new Date(a.start_time);
@@ -172,11 +174,7 @@ export function CohortClasses({
 							</span>
 						)}
 					</h2>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleCreateClass}
-					>
+					<Button variant="outline" size="sm" onClick={handleCreateClass}>
 						<Plus className="mr-2 h-4 w-4" />
 						Create Class
 					</Button>
@@ -223,11 +221,7 @@ export function CohortClasses({
 							<p className="mb-4 text-muted-foreground">
 								No classes scheduled yet
 							</p>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleCreateClass}
-							>
+							<Button variant="outline" size="sm" onClick={handleCreateClass}>
 								<Plus className="mr-2 h-4 w-4" />
 								Create First Class
 							</Button>
@@ -245,7 +239,9 @@ export function CohortClasses({
 											<TableHead className="w-[100px]">Status</TableHead>
 											<TableHead className="w-[120px]">Attendance</TableHead>
 											<TableHead className="w-[150px]">Resources</TableHead>
-											<TableHead className="w-[80px] text-right">Actions</TableHead>
+											<TableHead className="w-[80px] text-right">
+												Actions
+											</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -293,8 +289,8 @@ export function CohortClasses({
 											})();
 
 											return (
-												<TableRow 
-													key={classItem.id} 
+												<TableRow
+													key={classItem.id}
 													className="hover:bg-muted/5"
 												>
 													{/* Date */}
@@ -324,7 +320,7 @@ export function CohortClasses({
 
 													{/* Duration */}
 													<TableCell>
-														<span className="text-sm text-muted-foreground">
+														<span className="text-muted-foreground text-sm">
 															{duration}
 														</span>
 													</TableCell>
@@ -340,7 +336,9 @@ export function CohortClasses({
 																</span>
 															</div>
 														) : (
-															<span className="text-muted-foreground text-sm">—</span>
+															<span className="text-muted-foreground text-sm">
+																—
+															</span>
 														)}
 													</TableCell>
 
@@ -368,7 +366,9 @@ export function CohortClasses({
 																</span>
 															</div>
 														) : (
-															<span className="text-muted-foreground text-sm">—</span>
+															<span className="text-muted-foreground text-sm">
+																—
+															</span>
 														)}
 													</TableCell>
 
@@ -443,7 +443,9 @@ export function CohortClasses({
 																	View Details
 																</DropdownMenuItem>
 																<DropdownMenuItem
-																	onClick={(e) => handleViewAttendance(e, classItem.id)}
+																	onClick={(e) =>
+																		handleViewAttendance(e, classItem.id)
+																	}
 																>
 																	<CheckCircle2 className="mr-2 h-3.5 w-3.5" />
 																	View Attendance
@@ -460,9 +462,9 @@ export function CohortClasses({
 
 							{/* Pagination Controls */}
 							{totalPages > 1 && (
-								<div className="flex items-center justify-between mt-4">
+								<div className="mt-4 flex items-center justify-between">
 									<p className="text-muted-foreground text-sm">
-										Showing {((currentPage - 1) * classesPerPage) + 1} to{" "}
+										Showing {(currentPage - 1) * classesPerPage + 1} to{" "}
 										{Math.min(currentPage * classesPerPage, classes.length)} of{" "}
 										{classes.length} classes
 									</p>
@@ -470,89 +472,114 @@ export function CohortClasses({
 										<Button
 											variant="outline"
 											size="sm"
-											onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+											onClick={() =>
+												handlePageChange(Math.max(1, currentPage - 1))
+											}
 											disabled={currentPage === 1}
 										>
 											<ChevronLeft className="h-4 w-4" />
 											Previous
 										</Button>
-										
+
 										{/* Page number buttons */}
 										<div className="flex items-center gap-1">
 											{(() => {
 												const pageNumbers = [];
 												const maxVisiblePages = 5;
-												let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-												let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-												
+												let startPage = Math.max(
+													1,
+													currentPage - Math.floor(maxVisiblePages / 2),
+												);
+												const endPage = Math.min(
+													totalPages,
+													startPage + maxVisiblePages - 1,
+												);
+
 												// Adjust start if we're near the end
 												if (endPage === totalPages) {
-													startPage = Math.max(1, endPage - maxVisiblePages + 1);
+													startPage = Math.max(
+														1,
+														endPage - maxVisiblePages + 1,
+													);
 												}
-												
+
 												// Add first page and ellipsis if needed
 												if (startPage > 1) {
 													pageNumbers.push(
 														<Button
 															key={1}
-															variant={currentPage === 1 ? "default" : "outline"}
+															variant={
+																currentPage === 1 ? "default" : "outline"
+															}
 															size="sm"
 															className="h-8 w-8 p-0"
 															onClick={() => handlePageChange(1)}
 														>
 															1
-														</Button>
+														</Button>,
 													);
 													if (startPage > 2) {
 														pageNumbers.push(
-															<span key="ellipsis-start" className="px-1">...</span>
+															<span key="ellipsis-start" className="px-1">
+																...
+															</span>,
 														);
 													}
 												}
-												
+
 												// Add visible page numbers
 												for (let i = startPage; i <= endPage; i++) {
 													pageNumbers.push(
 														<Button
 															key={i}
-															variant={currentPage === i ? "default" : "outline"}
+															variant={
+																currentPage === i ? "default" : "outline"
+															}
 															size="sm"
 															className="h-8 w-8 p-0"
 															onClick={() => handlePageChange(i)}
 														>
 															{i}
-														</Button>
+														</Button>,
 													);
 												}
-												
+
 												// Add last page and ellipsis if needed
 												if (endPage < totalPages) {
 													if (endPage < totalPages - 1) {
 														pageNumbers.push(
-															<span key="ellipsis-end" className="px-1">...</span>
+															<span key="ellipsis-end" className="px-1">
+																...
+															</span>,
 														);
 													}
 													pageNumbers.push(
 														<Button
 															key={totalPages}
-															variant={currentPage === totalPages ? "default" : "outline"}
+															variant={
+																currentPage === totalPages
+																	? "default"
+																	: "outline"
+															}
 															size="sm"
 															className="h-8 w-8 p-0"
 															onClick={() => handlePageChange(totalPages)}
 														>
 															{totalPages}
-														</Button>
+														</Button>,
 													);
 												}
-												
+
 												return pageNumbers;
 											})()}
 										</div>
-										
+
 										<Button
 											variant="outline"
 											size="sm"
-											onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+											onClick={() =>
+												handlePageChange(Math.min(totalPages, currentPage + 1))
+											}
 											disabled={currentPage === totalPages}
 										>
 											Next

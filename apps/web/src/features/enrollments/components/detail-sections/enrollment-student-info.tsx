@@ -1,13 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 import { useState } from "react";
-import { Edit3, Save, X, User } from "lucide-react";
+
 import type { Database } from "@/utils/supabase/database.types";
 
-type CommunicationChannel = Database["public"]["Enums"]["communication_channel"];
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+
+import { Edit3, Save, User, X } from "lucide-react";
+
+type CommunicationChannel =
+	Database["public"]["Enums"]["communication_channel"];
 
 interface EnrollmentStudentInfoProps {
 	student: any;
@@ -22,7 +31,7 @@ export function EnrollmentStudentInfo({
 	isEditing = false,
 	onEditToggle,
 	onSave,
-	onCancel
+	onCancel,
 }: EnrollmentStudentInfoProps) {
 	const [formData, setFormData] = useState({
 		full_name: student?.full_name || "",
@@ -48,7 +57,11 @@ export function EnrollmentStudentInfo({
 		onCancel?.();
 	};
 
-	const communicationChannels: CommunicationChannel[] = ["sms_email", "email", "sms"];
+	const communicationChannels: CommunicationChannel[] = [
+		"sms_email",
+		"email",
+		"sms",
+	];
 
 	return (
 		<Card>
@@ -91,14 +104,19 @@ export function EnrollmentStudentInfo({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div>
-					<label htmlFor="student-fullname" className="font-medium text-muted-foreground text-sm">
+					<label
+						htmlFor="student-fullname"
+						className="font-medium text-muted-foreground text-sm"
+					>
 						Full Name
 					</label>
 					{isEditing ? (
 						<Input
 							id="student-fullname"
 							value={formData.full_name}
-							onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+							onChange={(e) =>
+								setFormData((prev) => ({ ...prev, full_name: e.target.value }))
+							}
 							className="mt-1"
 						/>
 					) : (
@@ -106,7 +124,10 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label htmlFor="student-email" className="font-medium text-muted-foreground text-sm">
+					<label
+						htmlFor="student-email"
+						className="font-medium text-muted-foreground text-sm"
+					>
 						Email
 					</label>
 					{isEditing ? (
@@ -114,7 +135,9 @@ export function EnrollmentStudentInfo({
 							id="student-email"
 							type="email"
 							value={formData.email}
-							onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+							onChange={(e) =>
+								setFormData((prev) => ({ ...prev, email: e.target.value }))
+							}
 							className="mt-1"
 						/>
 					) : (
@@ -122,30 +145,45 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label htmlFor="student-phone" className="font-medium text-muted-foreground text-sm">
+					<label
+						htmlFor="student-phone"
+						className="font-medium text-muted-foreground text-sm"
+					>
 						Phone Number
 					</label>
 					{isEditing ? (
 						<Input
 							id="student-phone"
 							value={formData.mobile_phone_number}
-							onChange={(e) => setFormData(prev => ({ ...prev, mobile_phone_number: e.target.value }))}
+							onChange={(e) =>
+								setFormData((prev) => ({
+									...prev,
+									mobile_phone_number: e.target.value,
+								}))
+							}
 							placeholder="Enter phone number"
 							className="mt-1"
 						/>
 					) : (
-						<p className="text-sm">{student?.mobile_phone_number || "Not provided"}</p>
+						<p className="text-sm">
+							{student?.mobile_phone_number || "Not provided"}
+						</p>
 					)}
 				</div>
 				<div>
-					<label htmlFor="student-city" className="font-medium text-muted-foreground text-sm">
+					<label
+						htmlFor="student-city"
+						className="font-medium text-muted-foreground text-sm"
+					>
 						City
 					</label>
 					{isEditing ? (
 						<Input
 							id="student-city"
 							value={formData.city}
-							onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+							onChange={(e) =>
+								setFormData((prev) => ({ ...prev, city: e.target.value }))
+							}
 							placeholder="Enter city"
 							className="mt-1"
 						/>
@@ -154,15 +192,26 @@ export function EnrollmentStudentInfo({
 					)}
 				</div>
 				<div>
-					<label htmlFor="student-communication-channel" className="font-medium text-muted-foreground text-sm">
+					<label
+						htmlFor="student-communication-channel"
+						className="font-medium text-muted-foreground text-sm"
+					>
 						Communication Channel
 					</label>
 					{isEditing ? (
 						<Select
 							value={formData.communication_channel}
-							onValueChange={(value) => setFormData(prev => ({ ...prev, communication_channel: value as CommunicationChannel }))}
+							onValueChange={(value) =>
+								setFormData((prev) => ({
+									...prev,
+									communication_channel: value as CommunicationChannel,
+								}))
+							}
 						>
-							<SelectTrigger id="student-communication-channel" className="mt-1">
+							<SelectTrigger
+								id="student-communication-channel"
+								className="mt-1"
+							>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -173,9 +222,13 @@ export function EnrollmentStudentInfo({
 						</Select>
 					) : (
 						<p className="text-sm">
-							{student?.communication_channel === "sms_email" ? "SMS & Email" :
-							 student?.communication_channel === "email" ? "Email Only" :
-							 student?.communication_channel === "sms" ? "SMS Only" : "Not specified"}
+							{student?.communication_channel === "sms_email"
+								? "SMS & Email"
+								: student?.communication_channel === "email"
+									? "Email Only"
+									: student?.communication_channel === "sms"
+										? "SMS Only"
+										: "Not specified"}
 						</p>
 					)}
 				</div>

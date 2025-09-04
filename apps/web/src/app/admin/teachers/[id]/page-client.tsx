@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -17,7 +18,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
 
 import { format } from "date-fns";
 import {
@@ -102,7 +102,7 @@ export default function TeacherDetailsClient({
 	const updateEditedField = async (field: string, value: any) => {
 		setEditedTeacher({
 			...editedTeacher,
-			[field]: value
+			[field]: value,
 		});
 		// Return a resolved promise to match the expected type
 		return Promise.resolve();
@@ -113,7 +113,7 @@ export default function TeacherDetailsClient({
 		try {
 			// Collect all changes
 			const changes: any = {};
-			
+
 			// Check for changes in fields
 			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
 				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
@@ -130,21 +130,26 @@ export default function TeacherDetailsClient({
 			if (editedTeacher.onboarding_status !== teacher.onboarding_status) {
 				changes.onboarding_status = editedTeacher.onboarding_status;
 			}
-			if (editedTeacher.available_for_booking !== teacher.available_for_booking) {
+			if (
+				editedTeacher.available_for_booking !== teacher.available_for_booking
+			) {
 				changes.available_for_booking = editedTeacher.available_for_booking;
 			}
-			if (editedTeacher.group_class_bonus_terms !== teacher.group_class_bonus_terms) {
+			if (
+				editedTeacher.group_class_bonus_terms !==
+				teacher.group_class_bonus_terms
+			) {
 				changes.group_class_bonus_terms = editedTeacher.group_class_bonus_terms;
 			}
 			if (editedTeacher.admin_notes !== teacher.admin_notes) {
 				changes.admin_notes = editedTeacher.admin_notes;
 			}
-			
+
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
 				return;
 			}
-			
+
 			const response = await fetch(`/api/teachers/${teacher.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -163,10 +168,9 @@ export default function TeacherDetailsClient({
 		}
 	};
 
-
 	// Update pending change (for form-like sections)
 	const updatePendingChange = (field: string, value: any) => {
-		setPendingChanges(prev => ({ ...prev, [field]: value }));
+		setPendingChanges((prev) => ({ ...prev, [field]: value }));
 	};
 
 	// Save all pending changes for Teaching Preferences
@@ -294,7 +298,7 @@ export default function TeacherDetailsClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Teacher Information with inline editing */}
-				<EditableSection 
+				<EditableSection
 					title="Teacher Information"
 					onEditStart={() => setEditedTeacher(teacher)}
 					onSave={saveAllChanges}
@@ -533,8 +537,8 @@ export default function TeacherDetailsClient({
 				</EditableSection>
 
 				{/* Teaching Information */}
-				<EditableSection 
-					title="Teaching Preferences" 
+				<EditableSection
+					title="Teaching Preferences"
 					onSave={saveTeachingPreferences}
 					onCancel={cancelTeachingPreferences}
 				>
@@ -551,7 +555,10 @@ export default function TeacherDetailsClient({
 												Max Hours/Week:
 											</p>
 											<InlineEditField
-												value={pendingChanges.maximum_hours_per_week ?? teacher.maximum_hours_per_week}
+												value={
+													pendingChanges.maximum_hours_per_week ??
+													teacher.maximum_hours_per_week
+												}
 												onSave={async (value) =>
 													updatePendingChange(
 														"maximum_hours_per_week",
@@ -572,7 +579,10 @@ export default function TeacherDetailsClient({
 												Max Hours/Day:
 											</p>
 											<InlineEditField
-												value={pendingChanges.maximum_hours_per_day ?? teacher.maximum_hours_per_day}
+												value={
+													pendingChanges.maximum_hours_per_day ??
+													teacher.maximum_hours_per_day
+												}
 												onSave={async (value) =>
 													updatePendingChange(
 														"maximum_hours_per_day",
@@ -601,7 +611,8 @@ export default function TeacherDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={
-														(pendingChanges.available_for_online_classes ?? teacher.available_for_online_classes)
+														(pendingChanges.available_for_online_classes ??
+														teacher.available_for_online_classes)
 															? "true"
 															: "false"
 													}
@@ -632,7 +643,7 @@ export default function TeacherDetailsClient({
 											)}
 										</div>
 									</div>
-									
+
 									<div className="flex items-start gap-3">
 										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
@@ -642,7 +653,8 @@ export default function TeacherDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={
-														(pendingChanges.available_for_in_person_classes ?? teacher.available_for_in_person_classes)
+														(pendingChanges.available_for_in_person_classes ??
+														teacher.available_for_in_person_classes)
 															? "true"
 															: "false"
 													}
@@ -668,12 +680,14 @@ export default function TeacherDetailsClient({
 													}
 													className="h-5 text-xs"
 												>
-													{teacher.available_for_in_person_classes ? "Yes" : "No"}
+													{teacher.available_for_in_person_classes
+														? "Yes"
+														: "No"}
 												</Badge>
 											)}
 										</div>
 									</div>
-									
+
 									<div className="flex items-start gap-3">
 										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
@@ -683,7 +697,10 @@ export default function TeacherDetailsClient({
 											{editing ? (
 												<InlineEditField
 													value={
-														(pendingChanges.qualified_for_under_16 ?? teacher.qualified_for_under_16) ? "true" : "false"
+														(pendingChanges.qualified_for_under_16 ??
+														teacher.qualified_for_under_16)
+															? "true"
+															: "false"
 													}
 													onSave={async (value) =>
 														updatePendingChange(
@@ -701,7 +718,9 @@ export default function TeacherDetailsClient({
 											) : (
 												<Badge
 													variant={
-														teacher.qualified_for_under_16 ? "info" : "secondary"
+														teacher.qualified_for_under_16
+															? "info"
+															: "secondary"
 													}
 													className="h-5 text-xs"
 												>
@@ -724,7 +743,10 @@ export default function TeacherDetailsClient({
 												Max Students (In-Person):
 											</p>
 											<InlineEditField
-												value={pendingChanges.max_students_in_person ?? teacher.max_students_in_person}
+												value={
+													pendingChanges.max_students_in_person ??
+													teacher.max_students_in_person
+												}
 												onSave={async (value) =>
 													updatePendingChange(
 														"max_students_in_person",
@@ -745,7 +767,10 @@ export default function TeacherDetailsClient({
 												Max Students (Online):
 											</p>
 											<InlineEditField
-												value={pendingChanges.max_students_online ?? teacher.max_students_online}
+												value={
+													pendingChanges.max_students_online ??
+													teacher.max_students_online
+												}
 												onSave={async (value) =>
 													updatePendingChange(
 														"max_students_online",
@@ -763,7 +788,9 @@ export default function TeacherDetailsClient({
 
 							{/* Schedule Availability */}
 							<div>
-								<h4 className="mb-4 font-medium text-sm">Schedule Availability</h4>
+								<h4 className="mb-4 font-medium text-sm">
+									Schedule Availability
+								</h4>
 								<div className="grid gap-6 lg:grid-cols-2">
 									<div className="flex items-start gap-3">
 										<CalendarDays className="mt-0.5 h-4 w-4 text-muted-foreground" />
@@ -773,8 +800,13 @@ export default function TeacherDetailsClient({
 											</p>
 											{editing ? (
 												<DaysSelector
-													value={pendingChanges.days_available_online ?? (teacher.days_available_online || [])}
-													onChange={(days) => updatePendingChange("days_available_online", days)}
+													value={
+														pendingChanges.days_available_online ??
+														(teacher.days_available_online || [])
+													}
+													onChange={(days) =>
+														updatePendingChange("days_available_online", days)
+													}
 												/>
 											) : (
 												<DaysDisplay
@@ -793,8 +825,16 @@ export default function TeacherDetailsClient({
 											</p>
 											{editing ? (
 												<DaysSelector
-													value={pendingChanges.days_available_in_person ?? (teacher.days_available_in_person || [])}
-													onChange={(days) => updatePendingChange("days_available_in_person", days)}
+													value={
+														pendingChanges.days_available_in_person ??
+														(teacher.days_available_in_person || [])
+													}
+													onChange={(days) =>
+														updatePendingChange(
+															"days_available_in_person",
+															days,
+														)
+													}
 												/>
 											) : (
 												<DaysDisplay
@@ -811,7 +851,7 @@ export default function TeacherDetailsClient({
 				</EditableSection>
 
 				{/* Admin Notes */}
-				<EditableSection 
+				<EditableSection
 					title="Admin Notes"
 					onEditStart={() => setEditedTeacher(teacher)}
 					onSave={saveAllChanges}
@@ -821,7 +861,9 @@ export default function TeacherDetailsClient({
 						<div className="space-y-3">
 							<InlineEditField
 								value={editedTeacher.admin_notes}
-								onSave={async (value) => updateEditedField("admin_notes", value)}
+								onSave={async (value) =>
+									updateEditedField("admin_notes", value)
+								}
 								editing={editing}
 								type="textarea"
 								placeholder="Enter admin notes"

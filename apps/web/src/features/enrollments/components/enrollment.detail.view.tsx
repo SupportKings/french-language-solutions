@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import type { Database } from "@/utils/supabase/database.types";
+
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
@@ -15,37 +19,35 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import {
+	Activity,
+	BookOpen,
+	Calendar,
 	ChevronRight,
-	MoreVertical,
-	Trash2,
-	User,
-	School,
 	Clock,
+	ExternalLink,
+	GraduationCap,
 	Mail,
-	Phone,
 	MapPin,
 	MessageSquare,
-	Calendar,
-	BookOpen,
-	GraduationCap,
-	Activity,
-	ExternalLink,
+	MoreVertical,
+	Phone,
+	School,
+	Trash2,
+	User,
 } from "lucide-react";
-
+import { toast } from "sonner";
 // Import update action
 import { updateEnrollmentAction } from "../actions/updateEnrollment";
-
 // Import queries
 import { enrollmentQueries, useEnrollment } from "../queries/useEnrollments";
 
-import type { Database } from "@/utils/supabase/database.types";
-
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
-type CommunicationChannel = Database["public"]["Enums"]["communication_channel"];
+type CommunicationChannel =
+	Database["public"]["Enums"]["communication_channel"];
 
 interface EnrollmentDetailViewProps {
 	enrollmentId: string;
@@ -94,9 +96,9 @@ const formatDate = (dateString: string | null) => {
 const formatTime = (timeString: string) => {
 	if (!timeString) return "";
 	try {
-		const [hours, minutes] = timeString.split(':');
-		const hour = parseInt(hours);
-		const ampm = hour >= 12 ? 'PM' : 'AM';
+		const [hours, minutes] = timeString.split(":");
+		const hour = Number.parseInt(hours);
+		const ampm = hour >= 12 ? "PM" : "AM";
 		const displayHour = hour % 12 || 12;
 		return `${displayHour}:${minutes} ${ampm}`;
 	} catch {
@@ -104,7 +106,9 @@ const formatTime = (timeString: string) => {
 	}
 };
 
-export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailViewProps) {
+export default function EnrollmentDetailView({
+	enrollmentId,
+}: EnrollmentDetailViewProps) {
 	const { data: enrollment, isLoading, error } = useEnrollment(enrollmentId);
 	const queryClient = useQueryClient();
 	const router = useRouter();
@@ -126,7 +130,8 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 	if (error || !currentEnrollment) return <div>Error loading enrollment</div>;
 
 	const studentName = currentEnrollment.student?.full_name || "Unknown Student";
-	const productName = currentEnrollment.cohort?.product?.display_name || "Unknown Product";
+	const productName =
+		currentEnrollment.cohort?.product?.display_name || "Unknown Product";
 	const initials = studentName
 		.split(" ")
 		.map((n: string) => n[0])
@@ -137,20 +142,20 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 	// Update edited enrollment field locally
 	const updateEditedField = async (field: string, value: any) => {
 		if (!editedEnrollment) return Promise.resolve();
-		
+
 		if (field.startsWith("student.")) {
 			const studentField = field.replace("student.", "");
 			setEditedEnrollment({
 				...editedEnrollment,
 				student: {
 					...editedEnrollment.student,
-					[studentField]: value
-				}
+					[studentField]: value,
+				},
 			});
 		} else {
 			setEditedEnrollment({
 				...editedEnrollment,
-				[field]: value
+				[field]: value,
 			});
 		}
 		return Promise.resolve();
@@ -159,7 +164,7 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 	// Save all changes to the API
 	const saveAllChanges = async () => {
 		if (!editedEnrollment || !currentEnrollment) return;
-		
+
 		try {
 			const changes: any = {};
 			let hasChanges = false;
@@ -190,23 +195,28 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 			if (result?.validationErrors) {
 				// Handle validation errors
 				const errorMessages: string[] = [];
-				
+
 				if (result.validationErrors._errors) {
 					errorMessages.push(...result.validationErrors._errors);
 				}
-				
+
 				Object.entries(result.validationErrors).forEach(([field, errors]) => {
 					if (field !== "_errors" && errors) {
 						if (Array.isArray(errors)) {
 							errorMessages.push(...errors);
-						} else if (errors && typeof errors === "object" && "_errors" in errors && Array.isArray(errors._errors)) {
+						} else if (
+							errors &&
+							typeof errors === "object" &&
+							"_errors" in errors &&
+							Array.isArray(errors._errors)
+						) {
 							errorMessages.push(...errors._errors);
 						}
 					}
 				});
 
 				if (errorMessages.length > 0) {
-					errorMessages.forEach(error => toast.error(error));
+					errorMessages.forEach((error) => toast.error(error));
 				} else {
 					toast.error("Failed to update");
 				}
@@ -230,21 +240,34 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 		}
 	};
 
-
 	const handleDeleteEnrollment = async () => {
 		// Implementation would go here
 		toast.info("Delete functionality to be implemented");
 	};
 
-	const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-	const sortedSessions = currentEnrollment.cohort?.weekly_sessions?.sort((a: any, b: any) => {
-		return dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
-	}) || [];
+	const dayOrder = [
+		"monday",
+		"tuesday",
+		"wednesday",
+		"thursday",
+		"friday",
+		"saturday",
+		"sunday",
+	];
+	const sortedSessions =
+		currentEnrollment.cohort?.weekly_sessions?.sort((a: any, b: any) => {
+			return dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
+		}) || [];
 
 	// Get display values for status and communication channel
-	const statusDisplay = ENROLLMENT_STATUS_LABELS[currentEnrollment.status as EnrollmentStatus] || currentEnrollment.status;
-	const communicationChannelDisplay = currentEnrollment.student?.communication_channel 
-		? COMMUNICATION_CHANNEL_LABELS[currentEnrollment.student.communication_channel as CommunicationChannel] 
+	const statusDisplay =
+		ENROLLMENT_STATUS_LABELS[currentEnrollment.status as EnrollmentStatus] ||
+		currentEnrollment.status;
+	const communicationChannelDisplay = currentEnrollment.student
+		?.communication_channel
+		? COMMUNICATION_CHANNEL_LABELS[
+				currentEnrollment.student.communication_channel as CommunicationChannel
+			]
 		: "Not set";
 
 	return (
@@ -260,7 +283,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 							Enrollments
 						</Link>
 						<ChevronRight className="h-3 w-3" />
-						<span>{studentName} - {productName}</span>
+						<span>
+							{studentName} - {productName}
+						</span>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
@@ -274,7 +299,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 								<div className="mt-0.5 flex items-center gap-2">
 									<Badge
 										variant={
-											(ENROLLMENT_STATUS_COLORS as any)[currentEnrollment.status] || "default"
+											(ENROLLMENT_STATUS_COLORS as any)[
+												currentEnrollment.status
+											] || "default"
 										}
 										className="h-4 px-1.5 text-[10px]"
 									>
@@ -293,7 +320,11 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => router.push(`/admin/students/${currentEnrollment.student?.id}`)}
+								onClick={() =>
+									router.push(
+										`/admin/students/${currentEnrollment.student?.id}`,
+									)
+								}
 							>
 								<User className="mr-2 h-3.5 w-3.5" />
 								View Student
@@ -301,7 +332,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => router.push(`/admin/cohorts/${currentEnrollment.cohort?.id}`)}
+								onClick={() =>
+									router.push(`/admin/cohorts/${currentEnrollment.cohort?.id}`)
+								}
 							>
 								<School className="mr-2 h-3.5 w-3.5" />
 								View Cohort
@@ -313,7 +346,7 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end" className="w-56">
-									<DropdownMenuItem 
+									<DropdownMenuItem
 										className="text-destructive"
 										onClick={handleDeleteEnrollment}
 									>
@@ -329,7 +362,7 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Enrollment Information with inline editing */}
-				<EditableSection 
+				<EditableSection
 					title="Enrollment Information"
 					onEditStart={() => setEditedEnrollment(currentEnrollment)}
 					onSave={saveAllChanges}
@@ -349,17 +382,21 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 											<p className="text-muted-foreground text-xs">Status:</p>
 											{editing ? (
 												<InlineEditField
-													value={editedEnrollment?.status || currentEnrollment.status}
+													value={
+														editedEnrollment?.status || currentEnrollment.status
+													}
 													onSave={(value) => updateEditedField("status", value)}
 													editing={editing}
 													type="select"
-													options={Object.entries(ENROLLMENT_STATUS_LABELS).map(([value, label]) => ({
-														value,
-														label,
-													}))}
+													options={Object.entries(ENROLLMENT_STATUS_LABELS).map(
+														([value, label]) => ({
+															value,
+															label,
+														}),
+													)}
 												/>
 											) : (
-												<p className="text-sm font-medium">{statusDisplay}</p>
+												<p className="font-medium text-sm">{statusDisplay}</p>
 											)}
 										</div>
 									</div>
@@ -367,8 +404,12 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 									<div className="flex items-start gap-3">
 										<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Enrolled Date:</p>
-											<p className="text-sm">{formatDate(currentEnrollment.created_at)}</p>
+											<p className="text-muted-foreground text-xs">
+												Enrolled Date:
+											</p>
+											<p className="text-sm">
+												{formatDate(currentEnrollment.created_at)}
+											</p>
 										</div>
 									</div>
 								</div>
@@ -395,7 +436,8 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Phone:</p>
 											<p className="font-medium text-sm">
-												{currentEnrollment.student?.mobile_phone_number || "Not provided"}
+												{currentEnrollment.student?.mobile_phone_number ||
+													"Not provided"}
 											</p>
 										</div>
 									</div>
@@ -413,7 +455,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 									<div className="flex items-start gap-3">
 										<MessageSquare className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Communication Channel:</p>
+											<p className="text-muted-foreground text-xs">
+												Communication Channel:
+											</p>
 											<p className="text-sm">{communicationChannelDisplay}</p>
 										</div>
 									</div>
@@ -430,8 +474,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 										<School className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Product:</p>
-											<p className="text-sm font-medium">
-												{currentEnrollment.cohort?.product?.display_name || "Not set"}
+											<p className="font-medium text-sm">
+												{currentEnrollment.cohort?.product?.display_name ||
+													"Not set"}
 											</p>
 										</div>
 									</div>
@@ -439,11 +484,14 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 									<div className="flex items-start gap-3">
 										<BookOpen className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Starting Level:</p>
+											<p className="text-muted-foreground text-xs">
+												Starting Level:
+											</p>
 											<p className="text-sm">
-												{currentEnrollment.cohort?.starting_level?.display_name || "Not set"}
+												{currentEnrollment.cohort?.starting_level
+													?.display_name || "Not set"}
 												{currentEnrollment.cohort?.starting_level?.code && (
-													<span className="text-muted-foreground ml-1">
+													<span className="ml-1 text-muted-foreground">
 														({currentEnrollment.cohort.starting_level.code})
 													</span>
 												)}
@@ -454,11 +502,14 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 									<div className="flex items-start gap-3">
 										<GraduationCap className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Current Level:</p>
+											<p className="text-muted-foreground text-xs">
+												Current Level:
+											</p>
 											<p className="text-sm">
-												{currentEnrollment.cohort?.current_level?.display_name || "Not set"}
+												{currentEnrollment.cohort?.current_level
+													?.display_name || "Not set"}
 												{currentEnrollment.cohort?.current_level?.code && (
-													<span className="text-muted-foreground ml-1">
+													<span className="ml-1 text-muted-foreground">
 														({currentEnrollment.cohort.current_level.code})
 													</span>
 												)}
@@ -469,8 +520,12 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 									<div className="flex items-start gap-3">
 										<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Start Date:</p>
-											<p className="text-sm">{formatDate(currentEnrollment.cohort?.start_date)}</p>
+											<p className="text-muted-foreground text-xs">
+												Start Date:
+											</p>
+											<p className="text-sm">
+												{formatDate(currentEnrollment.cohort?.start_date)}
+											</p>
 										</div>
 									</div>
 								</div>
@@ -490,23 +545,24 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 					<CardContent className="space-y-6">
 						{/* Product Details */}
 						<div>
-							<h4 className="font-medium text-sm mb-3">Product Details</h4>
+							<h4 className="mb-3 font-medium text-sm">Product Details</h4>
 							<div className="grid gap-4 md:grid-cols-3">
 								<div>
 									<p className="text-muted-foreground text-xs">Product Name</p>
-									<p className="text-sm font-medium mt-1">
-										{currentEnrollment.cohort?.product?.display_name || "Not set"}
+									<p className="mt-1 font-medium text-sm">
+										{currentEnrollment.cohort?.product?.display_name ||
+											"Not set"}
 									</p>
 								</div>
 								<div>
 									<p className="text-muted-foreground text-xs">Format</p>
-									<p className="text-sm mt-1 capitalize">
+									<p className="mt-1 text-sm capitalize">
 										{currentEnrollment.cohort?.product?.format || "Not set"}
 									</p>
 								</div>
 								<div>
 									<p className="text-muted-foreground text-xs">Location</p>
-									<p className="text-sm mt-1 capitalize">
+									<p className="mt-1 text-sm capitalize">
 										{currentEnrollment.cohort?.product?.location || "Not set"}
 									</p>
 								</div>
@@ -515,24 +571,32 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 
 						{/* Cohort Status */}
 						<div>
-							<h4 className="font-medium text-sm mb-3">Status & Capacity</h4>
+							<h4 className="mb-3 font-medium text-sm">Status & Capacity</h4>
 							<div className="grid gap-4 md:grid-cols-3">
 								<div>
 									<p className="text-muted-foreground text-xs">Cohort Status</p>
 									<Badge variant="outline" className="mt-1">
-										{currentEnrollment.cohort?.cohort_status?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || "Unknown"}
+										{currentEnrollment.cohort?.cohort_status
+											?.replace(/_/g, " ")
+											.replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
+											"Unknown"}
 									</Badge>
 								</div>
 								<div>
-									<p className="text-muted-foreground text-xs">Maximum Students</p>
-									<p className="text-sm mt-1">
-										{currentEnrollment.cohort?.max_students ? `${currentEnrollment.cohort.max_students} students` : "Not set"}
+									<p className="text-muted-foreground text-xs">
+										Maximum Students
+									</p>
+									<p className="mt-1 text-sm">
+										{currentEnrollment.cohort?.max_students
+											? `${currentEnrollment.cohort.max_students} students`
+											: "Not set"}
 									</p>
 								</div>
 								<div>
 									<p className="text-muted-foreground text-xs">Room Type</p>
-									<p className="text-sm mt-1 capitalize">
-										{currentEnrollment.cohort?.room_type?.replace(/_/g, ' ') || "Not set"}
+									<p className="mt-1 text-sm capitalize">
+										{currentEnrollment.cohort?.room_type?.replace(/_/g, " ") ||
+											"Not set"}
 									</p>
 								</div>
 							</div>
@@ -541,25 +605,30 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 						{/* Weekly Sessions */}
 						{sortedSessions.length > 0 && (
 							<div>
-								<h4 className="font-medium text-sm mb-3">Weekly Schedule</h4>
+								<h4 className="mb-3 font-medium text-sm">Weekly Schedule</h4>
 								<div className="space-y-2">
 									{sortedSessions.map((session: any) => (
-										<div key={session.id} className="flex items-center justify-between rounded-lg border p-3">
+										<div
+											key={session.id}
+											className="flex items-center justify-between rounded-lg border p-3"
+										>
 											<div className="flex items-center gap-4">
 												<div>
 													<p className="font-medium text-sm capitalize">
 														{session.day_of_week}
 													</p>
-													<p className="text-xs text-muted-foreground">
-														{formatTime(session.start_time)} - {formatTime(session.end_time)}
+													<p className="text-muted-foreground text-xs">
+														{formatTime(session.start_time)} -{" "}
+														{formatTime(session.end_time)}
 													</p>
 												</div>
 											</div>
 											<div className="text-right">
-												<p className="text-sm font-medium">
-													{session.teacher?.first_name} {session.teacher?.last_name}
+												<p className="font-medium text-sm">
+													{session.teacher?.first_name}{" "}
+													{session.teacher?.last_name}
 												</p>
-												<p className="text-xs text-muted-foreground">Teacher</p>
+												<p className="text-muted-foreground text-xs">Teacher</p>
 											</div>
 										</div>
 									))}
@@ -580,14 +649,20 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 					<CardContent className="grid gap-4 md:grid-cols-2">
 						<div>
 							<p className="text-muted-foreground text-xs">Created At</p>
-							<p className="text-sm mt-1">
-								{format(new Date(currentEnrollment.created_at), "MMM dd, yyyy 'at' h:mm a")}
+							<p className="mt-1 text-sm">
+								{format(
+									new Date(currentEnrollment.created_at),
+									"MMM dd, yyyy 'at' h:mm a",
+								)}
 							</p>
 						</div>
 						<div>
 							<p className="text-muted-foreground text-xs">Last Updated</p>
-							<p className="text-sm mt-1">
-								{format(new Date(currentEnrollment.updated_at), "MMM dd, yyyy 'at' h:mm a")}
+							<p className="mt-1 text-sm">
+								{format(
+									new Date(currentEnrollment.updated_at),
+									"MMM dd, yyyy 'at' h:mm a",
+								)}
 							</p>
 						</div>
 					</CardContent>

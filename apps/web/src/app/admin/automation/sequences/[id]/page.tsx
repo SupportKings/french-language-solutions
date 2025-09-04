@@ -1,12 +1,11 @@
-import { SequenceDetails } from "@/features/sequences/components/SequenceDetails";
-
-interface SequenceDetailPageProps {
-	params: Promise<{ id: string }>;
-}
+import { SequenceDetailPageClient } from "./page-client";
 
 export default async function SequenceDetailPage({
 	params,
-}: SequenceDetailPageProps) {
+}: {
+	params: Promise<{ id: string }>;
+}) {
 	const { id } = await params;
-	return <SequenceDetails sequenceId={id} />;
+
+	return <SequenceDetailPageClient sequenceId={id} />;
 }

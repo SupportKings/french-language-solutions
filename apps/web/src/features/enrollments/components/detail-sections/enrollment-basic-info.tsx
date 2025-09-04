@@ -1,12 +1,20 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { format } from "date-fns";
-
 import { useState } from "react";
-import { Edit3, Save, X, FileText } from "lucide-react";
+
 import type { Database } from "@/utils/supabase/database.types";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { StatusBadge } from "@/components/ui/status-badge";
+
+import { format } from "date-fns";
+import { Edit3, FileText, Save, X } from "lucide-react";
 
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
 
@@ -35,7 +43,7 @@ export function EnrollmentBasicInfo({
 	isEditing = false,
 	onEditToggle,
 	onSave,
-	onCancel
+	onCancel,
 }: EnrollmentBasicInfoProps) {
 	const [formData, setFormData] = useState({
 		status: enrollment.status,
@@ -62,13 +70,14 @@ export function EnrollmentBasicInfo({
 		"contract_signed",
 		"payment_abandoned",
 		"paid",
-		"welcome_package_sent"
+		"welcome_package_sent",
 	];
 
 	const getStatusLabel = (status: EnrollmentStatus) => {
-		return status.split('_').map(word => 
-			word.charAt(0).toUpperCase() + word.slice(1)
-		).join(' ');
+		return status
+			.split("_")
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(" ");
 	};
 
 	return (
@@ -118,7 +127,12 @@ export function EnrollmentBasicInfo({
 					{isEditing ? (
 						<Select
 							value={formData.status}
-							onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as EnrollmentStatus }))}
+							onValueChange={(value) =>
+								setFormData((prev) => ({
+									...prev,
+									status: value as EnrollmentStatus,
+								}))
+							}
 						>
 							<SelectTrigger className="mt-1">
 								<SelectValue />

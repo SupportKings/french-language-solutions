@@ -130,7 +130,7 @@ export default function StudentDetailsClient({
 	const updateEditedField = async (field: string, value: any) => {
 		setEditedStudent({
 			...editedStudent,
-			[field]: value
+			[field]: value,
 		});
 		// Return a resolved promise to match the expected type
 		return Promise.resolve();
@@ -141,7 +141,7 @@ export default function StudentDetailsClient({
 		try {
 			// Collect all changes
 			const changes: any = {};
-			
+
 			// Check for changes in fields
 			if (editedStudent.email !== student.email) {
 				changes.email = editedStudent.email;
@@ -152,11 +152,17 @@ export default function StudentDetailsClient({
 			if (editedStudent.city !== student.city) {
 				changes.city = editedStudent.city;
 			}
-			if (editedStudent.communication_channel !== student.communication_channel) {
+			if (
+				editedStudent.communication_channel !== student.communication_channel
+			) {
 				changes.communication_channel = editedStudent.communication_channel;
 			}
-			if (editedStudent.desired_starting_language_level_id !== student.desired_starting_language_level_id) {
-				changes.desired_starting_language_level_id = editedStudent.desired_starting_language_level_id;
+			if (
+				editedStudent.desired_starting_language_level_id !==
+				student.desired_starting_language_level_id
+			) {
+				changes.desired_starting_language_level_id =
+					editedStudent.desired_starting_language_level_id;
 			}
 			if (editedStudent.is_full_beginner !== student.is_full_beginner) {
 				changes.is_full_beginner = editedStudent.is_full_beginner;
@@ -170,12 +176,12 @@ export default function StudentDetailsClient({
 			if (editedStudent.initial_channel !== student.initial_channel) {
 				changes.initial_channel = editedStudent.initial_channel;
 			}
-			
+
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
 				return;
 			}
-			
+
 			const response = await fetch(`/api/students/${student.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -193,8 +199,6 @@ export default function StudentDetailsClient({
 			throw error;
 		}
 	};
-
-
 
 	// Navigate to create forms with pre-filled data
 	const navigateToCreateEnrollment = () => {
@@ -290,7 +294,7 @@ export default function StudentDetailsClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Student Information with inline editing */}
-				<EditableSection 
+				<EditableSection
 					title="Student Information"
 					onEditStart={() => setEditedStudent(student)}
 					onSave={saveAllChanges}
@@ -402,10 +406,14 @@ export default function StudentDetailsClient({
 									<div className="flex items-start gap-3">
 										<GraduationCap className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Desired Starting Level:</p>
+											<p className="text-muted-foreground text-xs">
+												Desired Starting Level:
+											</p>
 											{editing ? (
 												<InlineEditField
-													value={editedStudent.desired_starting_language_level_id}
+													value={
+														editedStudent.desired_starting_language_level_id
+													}
 													onSave={(value) =>
 														updateEditedField(
 															"desired_starting_language_level_id",
@@ -443,7 +451,9 @@ export default function StudentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={editedStudent.is_full_beginner ? "true" : "false"}
+													value={
+														editedStudent.is_full_beginner ? "true" : "false"
+													}
 													onSave={(value) =>
 														updateEditedField(
 															"is_full_beginner",
