@@ -1,8 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
 
 const DAYS_OF_WEEK = [
 	{ label: "Mon", value: "monday", fullLabel: "Monday" },
@@ -21,7 +22,12 @@ interface DaysSelectorProps {
 	disabled?: boolean;
 }
 
-export function DaysSelector({ value = [], onChange, className, disabled }: DaysSelectorProps) {
+export function DaysSelector({
+	value = [],
+	onChange,
+	className,
+	disabled,
+}: DaysSelectorProps) {
 	const handleValueChange = (newValue: string[]) => {
 		onChange(newValue);
 	};
@@ -41,7 +47,7 @@ export function DaysSelector({ value = [], onChange, className, disabled }: Days
 						value={day.value}
 						variant="outline"
 						size="sm"
-						className="h-10 px-4 text-sm font-medium transition-all duration-200 hover:shadow-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary data-[state=on]:shadow-md"
+						className="h-10 px-4 font-medium text-sm transition-all duration-200 hover:shadow-sm data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md"
 						title={day.fullLabel}
 					>
 						{day.label}
@@ -58,7 +64,11 @@ interface DaysDisplayProps {
 	emptyText?: string;
 }
 
-export function DaysDisplay({ value = [], className, emptyText = "No days selected" }: DaysDisplayProps) {
+export function DaysDisplay({
+	value = [],
+	className,
+	emptyText = "No days selected",
+}: DaysDisplayProps) {
 	if (!value || value.length === 0) {
 		return (
 			<span className={cn("text-muted-foreground text-sm", className)}>
@@ -67,7 +77,7 @@ export function DaysDisplay({ value = [], className, emptyText = "No days select
 		);
 	}
 
-	const sortedDays = DAYS_OF_WEEK.filter(day => value.includes(day.value));
+	const sortedDays = DAYS_OF_WEEK.filter((day) => value.includes(day.value));
 
 	return (
 		<div className={cn("flex flex-wrap gap-1", className)}>

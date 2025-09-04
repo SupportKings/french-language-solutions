@@ -23,7 +23,7 @@ export async function GET(
 				automated_follow_ups (
 					id,
 					status,
-					sequences:template_follow_up_sequences!sequence_id (
+					template_follow_up_sequences (
 						display_name
 					)
 				)
@@ -119,7 +119,22 @@ export async function PATCH(
 			.from("touchpoints")
 			.update(updateData)
 			.eq("id", id)
-			.select()
+			.select(`
+				*,
+				students (
+					id,
+					full_name,
+					email,
+					mobile_phone_number
+				),
+				automated_follow_ups (
+					id,
+					status,
+					template_follow_up_sequences (
+						display_name
+					)
+				)
+			`)
 			.single();
 
 		if (error) {

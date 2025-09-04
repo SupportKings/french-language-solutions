@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -104,7 +104,8 @@ export function EnrollmentDetailsClient({
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Local state for edited values
-	const [editedEnrollment, setEditedEnrollment] = useState<any>(initialEnrollment);
+	const [editedEnrollment, setEditedEnrollment] =
+		useState<any>(initialEnrollment);
 
 	// Update the enrollment when data changes
 	useEffect(() => {
@@ -132,7 +133,7 @@ export function EnrollmentDetailsClient({
 	const updateEditedField = async (field: string, value: any) => {
 		setEditedEnrollment({
 			...editedEnrollment,
-			[field]: value
+			[field]: value,
 		});
 		// Return a resolved promise to match the expected type
 		return Promise.resolve();
@@ -143,17 +144,17 @@ export function EnrollmentDetailsClient({
 		try {
 			// Collect all changes
 			const changes: any = {};
-			
+
 			// Check for changes in fields
 			if (editedEnrollment.status !== enrollment.status) {
 				changes.status = editedEnrollment.status;
 			}
-			
+
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
 				return;
 			}
-			
+
 			const response = await fetch(`/api/enrollments/${enrollment.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -330,7 +331,7 @@ export function EnrollmentDetailsClient({
 
 							<div className="space-y-4 px-6 py-4">
 								{/* Enrollment Status Section */}
-								<EditableSection 
+								<EditableSection
 									title="Enrollment Status"
 									onEditStart={() => {
 										// Reset to current values when starting to edit

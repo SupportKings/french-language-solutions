@@ -1,23 +1,50 @@
-import { Badge } from "./badge";
 import { cn } from "@/lib/utils";
+
+import { Badge } from "./badge";
 
 interface StatusBadgeProps {
 	children: React.ReactNode;
 	className?: string;
-	variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
+	variant?:
+		| "default"
+		| "secondary"
+		| "destructive"
+		| "outline"
+		| "success"
+		| "warning"
+		| "info";
 }
 
-export function StatusBadge({ children, className, variant = "secondary" }: StatusBadgeProps) {
+export function StatusBadge({
+	children,
+	className,
+	variant = "secondary",
+}: StatusBadgeProps) {
 	// Determine variant based on status text if not explicitly set
 	const statusText = typeof children === "string" ? children.toLowerCase() : "";
-	
+
 	let autoVariant = variant;
 	if (variant === "secondary") {
-		if (statusText.includes("paid") || statusText.includes("completed") || statusText.includes("active") || statusText.includes("welcome")) {
+		if (
+			statusText.includes("paid") ||
+			statusText.includes("completed") ||
+			statusText.includes("active") ||
+			statusText.includes("welcome")
+		) {
 			autoVariant = "success";
-		} else if (statusText.includes("declined") || statusText.includes("dropped") || statusText.includes("cancelled") || statusText.includes("abandoned")) {
+		} else if (
+			statusText.includes("declined") ||
+			statusText.includes("dropped") ||
+			statusText.includes("cancelled") ||
+			statusText.includes("abandoned")
+		) {
 			autoVariant = "destructive";
-		} else if (statusText.includes("interested") || statusText.includes("in_progress") || statusText.includes("signed") || statusText.includes("scheduled")) {
+		} else if (
+			statusText.includes("interested") ||
+			statusText.includes("in_progress") ||
+			statusText.includes("signed") ||
+			statusText.includes("scheduled")
+		) {
 			autoVariant = "warning";
 		} else if (statusText.includes("open") || statusText.includes("filled")) {
 			autoVariant = "info";

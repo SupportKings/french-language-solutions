@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -47,7 +48,7 @@ export function CohortEnrollments({
 	const router = useRouter();
 	const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
 	const [loadingStudents, setLoadingStudents] = useState(false);
-	
+
 	// Pagination and filtering state
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
 	const enrollmentsPerPage = 10;
@@ -91,20 +92,26 @@ export function CohortEnrollments({
 
 	// Filter enrollments
 	const filteredEnrollments = enrolledStudents.filter((enrollment: any) => {
-		const searchMatch = studentSearch === "" || 
-			enrollment.students?.full_name?.toLowerCase().includes(studentSearch.toLowerCase()) ||
-			enrollment.students?.email?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+		const searchMatch =
+			studentSearch === "" ||
+			enrollment.students?.full_name
+				?.toLowerCase()
+				.includes(studentSearch.toLowerCase()) ||
+			enrollment.students?.email
+				?.toLowerCase()
+				.includes(studentSearch.toLowerCase()) ||
 			enrollment.students?.phone?.includes(studentSearch);
-		
-		const statusMatch = statusFilter === "all" || enrollment.status === statusFilter;
-		
+
+		const statusMatch =
+			statusFilter === "all" || enrollment.status === statusFilter;
+
 		return searchMatch && statusMatch;
 	});
-	
+
 	// Paginate
 	const paginatedEnrollments = filteredEnrollments.slice(
 		(enrollmentPage - 1) * enrollmentsPerPage,
-		enrollmentPage * enrollmentsPerPage
+		enrollmentPage * enrollmentsPerPage,
 	);
 
 	const totalPages = Math.ceil(filteredEnrollments.length / enrollmentsPerPage);
@@ -165,16 +172,14 @@ export function CohortEnrollments({
 				) : enrolledStudents.length === 0 ? (
 					<div className="rounded-lg bg-muted/30 py-8 text-center">
 						<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-						<p className="text-muted-foreground">
-							No students enrolled yet
-						</p>
+						<p className="text-muted-foreground">No students enrolled yet</p>
 					</div>
 				) : (
 					<>
 						{/* Filters */}
 						<div className="mb-4 flex items-center gap-3">
 							<div className="relative flex-1">
-								<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+								<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 								<input
 									type="text"
 									placeholder="Search students..."
@@ -186,7 +191,7 @@ export function CohortEnrollments({
 									className="h-9 w-full rounded-md border bg-background px-3 pl-9 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
 								/>
 							</div>
-							
+
 							<Select
 								value={statusFilter}
 								onValueChange={(value) => {
@@ -200,11 +205,19 @@ export function CohortEnrollments({
 								<SelectContent>
 									<SelectItem value="all">All Statuses</SelectItem>
 									<SelectItem value="interested">Interested</SelectItem>
-									<SelectItem value="beginner_form_filled">Form Filled</SelectItem>
-									<SelectItem value="contract_signed">Contract Signed</SelectItem>
+									<SelectItem value="beginner_form_filled">
+										Form Filled
+									</SelectItem>
+									<SelectItem value="contract_signed">
+										Contract Signed
+									</SelectItem>
 									<SelectItem value="paid">Paid</SelectItem>
-									<SelectItem value="welcome_package_sent">Welcome Sent</SelectItem>
-									<SelectItem value="payment_abandoned">Payment Abandoned</SelectItem>
+									<SelectItem value="welcome_package_sent">
+										Welcome Sent
+									</SelectItem>
+									<SelectItem value="payment_abandoned">
+										Payment Abandoned
+									</SelectItem>
 									<SelectItem value="dropped_out">Dropped Out</SelectItem>
 								</SelectContent>
 							</Select>
@@ -219,7 +232,9 @@ export function CohortEnrollments({
 										<TableHead className="w-[200px]">Contact</TableHead>
 										<TableHead className="w-[150px]">Status</TableHead>
 										<TableHead className="w-[130px]">Created at</TableHead>
-										<TableHead className="w-[100px] text-right">Actions</TableHead>
+										<TableHead className="w-[100px] text-right">
+											Actions
+										</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -229,8 +244,8 @@ export function CohortEnrollments({
 												<div className="flex flex-col items-center justify-center">
 													<Users className="mb-2 h-8 w-8 text-muted-foreground/30" />
 													<p className="text-muted-foreground text-sm">
-														{studentSearch || statusFilter !== "all" 
-															? "No students found matching filters" 
+														{studentSearch || statusFilter !== "all"
+															? "No students found matching filters"
 															: "No students enrolled yet"}
 													</p>
 												</div>
@@ -266,7 +281,10 @@ export function CohortEnrollments({
 												] || "bg-gray-500/10 text-gray-700 border-gray-200";
 
 											return (
-												<TableRow key={enrollment.id} className="group hover:bg-muted/5">
+												<TableRow
+													key={enrollment.id}
+													className="group hover:bg-muted/5"
+												>
 													{/* Student Column */}
 													<TableCell>
 														<div className="flex items-center gap-3">
@@ -284,7 +302,8 @@ export function CohortEnrollments({
 																href={`/admin/students/${enrollment.student_id}`}
 																className="font-medium text-sm transition-colors hover:text-primary hover:underline"
 															>
-																{enrollment.students?.full_name || "Unknown Student"}
+																{enrollment.students?.full_name ||
+																	"Unknown Student"}
 															</Link>
 														</div>
 													</TableCell>
@@ -295,18 +314,25 @@ export function CohortEnrollments({
 															{enrollment.students?.email && (
 																<div className="flex items-center gap-1 text-muted-foreground text-xs">
 																	<Mail className="h-3 w-3" />
-																	<span className="truncate">{enrollment.students.email}</span>
+																	<span className="truncate">
+																		{enrollment.students.email}
+																	</span>
 																</div>
 															)}
 															{enrollment.students?.mobile_phone_number && (
 																<div className="flex items-center gap-1 text-muted-foreground text-xs">
 																	<Phone className="h-3 w-3" />
-																	<span>{enrollment.students.mobile_phone_number}</span>
+																	<span>
+																		{enrollment.students.mobile_phone_number}
+																	</span>
 																</div>
 															)}
-															{!enrollment.students?.email && !enrollment.students?.mobile_phone_number && (
-																<span className="text-muted-foreground text-xs">No contact info</span>
-															)}
+															{!enrollment.students?.email &&
+																!enrollment.students?.mobile_phone_number && (
+																	<span className="text-muted-foreground text-xs">
+																		No contact info
+																	</span>
+																)}
 														</div>
 													</TableCell>
 
@@ -318,7 +344,9 @@ export function CohortEnrollments({
 														>
 															{enrollment.status
 																?.replace(/_/g, " ")
-																.replace(/\b\w/g, (l: string) => l.toUpperCase())}
+																.replace(/\b\w/g, (l: string) =>
+																	l.toUpperCase(),
+																)}
 														</Badge>
 													</TableCell>
 
@@ -343,7 +371,7 @@ export function CohortEnrollments({
 															className="h-7 px-2 opacity-0 transition-opacity group-hover:opacity-100"
 															onClick={() =>
 																router.push(
-																	`/admin/students/enrollments/${enrollment.id}/edit`
+																	`/admin/students/enrollments/${enrollment.id}/edit`,
 																)
 															}
 														>
@@ -358,48 +386,54 @@ export function CohortEnrollments({
 								</TableBody>
 							</Table>
 						</div>
-						
+
 						{/* Pagination Controls */}
 						{filteredEnrollments.length > enrollmentsPerPage && (
-							<div className="flex items-center justify-between mt-4">
+							<div className="mt-4 flex items-center justify-between">
 								<p className="text-muted-foreground text-sm">
 									Showing {(enrollmentPage - 1) * enrollmentsPerPage + 1} to{" "}
-									{Math.min(enrollmentPage * enrollmentsPerPage, filteredEnrollments.length)} of{" "}
-									{filteredEnrollments.length} students
+									{Math.min(
+										enrollmentPage * enrollmentsPerPage,
+										filteredEnrollments.length,
+									)}{" "}
+									of {filteredEnrollments.length} students
 									{studentSearch || statusFilter !== "all" ? " (filtered)" : ""}
 								</p>
 								<div className="flex items-center gap-2">
 									<Button
 										variant="outline"
 										size="sm"
-										onClick={() => setEnrollmentPage(Math.max(1, enrollmentPage - 1))}
+										onClick={() =>
+											setEnrollmentPage(Math.max(1, enrollmentPage - 1))
+										}
 										disabled={enrollmentPage === 1}
 									>
 										<ChevronLeft className="h-4 w-4" />
 										Previous
 									</Button>
 									<div className="flex items-center gap-1">
-										{Array.from(
-											{ length: totalPages },
-											(_, i) => i + 1
-										).map((page) => (
-											<Button
-												key={page}
-												variant={page === enrollmentPage ? "default" : "outline"}
-												size="sm"
-												className="h-8 w-8 p-0"
-												onClick={() => setEnrollmentPage(page)}
-											>
-												{page}
-											</Button>
-										))}
+										{Array.from({ length: totalPages }, (_, i) => i + 1).map(
+											(page) => (
+												<Button
+													key={page}
+													variant={
+														page === enrollmentPage ? "default" : "outline"
+													}
+													size="sm"
+													className="h-8 w-8 p-0"
+													onClick={() => setEnrollmentPage(page)}
+												>
+													{page}
+												</Button>
+											),
+										)}
 									</div>
 									<Button
 										variant="outline"
 										size="sm"
-										onClick={() => 
+										onClick={() =>
 											setEnrollmentPage(
-												Math.min(totalPages, enrollmentPage + 1)
+												Math.min(totalPages, enrollmentPage + 1),
 											)
 										}
 										disabled={enrollmentPage === totalPages}

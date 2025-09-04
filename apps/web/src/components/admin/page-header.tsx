@@ -127,14 +127,12 @@ export function PageHeader() {
 				title: "Sequence Details",
 				description: "View and manage sequence messages",
 			};
-		}
-		else if (pathname.match(/^\/admin\/students\/enrollment\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/students\/enrollment\/[^/]+$/)) {
 			info = {
 				title: "Enrollment Details",
 				description: "View and manage enrollment details",
 			};
-		}
-		else if (
+		} else if (
 			pathname.match(/^\/admin\/automation\/automated-follow-ups\/[^/]+$/)
 		) {
 			info = {

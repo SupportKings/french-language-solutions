@@ -49,7 +49,9 @@ export async function GET(
 			cohortId: record.cohort_id,
 			classId: record.class_id,
 			// Use the date from the class's start_time
-			attendanceDate: record.classes?.start_time ? record.classes.start_time.split('T')[0] : null,
+			attendanceDate: record.classes?.start_time
+				? record.classes.start_time.split("T")[0]
+				: null,
 			status: record.status,
 			notes: record.notes,
 			markedBy: record.marked_by,
