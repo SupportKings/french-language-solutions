@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -103,6 +103,16 @@ export function EnrollmentDetailsClient({
 	const [enrollment, setEnrollment] = useState(initialEnrollment);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	// Local state for edited values
+	const [editedEnrollment, setEditedEnrollment] = useState<any>(initialEnrollment);
+
+	// Update the enrollment when data changes
+	useEffect(() => {
+		if (initialEnrollment) {
+			setEnrollment(initialEnrollment);
+			setEditedEnrollment(initialEnrollment);
+		}
+	}, [initialEnrollment]);
 
 	// Get redirectTo param from URL
 	const [redirectTo] = useQueryState("redirectTo", {
@@ -118,22 +128,47 @@ export function EnrollmentDetailsClient({
 			.toUpperCase()
 			.slice(0, 2) || "ST";
 
-	const handleUpdate = async (field: string, value: any) => {
+	// Update edited enrollment field locally
+	const updateEditedField = async (field: string, value: any) => {
+		setEditedEnrollment({
+			...editedEnrollment,
+			[field]: value
+		});
+		// Return a resolved promise to match the expected type
+		return Promise.resolve();
+	};
+
+	// Save all changes to the API
+	const saveAllChanges = async () => {
 		try {
+			// Collect all changes
+			const changes: any = {};
+			
+			// Check for changes in fields
+			if (editedEnrollment.status !== enrollment.status) {
+				changes.status = editedEnrollment.status;
+			}
+			
+			// If no changes, return early
+			if (Object.keys(changes).length === 0) {
+				return;
+			}
+			
 			const response = await fetch(`/api/enrollments/${enrollment.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value }),
+				body: JSON.stringify(changes),
 			});
 
 			if (!response.ok) throw new Error("Failed to update enrollment");
 
 			const updated = await response.json();
-			setEnrollment((prevEnrollment: any) => ({ ...prevEnrollment, ...updated }));
-			toast.success("Enrollment updated successfully");
+			setEnrollment(updated);
+			setEditedEnrollment(updated);
+			toast.success("Changes saved successfully");
 		} catch (error) {
 			console.error("Error updating enrollment:", error);
-			toast.error("Failed to update enrollment");
+			toast.error("Failed to save changes");
 			throw error;
 		}
 	};
@@ -295,7 +330,18 @@ export function EnrollmentDetailsClient({
 
 							<div className="space-y-4 px-6 py-4">
 								{/* Enrollment Status Section */}
-								<EditableSection title="Enrollment Status">
+								<EditableSection 
+									title="Enrollment Status"
+									onEditStart={() => {
+										// Reset to current values when starting to edit
+										setEditedEnrollment(enrollment);
+									}}
+									onSave={saveAllChanges}
+									onCancel={() => {
+										// Reset to original values when canceling
+										setEditedEnrollment(enrollment);
+									}}
+								>
 									{(editing) => (
 										<div className="grid gap-8 lg:grid-cols-2">
 											<div className="space-y-4">
@@ -311,9 +357,9 @@ export function EnrollmentDetailsClient({
 															</p>
 															{editing ? (
 																<InlineEditField
-																	value={enrollment.status}
+																	value={editedEnrollment.status}
 																	onSave={(value) =>
-																		handleUpdate("status", value)
+																		updateEditedField("status", value)
 																	}
 																	editing={editing}
 																	type="select"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
@@ -109,9 +109,18 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 	const queryClient = useQueryClient();
 	const router = useRouter();
 	const [updatedEnrollment, setUpdatedEnrollment] = useState<any>(null);
+	// Local state for edited values
+	const [editedEnrollment, setEditedEnrollment] = useState<any>(null);
 
 	// Use updated enrollment if available, otherwise use fetched data
 	const currentEnrollment = updatedEnrollment || enrollment;
+
+	// Update the local edited state when data changes
+	useEffect(() => {
+		if (currentEnrollment) {
+			setEditedEnrollment(currentEnrollment);
+		}
+	}, [currentEnrollment]);
 
 	if (isLoading) return <div>Loading...</div>;
 	if (error || !currentEnrollment) return <div>Error loading enrollment</div>;
@@ -125,21 +134,55 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 		.toUpperCase()
 		.slice(0, 2);
 
-	// Update enrollment field
-	const updateEnrollmentField = async (field: string, value: any) => {
+	// Update edited enrollment field locally
+	const updateEditedField = async (field: string, value: any) => {
+		if (!editedEnrollment) return Promise.resolve();
+		
+		if (field.startsWith("student.")) {
+			const studentField = field.replace("student.", "");
+			setEditedEnrollment({
+				...editedEnrollment,
+				student: {
+					...editedEnrollment.student,
+					[studentField]: value
+				}
+			});
+		} else {
+			setEditedEnrollment({
+				...editedEnrollment,
+				[field]: value
+			});
+		}
+		return Promise.resolve();
+	};
+
+	// Save all changes to the API
+	const saveAllChanges = async () => {
+		if (!editedEnrollment || !currentEnrollment) return;
+		
 		try {
+			const changes: any = {};
+			let hasChanges = false;
+
+			// Check for enrollment status changes
+			if (editedEnrollment.status !== currentEnrollment.status) {
+				changes.status = editedEnrollment.status;
+				hasChanges = true;
+			}
+
+			// We're not editing student data anymore, only enrollment status
+
+			if (!hasChanges) {
+				return;
+			}
+
+			// Prepare update data
 			const updateData: any = {
 				id: enrollmentId,
 			};
 
-			if (field === "status") {
-				updateData.status = value;
-			} else if (field.startsWith("student.")) {
-				const studentField = field.replace("student.", "");
-				updateData.studentId = currentEnrollment.student?.id;
-				updateData.studentData = {
-					[studentField]: value,
-				};
+			if (changes.status) {
+				updateData.status = changes.status;
 			}
 
 			const result = await updateEnrollmentAction(updateData);
@@ -171,20 +214,22 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 			}
 
 			if (result?.data?.success) {
-				toast.success("Updated successfully");
+				toast.success("Changes saved successfully");
 				// Invalidate queries to refresh data
 				await queryClient.invalidateQueries({
 					queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
 				});
 			} else {
-				toast.error("Failed to update");
+				toast.error("Failed to save changes");
 				throw new Error("Update failed");
 			}
 		} catch (error) {
-			console.error("Error updating enrollment:", error);
+			console.error("Error saving changes:", error);
+			toast.error("Failed to save changes");
 			throw error;
 		}
 	};
+
 
 	const handleDeleteEnrollment = async () => {
 		// Implementation would go here
@@ -284,7 +329,12 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Enrollment Information with inline editing */}
-				<EditableSection title="Enrollment Information">
+				<EditableSection 
+					title="Enrollment Information"
+					onEditStart={() => setEditedEnrollment(currentEnrollment)}
+					onSave={saveAllChanges}
+					onCancel={() => setEditedEnrollment(currentEnrollment)}
+				>
 					{(editing) => (
 						<div className="grid gap-8 lg:grid-cols-3">
 							{/* Enrollment Details Section */}
@@ -299,8 +349,8 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 											<p className="text-muted-foreground text-xs">Status:</p>
 											{editing ? (
 												<InlineEditField
-													value={currentEnrollment.status}
-													onSave={(value) => updateEnrollmentField("status", value)}
+													value={editedEnrollment?.status || currentEnrollment.status}
+													onSave={(value) => updateEditedField("status", value)}
 													editing={editing}
 													type="select"
 													options={Object.entries(ENROLLMENT_STATUS_LABELS).map(([value, label]) => ({
@@ -334,13 +384,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 										<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Email:</p>
-											<InlineEditField
-												value={currentEnrollment.student?.email}
-												onSave={(value) => updateEnrollmentField("student.email", value)}
-												editing={editing}
-												type="text"
-												placeholder="Enter email"
-											/>
+											<p className="font-medium text-sm">
+												{currentEnrollment.student?.email || "Not provided"}
+											</p>
 										</div>
 									</div>
 
@@ -348,13 +394,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Phone:</p>
-											<InlineEditField
-												value={currentEnrollment.student?.mobile_phone_number}
-												onSave={(value) => updateEnrollmentField("student.mobile_phone_number", value)}
-												editing={editing}
-												type="text"
-												placeholder="Enter phone"
-											/>
+											<p className="font-medium text-sm">
+												{currentEnrollment.student?.mobile_phone_number || "Not provided"}
+											</p>
 										</div>
 									</div>
 
@@ -362,13 +404,9 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">City:</p>
-											<InlineEditField
-												value={currentEnrollment.student?.city}
-												onSave={(value) => updateEnrollmentField("student.city", value)}
-												editing={editing}
-												type="text"
-												placeholder="Enter city"
-											/>
+											<p className="font-medium text-sm">
+												{currentEnrollment.student?.city || "Not provided"}
+											</p>
 										</div>
 									</div>
 
@@ -376,20 +414,7 @@ export default function EnrollmentDetailView({ enrollmentId }: EnrollmentDetailV
 										<MessageSquare className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Communication Channel:</p>
-											{editing ? (
-												<InlineEditField
-													value={currentEnrollment.student?.communication_channel}
-													onSave={(value) => updateEnrollmentField("student.communication_channel", value)}
-													editing={editing}
-													type="select"
-													options={Object.entries(COMMUNICATION_CHANNEL_LABELS).map(([value, label]) => ({
-														value,
-														label,
-													}))}
-												/>
-											) : (
-												<p className="text-sm">{communicationChannelDisplay}</p>
-											)}
+											<p className="text-sm">{communicationChannelDisplay}</p>
 										</div>
 									</div>
 								</div>

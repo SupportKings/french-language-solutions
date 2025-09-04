@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -98,6 +98,16 @@ export default function StudentDetailsClient({
 	const router = useRouter();
 	const pathname = usePathname();
 	const [student, setStudent] = useState(initialStudent);
+	// Local state for edited values
+	const [editedStudent, setEditedStudent] = useState<any>(initialStudent);
+
+	// Update the student when data changes
+	useEffect(() => {
+		if (initialStudent) {
+			setStudent(initialStudent);
+			setEditedStudent(initialStudent);
+		}
+	}, [initialStudent]);
 
 	// Fetch language levels
 	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
@@ -116,25 +126,74 @@ export default function StudentDetailsClient({
 		.toUpperCase()
 		.slice(0, 2);
 
-	// Update student field
-	const updateStudentField = async (field: string, value: any) => {
+	// Update edited student field locally
+	const updateEditedField = async (field: string, value: any) => {
+		setEditedStudent({
+			...editedStudent,
+			[field]: value
+		});
+		// Return a resolved promise to match the expected type
+		return Promise.resolve();
+	};
+
+	// Save all changes to the API
+	const saveAllChanges = async () => {
 		try {
+			// Collect all changes
+			const changes: any = {};
+			
+			// Check for changes in fields
+			if (editedStudent.email !== student.email) {
+				changes.email = editedStudent.email;
+			}
+			if (editedStudent.mobile_phone_number !== student.mobile_phone_number) {
+				changes.mobile_phone_number = editedStudent.mobile_phone_number;
+			}
+			if (editedStudent.city !== student.city) {
+				changes.city = editedStudent.city;
+			}
+			if (editedStudent.communication_channel !== student.communication_channel) {
+				changes.communication_channel = editedStudent.communication_channel;
+			}
+			if (editedStudent.desired_starting_language_level_id !== student.desired_starting_language_level_id) {
+				changes.desired_starting_language_level_id = editedStudent.desired_starting_language_level_id;
+			}
+			if (editedStudent.is_full_beginner !== student.is_full_beginner) {
+				changes.is_full_beginner = editedStudent.is_full_beginner;
+			}
+			if (editedStudent.is_under_16 !== student.is_under_16) {
+				changes.is_under_16 = editedStudent.is_under_16;
+			}
+			if (editedStudent.purpose_to_learn !== student.purpose_to_learn) {
+				changes.purpose_to_learn = editedStudent.purpose_to_learn;
+			}
+			if (editedStudent.initial_channel !== student.initial_channel) {
+				changes.initial_channel = editedStudent.initial_channel;
+			}
+			
+			// If no changes, return early
+			if (Object.keys(changes).length === 0) {
+				return;
+			}
+			
 			const response = await fetch(`/api/students/${student.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value }),
+				body: JSON.stringify(changes),
 			});
 
 			if (!response.ok) throw new Error("Failed to update");
 
 			const updated = await response.json();
-			setStudent((prevStudent: any) => ({ ...prevStudent, ...updated }));
-			toast.success("Updated successfully");
+			setStudent(updated);
+			setEditedStudent(updated);
+			toast.success("Changes saved successfully");
 		} catch (error) {
-			toast.error("Failed to update");
+			toast.error("Failed to save changes");
 			throw error;
 		}
 	};
+
 
 
 	// Navigate to create forms with pre-filled data
@@ -231,7 +290,12 @@ export default function StudentDetailsClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Student Information with inline editing */}
-				<EditableSection title="Student Information">
+				<EditableSection 
+					title="Student Information"
+					onEditStart={() => setEditedStudent(student)}
+					onSave={saveAllChanges}
+					onCancel={() => setEditedStudent(student)}
+				>
 					{(editing) => (
 						<div className="grid gap-8 lg:grid-cols-3">
 							{/* Contact Section */}
@@ -246,8 +310,8 @@ export default function StudentDetailsClient({
 											<p className="text-muted-foreground text-xs">Email:</p>
 											<div className="flex items-center gap-1">
 												<InlineEditField
-													value={student.email}
-													onSave={(value) => updateStudentField("email", value)}
+													value={editedStudent.email}
+													onSave={(value) => updateEditedField("email", value)}
 													editing={editing}
 													type="text"
 													placeholder="Enter email"
@@ -265,9 +329,9 @@ export default function StudentDetailsClient({
 											<p className="text-muted-foreground text-xs">Phone:</p>
 											<div className="flex items-center gap-1">
 												<InlineEditField
-													value={student.mobile_phone_number}
+													value={editedStudent.mobile_phone_number}
 													onSave={(value) =>
-														updateStudentField("mobile_phone_number", value)
+														updateEditedField("mobile_phone_number", value)
 													}
 													editing={editing}
 													type="text"
@@ -288,8 +352,8 @@ export default function StudentDetailsClient({
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">City:</p>
 											<InlineEditField
-												value={student.city}
-												onSave={(value) => updateStudentField("city", value)}
+												value={editedStudent.city}
+												onSave={(value) => updateEditedField("city", value)}
 												editing={editing}
 												type="text"
 												placeholder="Enter city"
@@ -305,9 +369,9 @@ export default function StudentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={student.communication_channel}
+													value={editedStudent.communication_channel}
 													onSave={(value) =>
-														updateStudentField("communication_channel", value)
+														updateEditedField("communication_channel", value)
 													}
 													editing={editing}
 													type="select"
@@ -341,9 +405,9 @@ export default function StudentDetailsClient({
 											<p className="text-muted-foreground text-xs">Desired Starting Level:</p>
 											{editing ? (
 												<InlineEditField
-													value={student.desired_starting_language_level_id}
+													value={editedStudent.desired_starting_language_level_id}
 													onSave={(value) =>
-														updateStudentField(
+														updateEditedField(
 															"desired_starting_language_level_id",
 															value,
 														)
@@ -379,9 +443,9 @@ export default function StudentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={student.is_full_beginner ? "true" : "false"}
+													value={editedStudent.is_full_beginner ? "true" : "false"}
 													onSave={(value) =>
-														updateStudentField(
+														updateEditedField(
 															"is_full_beginner",
 															value === "true",
 														)
@@ -412,9 +476,9 @@ export default function StudentDetailsClient({
 											<p className="text-muted-foreground text-xs">Under 16:</p>
 											{editing ? (
 												<InlineEditField
-													value={student.is_under_16 ? "true" : "false"}
+													value={editedStudent.is_under_16 ? "true" : "false"}
 													onSave={(value) =>
-														updateStudentField("is_under_16", value === "true")
+														updateEditedField("is_under_16", value === "true")
 													}
 													editing={editing}
 													type="select"
@@ -444,9 +508,9 @@ export default function StudentDetailsClient({
 													Purpose:
 												</p>
 												<InlineEditField
-													value={student.purpose_to_learn}
+													value={editedStudent.purpose_to_learn}
 													onSave={(value) =>
-														updateStudentField("purpose_to_learn", value)
+														updateEditedField("purpose_to_learn", value)
 													}
 													editing={editing}
 													type="textarea"
@@ -493,9 +557,9 @@ export default function StudentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={student.initial_channel || ""}
+													value={editedStudent.initial_channel || ""}
 													onSave={(value) =>
-														updateStudentField("initial_channel", value || null)
+														updateEditedField("initial_channel", value || null)
 													}
 													editing={editing}
 													type="select"

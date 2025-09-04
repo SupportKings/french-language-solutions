@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -75,6 +75,16 @@ export default function TeacherDetailsClient({
 	const router = useRouter();
 	const [teacher, setTeacher] = useState(initialTeacher);
 	const [pendingChanges, setPendingChanges] = useState<Record<string, any>>({});
+	// Local state for edited values
+	const [editedTeacher, setEditedTeacher] = useState<any>(initialTeacher);
+
+	// Update the teacher when data changes
+	useEffect(() => {
+		if (initialTeacher) {
+			setTeacher(initialTeacher);
+			setEditedTeacher(initialTeacher);
+		}
+	}, [initialTeacher]);
 
 	// Construct full name from first and last name
 	const fullName =
@@ -88,25 +98,71 @@ export default function TeacherDetailsClient({
 		.toUpperCase()
 		.slice(0, 2);
 
-	// Update teacher field (immediate save)
-	const updateTeacherField = async (field: string, value: any) => {
+	// Update edited teacher field locally
+	const updateEditedField = async (field: string, value: any) => {
+		setEditedTeacher({
+			...editedTeacher,
+			[field]: value
+		});
+		// Return a resolved promise to match the expected type
+		return Promise.resolve();
+	};
+
+	// Save all changes to the API
+	const saveAllChanges = async () => {
 		try {
+			// Collect all changes
+			const changes: any = {};
+			
+			// Check for changes in fields
+			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
+				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
+			}
+			if (editedTeacher.first_name !== teacher.first_name) {
+				changes.first_name = editedTeacher.first_name;
+			}
+			if (editedTeacher.last_name !== teacher.last_name) {
+				changes.last_name = editedTeacher.last_name;
+			}
+			if (editedTeacher.contract_type !== teacher.contract_type) {
+				changes.contract_type = editedTeacher.contract_type;
+			}
+			if (editedTeacher.onboarding_status !== teacher.onboarding_status) {
+				changes.onboarding_status = editedTeacher.onboarding_status;
+			}
+			if (editedTeacher.available_for_booking !== teacher.available_for_booking) {
+				changes.available_for_booking = editedTeacher.available_for_booking;
+			}
+			if (editedTeacher.group_class_bonus_terms !== teacher.group_class_bonus_terms) {
+				changes.group_class_bonus_terms = editedTeacher.group_class_bonus_terms;
+			}
+			if (editedTeacher.admin_notes !== teacher.admin_notes) {
+				changes.admin_notes = editedTeacher.admin_notes;
+			}
+			
+			// If no changes, return early
+			if (Object.keys(changes).length === 0) {
+				return;
+			}
+			
 			const response = await fetch(`/api/teachers/${teacher.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value }),
+				body: JSON.stringify(changes),
 			});
 
 			if (!response.ok) throw new Error("Failed to update");
 
 			const updated = await response.json();
-			setTeacher((prevTeacher: any) => ({ ...prevTeacher, ...updated }));
-			toast.success("Updated successfully");
+			setTeacher(updated);
+			setEditedTeacher(updated);
+			toast.success("Changes saved successfully");
 		} catch (error) {
-			toast.error("Failed to update");
+			toast.error("Failed to save changes");
 			throw error;
 		}
 	};
+
 
 	// Update pending change (for form-like sections)
 	const updatePendingChange = (field: string, value: any) => {
@@ -238,7 +294,12 @@ export default function TeacherDetailsClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Teacher Information with inline editing */}
-				<EditableSection title="Teacher Information">
+				<EditableSection 
+					title="Teacher Information"
+					onEditStart={() => setEditedTeacher(teacher)}
+					onSave={saveAllChanges}
+					onCancel={() => setEditedTeacher(teacher)}
+				>
 					{(editing) => (
 						<div className="grid gap-8 lg:grid-cols-3">
 							{/* Contact Section */}
@@ -254,7 +315,7 @@ export default function TeacherDetailsClient({
 											<InlineEditField
 												value={teacher.mobile_phone_number}
 												onSave={async (value) =>
-													updateTeacherField("mobile_phone_number", value)
+													updateEditedField("mobile_phone_number", value)
 												}
 												editing={editing}
 												type="text"
@@ -272,7 +333,7 @@ export default function TeacherDetailsClient({
 											<InlineEditField
 												value={teacher.first_name}
 												onSave={async (value) =>
-													updateTeacherField("first_name", value)
+													updateEditedField("first_name", value)
 												}
 												editing={editing}
 												type="text"
@@ -290,7 +351,7 @@ export default function TeacherDetailsClient({
 											<InlineEditField
 												value={teacher.last_name}
 												onSave={async (value) =>
-													updateTeacherField("last_name", value)
+													updateEditedField("last_name", value)
 												}
 												editing={editing}
 												type="text"
@@ -317,7 +378,7 @@ export default function TeacherDetailsClient({
 												<InlineEditField
 													value={teacher.contract_type}
 													onSave={async (value) =>
-														updateTeacherField("contract_type", value)
+														updateEditedField("contract_type", value)
 													}
 													editing={editing}
 													type="select"
@@ -348,7 +409,7 @@ export default function TeacherDetailsClient({
 												<InlineEditField
 													value={teacher.onboarding_status}
 													onSave={async (value) =>
-														updateTeacherField("onboarding_status", value)
+														updateEditedField("onboarding_status", value)
 													}
 													editing={editing}
 													type="select"
@@ -393,7 +454,7 @@ export default function TeacherDetailsClient({
 														teacher.available_for_booking ? "true" : "false"
 													}
 													onSave={async (value) =>
-														updateTeacherField(
+														updateEditedField(
 															"available_for_booking",
 															value === "true",
 														)
@@ -440,7 +501,7 @@ export default function TeacherDetailsClient({
 												<InlineEditField
 													value={teacher.group_class_bonus_terms}
 													onSave={async (value) =>
-														updateTeacherField("group_class_bonus_terms", value)
+														updateEditedField("group_class_bonus_terms", value)
 													}
 													editing={editing}
 													type="select"
@@ -750,12 +811,17 @@ export default function TeacherDetailsClient({
 				</EditableSection>
 
 				{/* Admin Notes */}
-				<EditableSection title="Admin Notes">
+				<EditableSection 
+					title="Admin Notes"
+					onEditStart={() => setEditedTeacher(teacher)}
+					onSave={saveAllChanges}
+					onCancel={() => setEditedTeacher(teacher)}
+				>
 					{(editing) => (
 						<div className="space-y-3">
 							<InlineEditField
-								value={teacher.admin_notes}
-								onSave={async (value) => updateTeacherField("admin_notes", value)}
+								value={editedTeacher.admin_notes}
+								onSave={async (value) => updateEditedField("admin_notes", value)}
 								editing={editing}
 								type="textarea"
 								placeholder="Enter admin notes"

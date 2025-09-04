@@ -78,6 +78,16 @@ export default function AssessmentDetailsClient({
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
+	// Local state for edited values
+	const [editedAssessment, setEditedAssessment] = useState<any>(initialAssessment);
+
+	// Update the assessment when data changes
+	useEffect(() => {
+		if (initialAssessment) {
+			setAssessment(initialAssessment);
+			setEditedAssessment(initialAssessment);
+		}
+	}, [initialAssessment]);
 
 	// Fetch language levels from API
 	useEffect(() => {
@@ -96,22 +106,64 @@ export default function AssessmentDetailsClient({
 		fetchLanguageLevels();
 	}, []);
 
-	// Update assessment field
-	const updateAssessmentField = async (field: string, value: any) => {
+	// Update edited assessment field locally
+	const updateEditedField = async (field: string, value: any) => {
+		setEditedAssessment({
+			...editedAssessment,
+			[field]: value
+		});
+		// Return a resolved promise to match the expected type
+		return Promise.resolve();
+	};
+
+	// Save all changes to the API
+	const saveAllChanges = async () => {
 		try {
+			// Collect all changes
+			const changes: any = {};
+			
+			// Check for changes in fields
+			if (editedAssessment.result !== assessment.result) {
+				changes.result = editedAssessment.result;
+			}
+			if (editedAssessment.level_id !== assessment.level_id) {
+				changes.level_id = editedAssessment.level_id;
+			}
+			if (editedAssessment.scheduled_for !== assessment.scheduled_for) {
+				changes.scheduled_for = editedAssessment.scheduled_for;
+			}
+			if (editedAssessment.is_paid !== assessment.is_paid) {
+				changes.is_paid = editedAssessment.is_paid;
+			}
+			if (editedAssessment.calendar_event_url !== assessment.calendar_event_url) {
+				changes.calendar_event_url = editedAssessment.calendar_event_url;
+			}
+			if (editedAssessment.meeting_recording_url !== assessment.meeting_recording_url) {
+				changes.meeting_recording_url = editedAssessment.meeting_recording_url;
+			}
+			if (editedAssessment.notes !== assessment.notes) {
+				changes.notes = editedAssessment.notes;
+			}
+			
+			// If no changes, return early
+			if (Object.keys(changes).length === 0) {
+				return;
+			}
+			
 			const response = await fetch(`/api/assessments/${assessment.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value }),
+				body: JSON.stringify(changes),
 			});
 
-			if (!response.ok) throw new Error("Failed to update");
+			if (!response.ok) throw new Error("Failed to update assessment");
 
 			const updated = await response.json();
 			setAssessment(updated);
-			toast.success("Updated successfully");
+			setEditedAssessment(updated);
+			toast.success("Changes saved successfully");
 		} catch (error) {
-			toast.error("Failed to update");
+			toast.error("Failed to save changes");
 			throw error;
 		}
 	};
@@ -219,7 +271,12 @@ export default function AssessmentDetailsClient({
 
 			<div className="space-y-4 px-6 py-4">
 				{/* Assessment Information */}
-				<EditableSection title="Assessment Information">
+				<EditableSection 
+					title="Assessment Information"
+					onEditStart={() => setEditedAssessment(assessment)}
+					onSave={saveAllChanges}
+					onCancel={() => setEditedAssessment(assessment)}
+				>
 					{(editing) => (
 						<div className="grid gap-8 lg:grid-cols-3">
 							{/* Assessment Details */}
@@ -234,9 +291,9 @@ export default function AssessmentDetailsClient({
 											<p className="text-muted-foreground text-xs">Status:</p>
 											{editing ? (
 												<InlineEditField
-													value={assessment.result}
+													value={editedAssessment.result}
 													onSave={(value) =>
-														updateAssessmentField("result", value)
+														updateEditedField("result", value)
 													}
 													editing={editing}
 													type="select"
@@ -272,12 +329,9 @@ export default function AssessmentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={assessment.level_id || ""}
+													value={editedAssessment.level_id || ""}
 													onSave={(value) =>
-														updateAssessmentField(
-															"level_id",
-															value || null,
-														)
+														updateEditedField("level_id", value || null)
 													}
 													editing={editing}
 													type="select"
@@ -306,9 +360,9 @@ export default function AssessmentDetailsClient({
 												Scheduled Date:
 											</p>
 											<InlineEditField
-												value={assessment.scheduled_for || ""}
+												value={editedAssessment.scheduled_for || ""}
 												onSave={(value) =>
-													updateAssessmentField("scheduled_for", value || null)
+													updateEditedField("scheduled_for", value || null)
 												}
 												editing={editing}
 												type="date"
@@ -325,9 +379,9 @@ export default function AssessmentDetailsClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={assessment.is_paid ? "true" : "false"}
+													value={editedAssessment.is_paid ? "true" : "false"}
 													onSave={(value) =>
-														updateAssessmentField("is_paid", value === "true")
+														updateEditedField("is_paid", value === "true")
 													}
 													editing={editing}
 													type="select"
@@ -430,12 +484,9 @@ export default function AssessmentDetailsClient({
 												Calendar Event:
 											</p>
 											<InlineEditField
-												value={assessment.calendar_event_url || ""}
+												value={editedAssessment.calendar_event_url || ""}
 												onSave={(value) =>
-													updateAssessmentField(
-														"calendar_event_url",
-														value || null,
-													)
+													updateEditedField("calendar_event_url", value || null)
 												}
 												editing={editing}
 												type="text"
@@ -462,12 +513,9 @@ export default function AssessmentDetailsClient({
 												Recording URL:
 											</p>
 											<InlineEditField
-												value={assessment.meeting_recording_url || ""}
+												value={editedAssessment.meeting_recording_url || ""}
 												onSave={(value) =>
-													updateAssessmentField(
-														"meeting_recording_url",
-														value || null,
-													)
+													updateEditedField("meeting_recording_url", value || null)
 												}
 												editing={editing}
 												type="text"
@@ -492,9 +540,9 @@ export default function AssessmentDetailsClient({
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Notes:</p>
 											<InlineEditField
-												value={assessment.notes || ""}
+												value={editedAssessment.notes || ""}
 												onSave={(value) =>
-													updateAssessmentField("notes", value || null)
+													updateEditedField("notes", value || null)
 												}
 												editing={editing}
 												type="textarea"
