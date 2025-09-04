@@ -18,6 +18,7 @@ import {
 	SwitchField,
 	TextareaField,
 } from "@/components/form-layout/FormLayout";
+import { DaysSelector } from "@/components/ui/days-selector";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -117,15 +118,6 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 		{ label: "Per Hour", value: "per_hour" },
 	];
 
-	const daysOfWeek = [
-		{ label: "Monday", value: "monday" },
-		{ label: "Tuesday", value: "tuesday" },
-		{ label: "Wednesday", value: "wednesday" },
-		{ label: "Thursday", value: "thursday" },
-		{ label: "Friday", value: "friday" },
-		{ label: "Saturday", value: "saturday" },
-		{ label: "Sunday", value: "sunday" },
-	];
 
 	return (
 		<FormLayout>
@@ -406,58 +398,20 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 									label="Days Available for Online Classes"
 									hint="Select the days when this teacher can conduct online classes"
 								>
-									<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-										{daysOfWeek.map((day) => (
-											<label
-												key={day.value}
-												className="flex items-center space-x-2 cursor-pointer"
-											>
-												<input
-													type="checkbox"
-													checked={(form.watch("days_available_online") || []).includes(day.value as any)}
-													onChange={(e) => {
-														const current = form.watch("days_available_online") || [];
-														if (e.target.checked) {
-															form.setValue("days_available_online", [...current, day.value as any]);
-														} else {
-															form.setValue("days_available_online", current.filter(d => d !== day.value));
-														}
-													}}
-													className="rounded border-gray-300 text-primary focus:ring-primary"
-												/>
-												<span className="text-sm">{day.label}</span>
-											</label>
-										))}
-									</div>
+									<DaysSelector
+										value={form.watch("days_available_online") || []}
+										onChange={(days) => form.setValue("days_available_online", days as any)}
+									/>
 								</FormField>
 
 								<FormField
 									label="Days Available for In-Person Classes"
 									hint="Select the days when this teacher can conduct in-person classes"
 								>
-									<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-										{daysOfWeek.map((day) => (
-											<label
-												key={day.value}
-												className="flex items-center space-x-2 cursor-pointer"
-											>
-												<input
-													type="checkbox"
-													checked={(form.watch("days_available_in_person") || []).includes(day.value as any)}
-													onChange={(e) => {
-														const current = form.watch("days_available_in_person") || [];
-														if (e.target.checked) {
-															form.setValue("days_available_in_person", [...current, day.value as any]);
-														} else {
-															form.setValue("days_available_in_person", current.filter(d => d !== day.value));
-														}
-													}}
-													className="rounded border-gray-300 text-primary focus:ring-primary"
-												/>
-												<span className="text-sm">{day.label}</span>
-											</label>
-										))}
-									</div>
+									<DaysSelector
+										value={form.watch("days_available_in_person") || []}
+										onChange={(days) => form.setValue("days_available_in_person", days as any)}
+									/>
 								</FormField>
 							</div>
 						</FormSection>

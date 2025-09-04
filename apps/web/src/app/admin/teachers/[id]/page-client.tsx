@@ -17,6 +17,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
 
 import { format } from "date-fns";
 import {
@@ -705,37 +706,41 @@ export default function TeacherDetailsClient({
 								<div className="grid gap-6 lg:grid-cols-2">
 									<div className="flex items-start gap-3">
 										<CalendarDays className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
+										<div className="flex-1 space-y-2">
 											<p className="text-muted-foreground text-xs">
 												Days Available (Online):
 											</p>
-											<InlineEditField
-												value={pendingChanges.days_available_online ?? (teacher.days_available_online || [])}
-												onSave={async (value) =>
-													updatePendingChange("days_available_online", value)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter days (e.g., monday, tuesday)"
-											/>
+											{editing ? (
+												<DaysSelector
+													value={pendingChanges.days_available_online ?? (teacher.days_available_online || [])}
+													onChange={(days) => updatePendingChange("days_available_online", days)}
+												/>
+											) : (
+												<DaysDisplay
+													value={teacher.days_available_online || []}
+													emptyText="No days selected"
+												/>
+											)}
 										</div>
 									</div>
 
 									<div className="flex items-start gap-3">
 										<CalendarDays className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
+										<div className="flex-1 space-y-2">
 											<p className="text-muted-foreground text-xs">
 												Days Available (In-Person):
 											</p>
-											<InlineEditField
-												value={pendingChanges.days_available_in_person ?? (teacher.days_available_in_person || [])}
-												onSave={async (value) =>
-													updatePendingChange("days_available_in_person", value)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter days (e.g., monday, tuesday)"
-											/>
+											{editing ? (
+												<DaysSelector
+													value={pendingChanges.days_available_in_person ?? (teacher.days_available_in_person || [])}
+													onChange={(days) => updatePendingChange("days_available_in_person", days)}
+												/>
+											) : (
+												<DaysDisplay
+													value={teacher.days_available_in_person || []}
+													emptyText="No days selected"
+												/>
+											)}
 										</div>
 									</div>
 								</div>
