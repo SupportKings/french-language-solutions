@@ -73,16 +73,27 @@ export async function DELETE(
 			);
 		}
 
-		// Update step_index for messages that come after the deleted one
-		const { error: updateError } = await supabase
+		// Get all messages that come after the deleted one
+		const { data: messagesToUpdate } = await supabase
 			.from("template_follow_up_messages")
-			.update({ step_index: supabase.raw("step_index - 1") })
+			.select("id, step_index")
 			.eq("sequence_id", sequenceId)
-			.gt("step_index", messageToDelete.step_index);
+			.gt("step_index", messageToDelete.step_index)
+			.order("step_index", { ascending: true });
 
-		if (updateError) {
-			console.error("Error updating step indices:", updateError);
-			// The message is already deleted, so we just log the error
+		// Update step_index for messages that come after the deleted one
+		if (messagesToUpdate && messagesToUpdate.length > 0) {
+			for (const message of messagesToUpdate) {
+				const { error: updateError } = await supabase
+					.from("template_follow_up_messages")
+					.update({ step_index: message.step_index - 1 })
+					.eq("id", message.id);
+
+				if (updateError) {
+					console.error("Error updating step index for message:", message.id, updateError);
+					// The message is already deleted, so we just log the error
+				}
+			}
 		}
 
 		return NextResponse.json({ success: true });

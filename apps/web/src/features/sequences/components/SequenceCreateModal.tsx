@@ -109,7 +109,7 @@ export function SequenceCreateModal({
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
+			<DialogTrigger>
 				{trigger || (
 					<Button size="sm" className="h-9">
 						<Plus className="mr-1.5 h-4 w-4" />

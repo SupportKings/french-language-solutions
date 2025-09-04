@@ -549,9 +549,6 @@ export default function TouchpointDetailsClient({
 												onSave={(value) => updateEditedField("message", value)}
 												editing={editing}
 												type="textarea"
-												render={(value) => (
-													<p className="whitespace-pre-wrap text-sm">{value}</p>
-												)}
 											/>
 										</div>
 									</div>

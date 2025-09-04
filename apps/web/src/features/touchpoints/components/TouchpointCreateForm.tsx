@@ -90,6 +90,8 @@ export function TouchpointCreateForm() {
 				search: debouncedStudentSearch,
 				page: 1,
 				limit: 20, // Increased limit for better results
+				sortBy: "created_at",
+				sortOrder: "desc",
 			}),
 		enabled: debouncedStudentSearch.length >= 2, // Only search after 2 characters
 		staleTime: 1000 * 60 * 5, // Cache for 5 minutes

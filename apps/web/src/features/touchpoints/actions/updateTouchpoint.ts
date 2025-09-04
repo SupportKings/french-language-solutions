@@ -27,8 +27,8 @@ const updateTouchpointSchema = z.object({
 
 export const updateTouchpoint = actionClient
 	.inputSchema(updateTouchpointSchema)
-	.action(async ({ input }) => {
-		const { id, ...updateData } = input;
+	.action(async ({ parsedInput }) => {
+		const { id, ...updateData } = parsedInput;
 		const supabase = await createClient();
 
 		// Remove undefined values

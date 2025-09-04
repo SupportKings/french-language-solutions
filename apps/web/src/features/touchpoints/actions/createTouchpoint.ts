@@ -27,20 +27,20 @@ const createTouchpointSchema = z.object({
 
 export const createTouchpoint = actionClient
 	.inputSchema(createTouchpointSchema)
-	.action(async ({ input }) => {
+	.action(async ({ parsedInput }) => {
 		const supabase = await createClient();
 
 		// Create the touchpoint
 		const { data, error } = await supabase
 			.from("touchpoints")
 			.insert({
-				student_id: input.student_id,
-				channel: input.channel,
-				type: input.type,
-				message: input.message,
-				source: input.source,
-				occurred_at: input.occurred_at,
-				automated_follow_up_id: input.automated_follow_up_id,
+				student_id: parsedInput.student_id,
+				channel: parsedInput.channel,
+				type: parsedInput.type,
+				message: parsedInput.message,
+				source: parsedInput.source,
+				occurred_at: parsedInput.occurred_at,
+				automated_follow_up_id: parsedInput.automated_follow_up_id,
 			})
 			.select()
 			.single();
@@ -52,7 +52,7 @@ export const createTouchpoint = actionClient
 
 		// Revalidate relevant paths
 		revalidatePath("/admin/automation/touchpoints");
-		revalidatePath(`/admin/students/${input.student_id}`);
+		revalidatePath(`/admin/students/${parsedInput.student_id}`);
 
 		return { success: true, data };
 	});
