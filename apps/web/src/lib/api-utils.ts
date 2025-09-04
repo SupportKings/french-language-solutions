@@ -10,7 +10,7 @@ export function getApiUrl(path: string): string {
 		console.log("Server-side: use absolute URL");
 		console.log(process.env.VERCEL_URL, "VERCEL_URL");
 		console.log(process.env.NEXT_PUBLIC_APP_URL, "NEXT_PUBLIC_APP_URL");
-		
+
 		if (process.env.NEXT_PUBLIC_APP_URL) {
 			return `${process.env.NEXT_PUBLIC_APP_URL}${path}`;
 		}
@@ -19,7 +19,7 @@ export function getApiUrl(path: string): string {
 			// VERCEL_URL is automatically set to the current deployment URL (production or preview)
 			return `https://${process.env.VERCEL_URL}${path}`;
 		}
-		
+
 		// Local development fallback
 		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 		return `${baseUrl}${path}`;

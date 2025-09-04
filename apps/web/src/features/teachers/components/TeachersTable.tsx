@@ -427,10 +427,15 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 									<TableCell>
 										{teacher.active_cohorts_count > 0 ? (
 											<Badge variant="default" className="text-xs">
-												{teacher.active_cohorts_count} {teacher.active_cohorts_count === 1 ? 'cohort' : 'cohorts'}
+												{teacher.active_cohorts_count}{" "}
+												{teacher.active_cohorts_count === 1
+													? "cohort"
+													: "cohorts"}
 											</Badge>
 										) : (
-											<span className="text-muted-foreground text-sm">None</span>
+											<span className="text-muted-foreground text-sm">
+												None
+											</span>
 										)}
 									</TableCell>
 									<TableCell>
@@ -491,7 +496,8 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 									</TableCell>
 									<TableCell>
 										<div className="text-sm">
-											{teacher.max_students_in_person != null || teacher.max_students_online != null ? (
+											{teacher.max_students_in_person != null ||
+											teacher.max_students_online != null ? (
 												<>
 													{teacher.max_students_in_person != null && (
 														<p>{teacher.max_students_in_person} in-person</p>

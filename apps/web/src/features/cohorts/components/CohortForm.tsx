@@ -476,7 +476,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 										max={100}
 										error={!!form.formState.errors.max_students}
 										{...form.register("max_students", {
-											setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+											setValueAs: (v) =>
+												v === "" || v === null ? undefined : Number(v),
 										})}
 									/>
 								</FormField>

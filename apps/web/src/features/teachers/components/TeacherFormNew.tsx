@@ -21,13 +21,7 @@ import {
 import { DaysSelector } from "@/components/ui/days-selector";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	Briefcase,
-	CalendarDays,
-	Clock,
-	FileText,
-	User,
-} from "lucide-react";
+import { Briefcase, CalendarDays, Clock, FileText, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -117,7 +111,6 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 		{ label: "Per Student Per Hour", value: "per_student_per_hour" },
 		{ label: "Per Hour", value: "per_hour" },
 	];
-
 
 	return (
 		<FormLayout>
@@ -388,19 +381,21 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 							</div>
 
 							{/* Days Availability */}
-							<div className="space-y-4 pt-4 border-t border-border/50">
-								<div className="flex items-center gap-2 mb-2">
+							<div className="space-y-4 border-border/50 border-t pt-4">
+								<div className="mb-2 flex items-center gap-2">
 									<CalendarDays className="h-4 w-4 text-muted-foreground" />
-									<h4 className="text-sm font-medium">Days Available</h4>
+									<h4 className="font-medium text-sm">Days Available</h4>
 								</div>
-								
+
 								<FormField
 									label="Days Available for Online Classes"
 									hint="Select the days when this teacher can conduct online classes"
 								>
 									<DaysSelector
 										value={form.watch("days_available_online") || []}
-										onChange={(days) => form.setValue("days_available_online", days as any)}
+										onChange={(days) =>
+											form.setValue("days_available_online", days as any)
+										}
 									/>
 								</FormField>
 
@@ -410,7 +405,9 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 								>
 									<DaysSelector
 										value={form.watch("days_available_in_person") || []}
-										onChange={(days) => form.setValue("days_available_in_person", days as any)}
+										onChange={(days) =>
+											form.setValue("days_available_in_person", days as any)
+										}
 									/>
 								</FormField>
 							</div>
