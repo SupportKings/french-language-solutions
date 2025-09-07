@@ -151,6 +151,16 @@ export function CohortAttendance({
 	);
 	const [searchQuery, setSearchQuery] = useState("");
 
+	// Update classFilter when initialClassId prop changes
+	useEffect(() => {
+		if (initialClassId !== undefined) {
+			const newFilter = initialClassId || "last";
+			if (newFilter !== classFilter) {
+				setClassFilter(newFilter);
+			}
+		}
+	}, [initialClassId]);
+
 	// Fetch attendance data
 	const fetchAttendance = async () => {
 		try {

@@ -170,7 +170,10 @@ export function EnrollmentCohortSection({
 							<div className="font-medium text-muted-foreground text-sm">
 								Cohort Status
 							</div>
-							<StatusBadge className="mt-1">
+							<StatusBadge 
+								className="mt-1"
+								variant={cohort.cohort_status || "unknown"}
+							>
 								{cohort.cohort_status
 									?.replace(/_/g, " ")
 									.replace(/\b\w/g, (l: string) => l.toUpperCase()) ||

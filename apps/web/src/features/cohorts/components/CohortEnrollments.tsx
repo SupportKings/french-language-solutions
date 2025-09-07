@@ -100,7 +100,7 @@ export function CohortEnrollments({
 			enrollment.students?.email
 				?.toLowerCase()
 				.includes(studentSearch.toLowerCase()) ||
-			enrollment.students?.phone?.includes(studentSearch);
+			enrollment.students?.mobile_phone_number?.includes(studentSearch);
 
 		const statusMatch =
 			statusFilter === "all" || enrollment.status === statusFilter;

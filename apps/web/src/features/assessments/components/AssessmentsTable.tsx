@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
@@ -206,12 +207,24 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 			scheduled_status: scheduledFilter?.values?.length
 				? scheduledFilter.values
 				: undefined,
-			// Date filter - can be single date or date range (use local date formatting)
+			// Date filter - can be single date or date range
 			date_from: dateFilter?.values?.[0]
-				? new Date(dateFilter.values[0]).toLocaleDateString('en-CA')
+				? (() => {
+						const d = new Date(dateFilter.values[0]);
+						const year = d.getFullYear();
+						const month = String(d.getMonth() + 1).padStart(2, '0');
+						const day = String(d.getDate()).padStart(2, '0');
+						return `${year}-${month}-${day}`;
+				  })()
 				: undefined,
 			date_to: dateFilter?.values?.[1]
-				? new Date(dateFilter.values[1]).toLocaleDateString('en-CA')
+				? (() => {
+						const d = new Date(dateFilter.values[1]);
+						const year = d.getFullYear();
+						const month = String(d.getMonth() + 1).padStart(2, '0');
+						const day = String(d.getDate()).padStart(2, '0');
+						return `${year}-${month}-${day}`;
+				  })()
 				: undefined,
 			date_operator: dateFilter?.operator,
 		};
