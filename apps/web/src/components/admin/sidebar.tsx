@@ -15,14 +15,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import {
-	Bot,
-	Building2,
-	Calendar,
-	GraduationCap,
-	Settings,
-	Users,
-} from "lucide-react";
+import { Bot, Calendar, GraduationCap, Settings, Users } from "lucide-react";
 
 const data = {
 	user: {
