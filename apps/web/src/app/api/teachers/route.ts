@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
 			"available_for_in_person_classes",
 		);
 		const daysAvailableOnline = searchParams.getAll("days_available_online");
-		const daysAvailableInPerson = searchParams.getAll("days_available_in_person");
+		const daysAvailableInPerson = searchParams.getAll(
+			"days_available_in_person",
+		);
 
 		// Calculate offset
 		const offset = (page - 1) * limit;
@@ -120,13 +122,17 @@ export async function GET(request: NextRequest) {
 
 		// Handle array filtering for availability days - OR logic (teacher available on ANY of selected days)
 		if (daysAvailableOnline.length > 0) {
-			const orConditions = daysAvailableOnline.map(day => `days_available_online.cs.{${day}}`).join(',');
+			const orConditions = daysAvailableOnline
+				.map((day) => `days_available_online.cs.{${day}}`)
+				.join(",");
 			countQuery = countQuery.or(orConditions);
 			dataQuery = dataQuery.or(orConditions);
 		}
 
 		if (daysAvailableInPerson.length > 0) {
-			const orConditions = daysAvailableInPerson.map(day => `days_available_in_person.cs.{${day}}`).join(',');
+			const orConditions = daysAvailableInPerson
+				.map((day) => `days_available_in_person.cs.{${day}}`)
+				.join(",");
 			countQuery = countQuery.or(orConditions);
 			dataQuery = dataQuery.or(orConditions);
 		}
@@ -171,16 +177,19 @@ export async function GET(request: NextRequest) {
 					Array.from(uniq.entries()).map(([k, v]) => [k, v.size]),
 				);
 			} else {
-				console.warn("Failed to fetch active cohorts per teacher:", sessionsError);
+				console.warn(
+					"Failed to fetch active cohorts per teacher:",
+					sessionsError,
+				);
 			}
 		}
-		
+
 		const transformedData = (data || []).map((teacher) => ({
 			...teacher,
 			full_name: `${teacher.first_name} ${teacher.last_name}`.trim(),
 			active_cohorts_count: countsByTeacher.get(teacher.id) ?? 0,
 		}));
-				// Calculate pagination metadata
+		// Calculate pagination metadata
 		const totalPages = Math.ceil((count || 0) / limit);
 
 		return NextResponse.json({

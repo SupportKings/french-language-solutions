@@ -324,8 +324,6 @@ export function ClassDetailsModal({
 						)}
 					</div>
 
-				
-
 					{/* Google Drive */}
 					<div className="space-y-2">
 						<Label>Google Drive Folder</Label>

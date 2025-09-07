@@ -15,7 +15,9 @@ export const enrollmentQueries = {
 
 			if (!response.ok) {
 				const error = await response.json().catch(() => ({}));
-				throw new Error(error.error || `Failed to fetch enrollment: ${response.status}`);
+				throw new Error(
+					error.error || `Failed to fetch enrollment: ${response.status}`,
+				);
 			}
 
 			return response.json();

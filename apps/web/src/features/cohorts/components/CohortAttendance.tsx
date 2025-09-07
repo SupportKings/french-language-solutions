@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import Link from "next/link";
+
 import { cn } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";
@@ -43,10 +45,10 @@ import { format } from "date-fns";
 import {
 	BookOpen,
 	Calendar,
+	CheckCircle,
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
-	CheckCircle,
 	Clock,
 	Edit,
 	MinusCircle,
@@ -57,7 +59,6 @@ import {
 	UserPlus,
 	XCircle,
 } from "lucide-react";
-import Link from "next/link";
 import { toast } from "sonner";
 
 interface AttendanceRecord {
@@ -113,11 +114,17 @@ const statusConfig = {
 	},
 };
 
-export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceProps) {
+export function CohortAttendance({
+	cohortId,
+	initialClassId,
+}: CohortAttendanceProps) {
 	const [records, setRecords] = useState<AttendanceRecord[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState<string | null>(null);
-	const [updatingTo, setUpdatingTo] = useState<{ recordId: string; status?: string } | null>(null);
+	const [updatingTo, setUpdatingTo] = useState<{
+		recordId: string;
+		status?: string;
+	} | null>(null);
 	const [filter, setFilter] = useState<
 		"all" | "attended" | "not_attended" | "unset"
 	>("all");
@@ -132,13 +139,27 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 	const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
 	const [classes, setClasses] = useState<any[]>([]);
 	const [creatingAttendance, setCreatingAttendance] = useState(false);
-	const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
+	const [expandedClasses, setExpandedClasses] = useState<Set<string>>(
+		new Set(),
+	);
 	const [currentPage, setCurrentPage] = useState(1);
 	const recordsPerPage = 10;
-	
+
 	// New UX improvement states
-	const [classFilter, setClassFilter] = useState<"last" | "all" | string>(initialClassId || "last");
+	const [classFilter, setClassFilter] = useState<"last" | "all" | string>(
+		initialClassId || "last",
+	);
 	const [searchQuery, setSearchQuery] = useState("");
+
+	// Update classFilter when initialClassId prop changes
+	useEffect(() => {
+		if (initialClassId !== undefined) {
+			const newFilter = initialClassId || "last";
+			if (newFilter !== classFilter) {
+				setClassFilter(newFilter);
+			}
+		}
+	}, [initialClassId]);
 
 	// Fetch attendance data
 	const fetchAttendance = async () => {
@@ -157,7 +178,9 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 
 	const fetchEnrolledStudents = async () => {
 		try {
-			const response = await fetch(`/api/enrollments?cohortId=${cohortId}&limit=100`);
+			const response = await fetch(
+				`/api/enrollments?cohortId=${cohortId}&limit=100`,
+			);
 			if (!response.ok) throw new Error("Failed to fetch enrolled students");
 			const result = await response.json();
 			setEnrolledStudents(result.enrollments || []);
@@ -179,7 +202,11 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 
 	useEffect(() => {
 		const fetchData = async () => {
-			await Promise.all([fetchAttendance(), fetchEnrolledStudents(), fetchClasses()]);
+			await Promise.all([
+				fetchAttendance(),
+				fetchEnrolledStudents(),
+				fetchClasses(),
+			]);
 		};
 		fetchData();
 	}, [cohortId]);
@@ -194,7 +221,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 		if (updates.status) {
 			setUpdatingTo({ recordId, status: updates.status });
 		}
-		
+
 		try {
 			const response = await fetch(`/api/attendance/${recordId}`, {
 				method: "PATCH",
@@ -208,14 +235,14 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 
 			// Update the local record without changing order
 			const updatedRecord = await response.json();
-			setRecords(prevRecords => 
-				prevRecords.map(r => 
-					r.id === recordId 
-						? { ...r, ...updates, student: r.student } as AttendanceRecord // Type assertion to ensure correct type
-						: r
-				)
+			setRecords((prevRecords) =>
+				prevRecords.map((r) =>
+					r.id === recordId
+						? ({ ...r, ...updates, student: r.student } as AttendanceRecord) // Type assertion to ensure correct type
+						: r,
+				),
 			);
-			
+
 			toast.success("Attendance updated successfully");
 		} catch (error) {
 			console.error("Error updating attendance:", error);
@@ -246,9 +273,10 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 			// Only create attendance for students with "paid" or "welcome_package_sent" status
 			const eligibleStatuses = ["paid", "welcome_package_sent"];
 			const studentsNeedingAttendance = enrolledStudents
-				.filter((enrollment) => 
-					!studentsWithAttendance.has(enrollment.student_id) &&
-					eligibleStatuses.includes(enrollment.status)
+				.filter(
+					(enrollment) =>
+						!studentsWithAttendance.has(enrollment.student_id) &&
+						eligibleStatuses.includes(enrollment.status),
 				)
 				.map((enrollment) => ({
 					student_id: enrollment.student_id,
@@ -260,20 +288,25 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 
 			if (studentsNeedingAttendance.length === 0) {
 				// Check if there are any enrolled students without attendance but with wrong status
-				const ineligibleStudents = enrolledStudents.filter((enrollment) => 
-					!studentsWithAttendance.has(enrollment.student_id) &&
-					!eligibleStatuses.includes(enrollment.status)
+				const ineligibleStudents = enrolledStudents.filter(
+					(enrollment) =>
+						!studentsWithAttendance.has(enrollment.student_id) &&
+						!eligibleStatuses.includes(enrollment.status),
 				);
-				
+
 				if (ineligibleStudents.length > 0) {
-					toast.info(`${ineligibleStudents.length} students were skipped (only students with 'Paid' or 'Welcome Package Sent' status can have attendance)`);
+					toast.info(
+						`${ineligibleStudents.length} students were skipped (only students with 'Paid' or 'Welcome Package Sent' status can have attendance)`,
+					);
 				} else {
-					toast.info("All eligible students already have attendance records for this class");
+					toast.info(
+						"All eligible students already have attendance records for this class",
+					);
 				}
 				return;
 			}
 
-			const response = await fetch(`/api/attendance/bulk`, {
+			const response = await fetch("/api/attendance/bulk", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ records: studentsNeedingAttendance }),
@@ -285,15 +318,19 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 			}
 
 			// Check how many were skipped
-			const totalEligible = enrolledStudents.filter((enrollment) => 
-				eligibleStatuses.includes(enrollment.status)
+			const totalEligible = enrolledStudents.filter((enrollment) =>
+				eligibleStatuses.includes(enrollment.status),
 			).length;
 			const skippedCount = enrolledStudents.length - totalEligible;
-			
+
 			if (skippedCount > 0) {
-				toast.success(`Created attendance records for ${studentsNeedingAttendance.length} eligible students (${skippedCount} students skipped due to enrollment status)`);
+				toast.success(
+					`Created attendance records for ${studentsNeedingAttendance.length} eligible students (${skippedCount} students skipped due to enrollment status)`,
+				);
 			} else {
-				toast.success(`Created attendance records for ${studentsNeedingAttendance.length} students`);
+				toast.success(
+					`Created attendance records for ${studentsNeedingAttendance.length} students`,
+				);
 			}
 			setCreateDialogOpen(false);
 			setSelectedClassId("");
@@ -340,12 +377,12 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 	// Filter records with enhanced filtering
 	const filteredRecords = useMemo(() => {
 		let filtered = records;
-		
+
 		// Status filter
 		if (filter !== "all") {
 			filtered = filtered.filter((r) => r.status === filter);
 		}
-		
+
 		// Class filter
 		if (classFilter === "last" && lastClassId) {
 			// Show only the last class
@@ -355,7 +392,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 			filtered = filtered.filter((record) => record.classId === classFilter);
 		}
 		// If classFilter is "all", show all classes
-		
+
 		// Search filter
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase();
@@ -365,16 +402,16 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				return studentName.includes(query) || studentEmail.includes(query);
 			});
 		}
-		
+
 		return filtered;
 	}, [records, filter, classFilter, searchQuery, lastClassId]);
 
 	// Group records by class and sort by date (descending)
 	const groupedRecords = useMemo(() => {
 		const groups = new Map<string, AttendanceRecord[]>();
-		
+
 		filteredRecords.forEach((record) => {
-			const classId = record.classId || 'no-class';
+			const classId = record.classId || "no-class";
 			if (!groups.has(classId)) {
 				groups.set(classId, []);
 			}
@@ -384,34 +421,37 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 		// Sort records within each group by student name (stable sort)
 		groups.forEach((records, classId) => {
 			records.sort((a, b) => {
-				const nameA = a.student?.full_name || '';
-				const nameB = b.student?.full_name || '';
+				const nameA = a.student?.full_name || "";
+				const nameB = b.student?.full_name || "";
 				return nameA.localeCompare(nameB);
 			});
 		});
 
 		// Helper function to get a reliable timestamp for a group
-		const getGroupTimestamp = (classId: string, records: AttendanceRecord[]): number => {
+		const getGroupTimestamp = (
+			classId: string,
+			records: AttendanceRecord[],
+		): number => {
 			// First try to find the class by ID in the classes array
-			const classData = classes.find(c => c.id === classId);
+			const classData = classes.find((c) => c.id === classId);
 			if (classData?.start_time) {
 				const timestamp = new Date(classData.start_time).getTime();
 				if (!isNaN(timestamp)) return timestamp;
 			}
-			
+
 			// Fall back to the first record's class start_time
 			const firstRecord = records[0];
 			if (firstRecord?.class?.start_time) {
 				const timestamp = new Date(firstRecord.class.start_time).getTime();
 				if (!isNaN(timestamp)) return timestamp;
 			}
-			
+
 			// Fall back to attendanceDate
 			if (firstRecord?.attendanceDate) {
 				const timestamp = new Date(firstRecord.attendanceDate).getTime();
 				if (!isNaN(timestamp)) return timestamp;
 			}
-			
+
 			// Default to 0 for consistent ordering
 			return 0;
 		};
@@ -430,7 +470,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 	const totalPages = Math.ceil(groupedRecords.length / recordsPerPage);
 	const paginatedGroups = groupedRecords.slice(
 		(currentPage - 1) * recordsPerPage,
-		currentPage * recordsPerPage
+		currentPage * recordsPerPage,
 	);
 
 	// Toggle expanded state for a class
@@ -447,19 +487,17 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 	// Expand only first 3 classes by default when data loads or filters change
 	useEffect(() => {
 		const firstThreeClassIds = new Set(
-			groupedRecords.slice(0, 3).map(([classId]) => classId)
+			groupedRecords.slice(0, 3).map(([classId]) => classId),
 		);
 		setExpandedClasses(firstThreeClassIds);
 		setCurrentPage(1); // Reset to first page when filters change
 	}, [groupedRecords.length]); // Only re-run when the length changes
 
 	// Filter classes that don't have full attendance records yet
-	const availableClasses = classes.filter(
-		(cls) => {
-			const classAttendance = records.filter((r) => r.classId === cls.id);
-			return classAttendance.length < enrolledStudents.length;
-		}
-	);
+	const availableClasses = classes.filter((cls) => {
+		const classAttendance = records.filter((r) => r.classId === cls.id);
+		return classAttendance.length < enrolledStudents.length;
+	});
 
 	if (loading) {
 		return (
@@ -498,11 +536,8 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-3">
 						{/* Class Selector */}
-						<Select
-							value={classFilter}
-							onValueChange={setClassFilter}
-						>
-							<SelectTrigger className="w-[220px] h-9">
+						<Select value={classFilter} onValueChange={setClassFilter}>
+							<SelectTrigger className="h-9 w-[220px]">
 								<SelectValue placeholder="Select class..." />
 							</SelectTrigger>
 							<SelectContent>
@@ -510,11 +545,20 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 									<div className="flex items-center gap-2">
 										<Clock className="h-3.5 w-3.5" />
 										<span>Last Class</span>
-										{lastClassId && classes.find(c => c.id === lastClassId) && (
-											<span className="text-muted-foreground text-xs ml-1">
-												({format(new Date(classes.find(c => c.id === lastClassId)!.start_time), "MMM d")})
-											</span>
-										)}
+										{lastClassId &&
+											classes.find((c) => c.id === lastClassId) && (
+												<span className="ml-1 text-muted-foreground text-xs">
+													(
+													{format(
+														new Date(
+															classes.find((c) => c.id === lastClassId)!
+																.start_time,
+														),
+														"MMM d",
+													)}
+													)
+												</span>
+											)}
 									</div>
 								</SelectItem>
 								<SelectItem value="all">
@@ -525,22 +569,27 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 								</SelectItem>
 								{classes.length > 0 && (
 									<>
-										<div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-t">
+										<div className="border-t px-2 py-1.5 font-medium text-muted-foreground text-xs">
 											Select specific class
 										</div>
 										{classes
-											.sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
+											.sort(
+												(a, b) =>
+													new Date(b.start_time).getTime() -
+													new Date(a.start_time).getTime(),
+											)
 											.map((cls) => (
 												<SelectItem key={cls.id} value={cls.id}>
-													<div className="flex items-center justify-between w-full">
-														<span>{format(new Date(cls.start_time), "MMM d, yyyy")}</span>
-														<span className="text-muted-foreground text-xs ml-2">
+													<div className="flex w-full items-center justify-between">
+														<span>
+															{format(new Date(cls.start_time), "MMM d, yyyy")}
+														</span>
+														<span className="ml-2 text-muted-foreground text-xs">
 															{format(new Date(cls.start_time), "h:mm a")}
 														</span>
 													</div>
 												</SelectItem>
-											))
-										}
+											))}
 									</>
 								)}
 							</SelectContent>
@@ -548,12 +597,12 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 
 						{/* Search */}
 						<div className="relative">
-							<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+							<Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search students..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-[200px] pl-8 h-9"
+								className="h-9 w-[200px] pl-8"
 							/>
 						</div>
 
@@ -562,7 +611,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 							value={filter}
 							onValueChange={(value: any) => setFilter(value)}
 						>
-							<SelectTrigger className="w-[180px] h-9">
+							<SelectTrigger className="h-9 w-[180px]">
 								<SelectValue placeholder="Filter by status" />
 							</SelectTrigger>
 							<SelectContent>
@@ -586,9 +635,8 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 					)}
 				</div>
 
-
 				{/* Summary Stats */}
-				<div className="flex items-center gap-6 text-sm border-t pt-3">
+				<div className="flex items-center gap-6 border-t pt-3 text-sm">
 					<div className="text-muted-foreground">
 						Showing {filteredRecords.length} of {records.length} records
 					</div>
@@ -603,7 +651,10 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 						<div className="flex items-center gap-2">
 							<XCircle className="h-4 w-4 text-red-600" />
 							<span>
-								{filteredRecords.filter((r) => r.status === "not_attended").length}{" "}
+								{
+									filteredRecords.filter((r) => r.status === "not_attended")
+										.length
+								}{" "}
 								Absent
 							</span>
 						</div>
@@ -644,10 +695,7 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 									Create attendance records for your scheduled classes
 								</p>
 								{availableClasses.length > 0 && (
-									<Button
-										size="sm"
-										onClick={() => setCreateDialogOpen(true)}
-									>
+									<Button size="sm" onClick={() => setCreateDialogOpen(true)}>
 										<Plus className="mr-2 h-4 w-4" />
 										Create Attendance Records
 									</Button>
@@ -661,9 +709,16 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 								</p>
 								<p className="mb-4 text-muted-foreground text-xs">
 									{searchQuery && `No students found matching "${searchQuery}"`}
-									{!searchQuery && classFilter === "last" && "No attendance records for the last class"}
-									{!searchQuery && classFilter !== "all" && classFilter !== "last" && "No attendance records for this class"}
-									{!searchQuery && filter !== "all" && `No ${filter.replace("_", " ")} records`}
+									{!searchQuery &&
+										classFilter === "last" &&
+										"No attendance records for the last class"}
+									{!searchQuery &&
+										classFilter !== "all" &&
+										classFilter !== "last" &&
+										"No attendance records for this class"}
+									{!searchQuery &&
+										filter !== "all" &&
+										`No ${filter.replace("_", " ")} records`}
 								</p>
 								<Button
 									variant="outline"
@@ -686,14 +741,17 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 				) : (
 					paginatedGroups.map(([classId, classRecords]) => {
 						const firstRecord = classRecords[0];
-						const classDate = firstRecord?.class?.start_time || firstRecord?.attendanceDate;
+						const classDate =
+							firstRecord?.class?.start_time || firstRecord?.attendanceDate;
 						const isExpanded = expandedClasses.has(classId);
-						
+
 						// Calculate stats for this class
 						const classStats = {
-							present: classRecords.filter(r => r.status === "attended").length,
-							absent: classRecords.filter(r => r.status === "not_attended").length,
-							unset: classRecords.filter(r => r.status === "unset").length,
+							present: classRecords.filter((r) => r.status === "attended")
+								.length,
+							absent: classRecords.filter((r) => r.status === "not_attended")
+								.length,
+							unset: classRecords.filter((r) => r.status === "unset").length,
 							total: classRecords.length,
 						};
 
@@ -706,22 +764,28 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 								<div className="overflow-hidden rounded-lg border">
 									{/* Class Header */}
 									<CollapsibleTrigger className="w-full">
-										<div className="flex items-center justify-between bg-muted/30 px-4 py-3 hover:bg-muted/40 transition-colors">
+										<div className="flex items-center justify-between bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/40">
 											<div className="flex items-center gap-3">
-												<ChevronDown 
+												<ChevronDown
 													className={cn(
 														"h-4 w-4 transition-transform",
-														!isExpanded && "-rotate-90"
+														!isExpanded && "-rotate-90",
 													)}
 												/>
 												<Calendar className="h-4 w-4 text-muted-foreground" />
 												<div className="text-left">
 													<span className="font-medium">
-														{classDate ? format(new Date(classDate), "MMMM d, yyyy") : "Unknown Date"}
+														{classDate
+															? format(new Date(classDate), "MMMM d, yyyy")
+															: "Unknown Date"}
 													</span>
 													{firstRecord?.class?.start_time && (
 														<span className="ml-2 text-muted-foreground text-sm">
-															at {format(new Date(firstRecord.class.start_time), "h:mm a")}
+															at{" "}
+															{format(
+																new Date(firstRecord.class.start_time),
+																"h:mm a",
+															)}
 														</span>
 													)}
 												</div>
@@ -764,19 +828,25 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 											<TableBody>
 												{classRecords.map((record) => {
 													const isUpdating = updating === record.id;
-													const config = statusConfig[record.status as keyof typeof statusConfig];
+													const config =
+														statusConfig[
+															record.status as keyof typeof statusConfig
+														];
 
 													return (
-														<TableRow key={record.id} className="hover:bg-muted/5">
+														<TableRow
+															key={record.id}
+															className="hover:bg-muted/5"
+														>
 															{/* Student */}
 															<TableCell>
 																<Link
 																	href={`/admin/students/${record.studentId}`}
-																	className="flex items-center gap-2 hover:text-primary transition-colors"
+																	className="flex items-center gap-2 transition-colors hover:text-primary"
 																>
 																	<User className="h-3.5 w-3.5 text-muted-foreground" />
 																	<div>
-																		<div className="text-sm font-medium hover:underline">
+																		<div className="font-medium text-sm hover:underline">
 																			{record.student?.full_name || "Unknown"}
 																		</div>
 																		{record.student?.email && (
@@ -826,14 +896,18 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																			)}
 																		>
 																			<BookOpen className="h-3 w-3" />
-																			{record.homeworkCompleted ? "Done" : "Pending"}
+																			{record.homeworkCompleted
+																				? "Done"
+																				: "Pending"}
 																		</label>
 																		{isUpdating && (
 																			<div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
 																		)}
 																	</div>
 																) : (
-																	<span className="text-muted-foreground text-xs">—</span>
+																	<span className="text-muted-foreground text-xs">
+																		—
+																	</span>
 																)}
 															</TableCell>
 
@@ -868,17 +942,23 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																<div className="flex items-center gap-1">
 																	<Button
 																		variant={
-																			record.status === "attended" ? "default" : "outline"
+																			record.status === "attended"
+																				? "default"
+																				: "outline"
 																		}
 																		size="sm"
 																		className="h-7 px-2"
 																		onClick={() =>
-																			updateAttendance(record.id, { status: "attended" })
+																			updateAttendance(record.id, {
+																				status: "attended",
+																			})
 																		}
 																		disabled={isUpdating}
 																		title="Mark as Present"
 																	>
-																		{isUpdating && updatingTo?.recordId === record.id && updatingTo?.status === "attended" ? (
+																		{isUpdating &&
+																		updatingTo?.recordId === record.id &&
+																		updatingTo?.status === "attended" ? (
 																			<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 																		) : (
 																			<CheckCircle className="h-3.5 w-3.5" />
@@ -900,7 +980,9 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																		disabled={isUpdating}
 																		title="Mark as Absent"
 																	>
-																		{isUpdating && updatingTo?.recordId === record.id && updatingTo?.status === "not_attended" ? (
+																		{isUpdating &&
+																		updatingTo?.recordId === record.id &&
+																		updatingTo?.status === "not_attended" ? (
 																			<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 																		) : (
 																			<XCircle className="h-3.5 w-3.5" />
@@ -908,17 +990,23 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																	</Button>
 																	<Button
 																		variant={
-																			record.status === "unset" ? "secondary" : "outline"
+																			record.status === "unset"
+																				? "secondary"
+																				: "outline"
 																		}
 																		size="sm"
 																		className="h-7 px-2"
 																		onClick={() =>
-																			updateAttendance(record.id, { status: "unset" })
+																			updateAttendance(record.id, {
+																				status: "unset",
+																			})
 																		}
 																		disabled={isUpdating}
 																		title="Clear Status"
 																	>
-																		{isUpdating && updatingTo?.recordId === record.id && updatingTo?.status === "unset" ? (
+																		{isUpdating &&
+																		updatingTo?.recordId === record.id &&
+																		updatingTo?.status === "unset" ? (
 																			<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 																		) : (
 																			<MinusCircle className="h-3.5 w-3.5" />
@@ -934,7 +1022,9 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 																		{format(new Date(record.markedAt), "MMM d")}
 																	</div>
 																) : (
-																	<span className="text-muted-foreground text-xs">—</span>
+																	<span className="text-muted-foreground text-xs">
+																		—
+																	</span>
 																)}
 															</TableCell>
 														</TableRow>
@@ -969,22 +1059,26 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 							Previous
 						</Button>
 						<div className="flex items-center gap-1">
-							{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-								<Button
-									key={page}
-									variant={page === currentPage ? "default" : "outline"}
-									size="sm"
-									className="h-8 w-8 p-0"
-									onClick={() => setCurrentPage(page)}
-								>
-									{page}
-								</Button>
-							))}
+							{Array.from({ length: totalPages }, (_, i) => i + 1).map(
+								(page) => (
+									<Button
+										key={page}
+										variant={page === currentPage ? "default" : "outline"}
+										size="sm"
+										className="h-8 w-8 p-0"
+										onClick={() => setCurrentPage(page)}
+									>
+										{page}
+									</Button>
+								),
+							)}
 						</div>
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+							onClick={() =>
+								setCurrentPage(Math.min(totalPages, currentPage + 1))
+							}
 							disabled={currentPage === totalPages}
 						>
 							Next
@@ -1000,20 +1094,29 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 					<DialogHeader>
 						<DialogTitle>Create Attendance Records</DialogTitle>
 						<DialogDescription>
-							Select a class to create attendance records for all enrolled students.
+							Select a class to create attendance records for all enrolled
+							students.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-4 py-4">
 						<div className="space-y-2">
-							<label htmlFor="select-class" className="font-medium text-sm">Select Class</label>
-							<Select value={selectedClassId} onValueChange={setSelectedClassId}>
+							<label htmlFor="select-class" className="font-medium text-sm">
+								Select Class
+							</label>
+							<Select
+								value={selectedClassId}
+								onValueChange={setSelectedClassId}
+							>
 								<SelectTrigger aria-labelledby="create-class-label">
 									<SelectValue placeholder="Choose a class..." />
 								</SelectTrigger>
 								<SelectContent>
 									{availableClasses.map((cls) => (
 										<SelectItem key={cls.id} value={cls.id}>
-											{format(new Date(cls.start_time), "MMM d, yyyy 'at' h:mm a")}
+											{format(
+												new Date(cls.start_time),
+												"MMM d, yyyy 'at' h:mm a",
+											)}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -1021,30 +1124,39 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 						</div>
 						<div className="rounded-lg bg-muted p-3">
 							{(() => {
-								const eligibleCount = enrolledStudents.filter(e => 
-									["paid", "welcome_package_sent"].includes(e.status)
+								const eligibleCount = enrolledStudents.filter((e) =>
+									["paid", "welcome_package_sent"].includes(e.status),
 								).length;
 								const totalCount = enrolledStudents.length;
 								const ineligibleCount = totalCount - eligibleCount;
-								
+
 								if (eligibleCount === 0) {
 									return (
 										<p className="text-amber-600 text-sm">
-											<strong>No eligible students found.</strong> All {totalCount} enrolled student{totalCount !== 1 ? 's' : ''} 
-											{totalCount === 1 ? ' has' : ' have'} a status that doesn't allow attendance tracking. 
-											Only students with 'Paid' or 'Welcome Package Sent' status can have attendance.
+											<strong>No eligible students found.</strong> All{" "}
+											{totalCount} enrolled student{totalCount !== 1 ? "s" : ""}
+											{totalCount === 1 ? " has" : " have"} a status that
+											doesn't allow attendance tracking. Only students with
+											'Paid' or 'Welcome Package Sent' status can have
+											attendance.
 										</p>
 									);
 								}
-								
+
 								return (
 									<p className="text-muted-foreground text-sm">
 										This will create attendance records for{" "}
-										<strong>{eligibleCount} eligible student{eligibleCount !== 1 ? 's' : ''}</strong>{" "}
+										<strong>
+											{eligibleCount} eligible student
+											{eligibleCount !== 1 ? "s" : ""}
+										</strong>{" "}
 										in this cohort
 										{ineligibleCount > 0 && (
 											<span>
-												{" "}({ineligibleCount} student{ineligibleCount !== 1 ? 's' : ''} will be skipped due to enrollment status)
+												{" "}
+												({ineligibleCount} student
+												{ineligibleCount !== 1 ? "s" : ""} will be skipped due
+												to enrollment status)
 											</span>
 										)}
 										.
@@ -1066,9 +1178,11 @@ export function CohortAttendance({ cohortId, initialClassId }: CohortAttendanceP
 						<Button
 							onClick={createAttendanceRecords}
 							disabled={
-								!selectedClassId || 
-								creatingAttendance || 
-								enrolledStudents.filter(e => ["paid", "welcome_package_sent"].includes(e.status)).length === 0
+								!selectedClassId ||
+								creatingAttendance ||
+								enrolledStudents.filter((e) =>
+									["paid", "welcome_package_sent"].includes(e.status),
+								).length === 0
 							}
 						>
 							{creatingAttendance ? (
