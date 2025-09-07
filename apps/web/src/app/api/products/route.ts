@@ -9,19 +9,37 @@ export async function GET(request: NextRequest) {
 		const supabase = await createClient();
 		const searchParams = request.nextUrl.searchParams;
 
-		// Parse query parameters
-		const page = Number.parseInt(searchParams.get("page") || "1");
-		const limit = Number.parseInt(searchParams.get("limit") || "20");
+		// Parse and validate query parameters
+		const rawPage = Number.parseInt(searchParams.get("page") || "1");
+		const rawLimit = Number.parseInt(searchParams.get("limit") || "20");
+		
+		// Clamp and validate pagination values
+		const page = Math.max(1, Number.isNaN(rawPage) ? 1 : rawPage);
+		const limit = Math.min(100, Math.max(1, Number.isNaN(rawLimit) ? 20 : rawLimit));
+		
 		const search = searchParams.get("search") || "";
-		const sortBy = searchParams.get("sortBy") || "display_name";
-		const sortOrder = searchParams.get("sortOrder") || "asc";
+		
+		// Validate and map sortBy to allowed columns
+		const allowedSortColumns: Record<string, string> = {
+			"display_name": "display_name",
+			"format": "format",
+			"location": "location",
+			"created_at": "created_at",
+			"updated_at": "updated_at"
+		};
+		const rawSortBy = searchParams.get("sortBy") || "display_name";
+		const sortBy = allowedSortColumns[rawSortBy] || "display_name";
+		
+		// Validate sortOrder
+		const rawSortOrder = searchParams.get("sortOrder") || "asc";
+		const sortOrder = rawSortOrder === "desc" ? "desc" : "asc";
 
 		// Filter parameters
 		const formatFilters = searchParams.getAll("format");
 		const locationFilters = searchParams.getAll("location");
 
-		// Calculate offset for pagination
-		const offset = (page - 1) * limit;
+		// Calculate offset for pagination (ensure non-negative)
+		const offset = Math.max(0, (page - 1) * limit);
 
 		// Build query
 		let query = supabase

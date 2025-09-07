@@ -14,12 +14,12 @@ export function ProductsHeader() {
 					<h1 className="font-semibold text-lg">Products</h1>
 				</div>
 				<div>
-					<Link href="#" passHref>
-						<Button size="sm">
+					<Button size="sm" asChild>
+						<Link href="/products/new">
 							<Plus className="mr-2 h-4 w-4" />
 							Add Product
-						</Button>
-					</Link>
+						</Link>
+					</Button>
 				</div>
 			</div>
 		</div>

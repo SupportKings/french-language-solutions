@@ -57,12 +57,6 @@ export function EnrollmentStudentInfo({
 		onCancel?.();
 	};
 
-	const communicationChannels: CommunicationChannel[] = [
-		"sms_email",
-		"email",
-		"sms",
-	];
-
 	return (
 		<Card>
 			<CardHeader>

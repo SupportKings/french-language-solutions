@@ -206,12 +206,12 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 			scheduled_status: scheduledFilter?.values?.length
 				? scheduledFilter.values
 				: undefined,
-			// Date filter - can be single date or date range
+			// Date filter - can be single date or date range (use local date formatting)
 			date_from: dateFilter?.values?.[0]
-				? new Date(dateFilter.values[0]).toISOString().split("T")[0]
+				? new Date(dateFilter.values[0]).toLocaleDateString('en-CA')
 				: undefined,
 			date_to: dateFilter?.values?.[1]
-				? new Date(dateFilter.values[1]).toISOString().split("T")[0]
+				? new Date(dateFilter.values[1]).toLocaleDateString('en-CA')
 				: undefined,
 			date_operator: dateFilter?.operator,
 		};

@@ -484,9 +484,13 @@ export function CohortAttendance({
 	}, [groupedRecords.length]); // Only re-run when the length changes
 
 	// Filter classes that don't have full attendance records yet
+	const eligibleStatuses = ["paid", "welcome_package_sent"];
 	const availableClasses = classes.filter((cls) => {
 		const classAttendance = records.filter((r) => r.classId === cls.id);
-		return classAttendance.length < enrolledStudents.length;
+		const eligibleStudentsCount = enrolledStudents.filter((enrollment) =>
+			eligibleStatuses.includes(enrollment.status)
+		).length;
+		return classAttendance.length < eligibleStudentsCount;
 	});
 
 	if (loading) {
