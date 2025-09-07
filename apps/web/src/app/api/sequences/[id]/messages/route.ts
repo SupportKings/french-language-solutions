@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+
+const createMessageSchema = z.object({
+	status: z.enum(["draft", "active", "scheduled"]).default("active"),
+	time_delay_hours: z.number().int().positive().default(24),
+	message_content: z.string().min(1, "Message content cannot be empty"),
+});
 
 export async function POST(
 	request: NextRequest,
@@ -9,6 +16,17 @@ export async function POST(
 	try {
 		const { id: sequenceId } = await params;
 		const body = await request.json();
+		
+		// Validate request body
+		const validationResult = createMessageSchema.safeParse(body);
+		if (!validationResult.success) {
+			return NextResponse.json(
+				{ error: validationResult.error.issues[0].message },
+				{ status: 400 },
+			);
+		}
+		
+		const validatedData = validationResult.data;
 		const supabase = await createClient();
 
 		// Get the current max step_index for this sequence
@@ -24,15 +42,15 @@ export async function POST(
 				? existingMessages[0].step_index + 1
 				: 0;
 
-		// Insert the new message
+		// Insert the new message with validated data
 		const { data, error } = await supabase
 			.from("template_follow_up_messages")
 			.insert({
 				sequence_id: sequenceId,
 				step_index: nextStepIndex,
-				status: body.status || "active",
-				time_delay_hours: body.time_delay_hours || 24,
-				message_content: body.message_content,
+				status: validatedData.status,
+				time_delay_hours: validatedData.time_delay_hours,
+				message_content: validatedData.message_content,
 			})
 			.select()
 			.single();
@@ -45,7 +63,7 @@ export async function POST(
 			);
 		}
 
-		return NextResponse.json(data);
+		return NextResponse.json(data, { status: 201 });
 	} catch (error) {
 		console.error("Message creation error:", error);
 		return NextResponse.json(

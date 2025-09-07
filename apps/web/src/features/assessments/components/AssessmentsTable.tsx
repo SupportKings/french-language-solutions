@@ -208,10 +208,22 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 				: undefined,
 			// Date filter - can be single date or date range
 			date_from: dateFilter?.values?.[0]
-				? new Date(dateFilter.values[0]).toISOString().split("T")[0]
+				? (() => {
+						const d = new Date(dateFilter.values[0]);
+						const year = d.getFullYear();
+						const month = String(d.getMonth() + 1).padStart(2, '0');
+						const day = String(d.getDate()).padStart(2, '0');
+						return `${year}-${month}-${day}`;
+				  })()
 				: undefined,
 			date_to: dateFilter?.values?.[1]
-				? new Date(dateFilter.values[1]).toISOString().split("T")[0]
+				? (() => {
+						const d = new Date(dateFilter.values[1]);
+						const year = d.getFullYear();
+						const month = String(d.getMonth() + 1).padStart(2, '0');
+						const day = String(d.getDate()).padStart(2, '0');
+						return `${year}-${month}-${day}`;
+				  })()
 				: undefined,
 			date_operator: dateFilter?.operator,
 		};

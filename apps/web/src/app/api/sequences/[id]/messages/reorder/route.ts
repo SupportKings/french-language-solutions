@@ -53,20 +53,18 @@ export async function POST(
 			step_index: index,
 		}));
 
-		// Perform batch update
-		for (const update of updates) {
-			const { error: updateError } = await supabase
-				.from("template_follow_up_messages")
-				.update({ step_index: update.step_index })
-				.eq("id", update.id);
+		// Perform batch upsert in a single atomic operation
+		const { error: updateError } = await supabase
+			.from("template_follow_up_messages")
+			.upsert(updates, { onConflict: "id" })
+			.select();
 
-			if (updateError) {
-				console.error("Error updating message step_index:", updateError);
-				return NextResponse.json(
-					{ error: "Failed to reorder messages" },
-					{ status: 500 },
-				);
-			}
+		if (updateError) {
+			console.error("Error updating message step_index:", updateError);
+			return NextResponse.json(
+				{ error: "Failed to reorder messages" },
+				{ status: 500 },
+			);
 		}
 
 		return NextResponse.json({ success: true });

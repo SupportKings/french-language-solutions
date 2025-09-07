@@ -147,7 +147,7 @@ export function TouchpointCreateForm() {
 			// Format dates for API - keep in local timezone
 			const payload = {
 				...values,
-				occurred_at: format(values.occurred_at, "yyyy-MM-dd'T'HH:mm:ss"),
+				occurred_at: format(values.occurred_at, "yyyy-MM-dd'T'HH:mm:ssXXX"),
 				automated_follow_up_id: values.automated_follow_up_id || null,
 			};
 

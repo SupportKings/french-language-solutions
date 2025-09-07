@@ -25,6 +25,10 @@ export async function GET(
 				)
 			`)
 			.eq("id", id)
+			.order("step_index", {
+				foreignTable: "template_follow_up_messages",
+				ascending: true,
+			})
 			.single();
 
 		if (error) {
@@ -39,13 +43,6 @@ export async function GET(
 			return NextResponse.json(
 				{ error: "Sequence not found" },
 				{ status: 404 },
-			);
-		}
-
-		// Sort messages by step_index
-		if (data.template_follow_up_messages) {
-			data.template_follow_up_messages.sort(
-				(a: any, b: any) => a.step_index - b.step_index,
 			);
 		}
 
@@ -70,7 +67,10 @@ export async function PATCH(
 
 		const { data, error } = await supabase
 			.from("template_follow_up_sequences")
-			.update(body)
+			.update({
+				...body,
+				updated_at: new Date().toISOString(),
+			})
 			.eq("id", id)
 			.select(`
 				*,
@@ -84,6 +84,10 @@ export async function PATCH(
 					updated_at
 				)
 			`)
+			.order("step_index", {
+				foreignTable: "template_follow_up_messages",
+				ascending: true,
+			})
 			.single();
 
 		if (error) {
@@ -91,13 +95,6 @@ export async function PATCH(
 			return NextResponse.json(
 				{ error: "Failed to update sequence" },
 				{ status: 500 },
-			);
-		}
-
-		// Sort messages by step_index
-		if (data.template_follow_up_messages) {
-			data.template_follow_up_messages.sort(
-				(a: any, b: any) => a.step_index - b.step_index,
 			);
 		}
 

@@ -434,33 +434,16 @@ export default function TouchpointDetailsClient({
 																		const currentTime = new Date(
 																			editedTouchpoint.occurred_at,
 																		);
-																		date.setHours(currentTime.getHours());
-																		date.setMinutes(currentTime.getMinutes());
-																		date.setSeconds(currentTime.getSeconds());
-																		// Format as local datetime string
-																		const year = date.getFullYear();
-																		const month = (date.getMonth() + 1)
-																			.toString()
-																			.padStart(2, "0");
-																		const day = date
-																			.getDate()
-																			.toString()
-																			.padStart(2, "0");
-																		const h = date
-																			.getHours()
-																			.toString()
-																			.padStart(2, "0");
-																		const m = date
-																			.getMinutes()
-																			.toString()
-																			.padStart(2, "0");
-																		const s = date
-																			.getSeconds()
-																			.toString()
-																			.padStart(2, "0");
+																		date.setHours(
+																			currentTime.getHours(),
+																			currentTime.getMinutes(),
+																			currentTime.getSeconds(),
+																			currentTime.getMilliseconds()
+																		);
+																		// Send timezone-safe ISO timestamp
 																		updateEditedField(
 																			"occurred_at",
-																			`${year}-${month}-${day}T${h}:${m}:${s}`,
+																			date.toISOString(),
 																		);
 																	}
 																}}
@@ -491,32 +474,16 @@ export default function TouchpointDetailsClient({
 															const newDate = new Date(
 																editedTouchpoint.occurred_at,
 															);
-															newDate.setHours(parseInt(hours, 10));
-															newDate.setMinutes(parseInt(minutes, 10));
-															// Format as local datetime string instead of ISO
-															const year = newDate.getFullYear();
-															const month = (newDate.getMonth() + 1)
-																.toString()
-																.padStart(2, "0");
-															const day = newDate
-																.getDate()
-																.toString()
-																.padStart(2, "0");
-															const h = newDate
-																.getHours()
-																.toString()
-																.padStart(2, "0");
-															const m = newDate
-																.getMinutes()
-																.toString()
-																.padStart(2, "0");
-															const s = newDate
-																.getSeconds()
-																.toString()
-																.padStart(2, "0");
+															newDate.setHours(
+																parseInt(hours, 10),
+																parseInt(minutes, 10),
+																newDate.getSeconds(),
+																newDate.getMilliseconds()
+															);
+															// Send timezone-safe ISO timestamp
 															updateEditedField(
 																"occurred_at",
-																`${year}-${month}-${day}T${h}:${m}:${s}`,
+																newDate.toISOString(),
 															);
 														}}
 													/>

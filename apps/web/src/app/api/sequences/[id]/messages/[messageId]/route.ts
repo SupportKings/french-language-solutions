@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+
+const updateMessageSchema = z.object({
+	status: z.enum(["draft", "active", "scheduled"]).optional(),
+	time_delay_hours: z.number().min(0).optional(),
+	message_content: z.string().optional(),
+});
 
 export async function PATCH(
 	request: NextRequest,
@@ -9,15 +16,35 @@ export async function PATCH(
 	try {
 		const { messageId } = await params;
 		const body = await request.json();
+		
+		// Validate request body
+		const validationResult = updateMessageSchema.safeParse(body);
+		if (!validationResult.success) {
+			return NextResponse.json(
+				{ error: validationResult.error.issues[0].message },
+				{ status: 400 },
+			);
+		}
+		
+		// Build update payload from validated data only
+		const updatePayload: Record<string, any> = {};
+		const validatedData = validationResult.data;
+		
+		if (validatedData.status !== undefined) {
+			updatePayload.status = validatedData.status;
+		}
+		if (validatedData.time_delay_hours !== undefined) {
+			updatePayload.time_delay_hours = validatedData.time_delay_hours;
+		}
+		if (validatedData.message_content !== undefined) {
+			updatePayload.message_content = validatedData.message_content;
+		}
+		
 		const supabase = await createClient();
 
 		const { data, error } = await supabase
 			.from("template_follow_up_messages")
-			.update({
-				status: body.status,
-				time_delay_hours: body.time_delay_hours,
-				message_content: body.message_content,
-			})
+			.update(updatePayload)
 			.eq("id", messageId)
 			.select()
 			.single();
@@ -41,59 +68,29 @@ export async function PATCH(
 }
 
 export async function DELETE(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string; messageId: string }> },
 ) {
 	try {
-		const { id: sequenceId, messageId } = await params;
+		const { messageId } = await params;
 		const supabase = await createClient();
 
-		// Get the step_index of the message being deleted
-		const { data: messageToDelete } = await supabase
-			.from("template_follow_up_messages")
-			.select("step_index")
-			.eq("id", messageId)
-			.single();
+		// Use atomic RPC function to delete message and reorder indices
+		const { error: rpcError } = await supabase.rpc("delete_message_and_reorder", {
+			p_message_id: messageId,
+		});
 
-		if (!messageToDelete) {
-			return NextResponse.json({ error: "Message not found" }, { status: 404 });
-		}
-
-		// Delete the message
-		const { error: deleteError } = await supabase
-			.from("template_follow_up_messages")
-			.delete()
-			.eq("id", messageId);
-
-		if (deleteError) {
-			console.error("Error deleting message:", deleteError);
+		if (rpcError) {
+			// Check if message not found
+			if (rpcError.message?.includes("Message not found")) {
+				return NextResponse.json({ error: "Message not found" }, { status: 404 });
+			}
+			
+			console.error("Error deleting message:", rpcError);
 			return NextResponse.json(
 				{ error: "Failed to delete message" },
 				{ status: 500 },
 			);
-		}
-
-		// Get all messages that come after the deleted one
-		const { data: messagesToUpdate } = await supabase
-			.from("template_follow_up_messages")
-			.select("id, step_index")
-			.eq("sequence_id", sequenceId)
-			.gt("step_index", messageToDelete.step_index)
-			.order("step_index", { ascending: true });
-
-		// Update step_index for messages that come after the deleted one
-		if (messagesToUpdate && messagesToUpdate.length > 0) {
-			for (const message of messagesToUpdate) {
-				const { error: updateError } = await supabase
-					.from("template_follow_up_messages")
-					.update({ step_index: message.step_index - 1 })
-					.eq("id", message.id);
-
-				if (updateError) {
-					console.error("Error updating step index for message:", message.id, updateError);
-					// The message is already deleted, so we just log the error
-				}
-			}
 		}
 
 		return NextResponse.json({ success: true });
