@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import { automatedFollowUpsApi } from "@/features/follow-ups/api/follow-ups.api";
-import { automatedFollowUpsKeys } from "@/features/follow-ups/queries/follow-ups.queries";
+import { automatedFollowUpsQueries } from "@/features/automated-follow-ups/queries/automated-follow-ups.queries";
 
 import { getUser } from "@/queries/getUser";
 
@@ -28,10 +27,7 @@ export default async function AutomatedFollowUpDetailPage({
 	// Prefetch automated follow-up data
 	try {
 		await Promise.all([
-			queryClient.prefetchQuery({
-				queryKey: automatedFollowUpsKeys.detail(id),
-				queryFn: () => automatedFollowUpsApi.getById(id),
-			}),
+			queryClient.prefetchQuery(automatedFollowUpsQueries.detail(id)),
 		]);
 	} catch (error) {
 		notFound();

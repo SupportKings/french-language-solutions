@@ -5,7 +5,12 @@ export const createProductSchema = z.object({
 	format: z.enum(["group", "private", "hybrid"]),
 	location: z.enum(["online", "in_person", "hybrid"]),
 	pandadoc_contract_template_id: z.string().optional().nullable(),
-	signup_link_for_self_checkout: z.string().url("Must be a valid URL").optional().nullable().or(z.literal("")),
+	signup_link_for_self_checkout: z
+		.string()
+		.url("Must be a valid URL")
+		.optional()
+		.nullable()
+		.or(z.literal("")),
 });
 
 export const updateProductSchema = createProductSchema.partial();

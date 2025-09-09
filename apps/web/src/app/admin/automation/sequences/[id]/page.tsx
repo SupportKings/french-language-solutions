@@ -1,6 +1,11 @@
-import { SequenceDetailPageClient } from "./page-client";
-import { HydrationBoundary, dehydrate, QueryClient } from "@tanstack/react-query";
 import { sequencesQueries } from "@/features/sequences/queries/sequences.queries";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import { SequenceDetailPageClient } from "./page-client";
 export default async function SequenceDetailPage({
 	params,
 }: {

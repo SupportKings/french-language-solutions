@@ -246,7 +246,10 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 									className="transition-colors duration-150 hover:bg-muted/50"
 								>
 									<TableCell>
-										<Link href={`/admin/cohorts/products/${product.id}`} className="hover:underline">
+										<Link
+											href={`/admin/cohorts/products/${product.id}`}
+											className="hover:underline"
+										>
 											<p className="cursor-pointer font-medium transition-colors hover:text-primary">
 												{product.display_name}
 											</p>
@@ -264,10 +267,9 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
-											{product.created_at 
+											{product.created_at
 												? format(new Date(product.created_at), "MMM d, yyyy")
-												: "N/A"
-											}
+												: "N/A"}
 										</p>
 									</TableCell>
 									<TableCell>
@@ -278,7 +280,10 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
-												<Link href={`/admin/cohorts/products/${product.id}`} passHref>
+												<Link
+													href={`/admin/cohorts/products/${product.id}`}
+													passHref
+												>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />
 														View

@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+
 import { getApiUrl } from "@/lib/api-utils";
+
 import {
 	dehydrate,
 	HydrationBoundary,

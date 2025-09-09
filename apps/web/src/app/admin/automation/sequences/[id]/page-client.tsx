@@ -471,7 +471,7 @@ export function SequenceDetailPageClient({
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Updated:</span>
+								<span>Updated at:</span>
 								<span>
 									{format(
 										new Date(sequence.updated_at),

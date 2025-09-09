@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import {
@@ -38,9 +39,15 @@ import { Switch } from "@/components/ui/switch";
 import { studentsApi } from "@/features/students/api/students.api";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useDebounce } from "@uidotdev/usehooks";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Loader2, UserPlus, Workflow } from "lucide-react";
+import { useDebounce } from "@uidotdev/usehooks";
+import {
+	Check,
+	ChevronsUpDown,
+	Loader2,
+	UserPlus,
+	Workflow,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -110,7 +117,8 @@ export function FollowUpForm({
 	const { data: selectedStudentData } = useQuery({
 		queryKey: ["students", selectedStudentId],
 		queryFn: () => studentsApi.getById(selectedStudentId),
-		enabled: !!selectedStudentId && !students.find((s) => s.id === selectedStudentId),
+		enabled:
+			!!selectedStudentId && !students.find((s) => s.id === selectedStudentId),
 		staleTime: 1000 * 60 * 10,
 	});
 
@@ -120,9 +128,9 @@ export function FollowUpForm({
 	const onSubmit = async (values: FormValues) => {
 		setIsSubmitting(true);
 		try {
-			const result = await createAutomatedFollowUp(values);
+			const { data, serverError } = await createAutomatedFollowUp(values);
 
-			if (result && "data" in result && result.data) {
+			if (data) {
 				toast.success("Automated follow-up has been created successfully");
 
 				if (redirectTo) {
@@ -131,9 +139,8 @@ export function FollowUpForm({
 					router.push("/admin/automation/automated-follow-ups");
 				}
 			} else {
-				const errorMessage = result && "serverError" in result && result.serverError 
-					? result.serverError 
-					: "Failed to create automated follow-up";
+				const errorMessage =
+					serverError || "Failed to create automated follow-up";
 				toast.error(errorMessage);
 			}
 		} catch (error) {
@@ -337,8 +344,6 @@ export function FollowUpForm({
 									</SelectContent>
 								</Select>
 							</FormField>
-
-						
 						</FormSection>
 					</div>
 				</FormContent>

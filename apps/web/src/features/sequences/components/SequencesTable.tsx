@@ -38,6 +38,7 @@ import {
 	Trash,
 	Users,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useDeleteSequence, useSequences } from "../queries/sequences.queries";
 import type { SequenceQuery } from "../schemas/sequence.schema";
 import { SequenceCreateModal } from "./SequenceCreateModal";
@@ -69,10 +70,18 @@ export function SequencesTable() {
 
 	const handleDelete = async () => {
 		if (!sequenceToDelete) return;
+		if (isDeleting) return;
+
 		setIsDeleting(true);
 		try {
 			await deleteSequence.mutateAsync(sequenceToDelete);
+			toast.success("Sequence deleted successfully");
 			setSequenceToDelete(null);
+		} catch (error: unknown) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to delete sequence";
+			toast.error(errorMessage);
+			console.error("Delete sequence error:", error);
 		} finally {
 			setIsDeleting(false);
 		}
@@ -187,7 +196,6 @@ export function SequencesTable() {
 											<MessageSquare className="h-4 w-4 text-muted-foreground" />
 											<div>
 												<p className="font-medium">{sequence.display_name}</p>
-
 											</div>
 										</div>
 									</TableCell>

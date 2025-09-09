@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+
+import { z } from "zod";
 
 const createMessageSchema = z.object({
 	status: z.enum(["draft", "active", "scheduled"]).default("active"),
@@ -16,7 +17,7 @@ export async function POST(
 	try {
 		const { id: sequenceId } = await params;
 		const body = await request.json();
-		
+
 		// Validate request body
 		const validationResult = createMessageSchema.safeParse(body);
 		if (!validationResult.success) {
@@ -25,7 +26,7 @@ export async function POST(
 				{ status: 400 },
 			);
 		}
-		
+
 		const validatedData = validationResult.data;
 		const supabase = await createClient();
 

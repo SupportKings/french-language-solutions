@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+
+import { z } from "zod";
 
 const updateMessageSchema = z.object({
 	status: z.enum(["draft", "active", "scheduled"]).optional(),
@@ -16,7 +17,7 @@ export async function PATCH(
 	try {
 		const { messageId } = await params;
 		const body = await request.json();
-		
+
 		// Validate request body
 		const validationResult = updateMessageSchema.safeParse(body);
 		if (!validationResult.success) {
@@ -25,11 +26,11 @@ export async function PATCH(
 				{ status: 400 },
 			);
 		}
-		
+
 		// Build update payload from validated data only
 		const updatePayload: Record<string, any> = {};
 		const validatedData = validationResult.data;
-		
+
 		if (validatedData.status !== undefined) {
 			updatePayload.status = validatedData.status;
 		}
@@ -39,7 +40,7 @@ export async function PATCH(
 		if (validatedData.message_content !== undefined) {
 			updatePayload.message_content = validatedData.message_content;
 		}
-		
+
 		const supabase = await createClient();
 
 		const { data, error } = await supabase
@@ -76,16 +77,22 @@ export async function DELETE(
 		const supabase = await createClient();
 
 		// Use atomic RPC function to delete message and reorder indices
-		const { error: rpcError } = await supabase.rpc("delete_message_and_reorder", {
-			p_message_id: messageId,
-		});
+		const { error: rpcError } = await supabase.rpc(
+			"delete_message_and_reorder",
+			{
+				p_message_id: messageId,
+			},
+		);
 
 		if (rpcError) {
 			// Check if message not found
 			if (rpcError.message?.includes("Message not found")) {
-				return NextResponse.json({ error: "Message not found" }, { status: 404 });
+				return NextResponse.json(
+					{ error: "Message not found" },
+					{ status: 404 },
+				);
 			}
-			
+
 			console.error("Error deleting message:", rpcError);
 			return NextResponse.json(
 				{ error: "Failed to delete message" },

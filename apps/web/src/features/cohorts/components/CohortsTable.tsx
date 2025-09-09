@@ -281,11 +281,15 @@ export function CohortsTable({
 								<TableCell>
 									<div className="flex h-12 items-center">
 										<Link
-											href={cohort.products?.id ? `/admin/products/${cohort.products.id}` : "/admin/products"}
+											href={
+												cohort.products?.id
+													? `/admin/products/${cohort.products.id}`
+													: "/admin/products"
+											}
 											onClick={(e) => e.stopPropagation()}
 										>
-											<Badge 
-												variant="default" 
+											<Badge
+												variant="default"
 												className="cursor-pointer font-medium transition-colors hover:bg-primary/90"
 											>
 												{cohort.products?.display_name ||

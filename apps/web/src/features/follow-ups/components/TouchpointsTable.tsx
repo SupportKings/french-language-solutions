@@ -5,19 +5,18 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import type { AutomatedFollowUpWithRelations } from "../types/follow-up.types";
-
 import { format } from "date-fns";
 import {
+	ArrowDown,
+	ArrowUp,
+	Bot,
 	ExternalLink,
 	Mail,
 	MessageSquare,
 	Phone,
-	ArrowDown,
-	ArrowUp,
 	User,
-	Bot,
 } from "lucide-react";
+import type { AutomatedFollowUpWithRelations } from "../types/follow-up.types";
 
 interface TouchpointsTableProps {
 	followUp: AutomatedFollowUpWithRelations;
@@ -143,8 +142,9 @@ export function TouchpointsTable({ followUp }: TouchpointsTableProps) {
 	}
 
 	// Sort touchpoints by occurred_at descending (newest first)
-	const sortedTouchpoints = [...touchpoints].sort((a, b) => 
-		new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime()
+	const sortedTouchpoints = [...touchpoints].sort(
+		(a, b) =>
+			new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime(),
 	);
 
 	return (
@@ -153,11 +153,12 @@ export function TouchpointsTable({ followUp }: TouchpointsTableProps) {
 				<div className="flex items-center justify-between">
 					<h2 className="font-semibold text-lg">Touchpoints</h2>
 					<Badge variant="secondary" className="text-xs">
-						{touchpoints.length} {touchpoints.length === 1 ? "touchpoint" : "touchpoints"}
+						{touchpoints.length}{" "}
+						{touchpoints.length === 1 ? "touchpoint" : "touchpoints"}
 					</Badge>
 				</div>
 			</div>
-			
+
 			<div className="space-y-0">
 				{sortedTouchpoints.map((touchpoint, index) => {
 					const ChannelIcon = getChannelIcon(touchpoint.channel);
@@ -178,8 +179,8 @@ export function TouchpointsTable({ followUp }: TouchpointsTableProps) {
 									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
 										<ChannelIcon className="h-4 w-4 text-primary" />
 									</div>
-									<Badge 
-										variant={getTypeVariant(touchpoint.type)} 
+									<Badge
+										variant={getTypeVariant(touchpoint.type)}
 										className="h-5 px-1.5 text-xs"
 									>
 										<TypeIcon className="mr-1 h-3 w-3" />
@@ -201,7 +202,10 @@ export function TouchpointsTable({ followUp }: TouchpointsTableProps) {
 													{formatSource(touchpoint.source)}
 												</Badge>
 												<span className="text-muted-foreground text-xs">
-													{format(new Date(touchpoint.occurred_at), "MMM d, yyyy 'at' h:mm a")}
+													{format(
+														new Date(touchpoint.occurred_at),
+														"MMM d, yyyy 'at' h:mm a",
+													)}
 												</span>
 											</div>
 
@@ -215,12 +219,10 @@ export function TouchpointsTable({ followUp }: TouchpointsTableProps) {
 
 										{/* Action Button */}
 										<div className="opacity-0 transition-opacity group-hover:opacity-100">
-											<Button
-												variant="ghost"
-												size="sm"
-												asChild
-											>
-												<Link href={`/admin/automation/touchpoints/${touchpoint.id}`}>
+											<Button variant="ghost" size="sm" asChild>
+												<Link
+													href={`/admin/automation/touchpoints/${touchpoint.id}`}
+												>
 													<ExternalLink className="h-3.5 w-3.5" />
 												</Link>
 											</Button>

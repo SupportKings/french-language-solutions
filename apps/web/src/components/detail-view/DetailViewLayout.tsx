@@ -414,11 +414,11 @@ export function SystemInfoCard({
 					</div>
 				))}
 				<div className="text-sm">
-					<span className="text-muted-foreground">Created:</span>
+					<span className="text-muted-foreground">Created at:</span>
 					<span className="ml-2">{createdAt}</span>
 				</div>
 				<div className="text-sm">
-					<span className="text-muted-foreground">Updated:</span>
+					<span className="text-muted-foreground">Updated at:</span>
 					<span className="ml-2">{updatedAt}</span>
 				</div>
 			</CardContent>

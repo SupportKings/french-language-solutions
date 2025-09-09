@@ -18,11 +18,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+import { useAutomatedFollowUp } from "@/features/automated-follow-ups/queries/automated-follow-ups.queries";
 import { TouchpointsTable } from "@/features/follow-ups/components/TouchpointsTable";
-import {
-	useAutomatedFollowUp,
-	useStopAutomatedFollowUp,
-} from "@/features/follow-ups/queries/follow-ups.queries";
+import { useStopAutomatedFollowUp } from "@/features/follow-ups/queries/follow-ups.queries";
 
 import { format } from "date-fns";
 import {
@@ -81,7 +79,12 @@ export function AutomatedFollowUpDetailPageClient({
 	followUpId,
 }: AutomatedFollowUpDetailPageClientProps) {
 	const router = useRouter();
-	const { data: followUpData, isLoading, error, isSuccess } = useAutomatedFollowUp(followUpId);
+	const {
+		data: followUpData,
+		isLoading,
+		error,
+		isSuccess,
+	} = useAutomatedFollowUp(followUpId);
 	const [showStopConfirm, setShowStopConfirm] = useState(false);
 	const [isStopping, setIsStopping] = useState(false);
 
@@ -174,11 +177,18 @@ export function AutomatedFollowUpDetailPageClient({
 			<div className="flex min-h-screen items-center justify-center bg-muted/30">
 				<div className="text-center">
 					<Bot className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-					<h2 className="mb-2 font-semibold text-lg">Automated follow-up not found</h2>
+					<h2 className="mb-2 font-semibold text-lg">
+						Automated follow-up not found
+					</h2>
 					<p className="mb-4 text-muted-foreground">
-						The automated follow-up you're looking for doesn't exist or couldn't be loaded.
+						The automated follow-up you're looking for doesn't exist or couldn't
+						be loaded.
 					</p>
-					<Button onClick={() => router.push("/admin/automation/automated-follow-ups")}>
+					<Button
+						onClick={() =>
+							router.push("/admin/automation/automated-follow-ups")
+						}
+					>
 						Back to Automated Follow-ups
 					</Button>
 				</div>
@@ -193,8 +203,11 @@ export function AutomatedFollowUpDetailPageClient({
 
 	// Get follow-up name and student info - checking both plural and singular forms
 	const student = (followUpData as any).students || followUpData.student;
-	const sequence = (followUpData as any).sequences || followUpData.template_follow_up_sequences || (followUpData as any).sequence;
-	
+	const sequence =
+		(followUpData as any).sequences ||
+		followUpData.template_follow_up_sequences ||
+		(followUpData as any).sequence;
+
 	const followUpName = sequence?.display_name || "Automated Follow-up";
 	const studentName = student?.full_name || "Unknown Student";
 	const initials = "AF";
@@ -216,7 +229,6 @@ export function AutomatedFollowUpDetailPageClient({
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							
 							<div>
 								<h1 className="font-semibold text-xl">{followUpName}</h1>
 								<div className="mt-0.5 flex items-center gap-2">
@@ -239,19 +251,22 @@ export function AutomatedFollowUpDetailPageClient({
 						</div>
 
 						<div className="flex items-center gap-2">
-							<Link href={`/admin/students/${followUpData.student_id || ''}`}>
+							<Link href={`/admin/students/${followUpData.student_id || ""}`}>
 								<Button variant="outline" size="sm">
 									<User className="mr-1.5 h-3.5 w-3.5" />
 									View Student
 								</Button>
 							</Link>
-							<Link href={`/admin/automation/sequences/${followUpData.sequence_id || ''}`}>
+							<Link
+								href={`/admin/automation/sequences/${followUpData.sequence_id || ""}`}
+							>
 								<Button variant="outline" size="sm">
 									<Layers className="mr-1.5 h-3.5 w-3.5" />
 									View Sequence
 								</Button>
 							</Link>
-							{followUpData.status === "activated" || followUpData.status === "ongoing" ? (
+							{followUpData.status === "activated" ||
+							followUpData.status === "ongoing" ? (
 								<Button
 									variant="destructive"
 									size="sm"
@@ -306,9 +321,14 @@ export function AutomatedFollowUpDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Started At:</p>
+											<p className="text-muted-foreground text-xs">
+												Started At:
+											</p>
 											<p className="font-medium text-sm">
-												{format(new Date(followUpData.started_at), "MMM d, yyyy")}
+												{format(
+													new Date(followUpData.started_at),
+													"MMM d, yyyy",
+												)}
 											</p>
 										</div>
 									</div>
@@ -316,17 +336,21 @@ export function AutomatedFollowUpDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Send className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Last Message Sent at:</p>
+											<p className="text-muted-foreground text-xs">
+												Last Message Sent at:
+											</p>
 											{followUpData.last_message_sent_at ? (
 												<p className="font-medium text-sm">
-													{format(new Date(followUpData.last_message_sent_at), "MMM d, yyyy")}
+													{format(
+														new Date(followUpData.last_message_sent_at),
+														"MMM d, yyyy",
+													)}
 												</p>
 											) : (
 												<span className="font-medium text-sm">—</span>
 											)}
 										</div>
 									</div>
-
 								</div>
 							</div>
 
@@ -339,10 +363,12 @@ export function AutomatedFollowUpDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Workflow className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Follow-up Sequence:</p>
+											<p className="text-muted-foreground text-xs">
+												Follow-up Sequence:
+											</p>
 											{sequence ? (
 												<Link
-													href={`/admin/automation/sequences/${followUpData.sequence_id || ''}`}
+													href={`/admin/automation/sequences/${followUpData.sequence_id || ""}`}
 													className="flex items-center gap-1 text-primary text-sm hover:underline"
 												>
 													{sequence.display_name}
@@ -359,8 +385,12 @@ export function AutomatedFollowUpDetailPageClient({
 										<div className="flex items-start gap-3">
 											<MessageSquare className="mt-0.5 h-4 w-4 text-muted-foreground" />
 											<div className="flex-1 space-y-0.5">
-												<p className="text-muted-foreground text-xs">Subject:</p>
-												<p className="font-medium text-sm">{sequence.subject}</p>
+												<p className="text-muted-foreground text-xs">
+													Subject:
+												</p>
+												<p className="font-medium text-sm">
+													{sequence.subject}
+												</p>
 											</div>
 										</div>
 									)}
@@ -369,12 +399,16 @@ export function AutomatedFollowUpDetailPageClient({
 										<div className="flex items-start gap-3">
 											<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 											<div className="flex-1 space-y-0.5">
-												<p className="text-muted-foreground text-xs">First Delay:</p>
+												<p className="text-muted-foreground text-xs">
+													First Delay:
+												</p>
 												<p className="font-medium text-sm">
 													{(() => {
-														const minutes = sequence.first_follow_up_delay_minutes;
+														const minutes =
+															sequence.first_follow_up_delay_minutes;
 														if (minutes < 60) return `${minutes} minutes`;
-														if (minutes < 1440) return `${Math.floor(minutes / 60)} hours`;
+														if (minutes < 1440)
+															return `${Math.floor(minutes / 60)} hours`;
 														return `${Math.floor(minutes / 1440)} days`;
 													})()}
 												</p>
@@ -406,7 +440,7 @@ export function AutomatedFollowUpDetailPageClient({
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Updated:</span>
+								<span>Updated at:</span>
 								<span>
 									{format(
 										new Date(followUpData.updated_at),
@@ -424,8 +458,9 @@ export function AutomatedFollowUpDetailPageClient({
 					<AlertDialogHeader>
 						<AlertDialogTitle>Stop Automated Follow-up</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to stop this automated follow-up? This will prevent any 
-							future scheduled messages from being sent. This action cannot be undone.
+							Are you sure you want to stop this automated follow-up? This will
+							prevent any future scheduled messages from being sent. This action
+							cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

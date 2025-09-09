@@ -1,6 +1,7 @@
 "use server";
 
 import { actionClient } from "@/lib/safe-action";
+
 import { z } from "zod";
 import { automatedFollowUpsApi } from "../api/follow-ups.api";
 
@@ -19,12 +20,14 @@ export const createAutomatedFollowUp = actionClient
 				sequence_id: parsedInput.sequence_id,
 				status: parsedInput.start_immediately ? "activated" : "disabled",
 			});
-			return { success: true, data: followUp };
+			return { data: followUp };
 		} catch (error) {
 			console.error("Failed to create automated follow-up:", error);
 			return {
-				success: false,
-				error: "Failed to create automated follow-up",
+				serverError:
+					error instanceof Error
+						? error.message
+						: "Failed to create automated follow-up",
 			};
 		}
 	});

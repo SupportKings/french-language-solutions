@@ -143,14 +143,18 @@ export function LanguageLevelsTable() {
 	};
 
 	const handleDelete = async () => {
-		if (!levelToDelete) return;
+		if (isDeleting || !levelToDelete) return;
+
 		setIsDeleting(true);
 		try {
 			await deleteMutation.mutateAsync(levelToDelete);
 			toast.success("Language level deleted successfully");
 			setLevelToDelete(null);
 		} catch (error: any) {
-			const message = error?.message || "Failed to delete language level";
+			const message =
+				error?.response?.data?.message ||
+				error?.message ||
+				"Failed to delete language level";
 			toast.error(message);
 		} finally {
 			setIsDeleting(false);

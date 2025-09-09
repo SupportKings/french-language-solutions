@@ -44,9 +44,9 @@ export async function GET(request: NextRequest) {
 				.from("students")
 				.select("id")
 				.ilike("full_name", `%${search}%`);
-			
+
 			if (matchingStudents && matchingStudents.length > 0) {
-				const studentIds = matchingStudents.map(s => s.id);
+				const studentIds = matchingStudents.map((s) => s.id);
 				query = query.in("student_id", studentIds);
 			} else {
 				// No matching students, return empty result

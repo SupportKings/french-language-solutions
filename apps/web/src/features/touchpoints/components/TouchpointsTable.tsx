@@ -144,7 +144,9 @@ export function TouchpointsTable() {
 		page: 1,
 		limit: 20,
 	});
-	const [touchpointToDelete, setTouchpointToDelete] = useState<string | null>(null);
+	const [touchpointToDelete, setTouchpointToDelete] = useState<string | null>(
+		null,
+	);
 	const [isDeleting, setIsDeleting] = useState(false);
 
 	const deleteTouchpoint = useDeleteTouchpoint();
@@ -393,9 +395,8 @@ export function TouchpointsTable() {
 													href={`/admin/automation/automated-follow-ups/${touchpoint.automated_follow_up_id}`}
 													className="text-primary text-sm hover:underline"
 												>
-													{touchpoint.automated_follow_ups
-														.template_follow_up_sequences?.display_name ||
-														"View"}
+													{touchpoint.automated_follow_ups.sequence
+														?.display_name || "View"}
 												</Link>
 											) : (
 												<span className="text-muted-foreground text-sm">-</span>

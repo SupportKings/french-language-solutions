@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -37,8 +37,8 @@ import {
 import { studentsApi } from "@/features/students/api/students.api";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useDebounce } from "@uidotdev/usehooks";
 import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
 	CalendarIcon,
@@ -132,7 +132,7 @@ export function TouchpointCreateForm() {
 		enabled: !!studentId, // Only fetch when a student is selected
 		staleTime: 1000 * 60 * 10, // Cache for 10 minutes since these don't change often
 	});
-	const automatedFollowUps = studentId ? (followUpsData?.data || []) : [];
+	const automatedFollowUps = studentId ? followUpsData?.data || [] : [];
 	const { data: selectedStudentData } = useQuery({
 		queryKey: ["students", studentId],
 		queryFn: () => studentsApi.getById(studentId),
@@ -143,7 +143,7 @@ export function TouchpointCreateForm() {
 	const selectedStudent =
 		students.find((s) => s.id === studentId) || selectedStudentData;
 	const selectedFollowUp = automatedFollowUps?.find(
-		(f: any) => f.id === form.watch("automated_follow_up_id"),
+		(f: any) => String(f.id) === String(form.watch("automated_follow_up_id")),
 	);
 
 	// Clear automated_follow_up_id when student changes
@@ -264,11 +264,11 @@ export function TouchpointCreateForm() {
 											/>
 											<CommandList>
 												{studentSearch.length < 2 ? (
-													<div className="py-6 text-center text-sm text-muted-foreground">
+													<div className="py-6 text-center text-muted-foreground text-sm">
 														Start typing to search students...
 													</div>
 												) : isLoadingStudents ? (
-													<div className="py-6 text-center text-sm text-muted-foreground">
+													<div className="py-6 text-center text-muted-foreground text-sm">
 														Loading students...
 													</div>
 												) : students.length === 0 ? (
@@ -405,8 +405,8 @@ export function TouchpointCreateForm() {
 											onChange={(e) => {
 												const [hours, minutes] = e.target.value.split(":");
 												const newDate = new Date(form.watch("occurred_at"));
-												newDate.setHours(parseInt(hours, 10));
-												newDate.setMinutes(parseInt(minutes, 10));
+												newDate.setHours(Number.parseInt(hours, 10));
+												newDate.setMinutes(Number.parseInt(minutes, 10));
 												form.setValue("occurred_at", newDate);
 											}}
 										/>
@@ -445,7 +445,11 @@ export function TouchpointCreateForm() {
 						>
 							<FormField
 								label="Link to Automated Follow-up"
-								hint={!studentId ? "Please select a student first" : "Select an automated follow-up if this touchpoint is part of an ongoing campaign"}
+								hint={
+									!studentId
+										? "Please select a student first"
+										: "Select an automated follow-up if this touchpoint is part of an ongoing campaign"
+								}
 							>
 								<Popover
 									open={followUpSearchOpen}
@@ -459,11 +463,11 @@ export function TouchpointCreateForm() {
 											className="w-full justify-between"
 											disabled={!studentId}
 										>
-											{!studentId 
+											{!studentId
 												? "Select a student first"
 												: selectedFollowUp
-												? `${selectedFollowUp.template_follow_up_sequences?.display_name || selectedFollowUp.sequences?.display_name || 'Unknown Sequence'}`
-												: "No follow-up linked (optional)"}
+													? `${selectedFollowUp.sequence?.display_name || selectedFollowUp.sequences?.display_name || "Unknown Sequence"}`
+													: "No follow-up linked (optional)"}
 											<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 										</Button>
 									</PopoverTrigger>
@@ -476,22 +480,22 @@ export function TouchpointCreateForm() {
 											/>
 											<CommandList>
 												{isLoadingFollowUps && studentId ? (
-													<div className="py-6 text-center text-sm text-muted-foreground">
+													<div className="py-6 text-center text-muted-foreground text-sm">
 														Loading automated follow-ups...
 													</div>
 												) : (
 													<>
 														<CommandEmpty>
-															{!studentId 
-																? "Please select a student first" 
-																: automatedFollowUps.length === 0 
-																? "No automated follow-ups found for this student"
-																: "No matching follow-ups found"}
+															{!studentId
+																? "Please select a student first"
+																: automatedFollowUps.length === 0
+																	? "No automated follow-ups found for this student"
+																	: "No matching follow-ups found"}
 														</CommandEmpty>
 														{automatedFollowUps.length > 0 && (
 															<CommandGroup>
 																<CommandItem
-																	value=""
+																	value="__clear__"
 																	onSelect={() => {
 																		form.setValue("automated_follow_up_id", "");
 																		setFollowUpSearchOpen(false);
@@ -509,47 +513,67 @@ export function TouchpointCreateForm() {
 																		No follow-up (clear selection)
 																	</span>
 																</CommandItem>
-																{automatedFollowUps
-														?.filter((followUp: any) => {
-															if (!followUpSearch) return true;
-															const searchLower = followUpSearch.toLowerCase();
-															const sequenceName = (followUp.template_follow_up_sequences?.display_name || followUp.sequences?.display_name || '').toLowerCase();
-															return sequenceName.includes(searchLower);
-														})
-														.map((followUp: any) => (
-															<CommandItem
-																key={followUp.id}
-																value={followUp.id}
-																onSelect={(currentValue) => {
-																	form.setValue(
-																		"automated_follow_up_id",
-																		currentValue,
+																{automatedFollowUps.map((followUp: any) => {
+																	const sequenceName =
+																		followUp.sequence?.display_name ||
+																		followUp.sequences?.display_name ||
+																		"Unknown Sequence";
+																	const studentName =
+																		followUp.students?.full_name ||
+																		selectedStudent?.full_name ||
+																		"";
+																	const searchableValue =
+																		`${followUp.id}|${sequenceName}|${studentName}|${followUp.status}`.toLowerCase();
+
+																	return (
+																		<CommandItem
+																			key={followUp.id}
+																			value={searchableValue}
+																			onSelect={() => {
+																				form.setValue(
+																					"automated_follow_up_id",
+																					followUp.id,
+																				);
+																				setFollowUpSearchOpen(false);
+																			}}
+																		>
+																			<Check
+																				className={cn(
+																					"mr-2 h-4 w-4",
+																					form.watch(
+																						"automated_follow_up_id",
+																					) === followUp.id
+																						? "opacity-100"
+																						: "opacity-0",
+																				)}
+																			/>
+																			<div>
+																				<p className="font-medium">
+																					{sequenceName}
+																				</p>
+																				<p className="text-muted-foreground text-xs">
+																					{followUp.students?.full_name ||
+																						selectedStudent?.full_name ||
+																						"Unknown Student"}
+																					{" • "}
+																					Status:{" "}
+																					{followUp.status === "activated"
+																						? "Active"
+																						: followUp.status === "ongoing"
+																							? "Ongoing"
+																							: followUp.status ===
+																									"answer_received"
+																								? "Answer Received"
+																								: followUp.status === "disabled"
+																									? "Disabled"
+																									: followUp.status}
+																					{followUp.started_at &&
+																						` • Started ${new Date(followUp.started_at).toLocaleDateString()}`}
+																				</p>
+																			</div>
+																		</CommandItem>
 																	);
-																	setFollowUpSearchOpen(false);
-																}}
-															>
-																<Check
-																	className={cn(
-																		"mr-2 h-4 w-4",
-																		form.watch("automated_follow_up_id") ===
-																			followUp.id
-																			? "opacity-100"
-																			: "opacity-0",
-																	)}
-																/>
-																<div>
-																	<p className="font-medium">
-																		{followUp.template_follow_up_sequences?.display_name || followUp.sequences?.display_name || 'Unknown Sequence'}
-																	</p>
-																	<p className="text-muted-foreground text-xs">
-																		{followUp.students?.full_name || selectedStudent?.full_name || 'Unknown Student'}
-																		{' • '}
-																		Status: {followUp.status === 'activated' ? 'Active' : followUp.status === 'ongoing' ? 'Ongoing' : followUp.status === 'answer_received' ? 'Answer Received' : followUp.status === 'disabled' ? 'Disabled' : followUp.status}
-																		{followUp.started_at && ` • Started ${new Date(followUp.started_at).toLocaleDateString()}`}
-																	</p>
-																</div>
-															</CommandItem>
-														))}
+																})}
 															</CommandGroup>
 														)}
 													</>

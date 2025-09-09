@@ -17,13 +17,15 @@ export const cohorts = pgTable("cohorts", {
 	googleDriveFolderId: text("google_drive_folder_id"),
 	startingLevelId: uuid("starting_level_id").references(
 		() => languageLevels.id,
-		{ onDelete: "set null" }
+		{ onDelete: "set null" },
 	),
 	startDate: date("start_date"),
 	cohortStatus: cohortStatusEnum("cohort_status")
 		.notNull()
 		.default("enrollment_open"),
-	currentLevelId: uuid("current_level_id").references(() => languageLevels.id, { onDelete: "set null" }),
+	currentLevelId: uuid("current_level_id").references(() => languageLevels.id, {
+		onDelete: "set null",
+	}),
 	roomType: roomTypeEnum("room_type"),
 	maxStudents: integer("max_students").default(10),
 	setupFinalized: boolean("setup_finalized").default(false),

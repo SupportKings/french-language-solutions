@@ -1,6 +1,7 @@
 import type { Database } from "@/utils/supabase/database.types";
 
-export type AutomatedFollowUpStatus = Database["public"]["Enums"]["automated_follow_up_status"];
+export type AutomatedFollowUpStatus =
+	Database["public"]["Enums"]["automated_follow_up_status"];
 
 export interface AutomatedFollowUp {
 	id: string;
@@ -47,7 +48,7 @@ export interface AutomatedFollowUpWithRelations extends AutomatedFollowUp {
 		email: string | null;
 		mobile_phone_number: string | null;
 	};
-	template_follow_up_sequences: {
+	sequence: {
 		id: string;
 		display_name: string;
 		subject: string;

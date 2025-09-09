@@ -498,7 +498,7 @@ export function CohortAttendance({
 	const availableClasses = classes.filter((cls) => {
 		const classAttendance = records.filter((r) => r.classId === cls.id);
 		const eligibleStudentsCount = enrolledStudents.filter((enrollment) =>
-			eligibleStatuses.includes(enrollment.status)
+			eligibleStatuses.includes(enrollment.status),
 		).length;
 		return classAttendance.length < eligibleStudentsCount;
 	});

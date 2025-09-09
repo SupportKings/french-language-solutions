@@ -240,8 +240,8 @@ export default function AssessmentDetailsClient({
 												assessment.language_level.code?.toUpperCase()}
 										</Badge>
 									)}
-									<Badge 
-										variant={assessment.is_paid ? "success" : "secondary"} 
+									<Badge
+										variant={assessment.is_paid ? "success" : "secondary"}
 										className="h-4 px-1.5 text-[10px]"
 									>
 										{assessment.is_paid ? "Paid" : "Unpaid"}
@@ -589,7 +589,7 @@ export default function AssessmentDetailsClient({
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Updated:</span>
+								<span>Updated at:</span>
 								<span>
 									{format(
 										new Date(assessment.updated_at),

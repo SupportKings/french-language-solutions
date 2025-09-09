@@ -273,15 +273,20 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 
 	const handleDelete = async () => {
 		if (!teacherToDelete) return;
+		if (isDeleting) return;
+
 		setIsDeleting(true);
 		try {
 			await deleteTeacher.mutateAsync(teacherToDelete);
 			toast.success("Teacher deleted successfully");
-			setTeacherToDelete(null);
-		} catch (error) {
-			toast.error("Failed to delete teacher");
+		} catch (error: unknown) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to delete teacher";
+			toast.error(errorMessage);
+			console.error("Delete teacher error:", error);
 		} finally {
 			setIsDeleting(false);
+			setTeacherToDelete(null);
 		}
 	};
 

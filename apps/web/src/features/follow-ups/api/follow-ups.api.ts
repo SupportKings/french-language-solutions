@@ -1,4 +1,5 @@
 import { getApiUrl } from "@/lib/api-utils";
+
 import type {
 	AutomatedFollowUp,
 	AutomatedFollowUpWithRelations,
@@ -29,7 +30,9 @@ export interface PaginatedResponse<T> {
 
 export const automatedFollowUpsApi = {
 	// List automated follow-ups with pagination and filters
-	async list(params: AutomatedFollowUpQuery): Promise<PaginatedResponse<AutomatedFollowUp>> {
+	async list(
+		params: AutomatedFollowUpQuery,
+	): Promise<PaginatedResponse<AutomatedFollowUp>> {
 		const searchParams = new URLSearchParams();
 		Object.entries(params).forEach(([key, value]) => {
 			if (value !== undefined && value !== null) {
@@ -42,12 +45,15 @@ export const automatedFollowUpsApi = {
 			}
 		});
 
-		const response = await fetch(getApiUrl(`/api/automated-follow-ups?${searchParams}`), {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
+		const response = await fetch(
+			getApiUrl(`/api/automated-follow-ups?${searchParams}`),
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
 			},
-		});
+		);
 
 		if (!response.ok) {
 			throw new Error("Failed to fetch automated follow-ups");
@@ -94,7 +100,10 @@ export const automatedFollowUpsApi = {
 	},
 
 	// Update automated follow-up
-	async update(id: string, data: UpdateAutomatedFollowUpInput): Promise<AutomatedFollowUp> {
+	async update(
+		id: string,
+		data: UpdateAutomatedFollowUpInput,
+	): Promise<AutomatedFollowUp> {
 		const response = await fetch(getApiUrl(`/api/automated-follow-ups/${id}`), {
 			method: "PATCH",
 			headers: {
@@ -126,12 +135,15 @@ export const automatedFollowUpsApi = {
 
 	// Stop automated follow-up
 	async stop(id: string): Promise<AutomatedFollowUp> {
-		const response = await fetch(getApiUrl(`/api/automated-follow-ups/${id}/stop`), {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
+		const response = await fetch(
+			getApiUrl(`/api/automated-follow-ups/${id}/stop`),
+			{
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+				},
 			},
-		});
+		);
 
 		if (!response.ok) {
 			throw new Error("Failed to stop automated follow-up");

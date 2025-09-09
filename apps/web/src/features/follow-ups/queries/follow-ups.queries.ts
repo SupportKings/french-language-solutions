@@ -1,12 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	automatedFollowUpsApi,
-	type AutomatedFollowUpQuery,
-} from "../api/follow-ups.api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { automatedFollowUpsApi } from "../api/follow-ups.api";
 import type {
 	CreateAutomatedFollowUpInput,
 	UpdateAutomatedFollowUpInput,
 } from "../types/follow-up.types";
+
+// Re-export the automated follow-ups queries from the main module
+export {
+	automatedFollowUpsQueries,
+	useAutomatedFollowUp,
+	useAutomatedFollowUps,
+	useDeleteAutomatedFollowUp,
+} from "@/features/automated-follow-ups/queries/automated-follow-ups.queries";
 
 // Helper queries for fetching students and sequences
 export const studentsQuery = {
@@ -33,33 +38,7 @@ export const sequencesQuery = {
 		}) as const,
 };
 
-// Query keys factory
-export const automatedFollowUpsKeys = {
-	all: ["automated-follow-ups"] as const,
-	lists: () => [...automatedFollowUpsKeys.all, "list"] as const,
-	list: (params: AutomatedFollowUpQuery) =>
-		[...automatedFollowUpsKeys.lists(), params] as const,
-	details: () => [...automatedFollowUpsKeys.all, "detail"] as const,
-	detail: (id: string) => [...automatedFollowUpsKeys.details(), id] as const,
-};
-
-// Queries
-export function useAutomatedFollowUps(params: AutomatedFollowUpQuery) {
-	return useQuery({
-		queryKey: automatedFollowUpsKeys.list(params),
-		queryFn: () => automatedFollowUpsApi.list(params),
-	});
-}
-
-export function useAutomatedFollowUp(id: string) {
-	return useQuery({
-		queryKey: automatedFollowUpsKeys.detail(id),
-		queryFn: () => automatedFollowUpsApi.getById(id),
-		enabled: !!id,
-	});
-}
-
-// Mutations
+// Additional mutations specific to follow-ups module
 export function useCreateAutomatedFollowUp() {
 	const queryClient = useQueryClient();
 
@@ -68,7 +47,7 @@ export function useCreateAutomatedFollowUp() {
 			automatedFollowUpsApi.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: automatedFollowUpsKeys.lists(),
+				queryKey: ["automated-follow-ups", "list"],
 			});
 		},
 	});
@@ -87,23 +66,10 @@ export function useUpdateAutomatedFollowUp() {
 		}) => automatedFollowUpsApi.update(id, data),
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({
-				queryKey: automatedFollowUpsKeys.lists(),
+				queryKey: ["automated-follow-ups", "list"],
 			});
 			queryClient.invalidateQueries({
-				queryKey: automatedFollowUpsKeys.detail(id),
-			});
-		},
-	});
-}
-
-export function useDeleteAutomatedFollowUp() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		mutationFn: (id: string) => automatedFollowUpsApi.delete(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: automatedFollowUpsKeys.lists(),
+				queryKey: ["automated-follow-ups", "detail", id],
 			});
 		},
 	});
@@ -116,10 +82,10 @@ export function useStopAutomatedFollowUp() {
 		mutationFn: (id: string) => automatedFollowUpsApi.stop(id),
 		onSuccess: (_, id) => {
 			queryClient.invalidateQueries({
-				queryKey: automatedFollowUpsKeys.lists(),
+				queryKey: ["automated-follow-ups", "list"],
 			});
 			queryClient.invalidateQueries({
-				queryKey: automatedFollowUpsKeys.detail(id),
+				queryKey: ["automated-follow-ups", "detail", id],
 			});
 		},
 	});

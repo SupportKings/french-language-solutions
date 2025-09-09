@@ -18,14 +18,11 @@ import {
 } from "@/components/form-layout/FormLayout";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Package, Globe, Link as LinkIcon } from "lucide-react";
+import { Globe, Link as LinkIcon, Package } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-	useCreateProduct,
-	useUpdateProduct,
-} from "../queries/useProducts";
+import { useCreateProduct, useUpdateProduct } from "../queries/useProducts";
 import {
 	type Product,
 	type ProductFormData,
@@ -49,8 +46,10 @@ export function ProductForm({ product }: ProductFormProps) {
 			display_name: product?.display_name || "",
 			format: product?.format || "group",
 			location: product?.location || "online",
-			pandadoc_contract_template_id: product?.pandadoc_contract_template_id || "",
-			signup_link_for_self_checkout: product?.signup_link_for_self_checkout || "",
+			pandadoc_contract_template_id:
+				product?.pandadoc_contract_template_id || "",
+			signup_link_for_self_checkout:
+				product?.signup_link_for_self_checkout || "",
 		},
 	});
 
@@ -181,23 +180,31 @@ export function ProductForm({ product }: ProductFormProps) {
 								<FormField
 									label="PandaDoc Template ID"
 									hint="Contract template identifier"
-									error={form.formState.errors.pandadoc_contract_template_id?.message}
+									error={
+										form.formState.errors.pandadoc_contract_template_id?.message
+									}
 								>
 									<InputField
 										placeholder="e.g., tmpl_abc123xyz"
-										error={!!form.formState.errors.pandadoc_contract_template_id}
+										error={
+											!!form.formState.errors.pandadoc_contract_template_id
+										}
 										{...form.register("pandadoc_contract_template_id")}
 									/>
 								</FormField>
 								<FormField
 									label="Self-Checkout Link"
 									hint="URL for customer self-service signup"
-									error={form.formState.errors.signup_link_for_self_checkout?.message}
+									error={
+										form.formState.errors.signup_link_for_self_checkout?.message
+									}
 								>
 									<InputField
 										type="url"
 										placeholder="https://checkout.example.com/product"
-										error={!!form.formState.errors.signup_link_for_self_checkout}
+										error={
+											!!form.formState.errors.signup_link_for_self_checkout
+										}
 										{...form.register("signup_link_for_self_checkout")}
 									/>
 								</FormField>

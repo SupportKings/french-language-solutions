@@ -382,7 +382,7 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 											</p>
 										</div>
 									</TableCell>
-								
+
 									<TableCell>
 										{(student as any).enrollment_status ? (
 											<Badge

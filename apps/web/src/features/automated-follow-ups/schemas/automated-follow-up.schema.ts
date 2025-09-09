@@ -19,7 +19,7 @@ export const automatedFollowUpSchema = z.object({
 			mobile_phone_number: z.string().nullable(),
 		})
 		.optional(),
-	template_follow_up_sequences: z
+	sequence: z
 		.object({
 			id: z.string(),
 			display_name: z.string(),
