@@ -444,8 +444,8 @@ export function AssessmentFormNew({
 							</FormRow>
 
 							<SwitchField
-								label="Payment Received"
-								description="Has the student paid for this assessment?"
+								label="Payment Status"
+								description="Mark as paid when payment has been received"
 								checked={form.watch("is_paid")}
 								onCheckedChange={(checked) => form.setValue("is_paid", checked)}
 							/>

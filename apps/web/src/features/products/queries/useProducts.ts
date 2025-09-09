@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getProducts } from "../actions/getProducts";
-import type { CreateProductInput, UpdateProductInput } from "../schemas/product.schema";
+import type {
+	CreateProductInput,
+	UpdateProductInput,
+} from "../schemas/product.schema";
 
 export interface ProductQuery {
 	page: number;
@@ -63,7 +66,13 @@ export function useUpdateProduct() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: UpdateProductInput }) => {
+		mutationFn: async ({
+			id,
+			data,
+		}: {
+			id: string;
+			data: UpdateProductInput;
+		}) => {
 			const response = await fetch(`/api/products/${id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },

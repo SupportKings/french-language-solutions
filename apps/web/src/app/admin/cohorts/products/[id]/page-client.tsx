@@ -107,7 +107,12 @@ export function ProductDetailPageClient({
 	productId,
 }: ProductDetailPageClientProps) {
 	const router = useRouter();
-	const { data: productData, isLoading, error, isSuccess } = useProduct(productId);
+	const {
+		data: productData,
+		isLoading,
+		error,
+		isSuccess,
+	} = useProduct(productId);
 	const [product, setProduct] = useState<Product | null>(null);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -122,7 +127,6 @@ export function ProductDetailPageClient({
 			setEditedProduct(productData); // Initialize edited state
 		}
 	}, [productData]);
-
 
 	// Update edited product field locally
 	const updateEditedField = async (field: string, value: any) => {
@@ -150,11 +154,19 @@ export function ProductDetailPageClient({
 			if (editedProduct.location !== product?.location) {
 				changes.location = editedProduct.location;
 			}
-			if (editedProduct.pandadoc_contract_template_id !== product?.pandadoc_contract_template_id) {
-				changes.pandadoc_contract_template_id = editedProduct.pandadoc_contract_template_id || null;
+			if (
+				editedProduct.pandadoc_contract_template_id !==
+				product?.pandadoc_contract_template_id
+			) {
+				changes.pandadoc_contract_template_id =
+					editedProduct.pandadoc_contract_template_id || null;
 			}
-			if (editedProduct.signup_link_for_self_checkout !== product?.signup_link_for_self_checkout) {
-				changes.signup_link_for_self_checkout = editedProduct.signup_link_for_self_checkout || null;
+			if (
+				editedProduct.signup_link_for_self_checkout !==
+				product?.signup_link_for_self_checkout
+			) {
+				changes.signup_link_for_self_checkout =
+					editedProduct.signup_link_for_self_checkout || null;
 			}
 
 			// If no changes, return early
@@ -330,15 +342,21 @@ export function ProductDetailPageClient({
 								</span>
 							</div>
 							<div>
-								<h1 className="font-semibold text-xl">{product.display_name}</h1>
+								<h1 className="font-semibold text-xl">
+									{product.display_name}
+								</h1>
 								<div className="mt-0.5 flex items-center gap-2">
 									<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
 										{getFormatIcon(product.format)}
-										<span className="ml-1">{formatProductFormat(product.format)}</span>
+										<span className="ml-1">
+											{formatProductFormat(product.format)}
+										</span>
 									</Badge>
 									<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
 										{getLocationIcon(product.location)}
-										<span className="ml-1">{formatProductLocation(product.location)}</span>
+										<span className="ml-1">
+											{formatProductLocation(product.location)}
+										</span>
 									</Badge>
 								</div>
 							</div>
@@ -391,11 +409,15 @@ export function ProductDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Package className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Product Name:</p>
+											<p className="text-muted-foreground text-xs">
+												Product Name:
+											</p>
 											{editing ? (
 												<InlineEditField
 													value={editedProduct?.display_name || ""}
-													onSave={(value) => updateEditedField("display_name", value)}
+													onSave={(value) =>
+														updateEditedField("display_name", value)
+													}
 													editing={editing}
 													type="text"
 													placeholder="Product name"
@@ -435,7 +457,9 @@ export function ProductDetailPageClient({
 											{editing ? (
 												<InlineEditField
 													value={editedProduct?.location}
-													onSave={(value) => updateEditedField("location", value)}
+													onSave={(value) =>
+														updateEditedField("location", value)
+													}
 													editing={editing}
 													type="select"
 													options={locationOptions}
@@ -464,9 +488,14 @@ export function ProductDetailPageClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={editedProduct?.pandadoc_contract_template_id || ""}
+													value={
+														editedProduct?.pandadoc_contract_template_id || ""
+													}
 													onSave={(value) =>
-														updateEditedField("pandadoc_contract_template_id", value || null)
+														updateEditedField(
+															"pandadoc_contract_template_id",
+															value || null,
+														)
 													}
 													editing={editing}
 													type="text"
@@ -492,9 +521,14 @@ export function ProductDetailPageClient({
 											</p>
 											{editing ? (
 												<InlineEditField
-													value={editedProduct?.signup_link_for_self_checkout || ""}
+													value={
+														editedProduct?.signup_link_for_self_checkout || ""
+													}
 													onSave={(value) =>
-														updateEditedField("signup_link_for_self_checkout", value || null)
+														updateEditedField(
+															"signup_link_for_self_checkout",
+															value || null,
+														)
 													}
 													editing={editing}
 													type="text"
@@ -529,7 +563,9 @@ export function ProductDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Created:</p>
+											<p className="text-muted-foreground text-xs">
+												Created at:
+											</p>
 											<p className="font-medium text-sm">
 												{format(
 													new Date(product.created_at),
@@ -542,7 +578,9 @@ export function ProductDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Last Updated:</p>
+											<p className="text-muted-foreground text-xs">
+												Last Updated:
+											</p>
 											<p className="font-medium text-sm">
 												{format(
 													new Date(product.updated_at),
@@ -556,7 +594,6 @@ export function ProductDetailPageClient({
 						</div>
 					)}
 				</EditableSection>
-
 			</div>
 
 			<AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
@@ -564,7 +601,8 @@ export function ProductDetailPageClient({
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Product</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete this product? This action cannot be undone.
+							Are you sure you want to delete this product? This action cannot
+							be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

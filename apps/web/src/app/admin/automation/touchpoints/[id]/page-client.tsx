@@ -1,27 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+
+import { format } from "date-fns";
 import {
+	ArrowDownLeft,
+	ArrowUpRight,
 	Calendar as CalendarIcon,
 	ChevronRight,
 	Clock,
@@ -33,8 +40,6 @@ import {
 	Phone,
 	Trash2,
 	User,
-	ArrowDownLeft,
-	ArrowUpRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -98,6 +103,8 @@ export default function TouchpointDetailsClient({
 	// Local state for edited values
 	const [editedTouchpoint, setEditedTouchpoint] =
 		useState<any>(initialTouchpoint);
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Update the touchpoint when data changes
 	useEffect(() => {
@@ -171,10 +178,7 @@ export default function TouchpointDetailsClient({
 	};
 
 	const handleDelete = async () => {
-		if (!confirm("Are you sure you want to delete this touchpoint?")) {
-			return;
-		}
-
+		setIsDeleting(true);
 		try {
 			const response = await fetch(`/api/touchpoints/${touchpoint.id}`, {
 				method: "DELETE",
@@ -189,6 +193,8 @@ export default function TouchpointDetailsClient({
 		} catch (error) {
 			console.error("Error deleting touchpoint:", error);
 			toast.error("Failed to delete touchpoint");
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -259,7 +265,7 @@ export default function TouchpointDetailsClient({
 							<DropdownMenuContent align="end" className="w-56">
 								<DropdownMenuItem
 									className="text-destructive"
-									onClick={handleDelete}
+									onClick={() => setShowDeleteConfirm(true)}
 								>
 									<Trash2 className="mr-2 h-3.5 w-3.5" />
 									Delete Touchpoint
@@ -438,7 +444,7 @@ export default function TouchpointDetailsClient({
 																			currentTime.getHours(),
 																			currentTime.getMinutes(),
 																			currentTime.getSeconds(),
-																			currentTime.getMilliseconds()
+																			currentTime.getMilliseconds(),
 																		);
 																		// Send timezone-safe ISO timestamp
 																		updateEditedField(
@@ -475,10 +481,10 @@ export default function TouchpointDetailsClient({
 																editedTouchpoint.occurred_at,
 															);
 															newDate.setHours(
-																parseInt(hours, 10),
-																parseInt(minutes, 10),
+																Number.parseInt(hours, 10),
+																Number.parseInt(minutes, 10),
 																newDate.getSeconds(),
-																newDate.getMilliseconds()
+																newDate.getMilliseconds(),
 															);
 															// Send timezone-safe ISO timestamp
 															updateEditedField(
@@ -534,7 +540,7 @@ export default function TouchpointDetailsClient({
 											<p className="text-muted-foreground text-xs">Name:</p>
 											<Link
 												href={`/admin/students/${touchpoint.student_id}`}
-												className="text-primary hover:underline text-sm"
+												className="text-primary text-sm hover:underline"
 											>
 												{touchpoint.students?.full_name || "Unknown Student"}
 											</Link>
@@ -573,7 +579,7 @@ export default function TouchpointDetailsClient({
 												</p>
 												<Link
 													href={`/admin/automation/automated-follow-ups/${touchpoint.automated_follow_up_id}`}
-													className="text-primary hover:underline text-sm"
+													className="text-primary text-sm hover:underline"
 												>
 													{touchpoint.automated_follow_ups
 														?.template_follow_up_sequences?.display_name ||
@@ -616,7 +622,7 @@ export default function TouchpointDetailsClient({
 							)}
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Created:</span>
+								<span>Created at:</span>
 								<span>
 									{format(
 										new Date(touchpoint.created_at),
@@ -626,7 +632,7 @@ export default function TouchpointDetailsClient({
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Updated:</span>
+								<span>Updated at:</span>
 								<span>
 									{format(
 										new Date(touchpoint.updated_at),
@@ -638,6 +644,15 @@ export default function TouchpointDetailsClient({
 					</div>
 				</div>
 			</div>
+
+			<DeleteConfirmationDialog
+				open={showDeleteConfirm}
+				onOpenChange={setShowDeleteConfirm}
+				onConfirm={handleDelete}
+				title="Delete Touchpoint"
+				description="Are you sure you want to delete this touchpoint?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

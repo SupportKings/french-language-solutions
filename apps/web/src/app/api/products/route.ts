@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+
 import { createProductSchema } from "@/features/products/schemas/product.schema";
 
 // GET /api/products - List products
@@ -12,24 +13,27 @@ export async function GET(request: NextRequest) {
 		// Parse and validate query parameters
 		const rawPage = Number.parseInt(searchParams.get("page") || "1");
 		const rawLimit = Number.parseInt(searchParams.get("limit") || "20");
-		
+
 		// Clamp and validate pagination values
 		const page = Math.max(1, Number.isNaN(rawPage) ? 1 : rawPage);
-		const limit = Math.min(100, Math.max(1, Number.isNaN(rawLimit) ? 20 : rawLimit));
-		
+		const limit = Math.min(
+			100,
+			Math.max(1, Number.isNaN(rawLimit) ? 20 : rawLimit),
+		);
+
 		const search = searchParams.get("search") || "";
-		
+
 		// Validate and map sortBy to allowed columns
 		const allowedSortColumns: Record<string, string> = {
-			"display_name": "display_name",
-			"format": "format",
-			"location": "location",
-			"created_at": "created_at",
-			"updated_at": "updated_at"
+			display_name: "display_name",
+			format: "format",
+			location: "location",
+			created_at: "created_at",
+			updated_at: "updated_at",
 		};
 		const rawSortBy = searchParams.get("sortBy") || "display_name";
 		const sortBy = allowedSortColumns[rawSortBy] || "display_name";
-		
+
 		// Validate sortOrder
 		const rawSortOrder = searchParams.get("sortOrder") || "asc";
 		const sortOrder = rawSortOrder === "desc" ? "desc" : "asc";
@@ -109,8 +113,10 @@ export async function POST(request: NextRequest) {
 				display_name: validatedData.display_name,
 				format: validatedData.format,
 				location: validatedData.location,
-				pandadoc_contract_template_id: validatedData.pandadoc_contract_template_id || null,
-				signup_link_for_self_checkout: validatedData.signup_link_for_self_checkout || null,
+				pandadoc_contract_template_id:
+					validatedData.pandadoc_contract_template_id || null,
+				signup_link_for_self_checkout:
+					validatedData.signup_link_for_self_checkout || null,
 			})
 			.select()
 			.single();

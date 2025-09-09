@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,13 +30,14 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { useSequences } from "@/features/sequences/queries/sequences.queries";
+
 import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
 	AlertCircle,
 	CheckCircle,
 	Clock,
-	Edit,
 	Eye,
 	MessageSquare,
 	MoreHorizontal,
@@ -73,20 +75,32 @@ const statusIcons = {
 	disabled: XCircle,
 };
 
-// Define column configurations for data-table-filter
-const touchpointColumns = [
-	{
-		id: "status",
-		accessor: (touchpoint: any) => touchpoint.status,
-		displayName: "Status",
-		icon: AlertCircle,
-		type: "option" as const,
-		options: Object.entries(statusLabels).map(([value, label]) => ({
-			label,
-			value,
-		})),
-	},
-] as const;
+// Define column configurations for data-table-filter - will be populated dynamically
+const getColumnConfigurations = (sequences: any[]) =>
+	[
+		{
+			id: "status",
+			accessor: (touchpoint: any) => touchpoint.status,
+			displayName: "Status",
+			icon: AlertCircle,
+			type: "option" as const,
+			options: Object.entries(statusLabels).map(([value, label]) => ({
+				label,
+				value,
+			})),
+		},
+		{
+			id: "sequence_id",
+			accessor: (touchpoint: any) => touchpoint.sequence_id,
+			displayName: "Sequence",
+			icon: MessageSquare,
+			type: "option" as const,
+			options: sequences.map((sequence) => ({
+				label: sequence.display_name || "Unknown",
+				value: sequence.id,
+			})),
+		},
+	] as const;
 
 export function AutomatedFollowUpsTable() {
 	const router = useRouter();
@@ -97,23 +111,33 @@ export function AutomatedFollowUpsTable() {
 		page: 1,
 		limit: 20,
 	});
+	const [followUpToDelete, setFollowUpToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const deleteFollowUp = useDeleteAutomatedFollowUp();
 
-	// Data table filters hook
+	// Fetch sequences for filters
+	const { data: sequencesData } = useSequences({ page: 1, limit: 100 });
+	const sequences = sequencesData?.data || [];
+
+	// Data table filters hook - use dynamic columns
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: touchpointColumns,
+		columnsConfig: getColumnConfigurations(sequences),
 	});
 
 	// Convert filters to query params - support multiple values
 	const filterQuery = useMemo(() => {
 		const statusFilter = filters.find((f) => f.columnId === "status");
+		const sequenceFilter = filters.find((f) => f.columnId === "sequence_id");
 
 		return {
 			status: statusFilter?.values?.length
 				? (statusFilter.values as any)
+				: undefined,
+			sequence_id: sequenceFilter?.values?.length
+				? (sequenceFilter.values as any)
 				: undefined,
 		};
 	}, [filters]);
@@ -130,9 +154,14 @@ export function AutomatedFollowUpsTable() {
 
 	const { data, isLoading, error } = useAutomatedFollowUps(finalQuery);
 
-	const handleDelete = async (id: string) => {
-		if (confirm("Are you sure you want to delete this automated follow-up?")) {
-			await deleteFollowUp.mutateAsync(id);
+	const handleDelete = async () => {
+		if (!followUpToDelete) return;
+		setIsDeleting(true);
+		try {
+			await deleteFollowUp.mutateAsync(followUpToDelete);
+			setFollowUpToDelete(null);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -159,7 +188,7 @@ export function AutomatedFollowUpsTable() {
 						<div className="relative max-w-sm flex-1">
 							<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
-								placeholder="Search by student or sequence..."
+								placeholder="Search by student name..."
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
 								className="h-9 bg-muted/50 pl-9"
@@ -193,14 +222,14 @@ export function AutomatedFollowUpsTable() {
 							<TableHead>Status</TableHead>
 							<TableHead>Started</TableHead>
 							<TableHead>Last Message</TableHead>
-							<TableHead>Completed</TableHead>
+							<TableHead>Completed at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{isLoading ? (
 							Array.from({ length: 5 }).map((_, i) => (
-								<TableRow key={i}>
+								<TableRow key={`skeleton-${i}`}>
 									<TableCell>
 										<Skeleton className="h-5 w-32" />
 									</TableCell>
@@ -239,7 +268,12 @@ export function AutomatedFollowUpsTable() {
 								return (
 									<TableRow
 										key={touchpoint.id}
-										className="transition-colors duration-150 hover:bg-muted/50"
+										className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+										onClick={() =>
+											router.push(
+												`/admin/automation/automated-follow-ups/${touchpoint.id}`,
+											)
+										}
 									>
 										<TableCell>
 											<div className="flex items-center gap-2">
@@ -259,12 +293,10 @@ export function AutomatedFollowUpsTable() {
 												<MessageSquare className="h-4 w-4 text-muted-foreground" />
 												<div>
 													<p className="font-medium">
-														{touchpoint.template_follow_up_sequences
-															?.display_name || "Unknown"}
+														{touchpoint.sequence?.display_name || touchpoint.sequences?.display_name || "Unknown"}
 													</p>
 													<p className="text-muted-foreground text-sm">
-														{touchpoint.template_follow_up_sequences?.subject ||
-															"No subject"}
+														{touchpoint.sequence?.subject || touchpoint.sequences?.subject || "No subject"}
 													</p>
 												</div>
 											</div>
@@ -325,15 +357,22 @@ export function AutomatedFollowUpsTable() {
 													</p>
 												</>
 											) : (
-												<span className="text-muted-foreground text-sm">
-													In progress
-												</span>
+												<Badge
+													variant="outline"
+													className="text-muted-foreground text-sm"
+												>
+													In Progress
+												</Badge>
 											)}
 										</TableCell>
 										<TableCell>
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
+													<Button
+														variant="ghost"
+														size="icon"
+														onClick={(e) => e.stopPropagation()}
+													>
 														<MoreHorizontal className="h-4 w-4" />
 													</Button>
 												</DropdownMenuTrigger>
@@ -343,19 +382,14 @@ export function AutomatedFollowUpsTable() {
 													>
 														<DropdownMenuItem>
 															<Eye className="mr-2 h-4 w-4" />
-															View
-														</DropdownMenuItem>
-													</Link>
-													<Link
-														href={`/admin/automation/automated-follow-ups/${touchpoint.id}/edit`}
-													>
-														<DropdownMenuItem>
-															<Edit className="mr-2 h-4 w-4" />
-															Edit
+															View Details
 														</DropdownMenuItem>
 													</Link>
 													<DropdownMenuItem
-														onClick={() => handleDelete(touchpoint.id)}
+														onClick={(e) => {
+															e.stopPropagation();
+															setFollowUpToDelete(touchpoint.id);
+														}}
 														className="text-destructive"
 													>
 														<Trash className="mr-2 h-4 w-4" />
@@ -397,6 +431,15 @@ export function AutomatedFollowUpsTable() {
 					</div>
 				)}
 			</div>
+
+			<DeleteConfirmationDialog
+				open={!!followUpToDelete}
+				onOpenChange={(open) => !open && setFollowUpToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Automated Follow-up"
+				description="Are you sure you want to delete this automated follow-up?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

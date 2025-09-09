@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
@@ -212,19 +211,19 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 				? (() => {
 						const d = new Date(dateFilter.values[0]);
 						const year = d.getFullYear();
-						const month = String(d.getMonth() + 1).padStart(2, '0');
-						const day = String(d.getDate()).padStart(2, '0');
+						const month = String(d.getMonth() + 1).padStart(2, "0");
+						const day = String(d.getDate()).padStart(2, "0");
 						return `${year}-${month}-${day}`;
-				  })()
+					})()
 				: undefined,
 			date_to: dateFilter?.values?.[1]
 				? (() => {
 						const d = new Date(dateFilter.values[1]);
 						const year = d.getFullYear();
-						const month = String(d.getMonth() + 1).padStart(2, '0');
-						const day = String(d.getDate()).padStart(2, '0');
+						const month = String(d.getMonth() + 1).padStart(2, "0");
+						const day = String(d.getDate()).padStart(2, "0");
 						return `${year}-${month}-${day}`;
-				  })()
+					})()
 				: undefined,
 			date_operator: dateFilter?.operator,
 		};
@@ -464,9 +463,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 										) : (
 											<Badge
 												variant="default"
-												className="bg-gray-100 text-gray-800 hover:bg-gray-100"
+												className="bg-orange-100 text-orange-800 hover:bg-orange-100"
 											>
-												Free
+												Unpaid
 											</Badge>
 										)}
 									</TableCell>

@@ -1,4 +1,9 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import type { Product } from "../schemas/product.schema";
 
 // Query keys
@@ -58,7 +63,9 @@ export const useUpdateProduct = () => {
 		},
 		onSuccess: (data, { productId }) => {
 			// Invalidate and refetch
-			queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) });
+			queryClient.invalidateQueries({
+				queryKey: productKeys.detail(productId),
+			});
 			queryClient.invalidateQueries({ queryKey: productKeys.lists() });
 		},
 	});

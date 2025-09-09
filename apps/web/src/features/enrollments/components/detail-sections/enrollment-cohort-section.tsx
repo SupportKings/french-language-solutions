@@ -170,7 +170,7 @@ export function EnrollmentCohortSection({
 							<div className="font-medium text-muted-foreground text-sm">
 								Cohort Status
 							</div>
-							<StatusBadge 
+							<StatusBadge
 								className="mt-1"
 								variant={cohort.cohort_status || "unknown"}
 							>

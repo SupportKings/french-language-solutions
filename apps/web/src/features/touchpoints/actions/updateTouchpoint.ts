@@ -1,8 +1,11 @@
 "use server";
 
-import { actionClient } from "@/lib/safe-action";
-import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+
+import { actionClient } from "@/lib/safe-action";
+
+import { createClient } from "@/utils/supabase/server";
+
 import { z } from "zod";
 
 const updateTouchpointSchema = z.object({

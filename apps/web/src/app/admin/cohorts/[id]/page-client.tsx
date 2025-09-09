@@ -1144,7 +1144,7 @@ export function CohortDetailPageClient({
 							)}
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Created:</span>
+								<span>Created at:</span>
 								<span>
 									{format(
 										new Date(cohort.created_at),
@@ -1154,7 +1154,7 @@ export function CohortDetailPageClient({
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Updated:</span>
+								<span>Updated at:</span>
 								<span>
 									{format(
 										new Date(cohort.updated_at),

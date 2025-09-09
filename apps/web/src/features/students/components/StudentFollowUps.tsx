@@ -218,7 +218,7 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 										<div className="flex items-center gap-1 text-muted-foreground text-xs">
 											<Clock className="h-3 w-3" />
 											<span>
-												Last message:{" "}
+												Last message sent at:{" "}
 												{format(
 													new Date(followUp.last_message_sent_at),
 													"MMM d, yyyy",
@@ -231,7 +231,7 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 										<div className="flex items-center gap-1 text-muted-foreground text-xs">
 											<CheckCircle2 className="h-3 w-3" />
 											<span>
-												Completed:{" "}
+												Completed at:{" "}
 												{format(new Date(followUp.completed_at), "MMM d, yyyy")}
 											</span>
 										</div>

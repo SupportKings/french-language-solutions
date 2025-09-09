@@ -16,7 +16,9 @@ export const studentAssessments = pgTable("student_assessments", {
 	studentId: uuid("student_id")
 		.notNull()
 		.references(() => students.id),
-	levelId: uuid("level_id").references(() => languageLevels.id),
+	levelId: uuid("level_id").references(() => languageLevels.id, {
+		onDelete: "set null",
+	}),
 	scheduledFor: date("scheduled_for"),
 	isPaid: boolean("is_paid").notNull().default(false),
 	result: assessmentResultEnum("result").notNull().default("requested"),

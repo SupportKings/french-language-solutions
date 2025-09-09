@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -108,6 +109,8 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 	});
 	const [searchInput, setSearchInput] = useState("");
 	const debouncedSearch = useDebounce(searchInput, 300);
+	const [productToDelete, setProductToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
@@ -136,9 +139,14 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 	const { data, isLoading, error } = useProducts(effectiveQuery);
 	const deleteProduct = useDeleteProduct();
 
-	const handleDelete = async (id: string) => {
-		if (confirm("Are you sure you want to delete this product?")) {
-			await deleteProduct.mutateAsync(id);
+	const handleDelete = async () => {
+		if (!productToDelete) return;
+		setIsDeleting(true);
+		try {
+			await deleteProduct.mutateAsync(productToDelete);
+			setProductToDelete(null);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -238,7 +246,10 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 									className="transition-colors duration-150 hover:bg-muted/50"
 								>
 									<TableCell>
-										<Link href={`/admin/cohorts/products/${product.id}`} className="hover:underline">
+										<Link
+											href={`/admin/cohorts/products/${product.id}`}
+											className="hover:underline"
+										>
 											<p className="cursor-pointer font-medium transition-colors hover:text-primary">
 												{product.display_name}
 											</p>
@@ -256,10 +267,9 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
-											{product.created_at 
+											{product.created_at
 												? format(new Date(product.created_at), "MMM d, yyyy")
-												: "N/A"
-											}
+												: "N/A"}
 										</p>
 									</TableCell>
 									<TableCell>
@@ -270,14 +280,20 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
-												<Link href={`/admin/cohorts/products/${product.id}`} passHref>
+												<Link
+													href={`/admin/cohorts/products/${product.id}`}
+													passHref
+												>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />
 														View
 													</DropdownMenuItem>
 												</Link>
 												<DropdownMenuItem
-													onClick={() => handleDelete(product.id)}
+													onClick={(e) => {
+														e.stopPropagation();
+														setProductToDelete(product.id);
+													}}
 													className="text-destructive"
 												>
 													<Trash className="mr-2 h-4 w-4" />
@@ -318,6 +334,15 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 					</div>
 				)}
 			</div>
+
+			<DeleteConfirmationDialog
+				open={!!productToDelete}
+				onOpenChange={(open) => !open && setProductToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Product"
+				description="Are you sure you want to delete this product?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

@@ -1,12 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+
 import { updateProductSchema } from "@/features/products/schemas/product.schema";
 
 // GET /api/products/[id] - Get a single product
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const supabase = await createClient();
@@ -20,10 +21,7 @@ export async function GET(
 
 		if (error) {
 			console.error("Error fetching product:", error);
-			return NextResponse.json(
-				{ error: "Product not found" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: "Product not found" }, { status: 404 });
 		}
 
 		return NextResponse.json(data);
@@ -31,7 +29,7 @@ export async function GET(
 		console.error("Error in GET /api/products/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -39,7 +37,7 @@ export async function GET(
 // PATCH /api/products/[id] - Update a product
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const supabase = await createClient();
@@ -53,14 +51,18 @@ export async function PATCH(
 		const { data, error } = await supabase
 			.from("products")
 			.update({
-				...(validatedData.display_name && { display_name: validatedData.display_name }),
+				...(validatedData.display_name && {
+					display_name: validatedData.display_name,
+				}),
 				...(validatedData.format && { format: validatedData.format }),
 				...(validatedData.location && { location: validatedData.location }),
 				...(validatedData.pandadoc_contract_template_id !== undefined && {
-					pandadoc_contract_template_id: validatedData.pandadoc_contract_template_id || null
+					pandadoc_contract_template_id:
+						validatedData.pandadoc_contract_template_id || null,
 				}),
 				...(validatedData.signup_link_for_self_checkout !== undefined && {
-					signup_link_for_self_checkout: validatedData.signup_link_for_self_checkout || null
+					signup_link_for_self_checkout:
+						validatedData.signup_link_for_self_checkout || null,
 				}),
 				updated_at: new Date().toISOString(),
 			})
@@ -72,7 +74,7 @@ export async function PATCH(
 			console.error("Error updating product:", error);
 			return NextResponse.json(
 				{ error: "Failed to update product" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -82,12 +84,12 @@ export async function PATCH(
 		if (error instanceof Error && error.name === "ZodError") {
 			return NextResponse.json(
 				{ error: "Invalid input data", details: error },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -95,7 +97,7 @@ export async function PATCH(
 // DELETE /api/products/[id] - Delete a product
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const supabase = await createClient();
@@ -112,28 +114,25 @@ export async function DELETE(
 			console.error("Error checking product usage:", checkError);
 			return NextResponse.json(
 				{ error: "Failed to check product usage" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		if (cohorts && cohorts.length > 0) {
 			return NextResponse.json(
 				{ error: "Cannot delete product that is assigned to cohorts" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
 		// Delete product
-		const { error } = await supabase
-			.from("products")
-			.delete()
-			.eq("id", id);
+		const { error } = await supabase.from("products").delete().eq("id", id);
 
 		if (error) {
 			console.error("Error deleting product:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete product" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -142,7 +141,7 @@ export async function DELETE(
 		console.error("Error in DELETE /api/products/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

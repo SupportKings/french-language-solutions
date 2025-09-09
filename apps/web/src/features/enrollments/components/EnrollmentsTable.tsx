@@ -310,7 +310,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 					<TableHeader>
 						<TableRow>
 							<TableHead>Student</TableHead>
-							<TableHead>Cohort</TableHead>
+							<TableHead>Cohort (Product and Sessions)</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />

@@ -214,9 +214,15 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 		setNoteValue("");
 	};
 
-	// Filter records
-	const filteredRecords =
-		filter === "all" ? records : records.filter((r) => r.status === filter);
+	// Filter and sort records by class date (descending)
+	const filteredRecords = (
+		filter === "all" ? records : records.filter((r) => r.status === filter)
+	).sort((a, b) => {
+		// Sort by class start time first, then fall back to attendance date
+		const dateA = new Date(a.classStartTime || a.attendanceDate);
+		const dateB = new Date(b.classStartTime || b.attendanceDate);
+		return dateB.getTime() - dateA.getTime(); // Descending order
+	});
 
 	if (loading) {
 		return (
@@ -364,7 +370,7 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 						) : filteredRecords.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={8}
+									colSpan={6}
 									className="py-8 text-center text-muted-foreground"
 								>
 									No attendance records found
@@ -404,53 +410,70 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 											<div className="text-sm">{record.cohortName || "—"}</div>
 										</TableCell>
 
-										{/* Status */}
-										<TableCell>
-											<Badge
-												variant="outline"
-												className={cn("text-xs", config.color)}
-											>
-												{config.label}
-											</Badge>
-										</TableCell>
-
 										{/* Homework */}
 										<TableCell>
-											{record.status === "attended" ? (
-												<div
-													className="flex items-center gap-2"
-													onClick={(e) => e.stopPropagation()}
-												>
-													<Checkbox
-														id={`homework-${record.id}`}
-														checked={record.homeworkCompleted}
-														onCheckedChange={(checked) => {
-															updateAttendance(record.id, {
-																homeworkCompleted: checked as boolean,
-															});
-														}}
-														disabled={isUpdating}
-														className="h-4 w-4"
-													/>
-													<label
-														htmlFor={`homework-${record.id}`}
-														className={cn(
-															"flex cursor-pointer items-center gap-1 text-xs",
-															record.homeworkCompleted
-																? "text-blue-600"
-																: "text-muted-foreground",
-														)}
-													>
-														<BookOpen className="h-3 w-3" />
-														{record.homeworkCompleted ? "Done" : "Pending"}
-													</label>
-													{isUpdating && (
-														<div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
-													)}
-												</div>
-											) : (
-												<span className="text-muted-foreground text-xs">—</span>
-											)}
+											<Select
+												value={record.homeworkCompleted ? "completed" : "pending"}
+												onValueChange={(value) => {
+													updateAttendance(record.id, {
+														homeworkCompleted: value === "completed",
+													});
+												}}
+												disabled={isUpdating}
+											>
+												<SelectTrigger className="h-9 w-[150px]">
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="completed">
+														<div className="flex items-center gap-2">
+															<CheckCircle className="h-3.5 w-3.5 text-green-600" />
+															Completed
+														</div>
+													</SelectItem>
+													<SelectItem value="pending">
+														<div className="flex items-center gap-2">
+															<Clock className="h-3.5 w-3.5 text-amber-600" />
+															Pending
+														</div>
+													</SelectItem>
+												</SelectContent>
+											</Select>
+										</TableCell>
+
+										{/* Attendance */}
+										<TableCell>
+											<Select
+												value={record.status}
+												onValueChange={(value) => {
+													updateAttendance(record.id, { status: value });
+												}}
+												disabled={isUpdating}
+											>
+												<SelectTrigger className="h-9 w-[150px]">
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="attended">
+														<div className="flex items-center gap-2">
+															<CheckCircle className="h-3.5 w-3.5 text-green-600" />
+															Present
+														</div>
+													</SelectItem>
+													<SelectItem value="not_attended">
+														<div className="flex items-center gap-2">
+															<XCircle className="h-3.5 w-3.5 text-red-600" />
+															Absent
+														</div>
+													</SelectItem>
+													<SelectItem value="unset">
+														<div className="flex items-center gap-2">
+															<MinusCircle className="h-3.5 w-3.5 text-gray-400" />
+															Not Marked
+														</div>
+													</SelectItem>
+												</SelectContent>
+											</Select>
 										</TableCell>
 
 										{/* Notes */}
@@ -479,80 +502,6 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 											)}
 										</TableCell>
 
-										{/* Action Buttons */}
-										<TableCell>
-											<div className="flex items-center gap-1">
-												<Button
-													variant={
-														record.status === "attended" ? "default" : "outline"
-													}
-													size="sm"
-													className="h-7 px-2"
-													onClick={() =>
-														updateAttendance(record.id, { status: "attended" })
-													}
-													disabled={isUpdating}
-													title="Mark as Present"
-												>
-													{isUpdating && record.status === "attended" ? (
-														<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-													) : (
-														<CheckCircle className="h-3.5 w-3.5" />
-													)}
-												</Button>
-												<Button
-													variant={
-														record.status === "not_attended"
-															? "destructive"
-															: "outline"
-													}
-													size="sm"
-													className="h-7 px-2"
-													onClick={() =>
-														updateAttendance(record.id, {
-															status: "not_attended",
-														})
-													}
-													disabled={isUpdating}
-													title="Mark as Absent"
-												>
-													{isUpdating && record.status === "not_attended" ? (
-														<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-													) : (
-														<XCircle className="h-3.5 w-3.5" />
-													)}
-												</Button>
-												<Button
-													variant={
-														record.status === "unset" ? "secondary" : "outline"
-													}
-													size="sm"
-													className="h-7 px-2"
-													onClick={() =>
-														updateAttendance(record.id, { status: "unset" })
-													}
-													disabled={isUpdating}
-													title="Clear Status"
-												>
-													{isUpdating && record.status === "unset" ? (
-														<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-													) : (
-														<MinusCircle className="h-3.5 w-3.5" />
-													)}
-												</Button>
-											</div>
-										</TableCell>
-
-										{/* Marked At */}
-										<TableCell>
-											{record.markedAt ? (
-												<div className="text-muted-foreground text-xs">
-													{format(new Date(record.markedAt), "MMM d")}
-												</div>
-											) : (
-												<span className="text-muted-foreground text-xs">—</span>
-											)}
-										</TableCell>
 									</TableRow>
 								);
 							})

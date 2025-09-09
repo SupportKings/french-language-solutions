@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -184,6 +185,8 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 	});
 	const [searchInput, setSearchInput] = useState("");
 	const debouncedSearch = useDebounce(searchInput, 300);
+	const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
@@ -268,14 +271,22 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 	const { data, isLoading, error } = useTeachers(effectiveQuery);
 	const deleteTeacher = useDeleteTeacher();
 
-	const handleDelete = async (id: string) => {
-		if (confirm("Are you sure you want to delete this teacher?")) {
-			try {
-				await deleteTeacher.mutateAsync(id);
-				toast.success("Teacher deleted successfully");
-			} catch (error) {
-				toast.error("Failed to delete teacher");
-			}
+	const handleDelete = async () => {
+		if (!teacherToDelete) return;
+		if (isDeleting) return;
+
+		setIsDeleting(true);
+		try {
+			await deleteTeacher.mutateAsync(teacherToDelete);
+			toast.success("Teacher deleted successfully");
+		} catch (error: unknown) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to delete teacher";
+			toast.error(errorMessage);
+			console.error("Delete teacher error:", error);
+		} finally {
+			setIsDeleting(false);
+			setTeacherToDelete(null);
 		}
 	};
 
@@ -528,7 +539,10 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 													</DropdownMenuItem>
 												</Link>
 												<DropdownMenuItem
-													onClick={() => handleDelete(teacher.id)}
+													onClick={(e) => {
+														e.stopPropagation();
+														setTeacherToDelete(teacher.id);
+													}}
 													className="text-destructive"
 												>
 													<Trash className="mr-2 h-4 w-4" />
@@ -569,6 +583,15 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 					</div>
 				)}
 			</div>
+
+			<DeleteConfirmationDialog
+				open={!!teacherToDelete}
+				onOpenChange={(open) => !open && setTeacherToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Teacher"
+				description="Are you sure you want to delete this teacher?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

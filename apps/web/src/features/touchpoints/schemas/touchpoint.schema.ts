@@ -33,7 +33,7 @@ export const touchpointSchema = z.object({
 		.object({
 			id: z.string(),
 			status: z.string(),
-			template_follow_up_sequences: z
+			sequence: z
 				.object({
 					display_name: z.string(),
 				})
