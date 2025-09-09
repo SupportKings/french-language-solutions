@@ -291,7 +291,8 @@ export function CohortClasses({
 											return (
 												<TableRow
 													key={classItem.id}
-													className="hover:bg-muted/5"
+													className="cursor-pointer hover:bg-muted/5"
+													onClick={() => handleClassClick(classItem)}
 												>
 													{/* Date */}
 													<TableCell>

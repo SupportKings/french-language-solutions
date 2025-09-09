@@ -45,9 +45,7 @@ import {
 	CheckCircle2,
 	ChevronRight,
 	Clock,
-	FolderOpen,
 	GraduationCap,
-	Link as LinkIcon,
 	MapPin,
 	MoreVertical,
 	Plus,
@@ -204,21 +202,10 @@ export function CohortDetailPageClient({
 
 	// Update edited cohort field locally
 	const updateEditedField = async (field: string, value: any) => {
-		// Handle nested fields like products.format
-		if (field === "format") {
-			setEditedCohort({
-				...editedCohort,
-				products: {
-					...editedCohort?.products,
-					format: value,
-				},
-			});
-		} else {
-			setEditedCohort({
-				...editedCohort,
-				[field]: value,
-			});
-		}
+		setEditedCohort({
+			...editedCohort,
+			[field]: value,
+		});
 		// Return a resolved promise to match the expected type
 		return Promise.resolve();
 	};
@@ -248,8 +235,8 @@ export function CohortDetailPageClient({
 			if (editedCohort.room_type !== cohort.room_type) {
 				changes.room_type = editedCohort.room_type;
 			}
-			if (editedCohort.products?.format !== cohort.products?.format) {
-				changes.format = editedCohort.products?.format;
+			if (editedCohort.product_id !== cohort.product_id) {
+				changes.product_id = editedCohort.product_id;
 			}
 			if (editedCohort.meeting_url !== cohort.meeting_url) {
 				changes.meeting_url = editedCohort.meeting_url;
@@ -598,11 +585,6 @@ export function CohortDetailPageClient({
 											languageLevels,
 										)}
 									</Badge>
-									{cohort.room_type && (
-										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-											{formatRoomType(cohort.room_type)}
-										</Badge>
-									)}
 								</div>
 							</div>
 						</div>
@@ -673,32 +655,6 @@ export function CohortDetailPageClient({
 								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<School className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Format:</p>
-											{editing ? (
-												<InlineEditField
-													value={editedCohort?.products?.format || "N/A"}
-													onSave={(value) => updateEditedField("format", value)}
-													editing={editing}
-													type="select"
-													options={[
-														{ value: "group", label: "Group" },
-														{ value: "private", label: "Private" },
-													]}
-												/>
-											) : (
-												<p className="font-medium text-sm">
-													{cohort.products?.format
-														? cohort.products.format.charAt(0).toUpperCase() +
-															cohort.products.format.slice(1)
-														: "N/A"}
-												</p>
-											)}
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
 										<Activity className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Status:</p>
@@ -767,11 +723,12 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
+
 								</div>
 							</div>
 
-							{/* Language Levels */}
-							<div className="space-y-4">
+														{/* Language Levels */}
+														<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 									Language Progress
 								</h3>
@@ -873,32 +830,13 @@ export function CohortDetailPageClient({
 								</div>
 							</div>
 
-							{/* Resources & Links */}
+
+							{/* Product Information */}
 							<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-									Resources
+									Product
 								</h3>
 								<div className="space-y-3">
-									{cohort.google_drive_folder_id && (
-										<div className="flex items-start gap-3">
-											<FolderOpen className="mt-0.5 h-4 w-4 text-muted-foreground" />
-											<div className="flex-1 space-y-0.5">
-												<p className="text-muted-foreground text-xs">
-													Google Drive:
-												</p>
-												<a
-													href={`https://drive.google.com/drive/folders/${cohort.google_drive_folder_id}`}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex items-center gap-1 text-primary text-sm hover:underline"
-												>
-													<LinkIcon className="h-3 w-3" />
-													Open Folder
-												</a>
-											</div>
-										</div>
-									)}
-
 									<div className="flex items-start gap-3">
 										<BookOpen className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
@@ -906,9 +844,25 @@ export function CohortDetailPageClient({
 											{editing ? (
 												<InlineEditField
 													value={editedCohort?.product_id || ""}
-													onSave={(value) =>
-														updateEditedField("product_id", value || null)
-													}
+													onSave={async (value) => {
+														await updateEditedField("product_id", value || null);
+														// Update format and location based on selected product
+														if (value) {
+															const selectedProduct = products.find(p => p.id === value);
+															if (selectedProduct) {
+																setEditedCohort((prev: any) => ({
+																	...prev,
+																	products: {
+																		...prev?.products,
+																		id: selectedProduct.id,
+																		display_name: selectedProduct.display_name,
+																		format: selectedProduct.format,
+																		location: selectedProduct.location,
+																	},
+																}));
+															}
+														}
+													}}
 													editing={editing}
 													type="select"
 													options={products.map((p) => ({
@@ -932,8 +886,41 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
+
+									<div className="flex items-start gap-3">
+										<School className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Format:</p>
+											<p className="font-medium text-sm">
+												{editedCohort?.products?.format || cohort.products?.format
+													? (editedCohort?.products?.format || cohort.products?.format).charAt(0).toUpperCase() +
+														(editedCohort?.products?.format || cohort.products?.format).slice(1)
+													: "N/A"}
+											</p>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Location:</p>
+											<p className="font-medium text-sm">
+												{(() => {
+													const location = editedCohort?.products?.location || cohort.products?.location;
+													if (!location) return "N/A";
+													return location === "in_person"
+														? "In-Person"
+														: location === "online"
+															? "Online"
+															: location.charAt(0).toUpperCase() + location.slice(1);
+												})()}
+											</p>
+										</div>
+									</div>
 								</div>
 							</div>
+
+
 						</div>
 					)}
 				</EditableSection>
@@ -997,8 +984,9 @@ export function CohortDetailPageClient({
 													{formatTime(session.end_time)}
 												</span>
 											</div>
-										</div>
 
+											
+										</div>
 										{/* Content */}
 										<div className="space-y-2 p-3">
 											{/* Teacher Info */}
@@ -1046,39 +1034,6 @@ export function CohortDetailPageClient({
 												</div>
 											)}
 
-											{/* Bottom Status Row */}
-											<div className="flex items-center justify-between pt-1">
-												<div className="flex items-center gap-1.5">
-													{session.teachers?.available_for_online_classes && (
-														<Badge
-															variant="outline"
-															className="h-5 px-1.5 text-xs"
-														>
-															<span className="mr-1 h-1.5 w-1.5 rounded-full bg-green-500" />
-															Online
-														</Badge>
-													)}
-													{session.teachers
-														?.available_for_in_person_classes && (
-														<Badge
-															variant="outline"
-															className="h-5 px-1.5 text-xs"
-														>
-															<MapPin className="mr-0.5 h-3 w-3" />
-															In-Person
-														</Badge>
-													)}
-												</div>
-												{session.google_calendar_event_id && (
-													<Badge
-														variant="default"
-														className="h-5 px-1.5 text-xs"
-													>
-														<Calendar className="mr-0.5 h-3 w-3" />
-														Synced
-													</Badge>
-												)}
-											</div>
 										</div>
 									</div>
 								))}

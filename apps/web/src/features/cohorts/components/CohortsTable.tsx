@@ -36,6 +36,7 @@ interface CohortsTableProps {
 		products?: {
 			id: string;
 			format: string;
+			location: string;
 			display_name?: string;
 		};
 	})[];
@@ -49,6 +50,7 @@ interface CohortWithStats extends Cohort {
 	products?: {
 		id: string;
 		format: string;
+		location: string;
 		display_name?: string;
 	} | null;
 	starting_level?: {
@@ -301,13 +303,26 @@ export function CohortsTable({
 									</div>
 								</TableCell>
 								<TableCell>
-									<div className="flex h-12 items-center">
-										<p className="text-sm">
-											{cohort.products?.format
-												? cohort.products.format.charAt(0).toUpperCase() +
-													cohort.products.format.slice(1)
-												: "N/A"}
-										</p>
+									<div className="flex h-12 flex-col justify-center gap-1">
+										{cohort.products?.format && (
+											<Badge variant="secondary" className="w-fit text-xs">
+												{cohort.products.format.charAt(0).toUpperCase() +
+													cohort.products.format.slice(1)}
+											</Badge>
+										)}
+										{cohort.products?.location && (
+											<Badge variant="outline" className="w-fit text-xs">
+												{cohort.products.location === "in_person"
+													? "In-Person"
+													: cohort.products.location === "online"
+														? "Online"
+														: cohort.products.location.charAt(0).toUpperCase() +
+															cohort.products.location.slice(1)}
+											</Badge>
+										)}
+										{!cohort.products?.format && !cohort.products?.location && (
+											<span className="text-muted-foreground text-sm">N/A</span>
+										)}
 									</div>
 								</TableCell>
 								<TableCell>
