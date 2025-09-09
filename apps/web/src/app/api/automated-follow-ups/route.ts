@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 		const search = searchParams.get("search");
 		const status = searchParams.getAll("status");
 		const sequenceIds = searchParams.getAll("sequence_id");
+		const studentId = searchParams.get("student_id");
 
 		// Build the query
 		let query = supabase.from("automated_follow_ups").select(
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 					email,
 					mobile_phone_number
 				),
-				template_follow_up_sequences (
+				sequences:template_follow_up_sequences (
 					id,
 					display_name,
 					subject
@@ -34,6 +35,10 @@ export async function GET(request: NextRequest) {
 		);
 
 		// Apply filters
+		if (studentId) {
+			query = query.eq("student_id", studentId);
+		}
+
 		if (sequenceIds.length > 0) {
 			query = query.in("sequence_id", sequenceIds);
 		}

@@ -293,10 +293,10 @@ export function AutomatedFollowUpsTable() {
 												<MessageSquare className="h-4 w-4 text-muted-foreground" />
 												<div>
 													<p className="font-medium">
-														{touchpoint.sequence?.display_name || "Unknown"}
+														{touchpoint.sequence?.display_name || touchpoint.sequences?.display_name || "Unknown"}
 													</p>
 													<p className="text-muted-foreground text-sm">
-														{touchpoint.sequence?.subject || "No subject"}
+														{touchpoint.sequence?.subject || touchpoint.sequences?.subject || "No subject"}
 													</p>
 												</div>
 											</div>

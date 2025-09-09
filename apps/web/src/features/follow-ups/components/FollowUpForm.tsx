@@ -125,6 +125,11 @@ export function FollowUpForm({
 	const selectedStudent =
 		students.find((s) => s.id === selectedStudentId) || selectedStudentData;
 
+	const selectedSequenceId = form.watch("sequence_id");
+	const selectedSequence = sequencesData?.data?.find(
+		(s: any) => s.id === selectedSequenceId
+	);
+
 	const onSubmit = async (values: FormValues) => {
 		setIsSubmitting(true);
 		try {
@@ -308,7 +313,9 @@ export function FollowUpForm({
 									disabled={isLoadingSequences || !!sequenceId}
 								>
 									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Select a sequence" />
+										<SelectValue placeholder="Select a sequence">
+											{selectedSequence?.display_name || "Select a sequence"}
+										</SelectValue>
 									</SelectTrigger>
 									<SelectContent>
 										{isLoadingSequences ? (
@@ -321,23 +328,29 @@ export function FollowUpForm({
 											</div>
 										) : (
 											sequencesData?.data?.map((sequence: any) => (
-												<SelectItem key={sequence.id} value={sequence.id}>
-													<div className="flex flex-col">
-														<span className="font-medium">
-															{sequence.display_name}
-														</span>
-														{sequence.subject && (
-															<span className="text-muted-foreground text-xs">
-																Subject: {sequence.subject}
-															</span>
-														)}
-														{sequence.first_follow_up_delay_minutes && (
-															<span className="text-muted-foreground text-xs">
-																First message after{" "}
-																{sequence.first_follow_up_delay_minutes} minutes
-															</span>
-														)}
+												<SelectItem 
+													key={sequence.id} 
+													value={sequence.id}
+													className="flex flex-col items-start py-2"
+												>
+													<div className="font-medium">
+														{sequence.display_name}
 													</div>
+													{sequence.subject && (
+														<div className="text-muted-foreground text-xs mt-0.5">
+															Subject: {sequence.subject}
+														</div>
+													)}
+													{sequence.first_follow_up_delay_minutes && (
+														<div className="text-muted-foreground text-xs">
+															First message after{" "}
+															{sequence.first_follow_up_delay_minutes < 60
+																? `${sequence.first_follow_up_delay_minutes} minutes`
+																: sequence.first_follow_up_delay_minutes < 1440
+																? `${Math.floor(sequence.first_follow_up_delay_minutes / 60)} hours`
+																: `${Math.floor(sequence.first_follow_up_delay_minutes / 1440)} days`}
+														</div>
+													)}
 												</SelectItem>
 											))
 										)}
