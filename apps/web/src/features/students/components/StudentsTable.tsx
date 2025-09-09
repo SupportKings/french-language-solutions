@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -175,6 +176,8 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	});
 	const [searchInput, setSearchInput] = useState("");
 	const debouncedSearch = useDebounce(searchInput, 300);
+	const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Build dynamic student columns with language levels
 	const dynamicStudentColumns = useMemo(() => {
@@ -252,9 +255,14 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 	const { data, isLoading, error } = useStudents(effectiveQuery);
 	const deleteStudent = useDeleteStudent();
 
-	const handleDelete = async (id: string) => {
-		if (confirm("Are you sure you want to delete this student?")) {
-			await deleteStudent.mutateAsync(id);
+	const handleDelete = async () => {
+		if (!studentToDelete) return;
+		setIsDeleting(true);
+		try {
+			await deleteStudent.mutateAsync(studentToDelete);
+			setStudentToDelete(null);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -312,7 +320,6 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 						<TableRow>
 							<TableHead>Student</TableHead>
 							<TableHead>Contact</TableHead>
-							<TableHead>Level</TableHead>
 							<TableHead>Enrollment Status</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
@@ -375,19 +382,7 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 											</p>
 										</div>
 									</TableCell>
-									<TableCell>
-										{(student as any).desired_language_level ? (
-											<Badge variant="outline">
-												{(student as any).desired_language_level.display_name ||
-													(
-														student as any
-													).desired_language_level.code?.toUpperCase() ||
-													"N/A"}
-											</Badge>
-										) : (
-											<span className="text-muted-foreground">Not set</span>
-										)}
-									</TableCell>
+								
 									<TableCell>
 										{(student as any).enrollment_status ? (
 											<Badge
@@ -431,7 +426,10 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 													</DropdownMenuItem>
 												</Link>
 												<DropdownMenuItem
-													onClick={() => handleDelete(student.id)}
+													onClick={(e) => {
+														e.stopPropagation();
+														setStudentToDelete(student.id);
+													}}
 													className="text-destructive"
 												>
 													<Trash className="mr-2 h-4 w-4" />
@@ -472,6 +470,15 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 					</div>
 				)}
 			</div>
+
+			<DeleteConfirmationDialog
+				open={!!studentToDelete}
+				onOpenChange={(open) => !open && setStudentToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Student"
+				description="Are you sure you want to delete this student?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

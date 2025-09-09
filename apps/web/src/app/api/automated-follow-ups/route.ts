@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search");
 		const status = searchParams.getAll("status");
+		const sequenceIds = searchParams.getAll("sequence_id");
 
 		// Build the query
 		let query = supabase.from("automated_follow_ups").select(
@@ -33,10 +34,24 @@ export async function GET(request: NextRequest) {
 		);
 
 		// Apply filters
+		if (sequenceIds.length > 0) {
+			query = query.in("sequence_id", sequenceIds);
+		}
+
 		if (search) {
-			query = query.or(
-				`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%,template_follow_up_sequences.display_name.ilike.%${search}%`,
-			);
+			// First get student IDs that match the search
+			const { data: matchingStudents } = await supabase
+				.from("students")
+				.select("id")
+				.ilike("full_name", `%${search}%`);
+			
+			if (matchingStudents && matchingStudents.length > 0) {
+				const studentIds = matchingStudents.map(s => s.id);
+				query = query.in("student_id", studentIds);
+			} else {
+				// No matching students, return empty result
+				query = query.eq("student_id", "00000000-0000-0000-0000-000000000000");
+			}
 		}
 
 		if (status.length > 0) {

@@ -37,7 +37,9 @@ export async function GET(
 					message,
 					channel,
 					type,
-					occurred_at
+					source,
+					occurred_at,
+					created_at
 				)
 			`)
 			.eq("id", id)

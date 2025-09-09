@@ -1,15 +1,20 @@
-import { AutomatedFollowUpForm } from "@/features/automated-follow-ups/components/AutomatedFollowUpForm";
+import { FollowUpForm } from "@/features/follow-ups/components/FollowUpForm";
 
 export default async function NewAutomatedFollowUpPage({
 	searchParams,
 }: {
 	searchParams: Promise<{
 		studentId?: string;
-		studentName?: string;
-		email?: string;
-		phone?: string;
+		sequenceId?: string;
+		redirectTo?: string;
 	}>;
 }) {
 	const params = await searchParams;
-	return <AutomatedFollowUpForm searchParams={params} />;
+	return (
+		<FollowUpForm
+			studentId={params.studentId}
+			sequenceId={params.sequenceId}
+			redirectTo={params.redirectTo}
+		/>
+	);
 }

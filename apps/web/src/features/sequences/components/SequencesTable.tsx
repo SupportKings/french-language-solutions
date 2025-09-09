@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -50,6 +51,8 @@ export function SequencesTable() {
 		page: 1,
 		limit: 20,
 	});
+	const [sequenceToDelete, setSequenceToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const deleteSequence = useDeleteSequence();
 
@@ -64,13 +67,14 @@ export function SequencesTable() {
 
 	const { data, isLoading, error } = useSequences(finalQuery);
 
-	const handleDelete = async (id: string) => {
-		if (
-			confirm(
-				"Are you sure you want to delete this sequence? This will also delete all associated messages.",
-			)
-		) {
-			await deleteSequence.mutateAsync(id);
+	const handleDelete = async () => {
+		if (!sequenceToDelete) return;
+		setIsDeleting(true);
+		try {
+			await deleteSequence.mutateAsync(sequenceToDelete);
+			setSequenceToDelete(null);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -126,7 +130,7 @@ export function SequencesTable() {
 							<TableHead>Messages</TableHead>
 							<TableHead>First Delay</TableHead>
 							<TableHead>Active Follow-ups</TableHead>
-							<TableHead>Created</TableHead>
+							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
 					</TableHeader>
@@ -183,9 +187,7 @@ export function SequencesTable() {
 											<MessageSquare className="h-4 w-4 text-muted-foreground" />
 											<div>
 												<p className="font-medium">{sequence.display_name}</p>
-												<p className="text-muted-foreground text-xs">
-													ID: {sequence.id.slice(0, 8)}
-												</p>
+
 											</div>
 										</div>
 									</TableCell>
@@ -241,7 +243,10 @@ export function SequencesTable() {
 												</Link>
 
 												<DropdownMenuItem
-													onClick={() => handleDelete(sequence.id)}
+													onClick={(e) => {
+														e.stopPropagation();
+														setSequenceToDelete(sequence.id);
+													}}
 													className="text-destructive"
 												>
 													<Trash className="mr-2 h-4 w-4" />
@@ -282,6 +287,15 @@ export function SequencesTable() {
 					</div>
 				</div>
 			)}
+
+			<DeleteConfirmationDialog
+				open={!!sequenceToDelete}
+				onOpenChange={(open) => !open && setSequenceToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Sequence"
+				description="Are you sure you want to delete this sequence? This will also delete all associated messages."
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

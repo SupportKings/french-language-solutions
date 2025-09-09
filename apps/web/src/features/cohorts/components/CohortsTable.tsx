@@ -209,7 +209,7 @@ export function CohortsTable({
 		<Table>
 			<TableHeader>
 				<TableRow>
-					<TableHead>Product Name</TableHead>
+					<TableHead>Product</TableHead>
 					<TableHead>Format</TableHead>
 					<TableHead>Students</TableHead>
 					<TableHead>Level Progress</TableHead>
@@ -280,12 +280,20 @@ export function CohortsTable({
 							>
 								<TableCell>
 									<div className="flex h-12 items-center">
-										<p className="font-medium">
-											{cohort.products?.display_name ||
-												(cohort.products?.format
-													? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
-													: "Course")}
-										</p>
+										<Link
+											href={cohort.products?.id ? `/admin/products/${cohort.products.id}` : "/admin/products"}
+											onClick={(e) => e.stopPropagation()}
+										>
+											<Badge 
+												variant="default" 
+												className="cursor-pointer font-medium transition-colors hover:bg-primary/90"
+											>
+												{cohort.products?.display_name ||
+													(cohort.products?.format
+														? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+														: "Product")}
+											</Badge>
+										</Link>
 									</div>
 								</TableCell>
 								<TableCell>

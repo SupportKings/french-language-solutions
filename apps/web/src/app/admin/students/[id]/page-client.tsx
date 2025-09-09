@@ -827,7 +827,7 @@ export default function StudentDetailsClient({
 							)}
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Created:</span>
+								<span>Created at:</span>
 								<span>
 									{format(
 										new Date(student.created_at),

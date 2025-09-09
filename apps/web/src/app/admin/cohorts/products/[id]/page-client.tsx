@@ -529,7 +529,7 @@ export function ProductDetailPageClient({
 									<div className="flex items-start gap-3">
 										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Created:</p>
+											<p className="text-muted-foreground text-xs">Created at:</p>
 											<p className="font-medium text-sm">
 												{format(
 													new Date(product.created_at),

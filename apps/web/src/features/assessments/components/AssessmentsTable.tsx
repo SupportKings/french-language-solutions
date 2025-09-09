@@ -464,9 +464,9 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 										) : (
 											<Badge
 												variant="default"
-												className="bg-gray-100 text-gray-800 hover:bg-gray-100"
+												className="bg-orange-100 text-orange-800 hover:bg-orange-100"
 											>
-												Free
+												Unpaid
 											</Badge>
 										)}
 									</TableCell>

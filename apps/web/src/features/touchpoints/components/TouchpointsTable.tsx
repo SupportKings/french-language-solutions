@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -143,6 +144,8 @@ export function TouchpointsTable() {
 		page: 1,
 		limit: 20,
 	});
+	const [touchpointToDelete, setTouchpointToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const deleteTouchpoint = useDeleteTouchpoint();
 
@@ -182,9 +185,14 @@ export function TouchpointsTable() {
 
 	const { data, isLoading, error } = useTouchpoints(finalQuery);
 
-	const handleDelete = async (id: string) => {
-		if (confirm("Are you sure you want to delete this touchpoint?")) {
-			await deleteTouchpoint.mutateAsync(id);
+	const handleDelete = async () => {
+		if (!touchpointToDelete) return;
+		setIsDeleting(true);
+		try {
+			await deleteTouchpoint.mutateAsync(touchpointToDelete);
+			setTouchpointToDelete(null);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -418,7 +426,10 @@ export function TouchpointsTable() {
 														</DropdownMenuItem>
 													</Link>
 													<DropdownMenuItem
-														onClick={() => handleDelete(touchpoint.id)}
+														onClick={(e) => {
+															e.stopPropagation();
+															setTouchpointToDelete(touchpoint.id);
+														}}
 														className="text-destructive"
 													>
 														<Trash className="mr-2 h-4 w-4" />
@@ -460,6 +471,15 @@ export function TouchpointsTable() {
 					</div>
 				)}
 			</div>
+
+			<DeleteConfirmationDialog
+				open={!!touchpointToDelete}
+				onOpenChange={(open) => !open && setTouchpointToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Touchpoint"
+				description="Are you sure you want to delete this touchpoint?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

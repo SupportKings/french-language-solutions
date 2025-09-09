@@ -240,11 +240,12 @@ export default function AssessmentDetailsClient({
 												assessment.language_level.code?.toUpperCase()}
 										</Badge>
 									)}
-									{assessment.is_paid && (
-										<Badge variant="success" className="h-4 px-1.5 text-[10px]">
-											Paid
-										</Badge>
-									)}
+									<Badge 
+										variant={assessment.is_paid ? "success" : "secondary"} 
+										className="h-4 px-1.5 text-[10px]"
+									>
+										{assessment.is_paid ? "Paid" : "Unpaid"}
+									</Badge>
 								</div>
 							</div>
 						</div>
@@ -394,7 +395,7 @@ export default function AssessmentDetailsClient({
 													type="select"
 													options={[
 														{ label: "Paid", value: "true" },
-														{ label: "Free", value: "false" },
+														{ label: "Unpaid", value: "false" },
 													]}
 												/>
 											) : assessment.is_paid ? (
@@ -403,9 +404,9 @@ export default function AssessmentDetailsClient({
 													<span className="font-medium text-sm">Paid</span>
 												</div>
 											) : (
-												<div className="flex items-center gap-1.5 text-muted-foreground">
+												<div className="flex items-center gap-1.5 text-orange-600">
 													<XCircle className="h-4 w-4" />
-													<span className="text-sm">Free</span>
+													<span className="text-sm">Unpaid</span>
 												</div>
 											)}
 										</div>

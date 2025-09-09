@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -70,6 +71,8 @@ export function LanguageLevelsTable() {
 		display_name: "",
 		level_group: "",
 	});
+	const [levelToDelete, setLevelToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const debouncedSearch = useDebounce(searchInput, 300);
 
@@ -139,16 +142,18 @@ export function LanguageLevelsTable() {
 		}
 	};
 
-	const handleDelete = async (id: string) => {
-		if (!confirm("Are you sure you want to delete this language level?")) {
-			return;
-		}
-
+	const handleDelete = async () => {
+		if (!levelToDelete) return;
+		setIsDeleting(true);
 		try {
-			await deleteMutation.mutateAsync(id);
+			await deleteMutation.mutateAsync(levelToDelete);
 			toast.success("Language level deleted successfully");
-		} catch (error) {
-			toast.error("Failed to delete language level");
+			setLevelToDelete(null);
+		} catch (error: any) {
+			const message = error?.message || "Failed to delete language level";
+			toast.error(message);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -431,7 +436,10 @@ export function LanguageLevelsTable() {
 															Edit
 														</DropdownMenuItem>
 														<DropdownMenuItem
-															onClick={() => handleDelete(level.id)}
+															onClick={(e) => {
+																e.stopPropagation();
+																setLevelToDelete(level.id);
+															}}
 															className="text-destructive"
 														>
 															<Trash className="mr-2 h-4 w-4" />
@@ -448,6 +456,15 @@ export function LanguageLevelsTable() {
 					</TableBody>
 				</Table>
 			</div>
+
+			<DeleteConfirmationDialog
+				open={!!levelToDelete}
+				onOpenChange={(open) => !open && setLevelToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Language Level"
+				description="Are you sure you want to delete this language level? Any students, cohorts, or assessments using this level will have their language level set to empty."
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

@@ -7,6 +7,7 @@ import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -98,6 +99,8 @@ export default function TouchpointDetailsClient({
 	// Local state for edited values
 	const [editedTouchpoint, setEditedTouchpoint] =
 		useState<any>(initialTouchpoint);
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Update the touchpoint when data changes
 	useEffect(() => {
@@ -171,10 +174,7 @@ export default function TouchpointDetailsClient({
 	};
 
 	const handleDelete = async () => {
-		if (!confirm("Are you sure you want to delete this touchpoint?")) {
-			return;
-		}
-
+		setIsDeleting(true);
 		try {
 			const response = await fetch(`/api/touchpoints/${touchpoint.id}`, {
 				method: "DELETE",
@@ -189,6 +189,8 @@ export default function TouchpointDetailsClient({
 		} catch (error) {
 			console.error("Error deleting touchpoint:", error);
 			toast.error("Failed to delete touchpoint");
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -259,7 +261,7 @@ export default function TouchpointDetailsClient({
 							<DropdownMenuContent align="end" className="w-56">
 								<DropdownMenuItem
 									className="text-destructive"
-									onClick={handleDelete}
+									onClick={() => setShowDeleteConfirm(true)}
 								>
 									<Trash2 className="mr-2 h-3.5 w-3.5" />
 									Delete Touchpoint
@@ -616,7 +618,7 @@ export default function TouchpointDetailsClient({
 							)}
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
-								<span>Created:</span>
+								<span>Created at:</span>
 								<span>
 									{format(
 										new Date(touchpoint.created_at),
@@ -638,6 +640,15 @@ export default function TouchpointDetailsClient({
 					</div>
 				</div>
 			</div>
+
+			<DeleteConfirmationDialog
+				open={showDeleteConfirm}
+				onOpenChange={setShowDeleteConfirm}
+				onConfirm={handleDelete}
+				title="Delete Touchpoint"
+				description="Are you sure you want to delete this touchpoint?"
+				isDeleting={isDeleting}
+			/>
 		</div>
 	);
 }

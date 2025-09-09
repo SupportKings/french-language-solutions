@@ -29,7 +29,7 @@ export const students = pgTable("students", {
 	email: text("email"), // Separate from auth email - students might not have auth
 	desiredStartingLanguageLevelId: uuid(
 		"desired_starting_language_level_id",
-	).references(() => languageLevels.id),
+	).references(() => languageLevels.id, { onDelete: "set null" }),
 	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }), // E.164 format
 	city: text("city"),
 	websiteQuizSubmissionDate: date("website_quiz_submission_date"),

@@ -35,6 +35,7 @@ export const automatedFollowUpQuerySchema = z.object({
 	status: z
 		.array(z.enum(["activated", "ongoing", "answer_received", "disabled"]))
 		.optional(),
+	sequence_id: z.array(z.string()).optional(),
 	page: z.number().int().positive().default(1),
 	limit: z.number().int().positive().default(20),
 });
