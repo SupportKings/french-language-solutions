@@ -25,10 +25,18 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Assessments",
 		description: "Manage student language assessments",
 	},
+	"/admin/students/assessments/new": {
+		title: "New Assessment",
+		description: "Create a new student assessment",
+	},
 
 	"/admin/cohorts": {
 		title: "All Cohorts",
 		description: "Manage cohorts and their weekly sessions",
+	},
+	"/admin/cohorts/new": {
+		title: "New Cohort",
+		description: "Create a new cohort",
 	},
 	"/admin/cohorts/products": {
 		title: "Products & Pricing",
@@ -58,13 +66,25 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Touchpoints",
 		description: "Track all communications with students",
 	},
+	"/admin/automation/touchpoints/new": {
+		title: "New Touchpoint",
+		description: "Create a new touchpoint",
+	},
 	"/admin/automation/automated-follow-ups": {
 		title: "Automated Follow-ups",
 		description: "Manage automated follow-ups and student communications",
 	},
+	"/admin/automation/automated-follow-ups/new": {
+		title: "New Automated Follow-up",
+		description: "Create a new automated follow-up",
+	},
 	"/admin/automation/sequences": {
 		title: "Sequences",
 		description: "Configure follow-up message sequences and templates",
+	},
+	"/admin/automation/sequences/new": {
+		title: "New Sequence",
+		description: "Create a new follow-up sequence",
 	},
 	"/admin/automation/campaigns": {
 		title: "Campaigns",
@@ -131,6 +151,11 @@ export function PageHeader() {
 			info = {
 				title: "Enrollment Details",
 				description: "View and manage enrollment details",
+			};
+		} else if (pathname.match(/^\/admin\/students\/assessments\/[^/]+$/)) {
+			info = {
+				title: "Assessment Details",
+				description: "View and edit assessment information",
 			};
 		} else if (
 			pathname.match(/^\/admin\/automation\/automated-follow-ups\/[^/]+$/)
