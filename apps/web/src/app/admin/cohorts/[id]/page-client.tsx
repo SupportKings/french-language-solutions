@@ -685,40 +685,37 @@ export function CohortDetailPageClient({
 			</div>
 
 			<div className="space-y-4 px-6 py-4">
-				{/* Enrollment Progress */}
-				<div className="rounded-lg border bg-card p-6">
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="font-semibold text-lg flex items-center gap-2">
-							<Users className="h-5 w-5 text-primary" />
+				{/* Enrollment Progress - Compact */}
+				<div className="rounded-lg border bg-card">
+					<div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+						<h2 className="font-medium text-sm flex items-center gap-2">
+							<Users className="h-4 w-4 text-primary" />
 							Enrollment Progress
 						</h2>
-						<div className="text-muted-foreground text-sm">
+						<div className="text-right">
 							{loadingEnrollments ? (
-								<span>Loading...</span>
+								<span className="text-muted-foreground text-xs">Loading...</span>
 							) : (
-								<span>
-									{enrollmentData.total} / {enrollmentData.maxStudents} enrolled
-								</span>
+								<>
+									<div className="font-semibold text-lg">
+										{enrollmentData.total}/{enrollmentData.maxStudents} enrolled
+									</div>
+								</>
 							)}
 						</div>
 					</div>
 
 					{loadingEnrollments ? (
-						<div className="space-y-3">
-							<div className="h-3 w-full animate-pulse rounded-full bg-muted" />
-							<div className="flex justify-between">
-								<div className="h-4 w-20 animate-pulse rounded bg-muted" />
-								<div className="h-4 w-24 animate-pulse rounded bg-muted" />
-								<div className="h-4 w-16 animate-pulse rounded bg-muted" />
-							</div>
+						<div className="px-4 py-3">
+							<div className="h-2 w-full animate-pulse rounded-full bg-muted" />
 						</div>
 					) : (
-						<div className="space-y-3">
+						<div className="px-4 py-3">
 							{/* Progress Bar */}
-							<div className="relative">
+							<div className="relative mb-2">
 								<div className="h-3 w-full overflow-hidden rounded-full bg-muted">
 									<div
-										className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+										className="h-full bg-gradient-to-r from-blue-800 to-blue-600/80 transition-all duration-500 ease-out"
 										style={{
 											width: `${Math.min(
 												(enrollmentData.total / enrollmentData.maxStudents) * 100,
@@ -728,47 +725,35 @@ export function CohortDetailPageClient({
 									/>
 								</div>
 								{enrollmentData.total > enrollmentData.maxStudents && (
-									<div className="absolute right-0 top-0 flex h-3 items-center">
-										<div className="h-3 w-2 bg-yellow-500" />
-									</div>
+									<div className="absolute right-0 top-0 h-2 w-1 bg-yellow-500 rounded-r-full" />
 								)}
 							</div>
 
-							{/* Enrollment Breakdown */}
-							<div className="flex items-center justify-between text-sm">
-								<div className="flex items-center gap-4">
-									<div className="flex items-center gap-2">
-										<div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-										<span className="text-muted-foreground">
-											Paid: <span className="font-medium text-foreground">{enrollmentData.paid}</span>
-										</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-										<span className="text-muted-foreground">
-											Welcome Package Sent: <span className="font-medium text-foreground">{enrollmentData.welcomePackageSent}</span>
-										</span>
-									</div>
+							{/* Enrollment Stats - Compact Grid */}
+							<div className="grid grid-cols-3 gap-4 text-xs">
+								<div className="flex items-center gap-1.5">
+									<div className="h-2 w-2 rounded-full bg-green-500" />
+									<span className="text-muted-foreground">Paid:</span>
+									<span className="font-medium">{enrollmentData.paid}</span>
 								</div>
-								<div className="text-muted-foreground">
-									<span className="font-medium text-foreground">
-										{enrollmentData.maxStudents - enrollmentData.total > 0
-											? `${enrollmentData.maxStudents - enrollmentData.total} spots remaining`
-											: enrollmentData.total > enrollmentData.maxStudents
-												? `${enrollmentData.total - enrollmentData.maxStudents} over capacity`
-												: "Full capacity"}
-									</span>
+								<div className="flex items-center gap-1.5">
+									<div className="h-2 w-2 rounded-full bg-blue-500" />
+									<span className="text-muted-foreground">Welcome Package Sent:</span>
+									<span className="font-medium">{enrollmentData.welcomePackageSent}</span>
 								</div>
-							</div>
-
-							{/* Progress Percentage */}
-							<div className="pt-2 text-center">
-								<span className="text-muted-foreground text-xs">
-									{Math.round((enrollmentData.total / enrollmentData.maxStudents) * 100)}% capacity
-									{enrollmentData.total > enrollmentData.maxStudents && (
-										<span className="ml-1 text-yellow-600">(Over capacity)</span>
+								<div className="text-right">
+									{enrollmentData.maxStudents - enrollmentData.total > 0 ? (
+										<span className="text-muted-foreground">
+											<span className="font-medium text-foreground">{enrollmentData.maxStudents - enrollmentData.total}</span> spots left
+										</span>
+									) : enrollmentData.total > enrollmentData.maxStudents ? (
+										<span className="text-yellow-600 font-medium">
+											+{enrollmentData.total - enrollmentData.maxStudents} over
+										</span>
+									) : (
+										<span className="text-green-600 font-medium">Full</span>
 									)}
-								</span>
+								</div>
 							</div>
 						</div>
 					)}
@@ -1310,19 +1295,21 @@ export function CohortDetailPageClient({
 							Are you sure you want to finalize the setup for this cohort? Once
 							finalized, this action cannot be undone. Make sure all details are
 							correct:
-							<ul className="mt-2 space-y-1 text-sm">
-								<li>
-									• Start date:{" "}
-									{cohort.start_date
-										? new Date(cohort.start_date).toLocaleDateString()
-										: "Not set"}
-								</li>
-								<li>• Max students: {cohort.max_students || 10}</li>
-								<li>• Weekly sessions: {sessionCount} configured</li>
-								<li>• Current enrollments: (loading...)</li>
-							</ul>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
+					<div className="py-3">
+						<ul className="space-y-1 text-muted-foreground text-sm">
+							<li>
+								• Start date:{" "}
+								{cohort.start_date
+									? new Date(cohort.start_date).toLocaleDateString()
+									: "Not set"}
+							</li>
+							<li>• Max students: {cohort.max_students || 10}</li>
+							<li>• Weekly sessions: {sessionCount} configured</li>
+							<li>• Current enrollments: {enrollmentData.total}</li>
+						</ul>
+					</div>
 					<AlertDialogFooter>
 						<AlertDialogCancel disabled={isFinalizing}>
 							Cancel
