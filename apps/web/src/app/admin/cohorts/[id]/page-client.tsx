@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -149,6 +150,20 @@ export function CohortDetailPageClient({
 	>(undefined);
 	const [activeTab, setActiveTab] = useState("enrollments");
 
+	// Enrollment progress state
+	const [enrollmentData, setEnrollmentData] = useState<{
+		paid: number;
+		welcomePackageSent: number;
+		total: number;
+		maxStudents: number;
+	}>({
+		paid: 0,
+		welcomePackageSent: 0,
+		total: 0,
+		maxStudents: 0,
+	});
+	const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+
 	// Language levels from database
 	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
 
@@ -199,6 +214,43 @@ export function CohortDetailPageClient({
 		}
 		fetchLanguageLevels();
 	}, []);
+
+	// Fetch enrollment data
+	useEffect(() => {
+		async function fetchEnrollmentData() {
+			if (!cohortId) return;
+
+			setLoadingEnrollments(true);
+			try {
+				const response = await fetch(`/api/enrollments?cohortId=${cohortId}&limit=1000`);
+				if (response.ok) {
+					const result = await response.json();
+					const enrollments = result.enrollments || [];
+					
+					const paid = enrollments.filter((e: any) => e.status === "paid").length;
+					const welcomePackageSent = enrollments.filter((e: any) => e.status === "welcome_package_sent").length;
+					const total = paid + welcomePackageSent;
+					const maxStudents = cohort?.max_students || 10;
+
+					setEnrollmentData({
+						paid,
+						welcomePackageSent,
+						total,
+						maxStudents,
+					});
+				}
+			} catch (error) {
+				console.error("Error fetching enrollment data:", error);
+			} finally {
+				setLoadingEnrollments(false);
+			}
+		}
+
+		// Only fetch if cohort data is available
+		if (cohort) {
+			fetchEnrollmentData();
+		}
+	}, [cohortId, cohort]);
 
 	// Update edited cohort field locally
 	const updateEditedField = async (field: string, value: any) => {
@@ -633,6 +685,95 @@ export function CohortDetailPageClient({
 			</div>
 
 			<div className="space-y-4 px-6 py-4">
+				{/* Enrollment Progress */}
+				<div className="rounded-lg border bg-card p-6">
+					<div className="flex items-center justify-between mb-4">
+						<h2 className="font-semibold text-lg flex items-center gap-2">
+							<Users className="h-5 w-5 text-primary" />
+							Enrollment Progress
+						</h2>
+						<div className="text-muted-foreground text-sm">
+							{loadingEnrollments ? (
+								<span>Loading...</span>
+							) : (
+								<span>
+									{enrollmentData.total} / {enrollmentData.maxStudents} enrolled
+								</span>
+							)}
+						</div>
+					</div>
+
+					{loadingEnrollments ? (
+						<div className="space-y-3">
+							<div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+							<div className="flex justify-between">
+								<div className="h-4 w-20 animate-pulse rounded bg-muted" />
+								<div className="h-4 w-24 animate-pulse rounded bg-muted" />
+								<div className="h-4 w-16 animate-pulse rounded bg-muted" />
+							</div>
+						</div>
+					) : (
+						<div className="space-y-3">
+							{/* Progress Bar */}
+							<div className="relative">
+								<div className="h-3 w-full overflow-hidden rounded-full bg-muted">
+									<div
+										className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+										style={{
+											width: `${Math.min(
+												(enrollmentData.total / enrollmentData.maxStudents) * 100,
+												100
+											)}%`,
+										}}
+									/>
+								</div>
+								{enrollmentData.total > enrollmentData.maxStudents && (
+									<div className="absolute right-0 top-0 flex h-3 items-center">
+										<div className="h-3 w-2 bg-yellow-500" />
+									</div>
+								)}
+							</div>
+
+							{/* Enrollment Breakdown */}
+							<div className="flex items-center justify-between text-sm">
+								<div className="flex items-center gap-4">
+									<div className="flex items-center gap-2">
+										<div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+										<span className="text-muted-foreground">
+											Paid: <span className="font-medium text-foreground">{enrollmentData.paid}</span>
+										</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+										<span className="text-muted-foreground">
+											Welcome Package Sent: <span className="font-medium text-foreground">{enrollmentData.welcomePackageSent}</span>
+										</span>
+									</div>
+								</div>
+								<div className="text-muted-foreground">
+									<span className="font-medium text-foreground">
+										{enrollmentData.maxStudents - enrollmentData.total > 0
+											? `${enrollmentData.maxStudents - enrollmentData.total} spots remaining`
+											: enrollmentData.total > enrollmentData.maxStudents
+												? `${enrollmentData.total - enrollmentData.maxStudents} over capacity`
+												: "Full capacity"}
+									</span>
+								</div>
+							</div>
+
+							{/* Progress Percentage */}
+							<div className="pt-2 text-center">
+								<span className="text-muted-foreground text-xs">
+									{Math.round((enrollmentData.total / enrollmentData.maxStudents) * 100)}% capacity
+									{enrollmentData.total > enrollmentData.maxStudents && (
+										<span className="ml-1 text-yellow-600">(Over capacity)</span>
+									)}
+								</span>
+							</div>
+						</div>
+					)}
+				</div>
+
 				{/* Cohort Information with inline editing */}
 				<EditableSection
 					title="Cohort Information"
@@ -876,9 +1017,12 @@ export function CohortDetailPageClient({
 													}
 												/>
 											) : cohort.products ? (
-												<p className="font-medium text-sm">
-													{cohort.products.display_name}
-												</p>
+												<LinkedRecordBadge
+													href={`/admin/cohorts/products/${cohort.products.id}`}
+													label={cohort.products.display_name}
+													icon={BookOpen}
+													className="text-xs"
+												/>
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No product assigned

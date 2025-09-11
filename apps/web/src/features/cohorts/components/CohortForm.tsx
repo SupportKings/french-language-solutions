@@ -33,12 +33,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
+	AlertCircle,
 	BookOpen,
 	Calendar as CalendarIcon,
 	ChevronDown,
 	Clock,
 	FolderOpen,
 	GraduationCap,
+	Info,
 	MapPin,
 	Plus,
 	Settings,
@@ -182,11 +184,10 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 				const teachersResponse = await fetch("/api/teachers");
 				if (teachersResponse.ok) {
 					const teachersData = await teachersResponse.json();
-					setTeachers(
-						Array.isArray(teachersData)
-							? teachersData
-							: teachersData.data || [],
-					);
+					const teachersList = Array.isArray(teachersData)
+						? teachersData
+						: teachersData.data || [];
+					setTeachers(teachersList);
 				}
 
 				// Fetch products
@@ -400,19 +401,73 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		value: level.id,
 	}));
 
-	// Transform teachers for select options
-	const teacherOptions = teachers.map((teacher) => ({
-		label:
-			`${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() ||
-			"Unknown",
-		value: teacher.id,
-	}));
+	// Transform teachers for select options with max students
+	const teacherOptions = teachers.map((teacher) => {
+		const name = `${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() || "Unknown";
+		// Get the appropriate max students based on product location
+		const selectedProduct = products.find(p => p.id === form.watch("product_id"));
+		const isOnline = selectedProduct?.location === "online";
+		const maxStudents = isOnline 
+			? teacher.max_students_online 
+			: teacher.max_students_in_person;
+		
+		// Show capacity with location context
+		const label = maxStudents 
+			? `${name} (Max: ${maxStudents} students ${isOnline ? 'online' : 'in-person'})` 
+			: `${name}`;
+		return {
+			label,
+			value: teacher.id,
+			maxStudents: maxStudents || null,
+		};
+	});
 
 	// Transform products for select options
 	const productOptions = products.map((product) => ({
 		label: product.display_name || product.name || "Unknown",
 		value: product.id,
 	}));
+
+	// Calculate actual max students based on selected teachers
+	const calculateActualMaxStudents = () => {
+		const sessions = form.watch("weekly_sessions") || [];
+		const selectedTeachers = new Set(
+			sessions
+				.filter((s) => s.teacher_id)
+				.map((s) => s.teacher_id)
+		);
+		
+		if (selectedTeachers.size === 0) {
+			return form.watch("max_students") || 20;
+		}
+
+		// Get product location to determine which capacity to use
+		const selectedProduct = products.find(p => p.id === form.watch("product_id"));
+		const isOnline = selectedProduct?.location === "online";
+
+		// Find the minimum capacity among selected teachers
+		let minCapacity = Number.MAX_SAFE_INTEGER;
+		selectedTeachers.forEach((teacherId) => {
+			const teacher = teachers.find((t) => t.id === teacherId);
+			if (teacher) {
+				const teacherCapacity = isOnline 
+					? teacher.max_students_online 
+					: teacher.max_students_in_person;
+				if (teacherCapacity && teacherCapacity < minCapacity) {
+					minCapacity = teacherCapacity;
+				}
+			}
+		});
+
+		const cohortMax = form.watch("max_students") || 20;
+		return minCapacity === Number.MAX_SAFE_INTEGER 
+			? cohortMax 
+			: Math.min(cohortMax, minCapacity);
+	};
+
+	const actualMaxStudents = calculateActualMaxStudents();
+	const cohortMaxStudents = form.watch("max_students") || 20;
+	const isCapacityLimited = actualMaxStudents < cohortMaxStudents;
 
 	return (
 		<FormLayout>
@@ -449,73 +504,38 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							icon={BookOpen}
 							required
 						>
-							<FormRow>
-								<FormField
-									label="Product"
-									hint="Select the product/format for this cohort"
-									error={form.formState.errors.product_id?.message}
-								>
-									<SelectField
-										placeholder="Select a product"
-										value={form.watch("product_id") || ""}
-										onValueChange={(value) =>
-											form.setValue("product_id", value)
-										}
-										options={productOptions}
-									/>
-								</FormField>
-								<FormField
-									label="Max Students"
-									hint="Maximum enrollment capacity"
-									error={form.formState.errors.max_students?.message}
-								>
-									<InputField
-										type="number"
-										placeholder="20"
-										min={1}
-										max={100}
-										error={!!form.formState.errors.max_students}
-										{...form.register("max_students", {
-											setValueAs: (v) =>
-												v === "" || v === null ? undefined : Number(v),
-										})}
-									/>
-								</FormField>
-							</FormRow>
-							<FormRow>
-								<FormField
-									label="Starting Level"
-									required
-									error={form.formState.errors.starting_level_id?.message}
-								>
-									<SelectField
-										placeholder={
-											languageLevelsLoading
-												? "Loading levels..."
-												: "Select starting level"
-										}
-										value={form.watch("starting_level_id") || ""}
-										onValueChange={(value) =>
-											form.setValue("starting_level_id", value)
-										}
-										options={languageLevelOptions}
-									/>
-								</FormField>
-								<FormField
-									label="Current Level"
-									hint="Leave empty to use starting level"
-									error={form.formState.errors.current_level_id?.message}
-								>
-									<SelectField
-										placeholder="Same as starting level"
-										value={form.watch("current_level_id") || ""}
-										onValueChange={(value) =>
-											form.setValue("current_level_id", value)
-										}
-										options={languageLevelOptions}
-									/>
-								</FormField>
-							</FormRow>
+							<FormField
+								label="Product"
+								hint="Select the product/format for this cohort"
+								error={form.formState.errors.product_id?.message}
+							>
+								<SelectField
+									placeholder="Select a product"
+									value={form.watch("product_id") || ""}
+									onValueChange={(value) =>
+										form.setValue("product_id", value)
+									}
+									options={productOptions}
+								/>
+							</FormField>
+							<FormField
+								label="Starting Level"
+								required
+								error={form.formState.errors.starting_level_id?.message}
+							>
+								<SelectField
+									placeholder={
+										languageLevelsLoading
+											? "Loading levels..."
+											: "Select starting level"
+									}
+									value={form.watch("starting_level_id") || ""}
+									onValueChange={(value) =>
+										form.setValue("starting_level_id", value)
+									}
+									options={languageLevelOptions}
+								/>
+							</FormField>
 						</FormSection>
 
 						{/* Schedule & Status */}
@@ -555,7 +575,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 												disabled={(date) =>
 													date < new Date(new Date().setHours(0, 0, 0, 0))
 												}
-												initialFocus
 											/>
 										</PopoverContent>
 									</Popover>
@@ -580,35 +599,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 									/>
 								</FormField>
 							</FormRow>
-						</FormSection>
-
-						{/* Location */}
-						<FormSection
-							title="Location"
-							description="Physical or virtual classroom settings"
-							icon={MapPin}
-						>
-							<FormField
-								label="Room Type"
-								hint="Select the appropriate classroom size"
-								error={form.formState.errors.room_type?.message}
-							>
-								<SelectField
-									placeholder="Select room type"
-									value={form.watch("room_type") || ""}
-									onValueChange={(value) =>
-										form.setValue(
-											"room_type",
-											value as
-												| "for_one_to_one"
-												| "medium"
-												| "medium_plus"
-												| "large",
-										)
-									}
-									options={roomTypeOptions}
-								/>
-							</FormField>
 						</FormSection>
 
 						{/* Resources */}
@@ -757,6 +747,54 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 									Add Weekly Session
 								</Button>
 							</div>
+						</FormSection>
+
+						{/* Capacity & Location */}
+						<FormSection
+							title="Capacity & Location"
+							description="Maximum enrollment and classroom settings"
+							icon={MapPin}
+						>
+							<FormRow>
+								<FormField
+									label="Max Students"
+									hint="Maximum enrollment capacity for this cohort"
+									error={form.formState.errors.max_students?.message}
+								>
+									<InputField
+										type="number"
+										placeholder="20"
+										min={1}
+										max={100}
+										error={!!form.formState.errors.max_students}
+										{...form.register("max_students", {
+											setValueAs: (v) =>
+												v === "" || v === null ? undefined : Number(v),
+										})}
+									/>
+								</FormField>
+								<FormField
+									label="Room Type"
+									hint="Select the appropriate classroom size"
+									error={form.formState.errors.room_type?.message}
+								>
+									<SelectField
+										placeholder="Select room type"
+										value={form.watch("room_type") || ""}
+										onValueChange={(value) =>
+											form.setValue(
+												"room_type",
+												value as
+													| "for_one_to_one"
+													| "medium"
+													| "medium_plus"
+													| "large",
+											)
+										}
+										options={roomTypeOptions}
+									/>
+								</FormField>
+							</FormRow>
 						</FormSection>
 
 						{/* External References */}

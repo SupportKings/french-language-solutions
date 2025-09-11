@@ -1,15 +1,18 @@
 import { PageHeader } from "@/components/admin/page-header";
-import { AdminSidebar } from "@/components/admin/sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { getUser } from "@/queries/getUser";
 
-export default function AdminLayout({
+export default async function AdminLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const session = await getUser();
+	
 	return (
 		<SidebarProvider>
-			<AdminSidebar />
+			<AppSidebar session={session} isAdmin={true} />
 			<SidebarInset>
 				<PageHeader />
 
