@@ -23,12 +23,12 @@ import {
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 interface NavMainItem {
 	title: string;
 	url?: string;
-	icon?: LucideIcon;
+	icon?: React.ComponentType;
 	isActive?: boolean;
 	items?: {
 		title: string;
@@ -96,7 +96,7 @@ export function NavMain({ items }: NavMainProps) {
 												"data-[state=open]:bg-sidebar-accent/50",
 										)}
 									>
-										{item.icon && <item.icon className="h-4 w-4" />}
+										{item.icon && <item.icon />}
 										<span className="flex-1">{item.title}</span>
 										<ChevronRight
 											className={cn(

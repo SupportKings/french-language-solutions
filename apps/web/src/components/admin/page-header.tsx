@@ -132,6 +132,11 @@ export function PageHeader() {
 				title: "Teacher Details",
 				description: "View and edit teacher information",
 			};
+		} else if (pathname.match(/^\/admin\/cohorts\/products\/[^/]+$/)) {
+			info = {
+				title: "Product Details",
+				description: "View and edit product information",
+			};
 		} else if (pathname.match(/^\/admin\/team\/[^/]+$/)) {
 			info = {
 				title: "Team Member Details",

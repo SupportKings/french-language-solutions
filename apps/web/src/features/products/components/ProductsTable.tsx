@@ -53,7 +53,7 @@ const FORMAT_LABELS = {
 } as const;
 
 const FORMAT_COLORS = {
-	group: "default",
+	group: "info",
 	private: "secondary",
 	hybrid: "outline",
 } as const;
@@ -65,7 +65,7 @@ const LOCATION_LABELS = {
 } as const;
 
 const LOCATION_COLORS = {
-	online: "default",
+	online: "info",
 	in_person: "secondary",
 	hybrid: "outline",
 } as const;

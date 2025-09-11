@@ -1,8 +1,7 @@
 "use client";
 
 import { SidebarItemComponent } from "@/components/sidebar/sidebar-item";
-
-import type { LucideIcon } from "lucide-react";
+import { IconWrapper } from "@/components/sidebar/icon-wrapper";
 
 export function NavMain({
 	items,
@@ -10,7 +9,7 @@ export function NavMain({
 	items: {
 		name: string;
 		url: string;
-		icon: LucideIcon;
+		icon: string;
 	}[];
 }) {
 	return (
@@ -21,7 +20,7 @@ export function NavMain({
 						key={item.name}
 						href={item.url}
 						label={item.name}
-						icon={<item.icon size={16} />}
+						icon={<IconWrapper name={item.icon} size={16} />}
 					/>
 				);
 			})}

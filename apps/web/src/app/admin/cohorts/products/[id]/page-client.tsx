@@ -235,7 +235,6 @@ export function ProductDetailPageClient({
 								<div className="flex items-center gap-3">
 									<div className="h-10 w-10 rounded-full bg-muted" />
 									<div>
-										<div className="mb-2 h-6 w-32 rounded bg-muted" />
 										<div className="flex items-center gap-2">
 											<div className="h-4 w-20 rounded bg-muted" />
 											<div className="h-4 w-16 rounded bg-muted" />
@@ -336,11 +335,7 @@ export function ProductDetailPageClient({
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-								<span className="font-semibold text-primary text-sm">
-									{initials}
-								</span>
-							</div>
+							
 							<div>
 								<h1 className="font-semibold text-xl">
 									{product.display_name}
@@ -535,15 +530,15 @@ export function ProductDetailPageClient({
 													placeholder="https://..."
 												/>
 											) : product.signup_link_for_self_checkout ? (
-												<a
-													href={product.signup_link_for_self_checkout}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex items-center gap-1 text-primary text-sm hover:underline"
+												<Button
+													size="sm"
+													variant="outline"
+													className="h-7"
+													onClick={() => window.open(product.signup_link_for_self_checkout || "", "_blank")}
 												>
-													<LinkIcon className="h-3 w-3" />
-													Open Link
-												</a>
+													<LinkIcon className="mr-1.5 h-3 w-3" />
+													Open Self-Checkout
+												</Button>
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No link configured
@@ -554,46 +549,37 @@ export function ProductDetailPageClient({
 								</div>
 							</div>
 
-							{/* System Information */}
-							<div className="space-y-4">
-								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-									System Information
-								</h3>
-								<div className="space-y-3">
-									<div className="flex items-start gap-3">
-										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Created at:
-											</p>
-											<p className="font-medium text-sm">
-												{format(
-													new Date(product.created_at),
-													"MMM d, yyyy 'at' h:mm a",
-												)}
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Last Updated:
-											</p>
-											<p className="font-medium text-sm">
-												{format(
-													new Date(product.updated_at),
-													"MMM d, yyyy 'at' h:mm a",
-												)}
-											</p>
-										</div>
-									</div>
-								</div>
-							</div>
 						</div>
 					)}
 				</EditableSection>
+
+				{/* System Information - Less prominent at the bottom */}
+				<div className="mt-8 border-t pt-6">
+					<div className="mx-auto max-w-3xl">
+						<div className="flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground/70 text-xs">
+							<div className="flex items-center gap-2">
+								<Clock className="h-3 w-3" />
+								<span>Created at:</span>
+								<span>
+									{format(
+										new Date(product.created_at),
+										"MMM d, yyyy 'at' h:mm a",
+									)}
+								</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Clock className="h-3 w-3" />
+								<span>Updated at:</span>
+								<span>
+									{format(
+										new Date(product.updated_at),
+										"MMM d, yyyy 'at' h:mm a",
+									)}
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 
 			<AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

@@ -23,11 +23,7 @@ export function NavSecondary({
 		<SidebarGroup {...props}>
 			<SidebarGroupContent>
 				<SidebarMenu>
-					<SidebarItemComponent
-						href="/dashboard/knowledge-base"
-						label="Knowledge Base"
-						icon={<BookOpen size={16} />}
-					/>
+				
 				</SidebarMenu>
 			</SidebarGroupContent>
 		</SidebarGroup>

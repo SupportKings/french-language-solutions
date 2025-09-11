@@ -11,7 +11,7 @@ import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -24,17 +24,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
 	Activity,
-	BookOpen,
 	Calendar,
 	ChevronRight,
-	Clock,
-	ExternalLink,
-	GraduationCap,
-	Mail,
-	MapPin,
-	MessageSquare,
 	MoreVertical,
-	Phone,
 	School,
 	Trash2,
 	User,
@@ -46,8 +38,6 @@ import { updateEnrollmentAction } from "../actions/updateEnrollment";
 import { enrollmentQueries, useEnrollment } from "../queries/useEnrollments";
 
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
-type CommunicationChannel =
-	Database["public"]["Enums"]["communication_channel"];
 
 interface EnrollmentDetailViewProps {
 	enrollmentId: string;
@@ -78,12 +68,6 @@ const ENROLLMENT_STATUS_COLORS: Record<EnrollmentStatus, string> = {
 	welcome_package_sent: "success",
 };
 
-const COMMUNICATION_CHANNEL_LABELS: Record<CommunicationChannel, string> = {
-	sms_email: "SMS & Email",
-	email: "Email Only",
-	sms: "SMS Only",
-};
-
 const formatDate = (dateString: string | null) => {
 	if (!dateString) return "Not set";
 	try {
@@ -93,18 +77,6 @@ const formatDate = (dateString: string | null) => {
 	}
 };
 
-const formatTime = (timeString: string) => {
-	if (!timeString) return "";
-	try {
-		const [hours, minutes] = timeString.split(":");
-		const hour = Number.parseInt(hours);
-		const ampm = hour >= 12 ? "PM" : "AM";
-		const displayHour = hour % 12 || 12;
-		return `${displayHour}:${minutes} ${ampm}`;
-	} catch {
-		return timeString;
-	}
-};
 
 export default function EnrollmentDetailView({
 	enrollmentId,
@@ -130,14 +102,6 @@ export default function EnrollmentDetailView({
 	if (error || !currentEnrollment) return <div>Error loading enrollment</div>;
 
 	const studentName = currentEnrollment.student?.full_name || "Unknown Student";
-	const productName =
-		currentEnrollment.cohort?.product?.display_name || "Unknown Product";
-	const initials = studentName
-		.split(" ")
-		.map((n: string) => n[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
 
 	// Update edited enrollment field locally
 	const updateEditedField = async (field: string, value: any) => {
@@ -245,30 +209,10 @@ export default function EnrollmentDetailView({
 		toast.info("Delete functionality to be implemented");
 	};
 
-	const dayOrder = [
-		"monday",
-		"tuesday",
-		"wednesday",
-		"thursday",
-		"friday",
-		"saturday",
-		"sunday",
-	];
-	const sortedSessions =
-		currentEnrollment.cohort?.weekly_sessions?.sort((a: any, b: any) => {
-			return dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week);
-		}) || [];
-
-	// Get display values for status and communication channel
+	// Get display values for status
 	const statusDisplay =
 		ENROLLMENT_STATUS_LABELS[currentEnrollment.status as EnrollmentStatus] ||
 		currentEnrollment.status;
-	const communicationChannelDisplay = currentEnrollment.student
-		?.communication_channel
-		? COMMUNICATION_CHANNEL_LABELS[
-				currentEnrollment.student.communication_channel as CommunicationChannel
-			]
-		: "Not set";
 
 	return (
 		<div className="min-h-screen bg-muted/30">
@@ -283,19 +227,12 @@ export default function EnrollmentDetailView({
 							Enrollments
 						</Link>
 						<ChevronRight className="h-3 w-3" />
-						<span>
-							{studentName} - {productName}
-						</span>
+						<span>Enrollment</span>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-								<span className="font-semibold text-primary text-sm">
-									{initials}
-								</span>
-							</div>
 							<div>
-								<h1 className="font-semibold text-xl">{studentName}</h1>
+								<h1 className="font-semibold text-xl">{studentName} – Enrollment Details</h1>
 								<div className="mt-0.5 flex items-center gap-2">
 									<Badge
 										variant={
@@ -307,38 +244,11 @@ export default function EnrollmentDetailView({
 									>
 										{statusDisplay}
 									</Badge>
-									{productName && (
-										<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-											{productName}
-										</Badge>
-									)}
 								</div>
 							</div>
 						</div>
 
 						<div className="flex items-center gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() =>
-									router.push(
-										`/admin/students/${currentEnrollment.student?.id}`,
-									)
-								}
-							>
-								<User className="mr-2 h-3.5 w-3.5" />
-								View Student
-							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() =>
-									router.push(`/admin/cohorts/${currentEnrollment.cohort?.id}`)
-								}
-							>
-								<School className="mr-2 h-3.5 w-3.5" />
-								View Cohort
-							</Button>
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<Button variant="outline" size="sm">
@@ -369,11 +279,11 @@ export default function EnrollmentDetailView({
 					onCancel={() => setEditedEnrollment(currentEnrollment)}
 				>
 					{(editing) => (
-						<div className="grid gap-8 lg:grid-cols-3">
-							{/* Enrollment Details Section */}
+						<div className="grid gap-8 lg:grid-cols-2">
+							{/* Basic Information */}
 							<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-									Enrollment
+									Basic Information
 								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
@@ -415,117 +325,43 @@ export default function EnrollmentDetailView({
 								</div>
 							</div>
 
-							{/* Student Contact Section */}
+							{/* Linked Records */}
 							<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-									Student Contact
+									Linked Records
 								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<Mail className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Email:</p>
-											<p className="font-medium text-sm">
-												{currentEnrollment.student?.email || "Not provided"}
-											</p>
+											<p className="text-muted-foreground text-xs">Student:</p>
+											{currentEnrollment.student?.id ? (
+												<LinkedRecordBadge
+													href={`/admin/students/${currentEnrollment.student.id}`}
+													label={currentEnrollment.student.full_name || "View Student"}
+													icon={User}
+													className="text-xs"
+												/>
+											) : (
+												<span className="text-muted-foreground text-sm">Not linked</span>
+											)}
 										</div>
 									</div>
 
-									<div className="flex items-start gap-3">
-										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Phone:</p>
-											<p className="font-medium text-sm">
-												{currentEnrollment.student?.mobile_phone_number ||
-													"Not provided"}
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">City:</p>
-											<p className="font-medium text-sm">
-												{currentEnrollment.student?.city || "Not provided"}
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<MessageSquare className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Communication Channel:
-											</p>
-											<p className="text-sm">{communicationChannelDisplay}</p>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							{/* Cohort Overview Section */}
-							<div className="space-y-4">
-								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-									Cohort Overview
-								</h3>
-								<div className="space-y-3">
 									<div className="flex items-start gap-3">
 										<School className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Product:</p>
-											<p className="font-medium text-sm">
-												{currentEnrollment.cohort?.product?.display_name ||
-													"Not set"}
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<BookOpen className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Starting Level:
-											</p>
-											<p className="text-sm">
-												{currentEnrollment.cohort?.starting_level
-													?.display_name || "Not set"}
-												{currentEnrollment.cohort?.starting_level?.code && (
-													<span className="ml-1 text-muted-foreground">
-														({currentEnrollment.cohort.starting_level.code})
-													</span>
-												)}
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<GraduationCap className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Current Level:
-											</p>
-											<p className="text-sm">
-												{currentEnrollment.cohort?.current_level
-													?.display_name || "Not set"}
-												{currentEnrollment.cohort?.current_level?.code && (
-													<span className="ml-1 text-muted-foreground">
-														({currentEnrollment.cohort.current_level.code})
-													</span>
-												)}
-											</p>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<Calendar className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Start Date:
-											</p>
-											<p className="text-sm">
-												{formatDate(currentEnrollment.cohort?.start_date)}
-											</p>
+											<p className="text-muted-foreground text-xs">Cohort:</p>
+											{currentEnrollment.cohort?.id ? (
+												<LinkedRecordBadge
+													href={`/admin/cohorts/${currentEnrollment.cohort.id}`}
+													label={currentEnrollment.cohort.product?.display_name || "View Cohort"}
+													icon={School}
+													className="text-xs"
+												/>
+											) : (
+												<span className="text-muted-foreground text-sm">Not linked</span>
+											)}
 										</div>
 									</div>
 								</div>
@@ -533,140 +369,6 @@ export default function EnrollmentDetailView({
 						</div>
 					)}
 				</EditableSection>
-
-				{/* Cohort Information Card */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2 text-base">
-							<School className="h-4 w-4" />
-							Cohort Information
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						{/* Product Details */}
-						<div>
-							<h4 className="mb-3 font-medium text-sm">Product Details</h4>
-							<div className="grid gap-4 md:grid-cols-3">
-								<div>
-									<p className="text-muted-foreground text-xs">Product Name</p>
-									<p className="mt-1 font-medium text-sm">
-										{currentEnrollment.cohort?.product?.display_name ||
-											"Not set"}
-									</p>
-								</div>
-								<div>
-									<p className="text-muted-foreground text-xs">Format</p>
-									<p className="mt-1 text-sm capitalize">
-										{currentEnrollment.cohort?.product?.format || "Not set"}
-									</p>
-								</div>
-								<div>
-									<p className="text-muted-foreground text-xs">Location</p>
-									<p className="mt-1 text-sm capitalize">
-										{currentEnrollment.cohort?.product?.location || "Not set"}
-									</p>
-								</div>
-							</div>
-						</div>
-
-						{/* Cohort Status */}
-						<div>
-							<h4 className="mb-3 font-medium text-sm">Status & Capacity</h4>
-							<div className="grid gap-4 md:grid-cols-3">
-								<div>
-									<p className="text-muted-foreground text-xs">Cohort Status</p>
-									<Badge variant="outline" className="mt-1">
-										{currentEnrollment.cohort?.cohort_status
-											?.replace(/_/g, " ")
-											.replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
-											"Unknown"}
-									</Badge>
-								</div>
-								<div>
-									<p className="text-muted-foreground text-xs">
-										Maximum Students
-									</p>
-									<p className="mt-1 text-sm">
-										{currentEnrollment.cohort?.max_students
-											? `${currentEnrollment.cohort.max_students} students`
-											: "Not set"}
-									</p>
-								</div>
-								<div>
-									<p className="text-muted-foreground text-xs">Room Type</p>
-									<p className="mt-1 text-sm capitalize">
-										{currentEnrollment.cohort?.room_type?.replace(/_/g, " ") ||
-											"Not set"}
-									</p>
-								</div>
-							</div>
-						</div>
-
-						{/* Weekly Sessions */}
-						{sortedSessions.length > 0 && (
-							<div>
-								<h4 className="mb-3 font-medium text-sm">Weekly Schedule</h4>
-								<div className="space-y-2">
-									{sortedSessions.map((session: any) => (
-										<div
-											key={session.id}
-											className="flex items-center justify-between rounded-lg border p-3"
-										>
-											<div className="flex items-center gap-4">
-												<div>
-													<p className="font-medium text-sm capitalize">
-														{session.day_of_week}
-													</p>
-													<p className="text-muted-foreground text-xs">
-														{formatTime(session.start_time)} -{" "}
-														{formatTime(session.end_time)}
-													</p>
-												</div>
-											</div>
-											<div className="text-right">
-												<p className="font-medium text-sm">
-													{session.teacher?.first_name}{" "}
-													{session.teacher?.last_name}
-												</p>
-												<p className="text-muted-foreground text-xs">Teacher</p>
-											</div>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* System Information */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2 text-base">
-							<Clock className="h-4 w-4" />
-							System Information
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="grid gap-4 md:grid-cols-2">
-						<div>
-							<p className="text-muted-foreground text-xs">Created At</p>
-							<p className="mt-1 text-sm">
-								{format(
-									new Date(currentEnrollment.created_at),
-									"MMM dd, yyyy 'at' h:mm a",
-								)}
-							</p>
-						</div>
-						<div>
-							<p className="text-muted-foreground text-xs">Last Updated</p>
-							<p className="mt-1 text-sm">
-								{format(
-									new Date(currentEnrollment.updated_at),
-									"MMM dd, yyyy 'at' h:mm a",
-								)}
-							</p>
-						</div>
-					</CardContent>
-				</Card>
 			</div>
 		</div>
 	);

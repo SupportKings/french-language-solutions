@@ -23,19 +23,8 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import {
-	ArrowLeft,
-	BrickWallFireIcon,
-	ChartLineIcon,
-	CreditCard,
-	FocusIcon,
-	GoalIcon,
-	InboxIcon,
-	Settings,
-	ShieldCheckIcon,
-	Ticket,
-	Users,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { IconWrapper } from "./icon-wrapper";
 import { NavMain } from "./nav-main";
 import { SidebarItemComponent } from "./sidebar-item";
 
@@ -60,12 +49,12 @@ const settingsNavItems = [
 		name: "Account",
 		items: [
 			{
-				icon: <Users size={16} />,
+				icon: "Users",
 				name: "Profile",
 				href: "/dashboard/settings/profile",
 			},
 			{
-				icon: <BrickWallFireIcon size={16} />,
+				icon: "BrickWall",
 				name: "Security & Access",
 				href: "/dashboard/settings/security",
 			},
@@ -76,7 +65,7 @@ const settingsNavItems = [
 		name: "Administration",
 		items: [
 			{
-				icon: <Users size={16} />,
+				icon: "Users",
 				name: "Team",
 				href: "/dashboard/settings/team",
 			},
@@ -86,12 +75,12 @@ const settingsNavItems = [
 		name: "Coaches",
 		items: [
 			{
-				icon: <ShieldCheckIcon size={16} />,
+				icon: "ShieldCheck",
 				name: "Certifications",
 				href: "/dashboard/settings/certifications",
 			},
 			{
-				icon: <FocusIcon size={16} />,
+				icon: "Focus",
 				name: "Specializations",
 				href: "/dashboard/settings/specializations",
 			},
@@ -101,7 +90,7 @@ const settingsNavItems = [
 		name: "Clients",
 		items: [
 			{
-				icon: <GoalIcon size={16} />,
+				icon: "Goal",
 				name: "Goals",
 				href: "/dashboard/settings/goals",
 			},
@@ -112,14 +101,18 @@ const settingsNavItems = [
 export function AppSidebar({
 	session,
 	rawPermissions,
+	isAdmin = false,
 	...props
 }: React.ComponentProps<typeof Sidebar> & {
 	session: Session;
 	rawPermissions?: any;
+	isAdmin?: boolean;
 }) {
 	const pathname = usePathname();
 	const currentArea = pathname.includes("/dashboard/settings")
 		? "settings"
+		: pathname.includes("/admin")
+		? "admin"
 		: "main";
 
 	const isImpersonating =
@@ -151,12 +144,92 @@ export function AppSidebar({
 	const buildNavigation = () => {
 		const navItems = [];
 
+		// Admin navigation for admin area
+		if (isAdmin || currentArea === "admin") {
+			navItems.push({
+				title: "Students Hub",
+				url: "#",
+				icon: "GraduationCap",
+				items: [
+					{
+						title: "Students/Leads",
+						url: "/admin/students",
+					},
+					{
+						title: "Enrollments",
+						url: "/admin/students/enrollments",
+					},
+					{
+						title: "Assessments",
+						url: "/admin/students/assessments",
+					},
+				],
+			});
+
+			navItems.push({
+				title: "Classes Hub",
+				url: "#",
+				icon: "Calendar",
+				items: [
+					{
+						title: "All Cohorts",
+						url: "/admin/cohorts",
+					},
+					{
+						title: "Products & Pricing",
+						url: "/admin/cohorts/products",
+					},
+				],
+			});
+
+			navItems.push({
+				title: "Teachers",
+				url: "/admin/teachers",
+				icon: "Users",
+			});
+
+			navItems.push({
+				title: "Automation",
+				url: "#",
+				icon: "Bot",
+				items: [
+					{
+						title: "Touchpoints",
+						url: "/admin/automation/touchpoints",
+					},
+					{
+						title: "Automated Follow-ups",
+						url: "/admin/automation/automated-follow-ups",
+					},
+					{
+						title: "Sequences",
+						url: "/admin/automation/sequences",
+					},
+				],
+			});
+
+			navItems.push({
+				title: "Configuration",
+				url: "#",
+				icon: "Settings",
+				items: [
+					{
+						title: "Language Levels",
+						url: "/admin/configuration/language-levels",
+					},
+				],
+			});
+
+			return navItems;
+		}
+
+		// Regular dashboard navigation
 		// Client Management section
 		if (canAccessClients) {
 			navItems.push({
 				title: "Client Management",
 				url: "#",
-				icon: Users,
+				icon: "Users",
 				items: [
 					{
 						title: "Clients",
@@ -171,7 +244,7 @@ export function AppSidebar({
 			navItems.push({
 				title: "Coaches",
 				url: "#",
-				icon: Users,
+				icon: "Users",
 				items: [
 					{
 						title: "Coaches",
@@ -205,7 +278,7 @@ export function AppSidebar({
 			navItems.push({
 				title: "Support",
 				url: "#",
-				icon: Ticket,
+				icon: "Ticket",
 				items: ticketItems,
 			});
 		}
@@ -215,7 +288,7 @@ export function AppSidebar({
 			navItems.push({
 				title: "Overview",
 				url: "#",
-				icon: ChartLineIcon,
+				icon: "ChartLine",
 				isActive: true,
 				items: [
 					{
@@ -231,7 +304,7 @@ export function AppSidebar({
 			navItems.push({
 				title: "Finance",
 				url: "#",
-				icon: CreditCard,
+				icon: "CreditCard",
 				items: [
 					{
 						title: "Billing & Finance",
@@ -251,7 +324,7 @@ export function AppSidebar({
 			{
 				name: "Inbox",
 				url: "/dashboard",
-				icon: InboxIcon,
+				icon: "Inbox",
 			},
 		],
 	};
@@ -282,22 +355,11 @@ export function AppSidebar({
 								{/* Show impersonation banner at the top if impersonating */}
 								{isImpersonating && <ImpersonationBanner session={session} />}
 
-								<div className="mt-4">
-									<NewButton />
-								</div>
-								<div className="mt-4">
-									<NavMain items={data.mainNav} />
-								</div>
-								<div className="mt-8">
+								
+								<div className="">
 									<NavCollapsible items={data.navMain} />
 								</div>
 
-								{/* Settings button that triggers area switch */}
-								<SidebarItemComponent
-									href="/dashboard/settings/profile"
-									label="Settings"
-									icon={<Settings size={16} />}
-								/>
 
 								<NavSecondary className="mt-auto" />
 							</div>
@@ -322,7 +384,7 @@ export function AppSidebar({
 														key={item.name}
 														href={item.href}
 														label={item.name}
-														icon={item.icon}
+														icon={<IconWrapper name={item.icon} size={16} />}
 													/>
 												))}
 											</div>

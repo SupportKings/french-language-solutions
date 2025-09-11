@@ -275,7 +275,6 @@ export function TouchpointsTable() {
 							<TableHead>Direction</TableHead>
 							<TableHead>Message</TableHead>
 							<TableHead>Source</TableHead>
-							<TableHead>Follow-up</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
 					</TableHeader>
@@ -389,19 +388,7 @@ export function TouchpointsTable() {
 												</span>
 											</div>
 										</TableCell>
-										<TableCell>
-											{touchpoint.automated_follow_ups ? (
-												<Link
-													href={`/admin/automation/automated-follow-ups/${touchpoint.automated_follow_up_id}`}
-													className="text-primary text-sm hover:underline"
-												>
-													{touchpoint.automated_follow_ups.sequence
-														?.display_name || "View"}
-												</Link>
-											) : (
-												<span className="text-muted-foreground text-sm">-</span>
-											)}
-										</TableCell>
+									
 										<TableCell>
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
@@ -418,14 +405,7 @@ export function TouchpointsTable() {
 															View
 														</DropdownMenuItem>
 													</Link>
-													<Link
-														href={`/admin/automation/touchpoints/${touchpoint.id}/edit`}
-													>
-														<DropdownMenuItem>
-															<Edit className="mr-2 h-4 w-4" />
-															Edit
-														</DropdownMenuItem>
-													</Link>
+												
 													<DropdownMenuItem
 														onClick={(e) => {
 															e.stopPropagation();

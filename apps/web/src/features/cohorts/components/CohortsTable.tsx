@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -17,10 +20,8 @@ import {
 
 import { format } from "date-fns";
 import {
-	Calendar,
-	CheckCircle2,
+	BookOpen,
 	Clock,
-	MapPin,
 	User,
 	Users,
 } from "lucide-react";
@@ -90,21 +91,6 @@ const getStatusVariant = (status: CohortStatus) => {
 	}
 };
 
-// Room type badge variant
-const getRoomTypeVariant = (roomType: RoomType) => {
-	switch (roomType) {
-		case "for_one_to_one":
-			return "info";
-		case "medium":
-			return "default";
-		case "medium_plus":
-			return "default";
-		case "large":
-			return "secondary";
-		default:
-			return "outline";
-	}
-};
 
 // Format status for display
 const formatStatus = (status: CohortStatus) => {
@@ -125,12 +111,6 @@ const formatLevel = (level: any) => {
 	return "—";
 };
 
-// Format day and time
-const formatSessionTime = (session: WeeklySession) => {
-	const day =
-		session.day_of_week.charAt(0).toUpperCase() + session.day_of_week.slice(1);
-	return `${day} ${session.start_time}-${session.end_time}`;
-};
 
 export function CohortsTable({
 	cohorts,
@@ -282,24 +262,21 @@ export function CohortsTable({
 							>
 								<TableCell>
 									<div className="flex h-12 items-center">
-										<Link
+										<LinkedRecordBadge
 											href={
 												cohort.products?.id
-													? `/admin/products/${cohort.products.id}`
-													: "/admin/products"
+													? `/admin/cohorts/products/${cohort.products.id}`
+													: "/admin/cohorts/products"
 											}
-											onClick={(e) => e.stopPropagation()}
-										>
-											<Badge
-												variant="default"
-												className="cursor-pointer font-medium transition-colors hover:bg-primary/90"
-											>
-												{cohort.products?.display_name ||
-													(cohort.products?.format
-														? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
-														: "Product")}
-											</Badge>
-										</Link>
+											label={
+												cohort.products?.display_name ||
+												(cohort.products?.format
+													? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+													: "Product")
+											}
+											icon={BookOpen}
+											className="text-xs"
+										/>
 									</div>
 								</TableCell>
 								<TableCell>
@@ -338,7 +315,14 @@ export function CohortsTable({
 											<div className="w-20">
 												<div className="h-1.5 w-full rounded-full bg-muted">
 													<div
-														className="h-1.5 rounded-full bg-primary transition-all"
+														className={cn(
+															"h-1.5 rounded-full transition-all",
+															progressPercentage > 100
+																? "bg-red-500"
+																: progressPercentage === 100
+																	? "bg-green-500"
+																	: "bg-blue-500",
+														)}
 														style={{
 															width: `${Math.min(progressPercentage, 100)}%`,
 														}}
@@ -396,24 +380,19 @@ export function CohortsTable({
 												.filter(Boolean)
 												.slice(0, 2)
 												.map((teacher: any) => (
-													<Link
+													<LinkedRecordBadge
 														key={teacher.id}
 														href={`/admin/teachers/${teacher.id}`}
-														className="inline-flex items-center"
-														onClick={(e) => e.stopPropagation()}
-													>
-														<Badge
-															variant="secondary"
-															className="cursor-pointer text-xs transition-colors hover:bg-primary hover:text-primary-foreground"
-														>
-															<User className="mr-1 h-3 w-3" />
-															{teacher.first_name && teacher.last_name
+														label={
+															teacher.first_name && teacher.last_name
 																? `${teacher.first_name} ${teacher.last_name}`
 																: teacher.first_name ||
 																	teacher.last_name ||
-																	"Unknown"}
-														</Badge>
-													</Link>
+																	"Unknown"
+														}
+														icon={User}
+														className="text-xs"
+													/>
 												))
 										) : (
 											<span className="text-muted-foreground text-xs">

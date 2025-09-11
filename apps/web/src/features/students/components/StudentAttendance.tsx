@@ -329,11 +329,9 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 							<TableHead className="w-[120px]">Date</TableHead>
 							<TableHead className="w-[100px]">Time</TableHead>
 							<TableHead className="w-[120px]">Cohort</TableHead>
-							<TableHead className="w-[100px]">Status</TableHead>
-							<TableHead className="w-[120px]">Homework</TableHead>
+							<TableHead className="w-[100px]">Homework</TableHead>
+							<TableHead className="w-[120px]">Status</TableHead>
 							<TableHead className="min-w-[200px]">Notes</TableHead>
-							<TableHead className="w-[180px]">Actions</TableHead>
-							<TableHead className="w-[100px]">Marked</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>

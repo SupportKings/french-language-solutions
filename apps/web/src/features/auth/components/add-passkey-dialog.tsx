@@ -98,15 +98,11 @@ export function AddPasskeyDialog({
 			{children ? (
 				<DialogTrigger>{children}</DialogTrigger>
 			) : (
-				<DialogTrigger>
-					<Button
-						variant="outline"
-						size="sm"
-						className="shrink-0"
-						disabled={passkeyCount >= 1}
-					>
-						{passkeyCount >= 1 ? "Max 1 Passkey" : "Add Passkey"}
-					</Button>
+				<DialogTrigger 
+					className="inline-flex h-8 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+					disabled={passkeyCount >= 1}
+				>
+					{passkeyCount >= 1 ? "Max 1 Passkey" : "Add Passkey"}
 				</DialogTrigger>
 			)}
 			<DialogContent>
