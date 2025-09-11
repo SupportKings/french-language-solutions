@@ -797,6 +797,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							</FormRow>
 						</FormSection>
 
+			
 						{/* External References */}
 						<FormSection
 							title="External References"
