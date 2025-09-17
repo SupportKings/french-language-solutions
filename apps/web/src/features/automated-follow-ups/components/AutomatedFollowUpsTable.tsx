@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
@@ -21,6 +20,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,

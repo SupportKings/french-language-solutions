@@ -20,7 +20,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -28,6 +27,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 
 import { format } from "date-fns";
 import {

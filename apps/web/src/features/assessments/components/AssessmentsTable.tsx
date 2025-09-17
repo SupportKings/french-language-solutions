@@ -11,7 +11,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,6 +18,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -416,7 +416,7 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 									<TableCell>
 										{assessment.language_level ? (
 											<LinkedRecordBadge
-												href={`/admin/configuration/language-levels`}
+												href={"/admin/configuration/language-levels"}
 												label={assessment.language_level.display_name}
 												icon={GraduationCap}
 											/>

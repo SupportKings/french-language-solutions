@@ -458,8 +458,7 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 										<p className="text-sm">
 											{format(
 												new Date(
-													student.airtable_created_at ||
-														student.created_at,
+													student.airtable_created_at || student.created_at,
 												),
 												"MMM d, yyyy",
 											)}
