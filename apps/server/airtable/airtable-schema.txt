@@ -1,0 +1,2766 @@
+AIRTABLE SCHEMA DOCUMENTATION
+================================================================================
+Generated on: 2025-09-15T08:27:26.728Z
+Base ID: appNpK5S8d0MnhdVH
+================================================================================
+
+TABLE: Teachers/Team
+----------------------------------------
+Table ID: tblVkXhmy8qX3FHm4
+Number of fields: 42
+
+Fields:
+  - Teacher Full Name
+    Type: formula
+    Field ID: fldonm4kYyV3K41sM
+    Formula: {fldm3r762kStRt2du} & " " & {fldeYvO6qxReRf5dx}
+
+  - First Name
+    Type: singleLineText
+    Field ID: fldm3r762kStRt2du
+
+  - Last Name
+    Type: singleLineText
+    Field ID: fldeYvO6qxReRf5dx
+
+  - Team Onboarding Status
+    Type: singleSelect
+    Field ID: fldxQj2CN0u6j181v
+    Options: -1 - No Longer with FLS, 0 - New, 10 - Training in Progress, 100 - Onboarded
+
+  - Roles
+    Type: multipleSelects
+    Field ID: fldo48xNre1iDy4l9
+    Options: Teacher, Evaluator, Marketing/Admin, Exec
+
+  - Group Class Bonus Terms
+    Type: singleSelect
+    Field ID: fldo4VCF6boiBc8k5
+    Options: Per Student Per Hour up to $50/hr, Per Hour
+
+  - Maximum Students Per In-Person Class
+    Type: number
+    Field ID: fldlB4NiwNHl50A5m
+
+  - Contract Type
+    Type: singleSelect
+    Field ID: fldJcEBsueFr2YG6L
+    Options: Freelancer, Full-Time
+
+  - Events
+    Type: multipleRecordLinks
+    Field ID: fldQLquqgE9YSrPBE
+    Links to: Table ID tbldeW8SeBkDIlywc
+
+  - Available for Teach Online Classes
+    Type: singleSelect
+    Field ID: fldCLJhnPW6VR55eH
+    Options: Yes, No
+
+  - Available for In-Person Classes
+    Type: singleSelect
+    Field ID: fld6XYALJ3aJkT9WB
+    Options: Yes, No
+
+  - Email
+    Type: email
+    Field ID: fldqQUPBaktOr1oFI
+
+  - Mobile Phone Number
+    Type: phoneNumber
+    Field ID: fldg6hRLPhllxZLXQ
+
+  - Home Phone Number
+    Type: phoneNumber
+    Field ID: fld7LXEdBYaXc8i6v
+
+  - Student Assessments
+    Type: multipleRecordLinks
+    Field ID: fld0XHTDMqg6jle1i
+    Links to: Table ID tbl8qPVvfrZfqFd7d
+
+  - French Programs/Cohorts
+    Type: singleLineText
+    Field ID: fldaZwd6RzB1yzblo
+
+  - Teacher Payouts
+    Type: multipleRecordLinks
+    Field ID: fld4Sf6Yl5gQBoKhY
+    Links to: Table ID tblUKLQjNAOQdMZI9
+
+  - Teacher Notes
+    Type: multilineText
+    Field ID: fldMtJSPMGfJnxYnn
+
+  - Cohort Weekly Session
+    Type: multipleRecordLinks
+    Field ID: fldjgy50DeF7p7pBv
+    Links to: Table ID tbl42r90BBxZsI1ak
+
+  - Teacher Certifications
+    Type: multipleRecordLinks
+    Field ID: fldwkQDLVBpsUzRlq
+    Links to: Table ID tblKiN99Ing14hSaO
+
+  - Teacher Skill
+    Type: singleSelect
+    Field ID: fldrk7DSEnLGh4ZSQ
+    Options: Beginner, Medium, Expert
+
+  - Google Calendar ID
+    Type: singleLineText
+    Field ID: fldvHOHGSyqz6Gi50
+
+  - Calendar Events Test
+    Type: singleLineText
+    Field ID: flduPTrp5fmB4jGly
+
+  - Calendar Events Test 2
+    Type: singleLineText
+    Field ID: fldbyk0NfhhiOwCx4
+
+  - Student Assessments 2
+    Type: multipleRecordLinks
+    Field ID: fldtQtK1TTRScqIxJ
+    Links to: Table ID tbl8qPVvfrZfqFd7d
+
+  - Maximum Working Hours Per Week
+    Type: number
+    Field ID: fldcd3N5Y4fmnrOVB
+
+  - Event Attendees
+    Type: multipleRecordLinks
+    Field ID: fldXDCRsifI8tF6rJ
+    Links to: Table ID tblEPlV4hrRut5WCU
+
+  - Maximum Students for Online Group Class
+    Type: number
+    Field ID: fldTJmYp3CaxNTyxr
+
+  - Teacher's Average Workload (28 Days)
+    Type: formula
+    Field ID: fldO1UkI1aO7rHe6p
+    Formula: {fldMfgoJLlKbmuPfK} / 4
+
+  - Teacher's Total Workload (Next Week)
+    Type: rollup
+    Field ID: fldKm2tmMjm5Rg2cb
+
+  - Teacher's Total Workload (28 Days)
+    Type: rollup
+    Field ID: fldMfgoJLlKbmuPfK
+
+  - 1-1 Class Requests
+    Type: multipleRecordLinks
+    Field ID: fldUUD7EdF20nVEf7
+    Links to: Table ID tblFOgL0CxG2uXN1m
+
+  - Days Available for Online Classes
+    Type: multipleSelects
+    Field ID: fld7RaOXPGWXs3HJ9
+    Options: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+
+  - Days Available for In-Person Classes
+    Type: multipleSelects
+    Field ID: fldPBnC0d4jIaGr9r
+    Options: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+
+  - Maximum Working Hours Per Day
+    Type: number
+    Field ID: fldN2k338Zde22v83
+
+  - Exceed Workload for Next Week
+    Type: formula
+    Field ID: fldwkp1nGjOz92TOJ
+    Formula: AND(
+  {fldcd3N5Y4fmnrOVB},
+  {fldKm2tmMjm5Rg2cb} >= {fldcd3N5Y4fmnrOVB}
+)
+
+
+  - Qualified for Under 16
+    Type: singleSelect
+    Field ID: fldTWfkTzVWPrqaNE
+    Options: No, Yes
+
+  - Calendar Events
+    Type: multipleRecordLinks
+    Field ID: fldfPcxKm1uDhUHrl
+    Links to: Table ID tblo7z7DbVaOGIEmJ
+
+  - Time Off Requests
+    Type: multipleRecordLinks
+    Field ID: fldUlhWerHVb0x2EL
+    Links to: Table ID tblLfED38zP9kGUfK
+
+  - Time Off Form URL
+    Type: formula
+    Field ID: fldJ0RaAjmisRwwLU
+    Formula: "https://airtable.com/appNpK5S8d0MnhdVH/pagDHiXxcr85SsL1O/form?prefill_Teacher=" & RECORD_ID()
+
+  - Available for Booking?
+    Type: singleSelect
+    Field ID: fldyxjBwzqUitZU2Q
+    Options: Not Available, Available
+
+  - Record ID
+    Type: formula
+    Field ID: fldhKjJDnd57VnMtb
+    Formula: RECORD_ID()
+
+
+TABLE: Students/Leads
+----------------------------------------
+Table ID: tblDuD2OQoYgLA2r8
+Number of fields: 81
+
+Fields:
+  - Name
+    Type: singleLineText
+    Field ID: fldiplaow1BAXo974
+
+  - First Name
+    Type: formula
+    Field ID: fldhVCr7Sop7eUg3R
+    Formula: TRIM(LEFT({fldiplaow1BAXo974}, FIND(" ", {fldiplaow1BAXo974} & " ") - 1))
+
+  - Last Name
+    Type: formula
+    Field ID: fldzkos69szGUwSD1
+    Formula: TRIM(RIGHT({fldiplaow1BAXo974}, LEN({fldiplaow1BAXo974}) - FIND(" ", {fldiplaow1BAXo974} & " ")))
+
+  - Form Created
+    Type: dateTime
+    Field ID: fld5GcElxkRh6OvkK
+
+  - Hour of Day
+    Type: formula
+    Field ID: fldCRDCUPVKadQSap
+    Formula: HOUR({fld5GcElxkRh6OvkK})
+
+  - ConvertKit Subscriber ID
+    Type: singleLineText
+    Field ID: fldEKC9ye0205q1vw
+
+  - Email
+    Type: email
+    Field ID: fldetyIzNcSddz9Yk
+
+  - Lead Status
+    Type: singleSelect
+    Field ID: fldi2cBIbJMxILqNI
+    Options: -100 - BLACKLIST/BAN, -10 - Archived / Resubmitted Enrollment Form, 0 - Inquiry Received, 9 - Disqualified, 10 - Sent Class Form(s), 20 - Completed Basic Profile, 100 - Chose a Class (Add Enrollment to That Class to Hold)
+
+  - Mobile Phone Number
+    Type: phoneNumber
+    Field ID: flddOcwSbeFL5DIGz
+
+  - City
+    Type: singleLineText
+    Field ID: fldiJijdTrDi8CR3F
+
+  - Desired Starting Language Level
+    Type: multipleRecordLinks
+    Field ID: fldPA8JMT4Y6Kk0hP
+    Links to: Table ID tblmTTItwW0GACuEo
+
+  - Why do you want to learn french?
+    Type: singleLineText
+    Field ID: fldjuvOgje4ABM56H
+
+  - Any other factors?
+    Type: singleLineText
+    Field ID: fldzJSGjP1PX1ucJ0
+
+  - Online Classes
+    Type: singleLineText
+    Field ID: fld7A0LrjxTo0tNWI
+
+  - Conversational Classes
+    Type: singleLineText
+    Field ID: fld49u0Yyq8cxdx7G
+
+  - New Beginner Intensive
+    Type: singleSelect
+    Field ID: fld1DLZpNsCS9wHN3
+    Options: 
+
+  - In Person Classes
+    Type: singleLineText
+    Field ID: fldNtISfCpw86C1gI
+
+  - Availability Times
+    Type: multipleSelects
+    Field ID: fldT1DbArsQC9OBlP
+    Options: All Day, Afternoon, Morning, Evening, Morning (9:00 am - 12:00 pm), Evening (5:00 pm - 9:00 pm), Afternoon (12:00 pm - 5:00 pm), Weekdays, Weekends
+
+  - Availability Additional
+    Type: singleLineText
+    Field ID: fldzQk0Z3NIuTRM9i
+
+  - Availability Days
+    Type: multipleSelects
+    Field ID: fldcwN748ZVdVMLGm
+    Options: Weekdays, Weekends
+
+  - When do you want to start?
+    Type: singleLineText
+    Field ID: fldOHbk6bWn2ROWLi
+
+  - A1 level or above experience
+    Type: singleLineText
+    Field ID: fldgxJvYJvH3jpdWd
+
+  - How did you hear about us?
+    Type: singleLineText
+    Field ID: fldzassOGbZKcm3rE
+
+  - First Assessment Status
+    Type: multipleLookupValues
+    Field ID: fld2VCGkRETOPYBJW
+
+  - First Enrollment Status
+    Type: multipleLookupValues
+    Field ID: fldVuj69KGxURd3TE
+
+  - Most Recent Assessment Level
+    Type: multipleLookupValues
+    Field ID: fld4fIX1BawC3fkBT
+
+  - Student Assessments
+    Type: multipleRecordLinks
+    Field ID: flds4OQnFmElWpJm1
+    Links to: Table ID tbl8qPVvfrZfqFd7d
+
+  - Most Recent Assesssment Date
+    Type: multipleLookupValues
+    Field ID: fldpUlmD6gHcuiY6u
+
+  - Days Since Last Assessment
+    Type: formula
+    Field ID: fldEUVDO3B8K1CPzs
+    Formula: IF({fldpUlmD6gHcuiY6u},
+DATETIME_DIFF(NOW(),{fldpUlmD6gHcuiY6u},'days') & " days ago"
+,
+"N/A")
+
+  - Number of Outbound Follow Ups
+    Type: count
+    Field ID: fldGxyVSxZykwDBvZ
+
+  - Last Follow Up
+    Type: multipleLookupValues
+    Field ID: fldezgFm6tsqoDmEk
+
+  - Sales CRM Cohort
+    Type: multipleRecordLinks
+    Field ID: fldrVskdZGN7H7GU6
+    Links to: Table ID tbl1nb4UeJeuB3sDN
+
+  - Initial Channel
+    Type: singleSelect
+    Field ID: fldE8jKYLEyDkSBMt
+    Options: Quiz, Call, Message, Email, Form, Paid Assessment
+
+  - Student Enrollments
+    Type: multipleRecordLinks
+    Field ID: fldvRf5e7rd9leqc2
+    Links to: Table ID tblxPJbUJ2UqE7sqF
+
+  - Added to Email Newsletter
+    Type: singleSelect
+    Field ID: fldWiGQKWJuy3YCe3
+    Options: 0 - Not Yet Subscribed/Unknown, 99 - Unsubscribed, 100 - Subscribed
+
+  - CRM Touchpoints/FollowUps
+    Type: multipleRecordLinks
+    Field ID: fldOtQgsSbYLUZNW3
+    Links to: Table ID tblYsUNtdiYXz2XPd
+
+  - Overall Lead Status
+    Type: formula
+    Field ID: fld8sby8VWKKAhnny
+    Description: For interface filters
+    Formula: SWITCH(1,
+1,"New",
+1.5,"Lead Active",
+2,"Stale - Follow Up",
+2.5,"Purchased Assessment",
+3,"Assessed",
+4,"Enrolled",
+5,"Dropped Out"
+)
+
+  - Days Since Last FollowUp
+    Type: formula
+    Field ID: fldtcidSoeQWvmw1o
+    Formula: DATETIME_DIFF(NOW(),{fldYJsJd9Os0KTe32},'hours')/24
+
+  - Follow Up Status
+    Type: formula
+    Field ID: fld8nnWCLmVgABneW
+    Formula: IF({fldRADgQbOv27MAiV}>14,'Old',IF({fldGxyVSxZykwDBvZ}>=3,"Stale",
+
+IF(
+  OR(
+    {fldtcidSoeQWvmw1o}>2,
+    {fldGxyVSxZykwDBvZ}=0
+    ),"Follow Up","OK")))
+
+  - Last Follow Up/Creation
+    Type: formula
+    Field ID: fldYJsJd9Os0KTe32
+    Formula: IF({fldezgFm6tsqoDmEk}=BLANK(),{fld5GcElxkRh6OvkK},{fldezgFm6tsqoDmEk})
+
+  - Stripe Customer ID
+    Type: singleLineText
+    Field ID: fldIT818JA6L64uAe
+
+  - Website Quiz Completed Date
+    Type: dateTime
+    Field ID: fld5cwAIB1qhtNDsW
+
+  - Days Since Creation
+    Type: formula
+    Field ID: fldRADgQbOv27MAiV
+    Formula: DATETIME_DIFF(NOW(),{fld5GcElxkRh6OvkK},'days')
+
+  - Record Created
+    Type: createdTime
+    Field ID: fldgU1iNy8o55Jknz
+
+  - Calculation
+    Type: formula
+    Field ID: fldQDDHVwWQQ37xmR
+    Formula: IF({fldEKC9ye0205q1vw} = FALSE(),1)
+
+  - Payments from Student
+    Type: multipleRecordLinks
+    Field ID: fldij24VE6gsqsUli
+    Links to: Table ID tblhIvhL1eg3edwH1
+
+  - Lead LTV (All Payments)
+    Type: rollup
+    Field ID: fldyGQ1czwJ5M9cYf
+
+  - First Payment Date
+    Type: multipleLookupValues
+    Field ID: fld9lHBIAWqpkJ40T
+
+  - Sales Velocity (Lead -> Customer Days)
+    Type: formula
+    Field ID: fldYOGlq9Z8AFsp5q
+    Formula: DATETIME_DIFF({fld9lHBIAWqpkJ40T},{fld5GcElxkRh6OvkK},'days')
+
+  - Cohort Record ID
+    Type: multipleLookupValues
+    Field ID: fldQDqi4jOBtNID1o
+
+  - Student Record ID
+    Type: formula
+    Field ID: fldeYEpN7wg9jrtBH
+    Formula: RECORD_ID()
+
+  - Stripe Profile URL
+    Type: formula
+    Field ID: fldcm1a34atubO8V7
+    Formula: IF(
+  {fldIT818JA6L64uAe},
+  "https://dashboard.stripe.com/customers/" & {fldIT818JA6L64uAe},
+  BLANK()
+)
+
+  - Calendar Events Test
+    Type: singleLineText
+    Field ID: fld5GeIDZpuwo5mII
+
+  - Stripe Customer Profile
+    Type: button
+    Field ID: fldIeLaSuTFN14PmQ
+
+  - Discovery Channel
+    Type: singleSelect
+    Field ID: fldK2eSFzpn5kxDRc
+    Options: Facebook, Instagram, Google, Youtube, Referral, Kijiji, Meetup, Other
+
+  - Other Discovery Channel
+    Type: singleLineText
+    Field ID: fldvJ04rU5VPDUqOc
+
+  - Purpose to Learn
+    Type: singleSelect
+    Field ID: fldBe92iAsT8wFSbt
+    Options: Immigration (TEF, TCF, TEFAQ), Second Language Exam (for Canadian work purposes), Work, Personal Goals, Travel, School (for kids), Other, School
+
+  - Other Purpose to Learn
+    Type: singleLineText
+    Field ID: fldLcq4NMdRI5TNoO
+
+  - Student's Subjective Deadline
+    Type: date
+    Field ID: fld4PXcbibZfNgLvy
+
+  - Student's Beginning Level (from Enrollment Form)
+    Type: singleSelect
+    Field ID: fldbT3TR0XBSzgOPP
+    Options: Complete Beginner (A0), I already know some French (A1 or above)
+
+  - Respondent ID
+    Type: singleLineText
+    Field ID: fldkFJ3QbBNaBzJ7c
+
+  - Submission ID
+    Type: singleLineText
+    Field ID: fldpgoFTzWU94eqjI
+
+  - 1-1 Class Requests
+    Type: multipleRecordLinks
+    Field ID: fldd5ZdFTagvGDneR
+    Links to: Table ID tblFOgL0CxG2uXN1m
+
+  - Lead Created Date
+    Type: formula
+    Field ID: fldGw8ycjPG4bbgKL
+    Formula: SWITCH(
+  {fldE8jKYLEyDkSBMt},
+  "Form", {fld5GcElxkRh6OvkK},
+  "Quiz", {fld5cwAIB1qhtNDsW},
+  "Call",{fldAgDs5U41Acauwc},
+  {fldgU1iNy8o55Jknz}
+)
+
+  - Day of Week
+    Type: formula
+    Field ID: fld0b01kLnSDqMFiO
+    Formula: DATETIME_FORMAT({fld5GcElxkRh6OvkK},"d-dddd")
+
+  - Month
+    Type: formula
+    Field ID: fldQaiCoKAnbzlnmX
+    Formula: DATETIME_FORMAT({fld5GcElxkRh6OvkK},"M-MMMM")
+
+  - Year
+    Type: formula
+    Field ID: fldyYqLQIdss1jhMm
+    Formula: DATETIME_FORMAT({fld5GcElxkRh6OvkK},"YYYY")
+
+  - Event Attendees
+    Type: multipleRecordLinks
+    Field ID: fldKzrq23uqz6dudW
+    Links to: Table ID tblEPlV4hrRut5WCU
+
+  - OpenPhone Contact ID
+    Type: singleLineText
+    Field ID: fldF9fiR3KWdhhhpM
+
+  - Formatted Phone Number
+    Type: formula
+    Field ID: fldcHwgmDAlN6Ix37
+    Formula: SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({flddOcwSbeFL5DIGz}, "(", ""), ")", ""), "-", ""), " ", "")
+
+  - test
+    Type: formula
+    Field ID: fldWcGCTgqZC59lmy
+    Formula: FIND("29999716",{fldcHwgmDAlN6Ix37})
+
+  - Created By
+    Type: createdBy
+    Field ID: fldXVO4aOlPSOQczC
+
+  - First Contact
+    Type: multipleLookupValues
+    Field ID: fldAgDs5U41Acauwc
+
+  - Number of Classes Enrolled
+    Type: count
+    Field ID: fldXiPgWWf4zE3zqa
+
+  - Default Communication Channel
+    Type: singleSelect
+    Field ID: fld1jUfq4Bf7xSvid
+    Options: SMS & Email, SMS, Email
+
+  - Automated Follow Ups
+    Type: multipleRecordLinks
+    Field ID: fldOAc6VHtCkar5bw
+    Links to: Table ID tbluQwBKY1hpsOvaE
+
+  - Automated Follow Up Status
+    Type: multipleLookupValues
+    Field ID: fldEIOItBrlX1GjWm
+
+  - Automated Follow Up Status Digit
+    Type: multipleLookupValues
+    Field ID: fldHsgVZTzFr1mTKA
+
+  - OpenPhone Profile
+    Type: button
+    Field ID: fldQNPgcpxSQexPuk
+
+  - Age Group
+    Type: singleSelect
+    Field ID: fldPRgVQxSD9PSr97
+    Options: 16 or older, Under 16
+
+  - Follow Up Sequence (from Automated Follow Ups)
+    Type: multipleLookupValues
+    Field ID: fldOwDDJwNH9uBNJg
+
+
+TABLE: Sales Cohort
+----------------------------------------
+Table ID: tbl1nb4UeJeuB3sDN
+Number of fields: 10
+
+Fields:
+  - Name
+    Type: singleLineText
+    Field ID: fldmHUgcSxckTCF8c
+
+  - Students/Leads
+    Type: multipleRecordLinks
+    Field ID: fldZII4ba1hylfzvk
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Cohort Start Date
+    Type: date
+    Field ID: fldZprO0cL4AKG0gs
+
+  - Number of Leads
+    Type: count
+    Field ID: fldmv7ILXyoOPn3G7
+
+  - Number of Customers (At Least One Payment)
+    Type: count
+    Field ID: fldm25U1NCf5Xm1Um
+
+  - Total Cash Collected
+    Type: rollup
+    Field ID: fldvO1fmCvU6f3fox
+
+  - Average Lead Value
+    Type: formula
+    Field ID: fld3OI6FvwL4GWAX3
+    Formula: IF({fldmv7ILXyoOPn3G7}>0,{fldvO1fmCvU6f3fox}/{fldmv7ILXyoOPn3G7},0)
+
+  - Average Student Value
+    Type: formula
+    Field ID: fld7kc1ePNMr1u7gQ
+    Formula: IF({fldm25U1NCf5Xm1Um}>0,{fldvO1fmCvU6f3fox}/{fldm25U1NCf5Xm1Um},0)
+
+  - Conversion Rate (Leads/Customers)
+    Type: formula
+    Field ID: fldfXoZUkGb3Y1ix2
+    Formula: {fldm25U1NCf5Xm1Um}/{fldmv7ILXyoOPn3G7}
+
+  - Average Sales Velocity (Days)
+    Type: rollup
+    Field ID: fld62mLykxxJBxvQe
+
+
+TABLE: CRM Touchpoints/Follow Ups
+----------------------------------------
+Table ID: tblYsUNtdiYXz2XPd
+Number of fields: 13
+
+Fields:
+  - Follow Up ID
+    Type: formula
+    Field ID: fldgcNgktT2A65Rzg
+    Formula: DATETIME_FORMAT({fldEI7t0R0VrFoMQ5},"D MMM") & ' - ' & {fldo3OJxZCf5NHi62}
+
+  - Leads
+    Type: multipleRecordLinks
+    Field ID: fldzZlpT2p91eXkJH
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Automated Follow Up Status Digit (from Leads)
+    Type: multipleLookupValues
+    Field ID: fldfwG4QR5YELBGqR
+
+  - Date
+    Type: dateTime
+    Field ID: fldEI7t0R0VrFoMQ5
+
+  - Note
+    Type: singleLineText
+    Field ID: fldnamnPQntJBvpkm
+
+  - Channel
+    Type: singleSelect
+    Field ID: fldo3OJxZCf5NHi62
+    Options: Email, Call, SMS, WhatsApp
+
+  - Direction
+    Type: singleSelect
+    Field ID: fldDXjyhQyit3kOKD
+    Options: From Lead, To Lead
+
+  - Call Status
+    Type: singleSelect
+    Field ID: fldF2xCvcUhdCL0lx
+    Options: No Answer, Completed
+
+  - Event Type
+    Type: singleSelect
+    Field ID: fldRmP2twW7MGnymd
+    Options: Outbound, Inbound
+
+  - Message from Lead
+    Type: multilineText
+    Field ID: fldQekaH4DK42px3M
+
+  - Message to Lead
+    Type: multilineText
+    Field ID: fldz6XGL9OIYeMlg9
+
+  - Follow Up Status Digit (from Leads)
+    Type: multipleLookupValues
+    Field ID: fldt8UE6SGNEby0az
+
+  - Follow Up - Process Status (from Leads)
+    Type: multipleLookupValues
+    Field ID: fld4JuHDhmgFpUOov
+
+
+TABLE: Automated Follow Ups
+----------------------------------------
+Table ID: tbluQwBKY1hpsOvaE
+Number of fields: 24
+
+Fields:
+  - Name
+    Type: formula
+    Field ID: fldwhJzAdhtzpDTuJ
+    Formula: {fldSQJ1KrQWtLW3jJ} & " - " & {flduUsa5gvUi8qGdH}
+
+  - Student
+    Type: multipleRecordLinks
+    Field ID: fldSQJ1KrQWtLW3jJ
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Mobile Phone Number (from Student)
+    Type: multipleLookupValues
+    Field ID: fldfEkMDh0OEBkLv6
+
+  - Student Record ID
+    Type: multipleLookupValues
+    Field ID: fldW5KJOAPHSLCzRc
+
+  - Follow Up Sequence
+    Type: multipleRecordLinks
+    Field ID: flduUsa5gvUi8qGdH
+    Links to: Table ID tbl1mK5HDNXlnbVlx
+
+  - Time Delay for First Follow Up (from Follow Up Sequence)
+    Type: multipleLookupValues
+    Field ID: fldhIU8R04XsN8ZJA
+
+  - Name (from Student)
+    Type: multipleLookupValues
+    Field ID: fld93D1npu1k5oZx4
+
+  - Status
+    Type: singleSelect
+    Field ID: fldOTChFQ5wDd2STk
+    Options: -2 - Answer Received, -1 - Disabled Manually, 00 - Activated, 50 - Follow Up Ongoing, 100 - Completed
+
+  - Next Step
+    Type: multipleLookupValues
+    Field ID: fldtYLClVxUQNTsZN
+
+  - Last Name (from Student)
+    Type: multipleLookupValues
+    Field ID: fld8433uIUPVNlV8G
+
+  - First Name (from Student)
+    Type: multipleLookupValues
+    Field ID: fld9ZFtlmlvfSJrJe
+
+  - Next Message
+    Type: formula
+    Field ID: fldMF0hoJNwTOaFek
+    Formula: REGEX_REPLACE(REGEX_REPLACE(
+  REGEX_REPLACE({fldhIGBwn4atnc1Q4} & "", "{First Name}", {fld9ZFtlmlvfSJrJe} & "")
+  ,"{Last Name}", {fld8433uIUPVNlV8G} & ""), "{Full Name}", {fld93D1npu1k5oZx4} & "")
+
+  - Subject
+    Type: formula
+    Field ID: fldjKXmZ6Ocqt2LI8
+    Formula: REGEX_REPLACE(REGEX_REPLACE(
+  REGEX_REPLACE({fldXhHQ2YnttRkAy0} & "", "{First Name}", {fld9ZFtlmlvfSJrJe} & "")
+  ,"{Last Name}", {fld8433uIUPVNlV8G} & ""), "{Full Name}", {fld93D1npu1k5oZx4} & "")
+
+  - Number of Active Messages (from Follow Up Sequence)
+    Type: multipleLookupValues
+    Field ID: fldKXF8h1h6vykzYo
+
+  - Subject Template
+    Type: multipleLookupValues
+    Field ID: fldXhHQ2YnttRkAy0
+
+  - Next Message Record
+    Type: multipleRecordLinks
+    Field ID: fldmT4UVI3yCB0ACf
+    Links to: Table ID tbl6qmw0Mk4i80Qf1
+
+  - Time Delay (Hours) (from Next Message Record)
+    Type: multipleLookupValues
+    Field ID: fld16gYKbTGqhwaWJ
+
+  - Next Message Template
+    Type: multipleLookupValues
+    Field ID: fldhIGBwn4atnc1Q4
+
+  - First Message Template (from Follow Up Sequence)
+    Type: multipleLookupValues
+    Field ID: flduQYAx8rsOm1Sx8
+
+  - Activated Time
+    Type: createdTime
+    Field ID: fldLW2LJonM95FQoS
+
+  - Status Digit
+    Type: formula
+    Field ID: fldkCQFVs2DRPMdVS
+    Formula: REGEX_EXTRACT({fldOTChFQ5wDd2STk},"[\\d-]+")+0
+
+  - Last Follow Up Time
+    Type: dateTime
+    Field ID: fldwsRnMKQJYkBOSy
+
+  - Send Next Message Trigger
+    Type: formula
+    Field ID: fldHSMorB1M2sNwph
+    Formula: IF(
+  OR({fldkCQFVs2DRPMdVS} < 0, {fldkCQFVs2DRPMdVS} = 100),
+  FALSE(),
+  IF(
+    {fldtYLClVxUQNTsZN} = 1,
+    IS_AFTER(
+      NOW(),
+      SWITCH(
+        {fldhIU8R04XsN8ZJA},"24 Hours",
+      DATEADD({fldM8LJdbgoWLE1kV}, 1, "day"),
+      "30 Minutes", DATEADD({fldM8LJdbgoWLE1kV}, 30, "minute"),
+      "10 Minutes", DATEADD({fldM8LJdbgoWLE1kV}, 10, "minute")
+      )
+    ),
+    IS_AFTER(
+      NOW(),
+      DATEADD({fldwsRnMKQJYkBOSy}, {fld16gYKbTGqhwaWJ} + 0, "hour")
+    )
+  )
+)
+
+
+  - Created at
+    Type: createdTime
+    Field ID: fldM8LJdbgoWLE1kV
+
+
+TABLE: Follow Up Sequences - Templates
+----------------------------------------
+Table ID: tbl1mK5HDNXlnbVlx
+Number of fields: 8
+
+Fields:
+  - Name
+    Type: singleLineText
+    Field ID: fldOoxFuOzlQayUPy
+
+  - Automated Follow Ups
+    Type: multipleRecordLinks
+    Field ID: fldSOKPnQjTMKQAwO
+    Links to: Table ID tbluQwBKY1hpsOvaE
+
+  - Follow Up Sequence Messages
+    Type: multipleRecordLinks
+    Field ID: fldBkFPT6KenDnU5R
+    Links to: Table ID tbl6qmw0Mk4i80Qf1
+
+  - Number of Active Messages
+    Type: count
+    Field ID: fldGeVUxkYdau3w6r
+
+  - First Message Template
+    Type: multipleLookupValues
+    Field ID: fldRp25O984EiQUqZ
+
+  - Subject
+    Type: singleLineText
+    Field ID: fldZxuQSIDftT0vZN
+
+  - Record ID
+    Type: formula
+    Field ID: fldHpYBsIVpaXOYMb
+    Formula: RECORD_ID()
+
+  - Time Delay for First Follow Up
+    Type: singleSelect
+    Field ID: fldBXh5yhkGKLLeQT
+    Options: 10 Minutes, 30 Minutes, 24 Hours
+
+
+TABLE: Follow Up Sequence - Template Messages
+----------------------------------------
+Table ID: tbl6qmw0Mk4i80Qf1
+Number of fields: 10
+
+Fields:
+  - Message ID
+    Type: formula
+    Field ID: fld9zbvZ3i2pYP93E
+    Formula: {flduzPbXKkQV3jeIJ} &  " - Message " & {fldzVdBH63IveJRvB}
+
+  - Message
+    Type: multilineText
+    Field ID: fldJiTEPcvAcOW4y0
+
+  - Step Index
+    Type: number
+    Field ID: fldzVdBH63IveJRvB
+
+  - Status
+    Type: singleSelect
+    Field ID: fldpzFyirz1JxKa8s
+    Options: Active, Disabled
+
+  - Message Validity
+    Type: formula
+    Field ID: fldzKvlxpZw0BlwU3
+    Formula: IF(
+  OR(
+    FIND("{First Name}", {fldJiTEPcvAcOW4y0}),
+    FIND("{Last Name}", {fldJiTEPcvAcOW4y0}),
+    FIND("{Full Name}", {fldJiTEPcvAcOW4y0})
+  ),
+  IF(
+    REGEX_MATCH({fldJiTEPcvAcOW4y0}, "\\{[^}]+\\}"),
+    IF(
+      REGEX_MATCH({fldJiTEPcvAcOW4y0}, "^([^{]*({First Name}|{Last Name}|{Full Name}))*[^{]*$"),
+      "Valid",
+      "Invalid"
+    ),
+    "Valid"
+  ),
+  IF(
+    REGEX_MATCH({fldJiTEPcvAcOW4y0}, "\\{[^}]+\\}"),
+    "Invalid",
+    "Valid"
+  )
+)
+
+  - Follow Up Sequence
+    Type: multipleRecordLinks
+    Field ID: flduzPbXKkQV3jeIJ
+    Links to: Table ID tbl1mK5HDNXlnbVlx
+
+  - Scheduled Time
+    Type: singleSelect
+    Field ID: fldsEDXr1KuaaxAEu
+    Options: 1 Day After Last Message, 2 Days After Last Message, 3 Days After Last Message, 7 Days After Last Message
+
+  - Time Delay (Hours)
+    Type: formula
+    Field ID: fldHwZcl1iymAkp0I
+    Formula: (REGEX_EXTRACT({fldsEDXr1KuaaxAEu}, "\\d+") + 0) * 24
+
+  - Automated Follow Ups
+    Type: multipleRecordLinks
+    Field ID: fldHMUZH5okgQmtet
+    Links to: Table ID tbluQwBKY1hpsOvaE
+
+  - Record ID (from Follow Up Sequence)
+    Type: multipleLookupValues
+    Field ID: fldvGnDhkW6RmAjwN
+
+
+TABLE: French Programs/Cohorts
+----------------------------------------
+Table ID: tblQYVsRWi8jzt4jh
+Number of fields: 58
+
+Fields:
+  - Program Name ID
+    Type: formula
+    Field ID: fldElcEW0PcY5rDcv
+    Formula: "["&{fldmZeoCIkVC1VmxI}&"] " & {fldMkFohga92wq6fp} & " " & {fldZt6G8GepNK77IW} & " - " & {fldJDtMq8RjAZtedy}
+
+  - created by
+    Type: createdBy
+    Field ID: fld9yBneRZdSBvzEK
+
+  - created
+    Type: createdTime
+    Field ID: fld7t6emnvAqXIPYk
+
+  - Product
+    Type: multipleRecordLinks
+    Field ID: fldNagIiUHJf96L3a
+    Links to: Table ID tblpmFWT5CzTloQam
+
+  - Max Students Per Class - from Product
+    Type: multipleLookupValues
+    Field ID: fldlUhfIf5KsnWrOu
+
+  - Max Students - Restricted by Room (Manual)
+    Type: singleSelect
+    Field ID: fldQydAnvdbpRkSpJ
+    Options: 10 (Large Room), 6 (Medium +), 5 (Medium Room), 1 (1:1 Class)
+
+  - Current Level
+    Type: singleSelect
+    Field ID: fldxRhQkm0ipNDLzO
+    Options: A0, A1.1, A1.2, A1.3, A1.4, A1.5, A1.6, A1.7, A1.8, A1.9, A1.10, A2.1, A2.2, A2.3, A2.4, A2.5, A2.6, A2.7, A2.8, A2.9, A2.10, A2.11, A2.12, B1.1, B1.2, B1.3, B1.4, B1.5, B1.6, B1.7, B1.8, B1.9, B1.10, B1.11, B1.12
+
+  - Program ID
+    Type: autoNumber
+    Field ID: fldmZeoCIkVC1VmxI
+
+  - Location
+    Type: multipleLookupValues
+    Field ID: fldMkFohga92wq6fp
+
+  - Format
+    Type: multipleLookupValues
+    Field ID: fldZt6G8GepNK77IW
+
+  - Student Enrollments
+    Type: multipleRecordLinks
+    Field ID: fldzqVWbRu8jqiwvZ
+    Links to: Table ID tblxPJbUJ2UqE7sqF
+
+  - Email (from Student Enrollments)
+    Type: multipleLookupValues
+    Field ID: fldBmAap7JoyZuMNN
+
+  - Current Student Levels
+    Type: multipleLookupValues
+    Field ID: fldyPwHaVb5eJgfwb
+
+  - Max Students
+    Type: formula
+    Field ID: fldLJHeE3pYavXsKd
+    Formula: MIN(
+  {fldlUhfIf5KsnWrOu},
+  {fldQBSMsQa3Lh5PYc},
+  IF({fldgFul0MNI7vKODQ}>0,{fldgFul0MNI7vKODQ},999))
+
+  - Total Students - Paid
+    Type: count
+    Field ID: fldrug7iKDGXk1Tot
+
+  - Max - from Teacher - for In-Person Group Class
+    Type: rollup
+    Field ID: fldBJNdiLrCOBf44G
+
+  - Percent Full
+    Type: formula
+    Field ID: fldmDFRiA6gGMoPZs
+    Formula: IF(
+  {fldLJHeE3pYavXsKd} > 0,
+  {fldrug7iKDGXk1Tot}/{fldLJHeE3pYavXsKd},
+  0
+)
+
+  - Open Places
+    Type: formula
+    Field ID: fldENPHYI5OCru18L
+    Formula: IF(
+  OR(
+  {fldSIKWCuTVO6P0gU} = 0,
+  {fld83R25ytMksCWYL} = BLANK()
+  ),
+  {fldLJHeE3pYavXsKd} - {fldrug7iKDGXk1Tot},
+  0
+)
+
+  - Google Drive Folder ID
+    Type: singleLineText
+    Field ID: fldwRRfNqLNMkHs0w
+
+  - Weekly Schedule
+    Type: multipleRecordLinks
+    Field ID: fldJDtMq8RjAZtedy
+    Links to: Table ID tbl42r90BBxZsI1ak
+
+  - Day of Week - Abbreviation (from Weekly Schedule)
+    Type: multipleLookupValues
+    Field ID: fldpS59gBcgfL9C1E
+
+  - Teachers
+    Type: rollup
+    Field ID: fldsAxh85D2DPYY0H
+
+  - Events/Class Sessions
+    Type: multipleRecordLinks
+    Field ID: fld24lWBIbcUG7Vtu
+    Links to: Table ID tbldeW8SeBkDIlywc
+
+  - Starting Level
+    Type: multipleRecordLinks
+    Field ID: fldoYKEm1Y29SueIt
+    Links to: Table ID tblmTTItwW0GACuEo
+
+  - Start Date
+    Type: date
+    Field ID: fldZo0V7yQFuYoa9l
+
+  - Days Since First Class
+    Type: formula
+    Field ID: fldWAH0XfvoZfKZrB
+    Formula: IF(
+{fldZo0V7yQFuYoa9l},
+DATETIME_DIFF(TODAY(),{fldZo0V7yQFuYoa9l},"days"),
+0
+)
+
+  - Enrollment Status
+    Type: formula
+    Field ID: fldKQCZEufPXrMXq5
+    Formula: IF(
+  {fldSIKWCuTVO6P0gU} = 0,
+  IF(
+    {fldZo0V7yQFuYoa9l}=BLANK(),"Configuration",
+    IF({fldmDFRiA6gGMoPZs}>=1,"Full",
+    IF(
+      {fldWAH0XfvoZfKZrB}<14,
+      "Open",
+      "Open - After Assessment")
+    )
+  ),
+  "Enrollment Closed"
+)
+
+  - Enrollment Message
+    Type: formula
+    Field ID: fldpLT049GDvx3dRJ
+    Formula: IF({fldZo0V7yQFuYoa9l}=BLANK(),"Configuration",
+IF({fldWAH0XfvoZfKZrB}<0,"Starts in " & ABS({fldWAH0XfvoZfKZrB}) & " Days","Started " & ABS({fldWAH0XfvoZfKZrB}) & " Days Ago"))
+
+  - Total Students Hold Expired
+    Type: count
+    Field ID: fldV2r0fdjnfhn0V6
+
+  - Total Spots Held
+    Type: count
+    Field ID: fldfg12G8nG6Ex0zT
+
+  - Number of Students Enrolled
+    Type: count
+    Field ID: fldfnEAMGTUX8wz7s
+
+  - Status Label
+    Type: formula
+    Field ID: fldhXdNoD1A4xB8iL
+    Formula: IF(
+  {fldV2r0fdjnfhn0V6} > 0,
+  "🔴 " & {fldV2r0fdjnfhn0V6} & " hold(s) have expired.",
+  IF(
+    {fldfnEAMGTUX8wz7s} > 0,
+    "🟢 " & {fldfnEAMGTUX8wz7s} & "/" & {fldLJHeE3pYavXsKd} & " enrolled, " & {fldfg12G8nG6Ex0zT} & " spot(s) on hold.",
+    IF(
+      {fldfg12G8nG6Ex0zT} > 0,
+      "🟡 " & {fldfg12G8nG6Ex0zT} & " spot(s) currently on hold.",
+      "⚪️ No students enrolled or on hold."
+    )
+  )
+)
+
+
+  - Day of Week
+    Type: multipleLookupValues
+    Field ID: fldlbOfNya0eLAvfd
+
+  - Upcoming Session Date
+    Type: multipleLookupValues
+    Field ID: flddqhJnE6uvAJSbY
+
+  - Google Drive ID
+    Type: singleLineText
+    Field ID: fld7MeDcC8lq57Fvt
+
+  - Teacher Emails
+    Type: multipleLookupValues
+    Field ID: fldSQSsbnzXKtYLJT
+
+  - Record ID
+    Type: formula
+    Field ID: fldnKaHvPV7516SI5
+    Formula: RECORD_ID()
+
+  - Cohort UI Label
+    Type: formula
+    Field ID: fldj9T6Fm5bYvGnIP
+    Formula: {fldMkFohga92wq6fp} & ": " & {fldlbOfNya0eLAvfd}
+
+  - A0 Open for Enrollment
+    Type: formula
+    Field ID: fldcS9i8tfifF3Kld
+    Formula: AND(
+  OR(
+    {fldZo0V7yQFuYoa9l} = BLANK(),
+    {fldWAH0XfvoZfKZrB} <= 14
+  ),
+  {fldmDFRiA6gGMoPZs} < 1,
+  {fldENPHYI5OCru18L} > 0,
+  {fldxRhQkm0ipNDLzO} = "A0",
+  {fldZt6G8GepNK77IW} = "Group"
+) 
+
+  - Start Time (from Weekly Schedule)
+    Type: multipleLookupValues
+    Field ID: fldMdpeOG2hEyKpnS
+
+  - Day of Week (from Weekly Schedule)
+    Type: multipleLookupValues
+    Field ID: fldfE145blfJQNaO6
+
+  - Signup Link (for Self-Checkout) (from Product)
+    Type: multipleLookupValues
+    Field ID: fldP9LpxVq0MmnGwX
+
+  - Notes
+    Type: multilineText
+    Field ID: fldm1LUM9zdxqhNjK
+
+  - Finalize & Create Google Calendar Events
+    Type: checkbox
+    Field ID: fldprhqUDQ3bKoq1C
+
+  - Max - from Room
+    Type: formula
+    Field ID: fldQBSMsQa3Lh5PYc
+    Formula: REGEX_EXTRACT({fldQydAnvdbpRkSpJ},"[\\d]+")+0
+
+  - Max - from Teacher - for Online Group Class
+    Type: rollup
+    Field ID: fldRk6SLLlkzQ6SWC
+
+  - Max - From Teacher
+    Type: formula
+    Field ID: fldgFul0MNI7vKODQ
+    Formula: IF({fldMkFohga92wq6fp}="Online",{fldRk6SLLlkzQ6SWC},{fldBJNdiLrCOBf44G})
+
+  - Location (from Product)
+    Type: multipleLookupValues
+    Field ID: fldGkWNxKBawJt0wS
+
+  - Current Level Last Updated at
+    Type: lastModifiedTime
+    Field ID: fldBtpnXMesnVWD7R
+
+  - Start Date (from Events)
+    Type: multipleLookupValues
+    Field ID: fldeMzvosrom063HS
+
+  - Cohort Status
+    Type: singleSelect
+    Field ID: fld83R25ytMksCWYL
+    Options: 0 - Open for Enrollment, 50 - Closed for Enrollment, 100 - Class Ended
+
+  - Cohort Status Digit
+    Type: formula
+    Field ID: fldSIKWCuTVO6P0gU
+    Formula: IF({fld83R25ytMksCWYL},REGEX_EXTRACT({fld83R25ytMksCWYL},"[\\d-]+")+0)
+
+  - Checks
+    Type: formula
+    Field ID: fldDfx9dkTftU8hxq
+    Formula: IF(
+  {fldZo0V7yQFuYoa9l} = BLANK(),
+  "🔴 Start Date is Missing.",
+  IF(
+    OR(
+      {fldJDtMq8RjAZtedy}=BLANK(),
+      {fldgucLx4iQJr66zh} != {fldeNODrPh3Fjsx97}
+    ),
+    "🔴 Weekly Session(s) not Configured.",
+    "✅ Weekly Session(s) Configured."
+  )
+)
+
+
+  - Number of Weekly Sessions
+    Type: count
+    Field ID: fldgucLx4iQJr66zh
+
+  - Number of Configured Weekly Sessions
+    Type: count
+    Field ID: fldeNODrPh3Fjsx97
+
+  - Number of Weekly Sessions with Events
+    Type: count
+    Field ID: fld1wcNCmgprnPMZo
+
+  - Private Class Payment Status
+    Type: formula
+    Field ID: fldKZPGPwcuZC4fT3
+    Formula: IF(
+  {fldZt6G8GepNK77IW} = "Private",
+  IF(
+    {fldrug7iKDGXk1Tot} > 0,
+    "Paid",
+    "Unpaid"
+  ),
+  "Not Private"
+)
+
+  - Created by Automation?
+    Type: checkbox
+    Field ID: fldGFepUIj1B8g0Ea
+
+
+TABLE: Student Enrollments
+----------------------------------------
+Table ID: tblxPJbUJ2UqE7sqF
+Number of fields: 27
+
+Fields:
+  - Enrollment ID
+    Type: formula
+    Field ID: fld67lCVwr4WKN3Go
+    Formula: {fld8Q2y2AyETWjyGx} & " - " & {fldU3PXumZeGy8CDD}
+
+  - Student
+    Type: multipleRecordLinks
+    Field ID: fld8Q2y2AyETWjyGx
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Enrollment Status
+    Type: singleSelect
+    Field ID: fldnEznTbY6mZXWfO
+    Options: -2 - Declined Contract, -1 - Dropped Out, 0 - Interested, 10 - Enrollment Form for Beginners Filled, 19 - Contract Abandoned, 20 - Contract Signed, 49 - Payment Abandoned, 100 - Paid, 200 - Welcome Package Sent
+
+  - Email (from Student)
+    Type: multipleLookupValues
+    Field ID: fldjS7lrvhbTeRZV4
+
+  - Most Recent Assessment Level (from Student)
+    Type: multipleLookupValues
+    Field ID: fldbbk8sxZaWcHxWy
+
+  - French Program/Cohort
+    Type: multipleRecordLinks
+    Field ID: fldU3PXumZeGy8CDD
+    Links to: Table ID tblQYVsRWi8jzt4jh
+
+  - Cohort Record ID
+    Type: multipleLookupValues
+    Field ID: fldljQdieYzTER9cb
+
+  - Stripe Signup Link
+    Type: multipleLookupValues
+    Field ID: fldDhaGuSRTiIbE6a
+
+  - Status
+    Type: formula
+    Field ID: fldVSkWyxfNakcpsL
+    Formula: IF(
+  {fld3ClxKjP2PVHxPK} >= 100,
+  "Enrolled",
+  IF(
+    AND(
+      {fld3ClxKjP2PVHxPK} >= 0,
+      IS_BEFORE(NOW(), {fldE4UucyTg7y1LEB})
+    ),
+    "Held",
+    IF(
+      {fld3ClxKjP2PVHxPK} >= 0,
+      "Hold Expired",
+      "Not Enrolled"
+    )
+  )
+)
+
+
+  - Created
+    Type: createdTime
+    Field ID: fld2T3E0sDDxvuh0Q
+
+  - Hold Length
+    Type: singleSelect
+    Field ID: fld1mMbPJh81TjgIp
+    Options: 12h, 24h, 48h, 72h
+
+  - Hold Spot Until
+    Type: dateTime
+    Field ID: fldE4UucyTg7y1LEB
+
+  - Enrollment Status Digit
+    Type: formula
+    Field ID: fld3ClxKjP2PVHxPK
+    Formula: REGEX_EXTRACT({fldnEznTbY6mZXWfO},"[\\d-]+")+0
+
+  - Stripe Payment URL
+    Type: formula
+    Field ID: fldK0OeEXWthsMyhj
+    Formula: {fldDhaGuSRTiIbE6a} & "?client_reference_id=" & RECORD_ID() & "%20" & {fldcQoPzm3bP8Lg4q}
+
+  - Student Record ID
+    Type: multipleLookupValues
+    Field ID: fldcQoPzm3bP8Lg4q
+
+  - Attendance Records
+    Type: multipleRecordLinks
+    Field ID: fldIgoyA1j9UNiIph
+    Links to: Table ID tblGuGvIJcNmkC4CW
+
+  - Days Since Last Assessment
+    Type: multipleLookupValues
+    Field ID: fldu8qBxa8Q4Qv0ry
+
+  - Contract/Payment Abandoned
+    Type: formula
+    Field ID: fldsSMdzSKHLnQI3v
+    Formula: IF(
+  AND(
+  OR(
+    {fld3ClxKjP2PVHxPK} = 10,
+    {fld3ClxKjP2PVHxPK} = 20
+  ),
+  DATETIME_DIFF(NOW(),{fld9vNQKKwDqaW5gZ},"minutes") > 20
+  ),
+  TRUE(),
+  FALSE()
+)
+
+  - Status Last Updated at
+    Type: lastModifiedTime
+    Field ID: fld9vNQKKwDqaW5gZ
+
+  - Day of Week (from Weekly Schedule) (from French Program/Cohort)
+    Type: multipleLookupValues
+    Field ID: fldWx7UK0nXmnnvYu
+
+  - Starting Level (from French Program/Cohort)
+    Type: multipleLookupValues
+    Field ID: fldisTVEfw0lBNbxb
+
+  - Teachers (from French Program/Cohort)
+    Type: multipleLookupValues
+    Field ID: fld6Z6BD1mRBHcrjt
+
+  - Product (from French Program/Cohort)
+    Type: multipleLookupValues
+    Field ID: fldTAPx9jLo4EPHHu
+
+  - Format (from French Program/Cohort)
+    Type: multipleLookupValues
+    Field ID: fldyNlNUjiztkv65R
+
+  - Enrollment Checklist
+    Type: richText
+    Field ID: fldCqZUPPg8GxW6g5
+
+  - Template Enrollment Checklist
+    Type: formula
+    Field ID: fldJGVlSSd7KOVxqX
+    Formula: "[ ] Class link has been sent" & 
+"\n[ ] Future class title is correct" & 
+"\n[ ] Tags updated in Kit – remove any tags containing \"group\" and add \"FLS Team NEW\"" & 
+"\n[ ] Contract has been signed" & 
+"\n[ ] Welcome email has been sent" & 
+"\n[ ] Added to the WhatsApp group" & 
+"\n[ ] Rules shared in WhatsApp" & 
+"\n[ ] Teacher has been notified via email" & 
+"\n[ ] Google Drive folder is set up" & 
+"\n[ ] Payment has been adjusted"
+
+  - Enrollment Progress
+    Type: formula
+    Field ID: fldQ3TirXoKST1Pdd
+    Formula: IF({fldCqZUPPg8GxW6g5}=BLANK(),0,IF({fldCqZUPPg8GxW6g5}, (LEN({fldCqZUPPg8GxW6g5}) - LEN(SUBSTITUTE({fldCqZUPPg8GxW6g5}, "[x", "["))) / (LEN({fldCqZUPPg8GxW6g5}) - LEN(SUBSTITUTE({fldCqZUPPg8GxW6g5}, "[", "")))))
+
+
+
+TABLE: Cohort Weekly Session
+----------------------------------------
+Table ID: tbl42r90BBxZsI1ak
+Number of fields: 34
+
+Fields:
+  - Weekly Session ID
+    Type: formula
+    Field ID: fldqt23wLHQLac2dR
+    Formula: {fldv7KoDFj6HjBtue} & " " & {fldhJn97sHBNIuH5z} & " " & {fld1Wl6PZF8Nx77MB}
+
+  - Cohort
+    Type: multipleRecordLinks
+    Field ID: fldExReOwu3UnbtUp
+    Links to: Table ID tblQYVsRWi8jzt4jh
+
+  - Finalize & Create Google Calendar Events (from Cohort)
+    Type: multipleLookupValues
+    Field ID: fldOvYkr0ZPxeXmxc
+
+  - Next Event Start Time
+    Type: formula
+    Field ID: fldNlV3IamHxFBIq8
+    Formula: DATEADD(SET_TIMEZONE(
+  DATEADD(
+    DATEADD(
+      SET_TIMEZONE(TODAY(), 'America/Toronto'),
+    MOD(
+  (SWITCH(
+    {fldhJn97sHBNIuH5z},
+    "Sunday", 0,
+    "Monday", 1,
+    "Tuesday", 2,
+    "Wednesday", 3,
+    "Thursday", 4,
+    "Friday", 5,
+    "Saturday", 6
+  ) - WEEKDAY(SET_TIMEZONE(TODAY(), 'America/Toronto')) + 6),
+  7
+),
+      'days'
+    ),
+    {fldXvV68cKuKeiR7S},
+    'seconds'
+  ),
+  'America/Toronto'
+),4,"hour")
+
+
+  - Next Event End Time
+    Type: formula
+    Field ID: fldTaEVODu5ZIp5Ul
+    Formula: DATEADD(DATEADD({fldNlV3IamHxFBIq8},{fldPQQW58VXYqrtTs},"hour"),{fld9ODXd5dVHf0pz8},"minute")
+
+  - Create Folders at
+    Type: formula
+    Field ID: fld6Vwvk2Phx5Q5n4
+    Formula: DATEADD({fldNlV3IamHxFBIq8},-24,"hour")
+
+  - Google Drive ID (from Cohort)
+    Type: multipleLookupValues
+    Field ID: fldkOQlZgi00pjBQq
+
+  - Google Calendar Event ID
+    Type: singleLineText
+    Field ID: fldrYGINvf4YfpOV3
+
+  - Created at
+    Type: createdTime
+    Field ID: fld9a7cY8QOCCAGtq
+
+  - Product (from Cohort)
+    Type: multipleLookupValues
+    Field ID: fldARPgDDMsks3UOh
+
+  - Day of Week
+    Type: multipleRecordLinks
+    Field ID: fldhJn97sHBNIuH5z
+    Links to: Table ID tblajnrNF2TYVuJd2
+
+  - Day of Week - Abbreviation
+    Type: formula
+    Field ID: fldWnIV5DvztOuwPw
+    Formula: SWITCH(
+  {fldhJn97sHBNIuH5z},
+  "Sunday", "SU",
+  "Monday", "MO",
+  "Tuesday", "TU",
+  "Wednesday", "WE",
+  "Thursday", "TH",
+  "Friday", "FR",
+  "Saturday", "SA"
+)
+
+
+  - Start Time (hh:mm)
+    Type: duration
+    Field ID: fldXvV68cKuKeiR7S
+
+  - Duration (h:mm)
+    Type: singleSelect
+    Field ID: fldawoJEBBTJQmwrG
+    Options: 0:45, 1:00, 1:30, 2:00
+
+  - End Time
+    Type: formula
+    Field ID: fld0p7nLswbgC6GS4
+    Formula: DATETIME_FORMAT(
+  DATEADD(
+    DATEADD(
+      DATETIME_PARSE({fldv7KoDFj6HjBtue}, "h:mm A"),
+      VALUE(REGEX_EXTRACT({fldawoJEBBTJQmwrG}, "^(\\d+):")),
+      "hours"
+    ),
+    VALUE(REGEX_EXTRACT({fldawoJEBBTJQmwrG}, ":(\\d+)$")),
+    "minutes"
+  ),
+  "HH:mm"
+)
+
+
+  - Start Time (Parsed to Date)
+    Type: formula
+    Field ID: fldMsEFuhF50SooPq
+    Formula: DATETIME_FORMAT(
+  DATEADD(
+    DATETIME_PARSE("00:00", "HH:mm"),
+    {fldXvV68cKuKeiR7S},
+    'seconds'
+  ),
+  'HH:mm'
+)
+
+
+  - Teacher
+    Type: multipleRecordLinks
+    Field ID: fld1Wl6PZF8Nx77MB
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Google Calendar ID (from Teacher)
+    Type: multipleLookupValues
+    Field ID: fldV6tUwK51N0PXnc
+
+  - Email (from Teacher)
+    Type: multipleLookupValues
+    Field ID: fldtqtEk012p4ZF1D
+
+  - Maximum Students Per In-Person Class (from Teacher)
+    Type: multipleLookupValues
+    Field ID: fld3uqWogSYqK3j4E
+
+  - Start
+    Type: formula
+    Field ID: fldv7KoDFj6HjBtue
+    Formula: DATETIME_FORMAT(SET_TIMEZONE(DATEADD('1970-01-01', {fldXvV68cKuKeiR7S}, 'seconds'), 'UTC'), 'h:mm a')
+
+  - Duration (Hour)
+    Type: formula
+    Field ID: fldPQQW58VXYqrtTs
+    Formula: VALUE(REGEX_EXTRACT({fldawoJEBBTJQmwrG}, "^(\\d+):"))
+
+
+  - Duration (Minutes)
+    Type: formula
+    Field ID: fld9ODXd5dVHf0pz8
+    Formula: VALUE(REGEX_EXTRACT({fldawoJEBBTJQmwrG}, ":(\\d+)$"))
+
+
+  - Event Summary
+    Type: formula
+    Field ID: fldQlZ1nrpKoFfbox
+    Formula: {fldARPgDDMsks3UOh} & ": " &
+{fldhJn97sHBNIuH5z} & " / " &
+{fld1Wl6PZF8Nx77MB}
+
+  - New Folder Name
+    Type: formula
+    Field ID: fldTvll3ZAUYddrHi
+    Formula: "[" & DATETIME_FORMAT({fldNlV3IamHxFBIq8},"DD MMM, YYYY") & "] " &
+{fldhJn97sHBNIuH5z} & " / " &
+{fld1Wl6PZF8Nx77MB}
+
+  - Trigger to Generate Folder
+    Type: formula
+    Field ID: fldRsKyCNYCidsb1E
+    Formula: AND(
+  IS_SAME(TODAY(),{fld6Vwvk2Phx5Q5n4}),
+  {fldkOQlZgi00pjBQq} != BLANK(),
+  {fldOvYkr0ZPxeXmxc} = TRUE()
+)
+
+  - Day of Week (String)
+    Type: formula
+    Field ID: fldWOSKm1FAhlJpzX
+    Formula: {fldhJn97sHBNIuH5z} & ""
+
+  - Duration String
+    Type: formula
+    Field ID: fldBjQnZj7CYTIq6T
+    Formula: TRIM(
+IF({fldPQQW58VXYqrtTs} > 0,
+IF(
+{fld9ODXd5dVHf0pz8} > 0,
+{fldPQQW58VXYqrtTs} & "h",
+{fldPQQW58VXYqrtTs} & IF({fldPQQW58VXYqrtTs} = 1," hour"," hours")
+)
+) 
+
+& " " &
+
+IF({fld9ODXd5dVHf0pz8} > 0,
+{fld9ODXd5dVHf0pz8} & "min")
+)
+
+  - Start Time (Parsed to Date) copy
+    Type: formula
+    Field ID: fld71SVotSutlvkx5
+    Formula: DATETIME_FORMAT(
+  DATEADD(
+    DATETIME_PARSE("00:00", "HH:mm"),
+    {fldXvV68cKuKeiR7S},
+    'seconds'
+  ),
+  'HH:mm'
+)
+
+
+  - Cohort Record ID
+    Type: multipleLookupValues
+    Field ID: fldbDRM7RojeaNHru
+
+  - Maximum Students Per Online Group Class (from Teacher)
+    Type: multipleLookupValues
+    Field ID: fldK6lQejwaqqkpSF
+
+  - Start Date (from Cohort)
+    Type: multipleLookupValues
+    Field ID: fld2KBG3xZUgk1IFx
+
+  - First Event Start Time
+    Type: formula
+    Field ID: fldUbITzNKprPG6gZ
+    Formula: DATEADD(
+  SET_TIMEZONE(
+    DATEADD(
+      DATEADD(
+        SET_TIMEZONE({fld2KBG3xZUgk1IFx}, 'America/Toronto'),
+        MOD(
+          6 + SWITCH(
+            {fldhJn97sHBNIuH5z},
+            "Sunday", 0,
+            "Monday", 1,
+            "Tuesday", 2,
+            "Wednesday", 3,
+            "Thursday", 4,
+            "Friday", 5,
+            "Saturday", 6
+          ) - WEEKDAY(SET_TIMEZONE({fld2KBG3xZUgk1IFx}, 'America/Toronto'))
+        , 7),
+        'days'
+      ),
+      {fldXvV68cKuKeiR7S},
+      'seconds'
+    ),
+    'America/Toronto'
+  ),
+  4,
+  'hour'
+)
+
+  - First Event End Time
+    Type: formula
+    Field ID: fld3HFL1unBz19nqS
+    Formula: DATEADD(DATEADD({fldUbITzNKprPG6gZ},{fldPQQW58VXYqrtTs},"hour"),{fld9ODXd5dVHf0pz8},"minute")
+
+
+TABLE: Events/Classes
+----------------------------------------
+Table ID: tbldeW8SeBkDIlywc
+Number of fields: 16
+
+Fields:
+  - Event ID
+    Type: formula
+    Field ID: fldnumgjLqqwREqOQ
+    Formula: DATETIME_FORMAT({fldNpKWyTuGM9DrMt},"DD-MM-YYYY h:mm a","America/New_York") & " - " & {fldoLFhLtfiq9x1W5}
+
+  - Type
+    Type: singleSelect
+    Field ID: fldoLFhLtfiq9x1W5
+    Options: Internal Meeting, Class, Project, Student Meetup
+
+  - Google Drive
+    Type: button
+    Field ID: fldSDVSybbz1PpbPH
+
+  - Start Date Time
+    Type: dateTime
+    Field ID: fldNpKWyTuGM9DrMt
+
+  - End Date
+    Type: dateTime
+    Field ID: fldhJWtKriWifr7uq
+
+  - Duration(h)
+    Type: formula
+    Field ID: flduvuvp2MnKCUHKE
+    Formula: DATETIME_DIFF({fldhJWtKriWifr7uq},{fldNpKWyTuGM9DrMt},'minutes')/60
+
+  - Student Cohort
+    Type: multipleRecordLinks
+    Field ID: fldMxT6ASLzOR8dfh
+    Links to: Table ID tblQYVsRWi8jzt4jh
+
+  - Record ID (from Student Cohort)
+    Type: multipleLookupValues
+    Field ID: flddh591yUqsXcDxX
+
+  - Default Teacher (from Student Cohort)
+    Type: multipleLookupValues
+    Field ID: fldfQExr3ZTfbeKDS
+
+  - Team Members
+    Type: multipleRecordLinks
+    Field ID: fldNaf6MzbHY3ORd8
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Google Calendar Event ID
+    Type: singleLineText
+    Field ID: fldtMkPupEN1MppPG
+
+  - Room
+    Type: singleLineText
+    Field ID: fld0zVlfB3qMLArrY
+
+  - Online Access Link
+    Type: url
+    Field ID: fldmHF7EWshgzFKzc
+
+  - Attendance Records
+    Type: multipleRecordLinks
+    Field ID: fldabZAoNEyw6vvtD
+    Links to: Table ID tblGuGvIJcNmkC4CW
+
+  - Number of Students Attended
+    Type: count
+    Field ID: fldjJ7eVua6TZejd2
+
+  - Google Folder ID
+    Type: singleLineText
+    Field ID: fldFCMs1D8yEk0UWr
+
+
+TABLE: Calendar Events
+----------------------------------------
+Table ID: tblo7z7DbVaOGIEmJ
+Number of fields: 42
+
+Fields:
+  - Name
+    Type: formula
+    Field ID: fldht8qDHS6WyS7nJ
+    Formula: {fldQldZHyCssg6lDE} & " / [" & {fldu9S4YE9mHSDnPR} & "] - " & DATETIME_FORMAT({fld51vIJGdkNsDRgz}, "MMMM DD, YYYY")
+
+  - Teacher(s)
+    Type: multipleRecordLinks
+    Field ID: fldkBXnqbCmDQ2N0c
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Event is Active
+    Type: formula
+    Field ID: fldKyIit9i0X9mvui
+    Formula: DATETIME_DIFF(TODAY(),{fldpglYFdvSgYNcnR},"days") < 2
+
+  - Last Active at
+    Type: dateTime
+    Field ID: fldpglYFdvSgYNcnR
+
+  - End Time
+    Type: dateTime
+    Field ID: fldy5QhU4qOfPsBax
+
+  - End Time (Minutes)
+    Type: formula
+    Field ID: flddNq4xPQcXeT3Lw
+    Formula: IF(
+HOUR({fldy5QhU4qOfPsBax})  * 60 + MINUTE({fldy5QhU4qOfPsBax})<= {fldcECmEYZx6twOwf},
+1440 + (HOUR({fldy5QhU4qOfPsBax})  * 60 + MINUTE({fldy5QhU4qOfPsBax})),
+HOUR({fldy5QhU4qOfPsBax})  * 60 + MINUTE({fldy5QhU4qOfPsBax})
+)
+
+  - Recurrence Status
+    Type: formula
+    Field ID: fldGKPGNleR3Wxk0m
+    Formula: IF(
+{fldt7dD4lQeqfJPMj},
+IF(
+    {fldt7dD4lQeqfJPMj} = "Not Recurring",
+    "Not Recurring",
+    IF(
+      AND(
+        {fldt7dD4lQeqfJPMj} = "Active",
+        {fldpTebrsYTth0n8i},
+        IS_BEFORE({fldpTebrsYTth0n8i}, NOW())
+      ),
+      "Past Event",
+      "Active"
+    )
+),
+IF(
+  {fldjlcXcuanXh97Wp} = BLANK(),
+  "Not Recurring"
+)
+& 
+IF(
+  AND(
+    NOT({fldjlcXcuanXh97Wp} = BLANK()),
+    {fld4G9Su5xuZwPY5B} = BLANK()
+  ),
+  "Active"
+) 
+&
+IF(    
+NOT({fld4G9Su5xuZwPY5B} = BLANK()),
+IF(
+  AND(
+    {fldjlcXcuanXh97Wp},
+    IS_BEFORE(NOW(),{fld4G9Su5xuZwPY5B})
+  ),
+  "Active",
+  "Past Event"
+)
+)
+)
+
+
+  - Event ID
+    Type: singleLineText
+    Field ID: fldtBWaqsSbFaeZUr
+
+  - Summary
+    Type: singleLineText
+    Field ID: fldQldZHyCssg6lDE
+
+  - Event Attendees
+    Type: multipleRecordLinks
+    Field ID: fldA5CUSMpJ5JLwwJ
+    Links to: Table ID tblEPlV4hrRut5WCU
+
+  - Type (from Event Attendees)
+    Type: multipleLookupValues
+    Field ID: fldEPpCEGc8OYr6Wl
+
+  - Event Type
+    Type: formula
+    Field ID: fldtFLpD1XNf6IwG4
+    Formula: IF(
+  {fldBwsc87flU1YVgE},
+  {fldBwsc87flU1YVgE},
+  IF(
+  OR(
+    FIND("dispo",LOWER({fldQldZHyCssg6lDE})),
+    FIND("availab",LOWER({fldQldZHyCssg6lDE}))
+  ),
+  "Available",
+IF(
+  OR(
+    FIND("pause",LOWER({fldQldZHyCssg6lDE})),
+    {fld7u5qttEF6y7ex3} = "outOfOffice"
+  ),
+  "Pause",
+IF(
+  OR(
+    FIND("off",LOWER({fldQldZHyCssg6lDE})),
+    FIND("pause",LOWER({fldQldZHyCssg6lDE})),
+    {fld7u5qttEF6y7ex3} = "outOfOffice"
+  ),
+  "Out of Office",
+  IF(
+    AND({fldO429A17cNAuF9G} > 1,
+    {fldMQ5Ix7vZpsUr5C} = 0),
+    "Internal Event"
+  ) &
+  IF(
+    ({fldMQ5Ix7vZpsUr5C} > 0),
+    "Class"
+  ) &
+  IF(
+    AND({fldO429A17cNAuF9G} = 1,
+    {fldMQ5Ix7vZpsUr5C} = 0),
+    "Personal Event (Type Unknown)"
+  )
+)
+)
+))
+
+  - Start Time (Minutes)
+    Type: formula
+    Field ID: fldcECmEYZx6twOwf
+    Formula: HOUR({fld51vIJGdkNsDRgz})  * 60 +
+MINUTE({fld51vIJGdkNsDRgz}) *  1
+
+  - Duration (with Hours)
+    Type: formula
+    Field ID: fldphje20TJOXOxfN
+    Formula: {fldAR0anVNLoljlQQ}/60
+
+  - Duration (Last 28 Days)
+    Type: formula
+    Field ID: fldL3d5kKCam7oaz9
+    Formula: IF(
+  {fldGKPGNleR3Wxk0m} = "Not Recurring",
+  {fldAR0anVNLoljlQQ}/60,
+  {fldAR0anVNLoljlQQ}/60 * {fld9D4b7y6lEZ98sH}
+)
+
+  - t1
+    Type: formula
+    Field ID: fldkCxBcw5BN2D47o
+    Formula: IF(    ISERROR({fld4G9Su5xuZwPY5B}) = 0,
+IF(
+  AND(
+    {fldjlcXcuanXh97Wp},
+    IS_BEFORE(NOW(),{fld4G9Su5xuZwPY5B})
+  ),
+  "Active",
+  "Past Event"
+)
+)
+
+  - Recurring Event Multiplier
+    Type: formula
+    Field ID: fld9D4b7y6lEZ98sH
+    Description: Calculates how many weeks an event has been active over the past 28 days (4 weeks). 
+
+-> For ongoing recurrences, it returns the number of weeks since the start capped at 4. 
+-> For past recurrences, it computes the overlap in full weeks between the event period and the last 28 days.
+-> Non‑recurring events return 0.
+
+    Formula: IF(
+  {fldGKPGNleR3Wxk0m} = "Active",
+  IF(
+  DATETIME_DIFF(NOW(),{fld51vIJGdkNsDRgz},'weeks') >= 0,
+  MIN(
+    4,
+    DATETIME_DIFF(NOW(),{fld51vIJGdkNsDRgz},'weeks')
+  ),
+  0
+  ),
+  IF(
+    {fldGKPGNleR3Wxk0m} = "Past Event",
+    IF(
+      DATETIME_DIFF(
+        {fld4G9Su5xuZwPY5B},
+        IF(
+          {fld51vIJGdkNsDRgz} > DATEADD(NOW(), -28, 'days'),
+          {fld51vIJGdkNsDRgz},
+          DATEADD(NOW(), -28, 'days')
+        ),
+        'weeks'
+      ) > 0,
+      DATETIME_DIFF(
+        {fld4G9Su5xuZwPY5B},
+        IF(
+          {fld51vIJGdkNsDRgz} > DATEADD(NOW(), -28, 'days'),
+          {fld51vIJGdkNsDRgz},
+          DATEADD(NOW(), -28, 'days')
+        ),
+        'weeks'
+      ),
+      0
+    ),
+    0
+  )
+)
+
+
+  - Start Time
+    Type: dateTime
+    Field ID: fld51vIJGdkNsDRgz
+
+  - Scheduled for Next Week
+    Type: formula
+    Field ID: fld6BAOiNwmpzfIHZ
+    Formula: IF(
+  {fldGKPGNleR3Wxk0m} = "Not Recurring",
+  AND(NOT(
+        IS_BEFORE(
+          {fld51vIJGdkNsDRgz},
+          DATEADD(NOW(), 7 - WEEKDAY(NOW()), 'days')
+        )
+      ),
+    IS_BEFORE(
+        {fld51vIJGdkNsDRgz},
+        DATEADD(NOW(), 14 - WEEKDAY(NOW()),   'days')
+    )
+  ),
+ IF(
+  {fldGKPGNleR3Wxk0m} = "Active",
+  AND(
+    IS_BEFORE({fld51vIJGdkNsDRgz}, DATEADD(NOW(), 14 - WEEKDAY(NOW()), 'days')),
+    OR(
+      {fld4G9Su5xuZwPY5B} = BLANK(),
+      IS_AFTER({fld4G9Su5xuZwPY5B}, DATEADD(NOW(), 7 - WEEKDAY(NOW()), 'days'))
+    )
+  ),
+  FALSE()
+)
+)
+
+  - test form
+    Type: formula
+    Field ID: fld2l9ddhSLu8lBLn
+    Formula: {fldjlcXcuanXh97Wp} = BLANK()
+
+  - Recurrence Rule
+    Type: singleLineText
+    Field ID: fldjlcXcuanXh97Wp
+
+  - Recurring Until
+    Type: formula
+    Field ID: fld4G9Su5xuZwPY5B
+    Formula: IF(
+  {fldpTebrsYTth0n8i},
+  {fldpTebrsYTth0n8i},
+  IF(
+    ISERROR(REGEX_EXTRACT({fldjlcXcuanXh97Wp}, "UNTIL=(\\d{8}T\\d{6})")) = 0,
+    DATETIME_PARSE(
+      REGEX_EXTRACT({fldjlcXcuanXh97Wp}, "UNTIL=(\\d{8}T\\d{6})"),
+      "YYYYMMDDTHHmmss"
+    ),
+    BLANK()
+  )
+)
+
+
+  - Override Recurring Until
+    Type: dateTime
+    Field ID: fldpTebrsYTth0n8i
+
+  - Recurring at
+    Type: formula
+    Field ID: fld6G51mfVSEcUXH8
+    Formula: IF(
+  {fldt7dD4lQeqfJPMj} = "Active",
+  DATETIME_FORMAT({fld51vIJGdkNsDRgz}, 'dddd'),
+  IF(
+    FIND("FREQ=DAILY", {fldjlcXcuanXh97Wp}) > 0,
+    "Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday",
+    IF(
+      REGEX_MATCH({fldjlcXcuanXh97Wp}, "BYDAY="),
+      SUBSTITUTE(
+        SUBSTITUTE(
+          SUBSTITUTE(
+            SUBSTITUTE(
+              SUBSTITUTE(
+                SUBSTITUTE(
+                  SUBSTITUTE(
+                    SUBSTITUTE(
+                      REGEX_EXTRACT({fldjlcXcuanXh97Wp}, "BYDAY=([A-Z,]+)"),
+                      ",", ", "
+                    ),
+                    "MO", "Monday"
+                  ),
+                  "TU", "Tuesday"
+                ),
+                "WE", "Wednesday"
+              ),
+              "TH", "Thursday"
+            ),
+            "FR", "Friday"
+          ),
+          "SA", "Saturday"
+        ),
+        "SU", "Sunday"
+      ),
+      DATETIME_FORMAT({fld51vIJGdkNsDRgz}, 'dddd')
+    )
+  )
+)
+
+
+  - Override Recurrence Status
+    Type: singleSelect
+    Field ID: fldt7dD4lQeqfJPMj
+    Options: Active, Not Recurring
+
+  - Duration
+    Type: formula
+    Field ID: fldAR0anVNLoljlQQ
+    Formula: DATETIME_DIFF({fldy5QhU4qOfPsBax}, {fld51vIJGdkNsDRgz}, 'minutes')
+
+  - Event Link
+    Type: url
+    Field ID: fldhHyC1CuLp7QB2j
+
+  - Matching Teacher (from Event Attendees)
+    Type: multipleLookupValues
+    Field ID: fldu9S4YE9mHSDnPR
+
+  - Email (from Matching Teacher)
+    Type: multipleLookupValues
+    Field ID: fld4maLoT4AxixDn2
+
+  - Total Lead Attendees
+    Type: count
+    Field ID: fldMQ5Ix7vZpsUr5C
+
+  - Total Teacher Attendees
+    Type: count
+    Field ID: fldO429A17cNAuF9G
+
+  - Attendee Emails
+    Type: formula
+    Field ID: fld0EQOKg3S02YCLO
+    Formula: ARRAYJOIN({fld4maLoT4AxixDn2},", ") & ", " & ARRAYJOIN({fldChR72hhzMpFNlf}, ", ")
+
+  - Lead Emails
+    Type: multipleLookupValues
+    Field ID: fldChR72hhzMpFNlf
+
+  - Temp - Event Attendees (from API)
+    Type: multilineText
+    Field ID: fldDAyt4nzhJZTmoQ
+
+  - Updated Today?
+    Type: checkbox
+    Field ID: fldbjoDRP738hHL8C
+
+  - Type (from API)
+    Type: singleLineText
+    Field ID: fld7u5qttEF6y7ex3
+
+  - Created
+    Type: createdTime
+    Field ID: fldoYI2OgzcQDl97h
+
+  - Override Event Type
+    Type: singleSelect
+    Field ID: fldBwsc87flU1YVgE
+    Options: Class, Internal Event, Out of Office, Pause, Available
+
+  - Duration (hours)
+    Type: formula
+    Field ID: fldj6KzQ1q8oAXEWb
+    Formula: ({flddNq4xPQcXeT3Lw} - {fldcECmEYZx6twOwf}) / 60
+
+  - Source
+    Type: formula
+    Field ID: fldZ1rdDDWUinypMx
+    Formula: IF(
+  {fldt7dD4lQeqfJPMj},
+  "Manual Entry",
+  "Synced from Calendar"
+)
+
+  - testt
+    Type: formula
+    Field ID: fldUomc5SuZ0UxVlX
+    Formula: AND(
+  {fldGKPGNleR3Wxk0m} != "Past Event",
+
+  AND(
+    AND(
+      IF(
+        NOT(ISERROR({fld6G51mfVSEcUXH8})),
+        FIND("Wed", {fld6G51mfVSEcUXH8}) > 0,
+        DATETIME_FORMAT({fld51vIJGdkNsDRgz}, "YYYY-MM-DD") = "2025-08-27"
+      ),
+      {flddNq4xPQcXeT3Lw} >= 1230,
+      {fldcECmEYZx6twOwf} <= 1275
+    )
+    ,AND(
+      IF(
+        NOT(ISERROR({fld6G51mfVSEcUXH8})),
+        FIND("Tue", {fld6G51mfVSEcUXH8}) > 0,
+        DATETIME_FORMAT({fld51vIJGdkNsDRgz}, "YYYY-MM-DD") = "2025-08-26"
+      ),
+      {flddNq4xPQcXeT3Lw} >= 750,
+      {fldcECmEYZx6twOwf} <= 795
+    )
+  ),
+
+  OR(
+    {fldtFLpD1XNf6IwG4} = "Out of Office",
+    {fldtFLpD1XNf6IwG4} = "Pause",
+    {fldtFLpD1XNf6IwG4} = "Type Unknown"
+  ),
+
+  {fld6BAOiNwmpzfIHZ} = TRUE(),
+  FIND("melaniek.fls@gmail.com", {fld0EQOKg3S02YCLO}) > 0
+)
+
+  - test3
+    Type: formula
+    Field ID: fldGopjoRFU5lzRTa
+    Formula: AND(
+  {fldGKPGNleR3Wxk0m} != "Past Event",
+  OR(
+  AND(
+    IF(
+      NOT(ISERROR({fld6G51mfVSEcUXH8})),
+      FIND("Tue",{fld6G51mfVSEcUXH8}) > 0,
+      DATETIME_FORMAT({fld51vIJGdkNsDRgz},"YYYY-MM-DD") = "2025-08-26"
+    ),
+    {flddNq4xPQcXeT3Lw}   >= 750,
+    {fldcECmEYZx6twOwf} <= 795
+  ),
+  AND(
+    IF(
+      NOT(ISERROR({fld6G51mfVSEcUXH8})),
+      FIND("Wed",{fld6G51mfVSEcUXH8}) > 0,
+      DATETIME_FORMAT({fld51vIJGdkNsDRgz},"YYYY-MM-DD") = "2025-08-27"
+    ),
+    {flddNq4xPQcXeT3Lw} >= 1230,
+    {fldcECmEYZx6twOwf} <= 1275
+  )
+  
+),
+  OR(
+    {fldtFLpD1XNf6IwG4} = "Out of Office",
+    {fldtFLpD1XNf6IwG4} = "Pause",
+    {fldtFLpD1XNf6IwG4} = "Type Unknown"
+  ),
+  {fld6BAOiNwmpzfIHZ} = TRUE(),
+  FIND("melaniek.fls@gmail.com",{fld0EQOKg3S02YCLO}) > 0
+)
+
+
+TABLE: Event Attendees
+----------------------------------------
+Table ID: tblEPlV4hrRut5WCU
+Number of fields: 8
+
+Fields:
+  - Email
+    Type: email
+    Field ID: fldRBEDjVD7qbFnbV
+
+  - Matching Teacher
+    Type: multipleRecordLinks
+    Field ID: flddh8W5G2pGiZYFO
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Matching Lead
+    Type: multipleRecordLinks
+    Field ID: fld9wwvjkO4iBHYj5
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Type
+    Type: formula
+    Field ID: fldCLBd3LT75aCxCR
+    Formula: IF(
+  {flddh8W5G2pGiZYFO},
+  "Teacher",
+  "Lead"
+)
+
+  - Calendar Events
+    Type: multipleRecordLinks
+    Field ID: fldshmbvz6o3RYZmk
+    Links to: Table ID tblo7z7DbVaOGIEmJ
+
+  - Teacher's Total Workload (28 Days)
+    Type: rollup
+    Field ID: fldQOwn45bUhSBBvT
+
+  - Teacher's Average Workload
+    Type: formula
+    Field ID: fldf0Lx1649O1dTrO
+    Formula: {fldQOwn45bUhSBBvT} / 4
+
+  - Teacher's Total Workload (Next Week)
+    Type: rollup
+    Field ID: fldVRyAvmkiXNwwyo
+
+
+TABLE: Attendance Records
+----------------------------------------
+Table ID: tblGuGvIJcNmkC4CW
+Number of fields: 9
+
+Fields:
+  - Attendance Record Name
+    Type: formula
+    Field ID: fld6ny9T8YG74fqeS
+    Formula: {fldmC29A3a9J3Gs5j} & " - " & {fldE2VAwMltnbmS5k}
+
+  - Class
+    Type: multipleRecordLinks
+    Field ID: fldE2VAwMltnbmS5k
+    Links to: Table ID tbldeW8SeBkDIlywc
+
+  - Student Cohort (from Class)
+    Type: multipleLookupValues
+    Field ID: fldLAnJyZSveiF6xC
+
+  - Student
+    Type: multipleRecordLinks
+    Field ID: fldfnko5bDGhLsY4m
+    Links to: Table ID tblxPJbUJ2UqE7sqF
+
+  - Student Progress Rate
+    Type: singleSelect
+    Field ID: fld7I9oUEcdquvVk0
+    Options: -10 - Did Not Attend - No Comms, -11 - Did Not Attend - Student Told In Advance, -2 - Far Behind Peers, -1 - Somewhat Behind Peers, 0 - On Track, 1 - Ahead of Peers, 2 - Far Ahead of Peers
+
+  - Student (from Student)
+    Type: multipleLookupValues
+    Field ID: fldmC29A3a9J3Gs5j
+
+  - Student Progress Status Digit
+    Type: formula
+    Field ID: fldyUCFLMiUSyjKfr
+    Formula: REGEX_EXTRACT({fld7I9oUEcdquvVk0},"[\\d-]+")+0
+
+  - Attended?
+    Type: formula
+    Field ID: fldGhOWQuIlkewbBa
+    Formula: IF({fld7I9oUEcdquvVk0}>-10,"Attended","Absent")
+
+  - Student Notes
+    Type: singleLineText
+    Field ID: fldGiyg6ZQ3rwdJqU
+
+
+TABLE: Language Levels
+----------------------------------------
+Table ID: tblmTTItwW0GACuEo
+Number of fields: 5
+
+Fields:
+  - Signup Form Name
+    Type: singleLineText
+    Field ID: fld6nmwgoYFJoaolt
+
+  - Students
+    Type: multipleRecordLinks
+    Field ID: fldalaN0SnZ2JQKI5
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Student Assessments
+    Type: multipleRecordLinks
+    Field ID: fld2mXutWZ9yjgZ74
+    Links to: Table ID tbl8qPVvfrZfqFd7d
+
+  - Possible for Evaluation
+    Type: singleSelect
+    Field ID: fld05kBmQmdU4Qdyl
+    Options: No, Yes
+
+  - French Programs/Cohorts
+    Type: multipleRecordLinks
+    Field ID: fld6HPglRAKuwP60M
+    Links to: Table ID tblQYVsRWi8jzt4jh
+
+
+TABLE: Student Assessments
+----------------------------------------
+Table ID: tbl8qPVvfrZfqFd7d
+Number of fields: 14
+
+Fields:
+  - Assessment ID
+    Type: formula
+    Field ID: fldnwHR7OlLBsk0sL
+    Formula: {fldkWxeAJRLMwG1nF}
+
+  - Assessment Level
+    Type: multipleRecordLinks
+    Field ID: fld38cQ2bcFZ2i8r5
+    Links to: Table ID tblmTTItwW0GACuEo
+
+  - Student
+    Type: multipleRecordLinks
+    Field ID: fldkWxeAJRLMwG1nF
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Student Record ID
+    Type: multipleLookupValues
+    Field ID: fldhGTFM8s23YoUiS
+
+  - Assessment Call Scheduled For
+    Type: dateTime
+    Field ID: fldsnFkbhO8zGzyZV
+
+  - Invoicing Type
+    Type: singleSelect
+    Field ID: fldZe6pgDDxnMIHSL
+    Options: Paid, Free
+
+  - Result
+    Type: singleSelect
+    Field ID: fldsVP7y89j04tDe2
+    Options: 0 - Scheduled/Requested, 50 - Session Held, 100 - Level Determined
+
+  - Assessment Notes
+    Type: multilineText
+    Field ID: fldARylLUaxmKr8Zt
+
+  - Interview Held By
+    Type: multipleRecordLinks
+    Field ID: fldnfb7av0TYczFfx
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Level Checked By
+    Type: multipleRecordLinks
+    Field ID: fldBCr5Xz14kt8CRB
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Meeting Recording Link
+    Type: url
+    Field ID: fld2vK4wtn369GrKd
+
+  - Paid for/Requested On
+    Type: createdTime
+    Field ID: fldo5cFx3uuU223Uo
+
+  - Calendar Event URL
+    Type: url
+    Field ID: fldh6kAEAtMQXNtoy
+
+  - Result Last Updated at
+    Type: lastModifiedTime
+    Field ID: fldspaMn0SfXPFp1f
+
+
+TABLE: Teacher Payouts
+----------------------------------------
+Table ID: tblUKLQjNAOQdMZI9
+Number of fields: 3
+
+Fields:
+  - Invoice ID
+    Type: autoNumber
+    Field ID: fldzAA9UifYlhSEU9
+
+  - Teacher
+    Type: multipleRecordLinks
+    Field ID: fldcdzNfikjY3XjN9
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Payment Date
+    Type: date
+    Field ID: fldh8QbmT82UigpnT
+
+
+TABLE: Teacher Certifications
+----------------------------------------
+Table ID: tblKiN99Ing14hSaO
+Number of fields: 6
+
+Fields:
+  - Name
+    Type: formula
+    Field ID: fldYpMhVmtbjMRCil
+    Formula: {fldfhhV6DkTcnR0Oy} & " - " & {fldYQqASSqQVaxERU}
+
+  - Teacher
+    Type: multipleRecordLinks
+    Field ID: fldfhhV6DkTcnR0Oy
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Certificate / License
+    Type: singleLineText
+    Field ID: fldYQqASSqQVaxERU
+
+  - Issued Date
+    Type: date
+    Field ID: fldxu7Fh3It9rFXlq
+
+  - Expiration Date
+    Type: date
+    Field ID: fldsnCRIpWWUFLcL1
+
+  - Certification Notes
+    Type: multilineText
+    Field ID: fldNB0FHHECHa5Tfn
+
+
+TABLE: Days of Week
+----------------------------------------
+Table ID: tblajnrNF2TYVuJd2
+Number of fields: 3
+
+Fields:
+  - Name
+    Type: singleLineText
+    Field ID: fldP4lLW5XGUw0hfd
+
+  - Day Number
+    Type: number
+    Field ID: fldyeX2BlXqnd8XSS
+
+  - Cohort Weekly Session
+    Type: multipleRecordLinks
+    Field ID: fldRxv1EJLL5oG1y3
+    Links to: Table ID tbl42r90BBxZsI1ak
+
+
+TABLE: Products
+----------------------------------------
+Table ID: tblpmFWT5CzTloQam
+Number of fields: 7
+
+Fields:
+  - Internal Nickname
+    Type: singleLineText
+    Field ID: fldlABWDw2u1PGnvH
+
+  - Location
+    Type: singleSelect
+    Field ID: fldvSmnSKSX1eiGor
+    Options: Online, In-Person
+
+  - Format
+    Type: singleSelect
+    Field ID: fldmlu4SCUeaurCmw
+    Options: Private, Group
+
+  - Signup Link (for Self-Checkout)
+    Type: url
+    Field ID: fldjNYqMspV03d6z3
+
+  - Contract Template ID (PandaDoc)
+    Type: singleLineText
+    Field ID: fld1vms179AQeSWf7
+
+  - French Programs/Cohorts
+    Type: multipleRecordLinks
+    Field ID: fld3sJDDqsffo65tO
+    Links to: Table ID tblQYVsRWi8jzt4jh
+
+  - Max Students Per Class 
+    Type: number
+    Field ID: fldHo2CVvDyB2NIpI
+
+
+TABLE: Payments from Student
+----------------------------------------
+Table ID: tblhIvhL1eg3edwH1
+Number of fields: 4
+
+Fields:
+  - Name
+    Type: singleLineText
+    Field ID: fldtTTBPQSPzxppy6
+
+  - Total
+    Type: currency
+    Field ID: fldAHHOpdtBhfBJu5
+
+  - Student
+    Type: multipleRecordLinks
+    Field ID: fld3amdKGGcKRbtN5
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Date of Payment
+    Type: dateTime
+    Field ID: fldyAVDrgmLgn2Iij
+
+
+TABLE: 1-1 Class Requests
+----------------------------------------
+Table ID: tblFOgL0CxG2uXN1m
+Number of fields: 11
+
+Fields:
+  - Name
+    Type: formula
+    Field ID: fldDq5ZDqM7mmeFV1
+    Formula: {fldi1ipMdPhAZnv7k} & " - " & DATETIME_FORMAT({fld1WNI6zMukJivLa},"DD MMM, YYYY")
+
+  - Student
+    Type: multipleRecordLinks
+    Field ID: fldi1ipMdPhAZnv7k
+    Links to: Table ID tblDuD2OQoYgLA2r8
+
+  - Email (from Student)
+    Type: multipleLookupValues
+    Field ID: fldjCmygKhoj6vqBO
+
+  - Status
+    Type: singleSelect
+    Field ID: flduPUucRAaqVVoJu
+    Options: -10 - Archieved, 00 - New Request, 20 - Followed Up, 50 - Assessment Sent, 100 - Class Booked
+
+  - Format
+    Type: singleSelect
+    Field ID: fldRIMoa6W4wevuDJ
+    Options: In-person, Online
+
+  - Assigned Teacher
+    Type: multipleRecordLinks
+    Field ID: fldVTJsVPXN2PxaqW
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Available Days
+    Type: multipleSelects
+    Field ID: fldnnb4dgeuhRnSkS
+    Options: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+
+  - Available Times
+    Type: multipleSelects
+    Field ID: fld1DNEwafH2tbzcH
+    Options: Morning (8AM-12PM), Afternoon (12PM-5PM), Evening (5PM-9PM)
+
+  - Submitted at
+    Type: createdTime
+    Field ID: fld1WNI6zMukJivLa
+
+  - Notes from Student
+    Type: multilineText
+    Field ID: fldHzBgmzoPzx6DYs
+
+  - Internal Notes
+    Type: richText
+    Field ID: fld3WK6VaSl5RQerB
+
+
+TABLE: Time Off Requests
+----------------------------------------
+Table ID: tblLfED38zP9kGUfK
+Number of fields: 13
+
+Fields:
+  - Name
+    Type: formula
+    Field ID: fldNRgd3bExq65UX4
+    Formula: "Time Off – " & {fldWlJnOvhQbWC1h2} & ": " & {fldP7WSWSUK3prdMp} & "-" & {fldcJkocsOAVWLhQB}
+
+  - Teacher
+    Type: multipleRecordLinks
+    Field ID: fldR5qtgrVcqbDvO3
+    Links to: Table ID tblVkXhmy8qX3FHm4
+
+  - Teacher Full Name (from Teacher)
+    Type: multipleLookupValues
+    Field ID: fldWlJnOvhQbWC1h2
+
+  - Start Time
+    Type: dateTime
+    Field ID: fldh1TuU6TyA8h6fu
+
+  - Formatted Start Time
+    Type: formula
+    Field ID: fldP7WSWSUK3prdMp
+    Formula: DATETIME_FORMAT({fldh1TuU6TyA8h6fu}, "MMMM D, h:mm a")
+
+  - Formatted End Time
+    Type: formula
+    Field ID: fldcJkocsOAVWLhQB
+    Formula: DATETIME_FORMAT({fldtd3BqsRfMNovix}, "MMMM D, h:mm a")
+
+  - End Time
+    Type: dateTime
+    Field ID: fldtd3BqsRfMNovix
+
+  - Request Status
+    Type: singleSelect
+    Field ID: fldwQyVOgtpUmKMT1
+    Options: Approved, Pending, Rejected
+
+  - Details
+    Type: multilineText
+    Field ID: fldaQZA1Ok7yPqP6b
+
+  - Created By
+    Type: createdBy
+    Field ID: fldMO3JsL3emqxxlE
+
+  - Event Created?
+    Type: checkbox
+    Field ID: fld3qu8pG9Szj9wbN
+
+  - Created at
+    Type: createdTime
+    Field ID: fldLKnhDk6yhkSUdZ
+
+  - Send Notification
+    Type: formula
+    Field ID: fldHoRJ6gyFEI2A17
+    Formula: AND(
+  DATETIME_DIFF(NOW(),{fldLKnhDk6yhkSUdZ},"days") >= 7,
+  {fldwQyVOgtpUmKMT1} = "Pending",
+  {fld3qu8pG9Szj9wbN} = FALSE()
+)
+
+
