@@ -18,7 +18,7 @@ import {
 } from "@/components/form-layout/FormLayout";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Globe, Link as LinkIcon, Package } from "lucide-react";
+// Icons are now passed as strings to FormSection
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -121,7 +121,7 @@ export function ProductForm({ product }: ProductFormProps) {
 						<FormSection
 							title="Product Information"
 							description="Define the product name and type"
-							icon={Package}
+							icon="Package"
 							required
 						>
 							<FormField
@@ -174,7 +174,7 @@ export function ProductForm({ product }: ProductFormProps) {
 						<FormSection
 							title="Integration Settings"
 							description="Configure external service integrations"
-							icon={LinkIcon}
+							icon="Link"
 						>
 							<FormRow>
 								<FormField

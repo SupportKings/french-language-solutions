@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -149,6 +150,20 @@ export function CohortDetailPageClient({
 	>(undefined);
 	const [activeTab, setActiveTab] = useState("enrollments");
 
+	// Enrollment progress state
+	const [enrollmentData, setEnrollmentData] = useState<{
+		paid: number;
+		welcomePackageSent: number;
+		total: number;
+		maxStudents: number;
+	}>({
+		paid: 0,
+		welcomePackageSent: 0,
+		total: 0,
+		maxStudents: 0,
+	});
+	const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+
 	// Language levels from database
 	const [languageLevels, setLanguageLevels] = useState<any[]>([]);
 
@@ -199,6 +214,43 @@ export function CohortDetailPageClient({
 		}
 		fetchLanguageLevels();
 	}, []);
+
+	// Fetch enrollment data
+	useEffect(() => {
+		async function fetchEnrollmentData() {
+			if (!cohortId) return;
+
+			setLoadingEnrollments(true);
+			try {
+				const response = await fetch(`/api/enrollments?cohortId=${cohortId}&limit=1000`);
+				if (response.ok) {
+					const result = await response.json();
+					const enrollments = result.enrollments || [];
+					
+					const paid = enrollments.filter((e: any) => e.status === "paid").length;
+					const welcomePackageSent = enrollments.filter((e: any) => e.status === "welcome_package_sent").length;
+					const total = paid + welcomePackageSent;
+					const maxStudents = cohort?.max_students || 10;
+
+					setEnrollmentData({
+						paid,
+						welcomePackageSent,
+						total,
+						maxStudents,
+					});
+				}
+			} catch (error) {
+				console.error("Error fetching enrollment data:", error);
+			} finally {
+				setLoadingEnrollments(false);
+			}
+		}
+
+		// Only fetch if cohort data is available
+		if (cohort) {
+			fetchEnrollmentData();
+		}
+	}, [cohortId, cohort]);
 
 	// Update edited cohort field locally
 	const updateEditedField = async (field: string, value: any) => {
@@ -633,6 +685,80 @@ export function CohortDetailPageClient({
 			</div>
 
 			<div className="space-y-4 px-6 py-4">
+				{/* Enrollment Progress - Compact */}
+				<div className="rounded-lg border bg-card">
+					<div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+						<h2 className="font-medium text-sm flex items-center gap-2">
+							<Users className="h-4 w-4 text-primary" />
+							Enrollment Progress
+						</h2>
+						<div className="text-right">
+							{loadingEnrollments ? (
+								<span className="text-muted-foreground text-xs">Loading...</span>
+							) : (
+								<>
+									<div className="font-semibold text-lg">
+										{enrollmentData.total}/{enrollmentData.maxStudents} enrolled
+									</div>
+								</>
+							)}
+						</div>
+					</div>
+
+					{loadingEnrollments ? (
+						<div className="px-4 py-3">
+							<div className="h-2 w-full animate-pulse rounded-full bg-muted" />
+						</div>
+					) : (
+						<div className="px-4 py-3">
+							{/* Progress Bar */}
+							<div className="relative mb-2">
+								<div className="h-3 w-full overflow-hidden rounded-full bg-muted">
+									<div
+										className="h-full bg-gradient-to-r from-blue-800 to-blue-600/80 transition-all duration-500 ease-out"
+										style={{
+											width: `${Math.min(
+												(enrollmentData.total / enrollmentData.maxStudents) * 100,
+												100
+											)}%`,
+										}}
+									/>
+								</div>
+								{enrollmentData.total > enrollmentData.maxStudents && (
+									<div className="absolute right-0 top-0 h-2 w-1 bg-yellow-500 rounded-r-full" />
+								)}
+							</div>
+
+							{/* Enrollment Stats - Compact Grid */}
+							<div className="grid grid-cols-3 gap-4 text-xs">
+								<div className="flex items-center gap-1.5">
+									<div className="h-2 w-2 rounded-full bg-green-500" />
+									<span className="text-muted-foreground">Paid:</span>
+									<span className="font-medium">{enrollmentData.paid}</span>
+								</div>
+								<div className="flex items-center gap-1.5">
+									<div className="h-2 w-2 rounded-full bg-blue-500" />
+									<span className="text-muted-foreground">Welcome Package Sent:</span>
+									<span className="font-medium">{enrollmentData.welcomePackageSent}</span>
+								</div>
+								<div className="text-right">
+									{enrollmentData.maxStudents - enrollmentData.total > 0 ? (
+										<span className="text-muted-foreground">
+											<span className="font-medium text-foreground">{enrollmentData.maxStudents - enrollmentData.total}</span> spots left
+										</span>
+									) : enrollmentData.total > enrollmentData.maxStudents ? (
+										<span className="text-yellow-600 font-medium">
+											+{enrollmentData.total - enrollmentData.maxStudents} over
+										</span>
+									) : (
+										<span className="text-green-600 font-medium">Full</span>
+									)}
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
+
 				{/* Cohort Information with inline editing */}
 				<EditableSection
 					title="Cohort Information"
@@ -876,9 +1002,12 @@ export function CohortDetailPageClient({
 													}
 												/>
 											) : cohort.products ? (
-												<p className="font-medium text-sm">
-													{cohort.products.display_name}
-												</p>
+												<LinkedRecordBadge
+													href={`/admin/cohorts/products/${cohort.products.id}`}
+													label={cohort.products.display_name}
+													icon={BookOpen}
+													className="text-xs"
+												/>
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No product assigned
@@ -1166,19 +1295,21 @@ export function CohortDetailPageClient({
 							Are you sure you want to finalize the setup for this cohort? Once
 							finalized, this action cannot be undone. Make sure all details are
 							correct:
-							<ul className="mt-2 space-y-1 text-sm">
-								<li>
-									• Start date:{" "}
-									{cohort.start_date
-										? new Date(cohort.start_date).toLocaleDateString()
-										: "Not set"}
-								</li>
-								<li>• Max students: {cohort.max_students || 10}</li>
-								<li>• Weekly sessions: {sessionCount} configured</li>
-								<li>• Current enrollments: (loading...)</li>
-							</ul>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
+					<div className="py-3">
+						<ul className="space-y-1 text-muted-foreground text-sm">
+							<li>
+								• Start date:{" "}
+								{cohort.start_date
+									? new Date(cohort.start_date).toLocaleDateString()
+									: "Not set"}
+							</li>
+							<li>• Max students: {cohort.max_students || 10}</li>
+							<li>• Weekly sessions: {sessionCount} configured</li>
+							<li>• Current enrollments: {enrollmentData.total}</li>
+						</ul>
+					</div>
 					<AlertDialogFooter>
 						<AlertDialogCancel disabled={isFinalizing}>
 							Cancel

@@ -23,10 +23,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { EnrollmentDetailsModal } from "@/features/enrollments/components/EnrollmentDetailsModal";
+
 import {
 	ChevronLeft,
 	ChevronRight,
-	Edit2,
 	Mail,
 	Phone,
 	Search,
@@ -48,6 +49,8 @@ export function CohortEnrollments({
 	const router = useRouter();
 	const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
 	const [loadingStudents, setLoadingStudents] = useState(false);
+	const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	// Pagination and filtering state
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
@@ -56,25 +59,26 @@ export function CohortEnrollments({
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 
 	// Fetch enrolled students
-	useEffect(() => {
-		async function fetchEnrolledStudents() {
-			if (!cohortId) return;
+	const fetchEnrolledStudents = async () => {
+		if (!cohortId) return;
 
-			setLoadingStudents(true);
-			try {
-				const response = await fetch(
-					`/api/enrollments?cohortId=${cohortId}&limit=100`,
-				);
-				if (response.ok) {
-					const result = await response.json();
-					setEnrolledStudents(result.enrollments || []);
-				}
-			} catch (error) {
-				console.error("Error fetching enrolled students:", error);
-			} finally {
-				setLoadingStudents(false);
+		setLoadingStudents(true);
+		try {
+			const response = await fetch(
+				`/api/enrollments?cohortId=${cohortId}&limit=100`,
+			);
+			if (response.ok) {
+				const result = await response.json();
+				setEnrolledStudents(result.enrollments || []);
 			}
+		} catch (error) {
+			console.error("Error fetching enrolled students:", error);
+		} finally {
+			setLoadingStudents(false);
 		}
+	};
+
+	useEffect(() => {
 		fetchEnrolledStudents();
 	}, [cohortId]);
 
@@ -86,6 +90,20 @@ export function CohortEnrollments({
 			redirectTo: `/admin/cohorts/${cohortId}`,
 		});
 		router.push(`/admin/students/enrollments/new?${params.toString()}`);
+	};
+
+	const handleEnrollmentClick = (enrollment: any) => {
+		setSelectedEnrollment(enrollment);
+		setIsModalOpen(true);
+	};
+
+	const handleModalClose = () => {
+		setIsModalOpen(false);
+		setSelectedEnrollment(null);
+	};
+
+	const handleEnrollmentUpdate = () => {
+		fetchEnrolledStudents();
 	};
 
 	const studentCount = enrolledStudents.length;
@@ -228,19 +246,16 @@ export function CohortEnrollments({
 							<Table>
 								<TableHeader>
 									<TableRow className="bg-muted/30">
-										<TableHead className="w-[250px]">Student</TableHead>
-										<TableHead className="w-[200px]">Contact</TableHead>
-										<TableHead className="w-[150px]">Status</TableHead>
-										<TableHead className="w-[130px]">Created at</TableHead>
-										<TableHead className="w-[100px] text-right">
-											Actions
-										</TableHead>
+										<TableHead className="w-[300px]">Student</TableHead>
+										<TableHead className="w-[250px]">Contact</TableHead>
+										<TableHead className="w-[180px]">Status</TableHead>
+										<TableHead className="w-[150px]">Enrolled</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{paginatedEnrollments.length === 0 ? (
 										<TableRow>
-											<TableCell colSpan={5} className="h-32 text-center">
+											<TableCell colSpan={4} className="h-32 text-center">
 												<div className="flex flex-col items-center justify-center">
 													<Users className="mb-2 h-8 w-8 text-muted-foreground/30" />
 													<p className="text-muted-foreground text-sm">
@@ -283,7 +298,8 @@ export function CohortEnrollments({
 											return (
 												<TableRow
 													key={enrollment.id}
-													className="group hover:bg-muted/5"
+													className="group cursor-pointer hover:bg-muted/5"
+													onClick={() => handleEnrollmentClick(enrollment)}
 												>
 													{/* Student Column */}
 													<TableCell>
@@ -298,13 +314,19 @@ export function CohortEnrollments({
 																		.toUpperCase() || "ST"}
 																</span>
 															</div>
-															<Link
-																href={`/admin/students/${enrollment.student_id}`}
-																className="font-medium text-sm transition-colors hover:text-primary hover:underline"
-															>
-																{enrollment.students?.full_name ||
-																	"Unknown Student"}
-															</Link>
+															<div>
+																<p className="font-medium text-sm">
+																	{enrollment.students?.full_name ||
+																		"Unknown Student"}
+																</p>
+																<Link
+																	href={`/admin/students/${enrollment.student_id}`}
+																	className="text-muted-foreground text-xs transition-colors hover:text-primary hover:underline"
+																	onClick={(e) => e.stopPropagation()}
+																>
+																	View Profile
+																</Link>
+															</div>
 														</div>
 													</TableCell>
 
@@ -361,23 +383,6 @@ export function CohortEnrollments({
 																})}
 															</div>
 														)}
-													</TableCell>
-
-													{/* Actions Column */}
-													<TableCell className="text-right">
-														<Button
-															variant="outline"
-															size="sm"
-															className="h-7 px-2 opacity-0 transition-opacity group-hover:opacity-100"
-															onClick={() =>
-																router.push(
-																	`/admin/students/enrollments/${enrollment.id}/edit`,
-																)
-															}
-														>
-															<Edit2 className="mr-1 h-3.5 w-3.5" />
-															Edit
-														</Button>
 													</TableCell>
 												</TableRow>
 											);
@@ -447,6 +452,14 @@ export function CohortEnrollments({
 					</>
 				)}
 			</div>
+
+			{/* Enrollment Details Modal */}
+			<EnrollmentDetailsModal
+				enrollment={selectedEnrollment}
+				isOpen={isModalOpen}
+				onClose={handleModalClose}
+				onUpdate={handleEnrollmentUpdate}
+			/>
 		</div>
 	);
 }
