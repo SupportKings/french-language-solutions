@@ -8,7 +8,9 @@ import { createContext } from "./lib/context";
 import { appRouter } from "./routers/index";
 
 // Import API modules
-// import studentsRoutes from "./modules/students/routes"; // TODO: Add when module is created
+import studentsRoutes from "./modules/students/routes";
+import classBookingRoutes from "./modules/class-booking/routes";
+import followUpRoutes from "./modules/follow-ups/routes";
 
 const app = new Hono();
 
@@ -35,8 +37,10 @@ app.use(
 	}),
 );
 
-// Mount API routes with explicit path
-// app.route("/api/students", studentsRoutes); // TODO: Add when module is created
+// Mount API routes
+app.route("/api/students", studentsRoutes);
+app.route("/api/class-booking", classBookingRoutes);
+app.route("/api/follow-ups", followUpRoutes);
 
 app.get("/", (c) => {
 	return c.text("OK");
