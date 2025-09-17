@@ -112,7 +112,7 @@ export function SequenceCreateModal({
 			{trigger ? (
 				<DialogTrigger>{trigger}</DialogTrigger>
 			) : (
-				<DialogTrigger className="group relative inline-flex h-9 shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-3 text-primary-foreground text-sm font-medium ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+				<DialogTrigger className="group relative inline-flex h-9 shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-3 font-medium text-primary-foreground text-sm ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
 					<Plus className="mr-1.5 h-4 w-4" />
 					New Sequence
 				</DialogTrigger>

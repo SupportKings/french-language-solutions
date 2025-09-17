@@ -20,7 +20,6 @@ export async function GET(
 				cohort:cohorts(*)
 			`)
 			.eq("id", id)
-			.is("deleted_at", null)
 			.single();
 
 		if (error || !classData) {
@@ -96,7 +95,6 @@ export async function PUT(
 			.from("classes")
 			.update(updateData)
 			.eq("id", id)
-			.is("deleted_at", null)
 			.select()
 			.single();
 
@@ -145,7 +143,6 @@ export async function PATCH(
 				updated_at: new Date().toISOString(),
 			})
 			.eq("id", id)
-			.is("deleted_at", null)
 			.select(`
 				*,
 				cohort:cohorts(*)
@@ -187,7 +184,7 @@ export async function PATCH(
 	}
 }
 
-// DELETE /api/classes/[id] - Soft delete a class
+// DELETE /api/classes/[id] - Hard delete a class
 export async function DELETE(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
@@ -195,16 +192,20 @@ export async function DELETE(
 	try {
 		const { id } = await params;
 		const supabase = await createClient();
-		const { data, error } = await supabase
-			.from("classes")
-			.update({
-				deleted_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			})
-			.eq("id", id)
-			.is("deleted_at", null)
-			.select()
-			.single();
+
+		// First, delete any related attendance records
+		const { error: attendanceError } = await supabase
+			.from("attendance_records")
+			.delete()
+			.eq("class_id", id);
+
+		if (attendanceError) {
+			console.error("Error deleting attendance records:", attendanceError);
+			// Continue with class deletion even if attendance deletion fails
+		}
+
+		// Now delete the class
+		const { error } = await supabase.from("classes").delete().eq("id", id);
 
 		if (error) {
 			if (error.code === "PGRST116") {

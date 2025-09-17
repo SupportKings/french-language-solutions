@@ -3,7 +3,6 @@ import { LanguageLevelsTable } from "@/features/language-levels/components/Langu
 export default function LanguageLevelsPage() {
 	return (
 		<div className="container mx-auto max-w-7xl">
-		
 			<LanguageLevelsTable />
 		</div>
 	);

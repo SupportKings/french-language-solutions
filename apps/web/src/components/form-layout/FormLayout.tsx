@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
+import { IconWrapper } from "@/components/sidebar/icon-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +26,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-import { AlertCircle, ArrowLeft, Info, Loader2, Save, type LucideIcon } from "lucide-react";
-import { IconWrapper } from "@/components/sidebar/icon-wrapper";
+import {
+	AlertCircle,
+	ArrowLeft,
+	Info,
+	Loader2,
+	type LucideIcon,
+	Save,
+} from "lucide-react";
 
 // Main Layout Component
 interface FormLayoutProps {
@@ -130,13 +137,18 @@ export function FormSection({
 		<Card className={cn("bg-background", className)}>
 			<CardHeader className="py-3">
 				<div className="flex items-center gap-2">
-					{icon && (
-						typeof icon === "string" ? (
-							<IconWrapper name={icon} size={16} className="text-muted-foreground" />
+					{icon &&
+						(typeof icon === "string" ? (
+							<IconWrapper
+								name={icon}
+								size={16}
+								className="text-muted-foreground"
+							/>
 						) : (
-							React.createElement(icon, { className: "h-4 w-4 text-muted-foreground" })
-						)
-					)}
+							React.createElement(icon, {
+								className: "h-4 w-4 text-muted-foreground",
+							})
+						))}
 					<CardTitle className="text-base">
 						{title}
 						{required && <span className="ml-1 text-destructive">*</span>}

@@ -335,7 +335,6 @@ export function ProductDetailPageClient({
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							
 							<div>
 								<h1 className="font-semibold text-xl">
 									{product.display_name}
@@ -534,7 +533,12 @@ export function ProductDetailPageClient({
 													size="sm"
 													variant="outline"
 													className="h-7"
-													onClick={() => window.open(product.signup_link_for_self_checkout || "", "_blank")}
+													onClick={() =>
+														window.open(
+															product.signup_link_for_self_checkout || "",
+															"_blank",
+														)
+													}
 												>
 													<LinkIcon className="mr-1.5 h-3 w-3" />
 													Open Self-Checkout
@@ -548,7 +552,6 @@ export function ProductDetailPageClient({
 									</div>
 								</div>
 							</div>
-
 						</div>
 					)}
 				</EditableSection>

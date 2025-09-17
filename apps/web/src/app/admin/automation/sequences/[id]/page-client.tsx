@@ -157,7 +157,7 @@ export function SequenceDetailPageClient({
 			}
 
 			toast.success("Sequence deleted successfully");
-			router.push("/admin/sequences");
+			router.push("/admin/automation/sequences");
 			router.refresh();
 		} catch (error: any) {
 			toast.error(error.message || "Failed to delete sequence");
@@ -236,7 +236,7 @@ export function SequenceDetailPageClient({
 					<p className="mb-4 text-muted-foreground">
 						The sequence you're looking for doesn't exist or couldn't be loaded.
 					</p>
-					<Button onClick={() => router.push("/admin/sequences")}>
+					<Button onClick={() => router.push("/admin/automation/sequences")}>
 						Back to Sequences
 					</Button>
 				</div>
@@ -258,7 +258,7 @@ export function SequenceDetailPageClient({
 				<div className="px-10 py-4">
 					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
 						<Link
-							href="/admin/sequences"
+							href="/admin/automation/sequences"
 							className="transition-colors hover:text-foreground"
 						>
 							Sequences

@@ -388,7 +388,7 @@ export function TouchpointsTable() {
 												</span>
 											</div>
 										</TableCell>
-									
+
 										<TableCell>
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
@@ -405,7 +405,7 @@ export function TouchpointsTable() {
 															View
 														</DropdownMenuItem>
 													</Link>
-												
+
 													<DropdownMenuItem
 														onClick={(e) => {
 															e.stopPropagation();
