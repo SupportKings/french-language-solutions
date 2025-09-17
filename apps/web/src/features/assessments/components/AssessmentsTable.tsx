@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -401,22 +402,24 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 									}
 								>
 									<TableCell>
-										<div>
-											<div>
-												<p className="font-medium">
-													{assessment.students?.full_name}
-												</p>
-												<p className="text-muted-foreground text-sm">
-													{assessment.students?.email || "No email"}
-												</p>
-											</div>
-										</div>
+										{assessment.students ? (
+											<LinkedRecordBadge
+												href={`/admin/students/${assessment.student_id}`}
+												label={assessment.students.full_name}
+												icon={User}
+												title={assessment.students.email || "No email"}
+											/>
+										) : (
+											<span className="text-muted-foreground">No student</span>
+										)}
 									</TableCell>
 									<TableCell>
 										{assessment.language_level ? (
-											<Badge variant="outline">
-												{assessment.language_level.display_name}
-											</Badge>
+											<LinkedRecordBadge
+												href={`/admin/configuration/language-levels`}
+												label={assessment.language_level.display_name}
+												icon={GraduationCap}
+											/>
 										) : assessment.level ? (
 											<Badge variant="outline">
 												{assessment.level.toUpperCase()}
@@ -470,18 +473,26 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 										)}
 									</TableCell>
 									<TableCell>
-										<p className="text-sm">
-											{assessment.interview_held_by
-												? `${assessment.interview_held_by.first_name} ${assessment.interview_held_by.last_name}`.trim()
-												: "-"}
-										</p>
+										{assessment.interview_held_by ? (
+											<LinkedRecordBadge
+												href={`/admin/teachers/${assessment.interview_held_by_id}`}
+												label={`${assessment.interview_held_by.first_name} ${assessment.interview_held_by.last_name}`.trim()}
+												icon={User}
+											/>
+										) : (
+											<span className="text-muted-foreground">-</span>
+										)}
 									</TableCell>
 									<TableCell>
-										<p className="text-sm">
-											{assessment.level_checked_by
-												? `${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`.trim()
-												: "-"}
-										</p>
+										{assessment.level_checked_by ? (
+											<LinkedRecordBadge
+												href={`/admin/teachers/${assessment.level_checked_by_id}`}
+												label={`${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`.trim()}
+												icon={User}
+											/>
+										) : (
+											<span className="text-muted-foreground">-</span>
+										)}
 									</TableCell>
 									<TableCell>
 										<DropdownMenu>

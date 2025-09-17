@@ -69,7 +69,7 @@ export const updateEnrollmentAction = actionClient
 				});
 			}
 
-			if (studentId && (existingEnrollment.student_id) !== studentId) {
+			if (studentId && existingEnrollment.student_id !== studentId) {
 				return returnValidationErrors(enrollmentUpdateSchema, {
 					studentId: {
 						_errors: ["studentId does not belong to this enrollment"],

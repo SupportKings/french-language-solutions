@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -424,12 +425,12 @@ export default function AssessmentDetailsClient({
 										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Name:</p>
-											<Link
+											<LinkedRecordBadge
 												href={`/admin/students/${assessment.student_id}`}
-												className="font-medium text-sm transition-colors hover:text-primary hover:underline"
-											>
-												{assessment.students?.full_name || "Unknown"}
-											</Link>
+												label={assessment.students?.full_name || "Unknown"}
+												icon={User}
+												title={assessment.students?.email || "No email"}
+											/>
 										</div>
 									</div>
 

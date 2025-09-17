@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 
 import { useAutomatedFollowUp } from "@/features/automated-follow-ups/queries/automated-follow-ups.queries";
 import { TouchpointsTable } from "@/features/follow-ups/components/TouchpointsTable";
@@ -367,12 +368,12 @@ export function AutomatedFollowUpDetailPageClient({
 												Follow-up Sequence:
 											</p>
 											{sequence ? (
-												<Link
+												<LinkedRecordBadge
 													href={`/admin/automation/sequences/${followUpData.sequence_id || ""}`}
-													className="flex items-center gap-1 text-primary text-sm hover:underline"
-												>
-													{sequence.display_name}
-												</Link>
+													label={sequence.display_name}
+													icon={MessageSquare}
+													title={sequence.subject || "No subject"}
+												/>
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No sequence assigned

@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
 	DropdownMenu,
@@ -276,30 +277,36 @@ export function AutomatedFollowUpsTable() {
 										}
 									>
 										<TableCell>
-											<div className="flex items-center gap-2">
-												<User className="h-4 w-4 text-muted-foreground" />
-												<div>
-													<p className="font-medium">
-														{touchpoint.students?.full_name || "Unknown"}
-													</p>
-													<p className="text-muted-foreground text-sm">
-														{touchpoint.students?.email || "No email"}
-													</p>
-												</div>
-											</div>
+											{touchpoint.students ? (
+												<LinkedRecordBadge
+													href={`/admin/students/${touchpoint.student_id}`}
+													label={touchpoint.students.full_name}
+													icon={User}
+													title={touchpoint.students.email || "No email"}
+												/>
+											) : (
+												<span className="text-muted-foreground">Unknown</span>
+											)}
 										</TableCell>
 										<TableCell>
-											<div className="flex items-center gap-2">
-												<MessageSquare className="h-4 w-4 text-muted-foreground" />
-												<div>
-													<p className="font-medium">
-														{touchpoint.sequence?.display_name || touchpoint.sequences?.display_name || "Unknown"}
-													</p>
-													<p className="text-muted-foreground text-sm">
-														{touchpoint.sequence?.subject || touchpoint.sequences?.subject || "No subject"}
-													</p>
-												</div>
-											</div>
+											{touchpoint.sequence || touchpoint.sequences ? (
+												<LinkedRecordBadge
+													href={`/admin/automation/sequences/${touchpoint.sequence_id}`}
+													label={
+														touchpoint.sequence?.display_name ||
+														touchpoint.sequences?.display_name ||
+														"Sequence"
+													}
+													icon={MessageSquare}
+													title={
+														touchpoint.sequence?.subject ||
+														touchpoint.sequences?.subject ||
+														"No subject"
+													}
+												/>
+											) : (
+												<span className="text-muted-foreground">Unknown</span>
+											)}
 										</TableCell>
 										<TableCell>
 											<Badge

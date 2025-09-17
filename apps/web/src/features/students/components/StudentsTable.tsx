@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
 	Calendar,
+	CalendarDays,
 	Eye,
 	GraduationCap,
 	MessageSquare,
@@ -157,6 +158,14 @@ const studentColumns = [
 			{ label: "16 and Over", value: "false" },
 		],
 	},
+	{
+		id: "created_at",
+		accessor: (student: any) =>
+			student.airtable_created_at || student.created_at,
+		displayName: "Created Date",
+		icon: CalendarDays,
+		type: "date" as const,
+	},
 ];
 
 interface StudentsTableProps {
@@ -186,14 +195,18 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 		const levelColumnIndex = columns.findIndex(
 			(col) => col.id === "desired_starting_language_level",
 		);
-		if (levelColumnIndex !== -1 && languageLevels) {
+		if (
+			levelColumnIndex !== -1 &&
+			languageLevels &&
+			columns[levelColumnIndex].type === "option"
+		) {
 			columns[levelColumnIndex] = {
 				...columns[levelColumnIndex],
 				options: languageLevels.map((level: any) => ({
 					label: level.display_name || level.code?.toUpperCase() || "Unknown",
 					value: level.id,
 				})),
-			};
+			} as any;
 		}
 		return columns;
 	}, [languageLevels]);
@@ -224,6 +237,33 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 			(f) => f.columnId === "added_to_email_newsletter",
 		);
 		const ageFilter = filters.find((f) => f.columnId === "is_under_16");
+		const dateFilter = filters.find((f) => f.columnId === "created_at");
+
+		// Process date filter values
+		const dateValues = dateFilter?.values || [];
+		let dateFrom: string | undefined;
+		let dateTo: string | undefined;
+		let useAirtableDate = false;
+
+		if (dateValues.length > 0 && dateValues[0]) {
+			// Create date and set to start of day (00:00:00.000)
+			const fromDate = new Date(dateValues[0]);
+			fromDate.setHours(0, 0, 0, 0);
+			dateFrom = fromDate.toISOString();
+			useAirtableDate = true;
+		}
+
+		if (dateValues.length > 1 && dateValues[1]) {
+			// Range selected - set end date to end of day (23:59:59.999)
+			const toDate = new Date(dateValues[1]);
+			toDate.setHours(23, 59, 59, 999);
+			dateTo = toDate.toISOString();
+		} else if (dateValues.length === 1 && dateValues[0]) {
+			// Single date selected - set to end of same day
+			const toDate = new Date(dateValues[0]);
+			toDate.setHours(23, 59, 59, 999);
+			dateTo = toDate.toISOString();
+		}
 
 		return {
 			// Pass arrays for multi-select filters
@@ -242,6 +282,9 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 			is_full_beginner: beginnerFilter?.values?.[0] || undefined,
 			added_to_email_newsletter: newsletterFilter?.values?.[0] || undefined,
 			is_under_16: ageFilter?.values?.[0] || undefined,
+			dateFrom,
+			dateTo,
+			useAirtableDate,
 		};
 	}, [filters]);
 
@@ -251,6 +294,11 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 		...filterQuery,
 		search: debouncedSearch || undefined,
 	};
+
+	// Reset page when filters change
+	useEffect(() => {
+		setQuery({ ...query, page: 1 });
+	}, [filters, debouncedSearch]);
 
 	const { data, isLoading, error } = useStudents(effectiveQuery);
 	const deleteStudent = useDeleteStudent();
@@ -408,7 +456,13 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
-											{format(new Date(student.created_at), "MMM d, yyyy")}
+											{format(
+												new Date(
+													student.airtable_created_at ||
+														student.created_at,
+												),
+												"MMM d, yyyy",
+											)}
 										</p>
 									</TableCell>
 									<TableCell>
