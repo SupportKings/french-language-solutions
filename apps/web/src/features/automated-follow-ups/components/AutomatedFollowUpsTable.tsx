@@ -221,7 +221,7 @@ export function AutomatedFollowUpsTable() {
 							<TableHead>Sequence</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Started</TableHead>
-							<TableHead>Last Message</TableHead>
+							<TableHead>Last Message Sent at</TableHead>
 							<TableHead>Completed at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>

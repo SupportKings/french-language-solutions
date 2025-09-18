@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 import Link from "next/link";
 
@@ -25,8 +25,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-import type { LucideIcon } from "lucide-react";
-import { AlertCircle, ArrowLeft, Info, Loader2, Save } from "lucide-react";
+import { AlertCircle, ArrowLeft, Info, Loader2, Save, type LucideIcon } from "lucide-react";
+import { IconWrapper } from "@/components/sidebar/icon-wrapper";
 
 // Main Layout Component
 interface FormLayoutProps {
@@ -112,7 +112,7 @@ export function FormContent({ children, className }: FormContentProps) {
 interface FormSectionProps {
 	title: string;
 	description?: string;
-	icon?: LucideIcon;
+	icon?: string | React.ComponentType<{ className?: string }>;
 	required?: boolean;
 	children: ReactNode;
 	className?: string;
@@ -121,7 +121,7 @@ interface FormSectionProps {
 export function FormSection({
 	title,
 	description,
-	icon: Icon,
+	icon,
 	required,
 	children,
 	className,
@@ -130,7 +130,13 @@ export function FormSection({
 		<Card className={cn("bg-background", className)}>
 			<CardHeader className="py-3">
 				<div className="flex items-center gap-2">
-					{Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+					{icon && (
+						typeof icon === "string" ? (
+							<IconWrapper name={icon} size={16} className="text-muted-foreground" />
+						) : (
+							React.createElement(icon, { className: "h-4 w-4 text-muted-foreground" })
+						)
+					)}
 					<CardTitle className="text-base">
 						{title}
 						{required && <span className="ml-1 text-destructive">*</span>}

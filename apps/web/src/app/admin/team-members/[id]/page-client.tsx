@@ -327,12 +327,10 @@ export default function TeacherDetailsClient({
 				<EditableSection
 					title="Team Member Information"
 					onEditStart={() => {
-						console.log("Edit started. Current teacher state:", teacher);
 						const editTeacher = {
 							...teacher,
 							role: teacher.role || []
 						};
-						console.log("Setting editedTeacher to:", editTeacher);
 						setEditedTeacher(editTeacher);
 					}}
 					onSave={saveAllChanges}

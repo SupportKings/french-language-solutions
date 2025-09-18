@@ -42,12 +42,12 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Products & Pricing",
 		description: "Manage products and pricing",
 	},
-	"/admin/teachers": {
-		title: "Teachers",
-		description: "Manage your teaching staff",
+	"/admin/team-members": {
+		title: "Team Members",
+		description: "Manage your team members",
 	},
 	"/admin/team": {
-		title: "Teachers",
+		title: "Team",
 		description: "Manage your teaching staff",
 	},
 	"/admin/team/support": {
@@ -131,6 +131,11 @@ export function PageHeader() {
 			info = {
 				title: "Teacher Details",
 				description: "View and edit teacher information",
+			};
+		} else if (pathname.match(/^\/admin\/cohorts\/products\/[^/]+$/)) {
+			info = {
+				title: "Product Details",
+				description: "View and edit product information",
 			};
 		} else if (pathname.match(/^\/admin\/team\/[^/]+$/)) {
 			info = {

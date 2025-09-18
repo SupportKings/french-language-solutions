@@ -455,7 +455,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 									</TableCell>
 									<TableCell>
 										{teacher.active_cohorts_count > 0 ? (
-											<Badge variant="default" className="text-xs">
+											<Badge variant="outline" className="text-xs">
 												{teacher.active_cohorts_count}{" "}
 												{teacher.active_cohorts_count === 1
 													? "cohort"
