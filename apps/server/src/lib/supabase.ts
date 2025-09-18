@@ -1,11 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
+import { env } from "./config";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+// Use validated environment variables - no fallbacks to prevent privilege downgrades
+const supabaseUrl = env.SUPABASE_URL;
+const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
+// These are required by the env schema, but double-check to be explicit
 if (!supabaseUrl || !supabaseServiceKey) {
-	throw new Error("Missing Supabase environment variables");
+	throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required. No anon key fallback allowed for security.");
 }
 
 // Create a Supabase client with service role key for server-side operations

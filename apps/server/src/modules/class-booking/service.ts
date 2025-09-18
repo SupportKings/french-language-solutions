@@ -59,13 +59,16 @@ export class ClassBookingService {
 			}
 
 			const activeEnrollments = count || 0;
-			const maxStudents = cohort.max_students || Infinity;
+			// Treat null as unlimited capacity (Infinity for comparison)
+			const maxStudents = cohort.max_students === null ? Infinity : cohort.max_students;
 
 			// Only include if there's space
 			if (activeEnrollments < maxStudents) {
 				eligibleCohorts.push({
 					...cohort,
-					activeEnrollmentCount: activeEnrollments
+					activeEnrollmentCount: activeEnrollments,
+					// Store the normalized max for consistent handling later
+					normalizedMaxStudents: maxStudents
 				});
 			}
 		}
@@ -89,12 +92,19 @@ export class ClassBookingService {
 					console.error("Error fetching sessions:", sessionsError);
 				}
 
+				// Calculate available spots, ensuring it's never negative
+				// If max_students is null (unlimited), return null for available_spots
+				// Otherwise, calculate and ensure non-negative
+				const availableSpots = cohort.max_students === null 
+					? null // Unlimited capacity
+					: Math.max(0, cohort.max_students - cohort.activeEnrollmentCount);
+
 				return {
 					id: cohort.id,
 					start_date: cohort.start_date,
 					max_students: cohort.max_students,
 					current_enrollments: cohort.activeEnrollmentCount,
-					available_spots: (cohort.max_students || 0) - cohort.activeEnrollmentCount,
+					available_spots: availableSpots,
 					room_type: cohort.room_type,
 					product: cohort.products,
 					current_level: cohort.language_levels,

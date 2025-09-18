@@ -12,6 +12,8 @@ import { env } from "./lib/config";
 import studentsRoutes from "./modules/students/routes";
 import classBookingRoutes from "./modules/class-booking/routes";
 import followUpRoutes from "./modules/follow-ups/routes";
+import { followUpWebhookRouter } from "./modules/follow-ups/webhook-handler";
+import { initializeSimpleScheduler } from "./modules/follow-ups/cron-scheduler";
 
 const app = new Hono();
 
@@ -20,17 +22,23 @@ const app = new Hono();
 // Apply CORS globally
 const corsMiddleware = cors({
 	origin: (origin) => {
+		// No origin (server-to-server) - return null to omit CORS headers
+		if (!origin) return null;
+		
+		// Normalize origins by removing trailing slashes
+		const normalizeOrigin = (url: string) => url.replace(/\/$/, "");
+		const normalizedOrigin = normalizeOrigin(origin);
+		
 		const allowedOrigins = [
 			env.CORS_ORIGIN,
-			env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL,
-			// Add any Supabase function URLs if needed
-		].filter(Boolean);
+			env.SUPABASE_URL,
+			// Add any additional allowed origins here
+		]
+			.filter(Boolean)
+			.map((url) => normalizeOrigin(url as string));
 		
-		// Allow requests with no origin (e.g., webhooks, server-to-server)
-		if (!origin) return "";
-		
-		// Check if origin is allowed
-		if (allowedOrigins.some(allowed => allowed && origin.startsWith(allowed))) {
+		// Strict equality check - no partial matches
+		if (allowedOrigins.includes(normalizedOrigin)) {
 			return origin;
 		}
 		
@@ -58,6 +66,7 @@ app.use(
 app.route("/api/students", studentsRoutes);
 app.route("/api/class-booking", classBookingRoutes);
 app.route("/api/follow-ups", followUpRoutes);
+app.route("/api", followUpWebhookRouter);
 
 // Health check endpoint
 app.get("/health", (c) => {
@@ -84,6 +93,17 @@ const port = Number(env.PORT);
 console.log(`🚀 Server configured to run on port ${port}`);
 console.log(`📝 Environment: ${env.NODE_ENV}`);
 console.log(`🔗 CORS origins: ${env.CORS_ORIGIN}`);
+
+// Initialize follow-up message scheduler
+const followUpScheduler = initializeSimpleScheduler(5); // Check every 5 minutes
+console.log(`⏰ Follow-up message scheduler initialized`);
+
+// Cleanup on process termination
+process.on("SIGINT", () => {
+	console.log("Shutting down schedulers...");
+	followUpScheduler.stop();
+	process.exit(0);
+});
 
 export default {
 	port,

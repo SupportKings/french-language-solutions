@@ -54,7 +54,8 @@ export function formatCohortForMake(cohort: any): any {
 		Location: [capitalize(location)],
 		"Record ID": cohort.id,
 		"Start Date": cohort.start_date,
-		"Open Places": cohort.available_spots,
+		// Handle null (unlimited) as a string or very large number for Make.com
+		"Open Places": cohort.available_spots === null ? "unlimited" : cohort.available_spots,
 		"Cohort UI Label": generateCohortUILabel(location, cohort.weekly_sessions)
 	};
 }
