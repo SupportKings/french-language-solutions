@@ -718,6 +718,7 @@ async function importCohorts() {
 			setup_finalized: mapCheckboxToBoolean(fields["Setup Finalized"]),
 			google_drive_folder_id: fields["Google Drive Folder ID"] || null,
 			airtable_record_id: record.id,
+			airtable_created_at: convertToISO8601(fields["created"]),
 			// Store Airtable references for Pass 2
 			_airtable_product_id: fields["Product"]?.[0] || null,
 			_airtable_starting_level_id: fields["Starting Level"]?.[0] || null, // This is a linked record ID
@@ -791,11 +792,12 @@ async function importStudentAssessments() {
 			meeting_recording_url: fields["Meeting Recording URL"] || null,
 			calendar_event_url: fields["Calendar Event URL"] || null,
 			airtable_record_id: record.id,
+			airtable_created_at: convertToISO8601(fields["Created"]),
 			// Store Airtable references for Pass 2
 			_airtable_student_id: fields["Student"]?.[0] || null,
 			_airtable_level_id: fields["Assessment Level"]?.[0] || null,
 			_airtable_interview_held_by: fields["Interview Held By"]?.[0] || null,
-			_airtable_level_checked_by: fields["Level Checked By"]?.[0] || null,
+			_airtable_level_checked_by: fields["Level Checked By"]?.[0] || null
 		};
 		
 		assessments.push(assessment);
@@ -860,6 +862,7 @@ async function importTouchpoints() {
 			external_id: fields["External ID"] || null,
 			external_metadata: fields["External Metadata"] || null,
 			airtable_record_id: record.id,
+			airtable_created_at: convertToISO8601(fields["Created at"]),
 			// Store Airtable references for Pass 2
 			_airtable_student_id: fields["Leads"]?.[0] || null, // Using "Leads" field, not "Student"
 			_airtable_automated_follow_up_id: fields["Automated Follow Up"]?.[0] || null,
@@ -968,6 +971,7 @@ async function importWeeklySessions() {
 			end_time: endTime,
 			google_calendar_event_id: fields["Google Calendar Event ID"] || null,
 			airtable_record_id: record.id,
+			airtable_created_at: convertToISO8601(fields["Created at"]),
 			// Store Airtable references for Pass 2
 			_airtable_cohort_id: fields["Cohort"]?.[0] || null,
 			_airtable_teacher_id: fields["Teacher"]?.[0] || null,

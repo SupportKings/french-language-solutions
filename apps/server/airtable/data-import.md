@@ -1,6 +1,7 @@
 # Complete Airtable to Supabase Data Migration Mapping
 
 Generated: 2025-09-15
+Updated: 2025-09-18 - Aligned with import-airtable-data.ts script
 
 ## Table of Contents
 1. [Import Strategy](#import-strategy)
@@ -181,7 +182,7 @@ Generated: 2025-09-15
 | `50 - Follow Up Ongoing` | `ongoing` |
 | `-2 - Answer Received` | `answer_received` |
 | `-1 - Disabled Manually` | `disabled` |
-| `100 - Completed` | `answer_received` |
+| `100 - Completed` | `completed` |
 
 ### follow_up_message_status (Follow Up Sequence - Template Messages → Status)
 | Airtable Value (EXACT) | Supabase Value |
@@ -206,6 +207,14 @@ Generated: 2025-09-15
 
 ### class_status
 **Note:** No status field in Events/Classes table - will default to `scheduled`
+
+### team_roles (Teachers/Team → Roles)
+| Airtable Value (EXACT) | Supabase Value |
+|------------------------|----------------|
+| `Teacher` | `Teacher` |
+| `Evaluator` | `Evaluator` |
+| `Marketing/Admin` | `Marketing/Admin` |
+| `Exec` | `Exec` |
 
 ### day_of_week (Multiple tables → Days Available fields)
 | Airtable Value (EXACT) | Supabase Value |
@@ -235,6 +244,7 @@ Generated: 2025-09-15
 |----------------|----------------|------|----------------|-------|
 | First Name | first_name | string | Direct | Required |
 | Last Name | last_name | string | Direct | Required |
+| Roles | role | enum[]? | Map via team_roles table | Multi-select field |
 | Team Onboarding Status | onboarding_status | enum | Map via onboarding_status table | Required, default: 'new' |
 | Contract Type | contract_type | enum? | Map via contract_type table | |
 | Group Class Bonus Terms | group_class_bonus_terms | enum? | Map via group_class_bonus_terms table | |
@@ -383,7 +393,6 @@ Generated: 2025-09-15
 |----------------|----------------|------|----------------|-------|
 | Name | display_name | string | Direct | Required |
 | Subject | subject | string | Direct | Required |
-| First Follow-Up Delay (Minutes) | first_follow_up_delay_minutes | number | Direct | Required |
 | _record_id | airtable_record_id | string? | Direct | For linking |
 
 **Unmapped Supabase Fields:**
@@ -566,32 +575,38 @@ ORDER BY count DESC;
 
 ```typescript
 // Pre-Import: Match language levels
-const languageLevelMapping = await matchLanguageLevels();
+await matchLanguageLevels();
 
-// Step 1: Import reference data
+// PASS 1: Import all data
+// Import reference data first
 await importProducts();
-
-// Step 2: Import primary entities
+// Note: importLanguageLevels() is skipped - we use existing ones with matching
 await importTeachers();
-await importStudents(languageLevelMapping);
 
-// Step 3: Import templates
-await importFollowUpSequences();
-await importFollowUpMessages();
+// Import dependent data (storing for Pass 2)
+const students = await importStudents();
+await importTemplateFollowUpSequences();
+const templateMessages = await importTemplateFollowUpMessages();
+const cohorts = await importCohorts();
+const enrollments = await importEnrollments();
+const assessments = await importStudentAssessments();
+const automatedFollowUps = await importAutomatedFollowUps();
+const touchpoints = await importTouchpoints();
+const weeklySessions = await importWeeklySessions();
+const classes = await importClasses();
 
-// Step 4: Import cohorts (needs products and levels)
-await importCohorts(languageLevelMapping);
-
-// Step 5: Import relationships
-await importEnrollments();
-await importStudentAssessments(languageLevelMapping);
-await importAutomatedFollowUps();
-await importTouchpoints();
-await importWeeklySessions();
-await importClasses();
-
-// Step 6: Update foreign keys
-await updateForeignKeys();
+// PASS 2: Update foreign keys
+await updateForeignKeys(
+	students,
+	templateMessages,
+	cohorts,
+	enrollments,
+	assessments,
+	automatedFollowUps,
+	touchpoints,
+	weeklySessions,
+	classes
+);
 ```
 
 ---
