@@ -341,16 +341,6 @@ export function FollowUpForm({
 															Subject: {sequence.subject}
 														</div>
 													)}
-													{sequence.first_follow_up_delay_minutes && (
-														<div className="text-muted-foreground text-xs">
-															First message after{" "}
-															{sequence.first_follow_up_delay_minutes < 60
-																? `${sequence.first_follow_up_delay_minutes} minutes`
-																: sequence.first_follow_up_delay_minutes < 1440
-																	? `${Math.floor(sequence.first_follow_up_delay_minutes / 60)} hours`
-																	: `${Math.floor(sequence.first_follow_up_delay_minutes / 1440)} days`}
-														</div>
-													)}
 												</SelectItem>
 											))
 										)}

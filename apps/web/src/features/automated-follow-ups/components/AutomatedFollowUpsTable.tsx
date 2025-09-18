@@ -40,6 +40,7 @@ import {
 	CheckCircle,
 	Clock,
 	Eye,
+	Loader2,
 	MessageSquare,
 	MoreHorizontal,
 	Play,
@@ -76,8 +77,9 @@ const statusIcons = {
 	disabled: XCircle,
 };
 
+
 // Define column configurations for data-table-filter - will be populated dynamically
-const getColumnConfigurations = (sequences: any[]) =>
+const getColumnConfigurations = (sequences: any[], isLoadingSequences: boolean) =>
 	[
 		{
 			id: "status",
@@ -93,13 +95,17 @@ const getColumnConfigurations = (sequences: any[]) =>
 		{
 			id: "sequence_id",
 			accessor: (touchpoint: any) => touchpoint.sequence_id,
-			displayName: "Sequence",
-			icon: MessageSquare,
+			displayName: isLoadingSequences ? "Sequence (Loading...)" : "Sequence",
+			icon: isLoadingSequences ? Loader2 : MessageSquare,
 			type: "option" as const,
-			options: sequences.map((sequence) => ({
-				label: sequence.display_name || "Unknown",
-				value: sequence.id,
-			})),
+			options: isLoadingSequences 
+				? [{ label: "Loading sequences...", value: "loading", disabled: true }]
+				: sequences.length === 0 
+					? [{ label: "No sequences available", value: "none", disabled: true }]
+					: sequences.map((sequence) => ({
+						label: sequence.display_name || "Unknown",
+						value: sequence.id,
+					})),
 		},
 	] as const;
 
@@ -118,14 +124,14 @@ export function AutomatedFollowUpsTable() {
 	const deleteFollowUp = useDeleteAutomatedFollowUp();
 
 	// Fetch sequences for filters
-	const { data: sequencesData } = useSequences({ page: 1, limit: 100 });
+	const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({ page: 1, limit: 100 });
 	const sequences = sequencesData?.data || [];
 
 	// Data table filters hook - use dynamic columns
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: getColumnConfigurations(sequences),
+		columnsConfig: getColumnConfigurations(sequences, isLoadingSequences),
 	});
 
 	// Convert filters to query params - support multiple values

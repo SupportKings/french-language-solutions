@@ -38,7 +38,6 @@ interface AutomatedFollowUp {
 		id: string;
 		display_name: string;
 		subject: string;
-		first_follow_up_delay_minutes: number;
 	};
 }
 

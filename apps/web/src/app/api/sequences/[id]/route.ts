@@ -46,7 +46,22 @@ export async function GET(
 			);
 		}
 
-		return NextResponse.json(data);
+		// Get count of active follow-ups (activated or ongoing)
+		const { count: activeCount } = await supabase
+			.from("automated_follow_ups")
+			.select("*", { count: "exact", head: true })
+			.eq("sequence_id", id)
+			.in("status", ["activated", "ongoing"]);
+
+		// Add the count to the response
+		const responseData = {
+			...data,
+			_count: {
+				automated_follow_ups: activeCount || 0
+			}
+		};
+
+		return NextResponse.json(responseData);
 	} catch (error) {
 		console.error("Sequence detail error:", error);
 		return NextResponse.json(
@@ -98,7 +113,22 @@ export async function PATCH(
 			);
 		}
 
-		return NextResponse.json(data);
+		// Get count of active follow-ups (activated or ongoing)
+		const { count: activeCount } = await supabase
+			.from("automated_follow_ups")
+			.select("*", { count: "exact", head: true })
+			.eq("sequence_id", id)
+			.in("status", ["activated", "ongoing"]);
+
+		// Add the count to the response
+		const responseData = {
+			...data,
+			_count: {
+				automated_follow_ups: activeCount || 0
+			}
+		};
+
+		return NextResponse.json(responseData);
 	} catch (error) {
 		console.error("Sequence update error:", error);
 		return NextResponse.json(

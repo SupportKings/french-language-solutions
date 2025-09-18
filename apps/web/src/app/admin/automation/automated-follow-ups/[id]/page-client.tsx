@@ -395,27 +395,6 @@ export function AutomatedFollowUpDetailPageClient({
 											</div>
 										</div>
 									)}
-
-									{sequence?.first_follow_up_delay_minutes && (
-										<div className="flex items-start gap-3">
-											<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-											<div className="flex-1 space-y-0.5">
-												<p className="text-muted-foreground text-xs">
-													First Delay:
-												</p>
-												<p className="font-medium text-sm">
-													{(() => {
-														const minutes =
-															sequence.first_follow_up_delay_minutes;
-														if (minutes < 60) return `${minutes} minutes`;
-														if (minutes < 1440)
-															return `${Math.floor(minutes / 60)} hours`;
-														return `${Math.floor(minutes / 1440)} days`;
-													})()}
-												</p>
-											</div>
-										</div>
-									)}
 								</div>
 							</div>
 						</div>
