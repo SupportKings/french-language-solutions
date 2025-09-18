@@ -468,7 +468,7 @@ async function importTeachers() {
 		teachers.push(teacher);
 	}
 	
-	importStats.tables.teachers = { attempted: teachers.length, succeeded: 0, failed: 0 };
+	importStats.tables.teachers = { attempted: teachers.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	
 	if (teachers.length > 0) {
 		const { data, error } = await supabase
@@ -505,7 +505,7 @@ async function importStudents() {
 			email: validateEmail(fields["Email"]),
 			mobile_phone_number: formatPhoneNumber(fields["Mobile Phone Number"]),
 			city: fields["City"] || null,
-			communication_channel: mapEnum(fields["Default Communication Channel"], "communication_channel"),
+			communication_channel: mapEnum(fields["Default Communication Channel"], "communication_channel") || "email",
 			initial_channel: mapEnum(fields["Initial Channel"], "initial_channel"),
 			is_full_beginner: fields["Student's Beginning Level (from Enrollment Form)"] === "Complete Beginner (A0)" ? true : false,
 			is_under_16: fields["Age Group"] === "Under 16" ? true : false,
@@ -517,7 +517,7 @@ async function importStudents() {
 			convertkit_id: fields["ConvertKit Subscriber ID"] || null,
 			openphone_contact_id: fields["OpenPhone Contact ID"] || null,
 			respondent_id: fields["Respondent ID"] || null,
-			airtable_lead_created_at: convertToISO8601(fields["Lead Created Date"]),
+			airtable_created_at: convertToISO8601(fields["Lead Created Date"]),
 			stripe_customer_id: fields["Stripe Customer ID"] || null,
 			tally_form_submission_id: fields["Submission ID"] || null,
 			airtable_record_id: record.id,
@@ -529,7 +529,7 @@ async function importStudents() {
 	}
 	
 	// Store students for Pass 2 processing
-	importStats.tables.students = { attempted: students.length, succeeded: 0, failed: 0 };
+	importStats.tables.students = { attempted: students.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${students.length} students for Pass 2 processing`);
 	return students;
 }
@@ -556,7 +556,7 @@ async function importProducts() {
 		products.push(product);
 	}
 	
-	importStats.tables.products = { attempted: products.length, succeeded: 0, failed: 0 };
+	importStats.tables.products = { attempted: products.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	
 	if (products.length > 0) {
 		const { data, error } = await supabase
@@ -596,7 +596,7 @@ async function importLanguageLevels() {
 		levels.push(level);
 	}
 	
-	importStats.tables.language_levels = { attempted: levels.length, succeeded: 0, failed: 0 };
+	importStats.tables.language_levels = { attempted: levels.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	
 	if (levels.length > 0) {
 		const { data, error } = await supabase
@@ -634,14 +634,13 @@ async function importTemplateFollowUpSequences() {
 		const sequence = {
 			display_name: fields["Name"] || "",
 			subject: fields["Subject"] || "",
-			first_follow_up_delay_minutes: fields["First Follow-Up Delay (Minutes)"] || 0,
 			airtable_record_id: record.id,
 		};
 		
 		sequences.push(sequence);
 	}
 	
-	importStats.tables.template_follow_up_sequences = { attempted: sequences.length, succeeded: 0, failed: 0 };
+	importStats.tables.template_follow_up_sequences = { attempted: sequences.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	
 	if (sequences.length > 0) {
 		const { data, error } = await supabase
@@ -685,7 +684,7 @@ async function importTemplateFollowUpMessages() {
 	}
 	
 	// Store messages for Pass 2 processing
-	importStats.tables.template_follow_up_messages = { attempted: messages.length, succeeded: 0, failed: 0 };
+	importStats.tables.template_follow_up_messages = { attempted: messages.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${messages.length} messages for Pass 2 processing`);
 	return messages;
 }
@@ -712,7 +711,7 @@ async function importCohorts() {
 			product_id: null, // Will be set in Pass 2
 			starting_level_id: null, // Will be set in Pass 2
 			current_level_id: null, // Will be set in Pass 2
-			cohort_status: mapEnum(fields["Cohort Status"], "cohort_status"),
+			cohort_status: mapEnum(fields["Cohort Status"], "cohort_status") || "class_ended",
 			max_students: maxStudents,
 			room_type: mapEnum(fields["Max Students - Restricted by Room (Manual)"], "room_type"),
 			start_date: convertToISO8601(fields["Start Date"]),
@@ -729,7 +728,7 @@ async function importCohorts() {
 	}
 	
 	// Store cohorts for Pass 2 processing
-	importStats.tables.cohorts = { attempted: cohorts.length, succeeded: 0, failed: 0 };
+	importStats.tables.cohorts = { attempted: cohorts.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${cohorts.length} cohorts for Pass 2 processing`);
 	return cohorts;
 }
@@ -749,7 +748,7 @@ async function importEnrollments() {
 			cohort_id: null, // Will be set in Pass 2
 			status: mapEnum(fields["Enrollment Status"], "enrollment_status"),
 			airtable_record_id: record.id,
-			airtable_enrollment_created_at: convertToISO8601(fields["Created"]),
+			airtable_created_at: convertToISO8601(fields["Created"]),
 			// Store Airtable references for Pass 2
 			_airtable_student_id: fields["Student"]?.[0] || null,
 			_airtable_cohort_id: fields["French Program/Cohort"]?.[0] || null,
@@ -803,7 +802,7 @@ async function importStudentAssessments() {
 	}
 	
 	// Store assessments for Pass 2 processing  
-	importStats.tables.student_assessments = { attempted: assessments.length, succeeded: 0, failed: 0 };
+	importStats.tables.student_assessments = { attempted: assessments.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${assessments.length} assessments for Pass 2 processing`);
 	return assessments;
 }
@@ -835,7 +834,7 @@ async function importAutomatedFollowUps() {
 	}
 	
 	// Store follow-ups for Pass 2 processing
-	importStats.tables.automated_follow_ups = { attempted: followUps.length, succeeded: 0, failed: 0 };
+	importStats.tables.automated_follow_ups = { attempted: followUps.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${followUps.length} automated follow ups for Pass 2 processing`);
 	return followUps;
 }
@@ -870,7 +869,7 @@ async function importTouchpoints() {
 	}
 	
 	// Store touchpoints for Pass 2 processing
-	importStats.tables.touchpoints = { attempted: touchpoints.length, succeeded: 0, failed: 0 };
+	importStats.tables.touchpoints = { attempted: touchpoints.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${touchpoints.length} touchpoints for Pass 2 processing`);
 	return touchpoints;
 }
@@ -978,7 +977,7 @@ async function importWeeklySessions() {
 	}
 	
 	// Store sessions for Pass 2 processing
-	importStats.tables.weekly_sessions = { attempted: sessions.length, succeeded: 0, failed: 0 };
+	importStats.tables.weekly_sessions = { attempted: sessions.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${sessions.length} weekly sessions for Pass 2 processing`);
 	return sessions;
 }
@@ -1013,7 +1012,7 @@ async function importClasses() {
 	}
 	
 	// Store classes for Pass 2 processing
-	importStats.tables.classes = { attempted: classes.length, succeeded: 0, failed: 0 };
+	importStats.tables.classes = { attempted: classes.length, succeeded: 0, failed: 0, skipped: 0, skippedReasons: {} };
 	console.log(`  Found ${classes.length} classes for Pass 2 processing`);
 	return classes;
 }
@@ -1121,7 +1120,9 @@ async function updateForeignKeys(
 				importStats.tables.students = { 
 					attempted: studentsToInsert.length, 
 					succeeded: 0, 
-					failed: studentsToInsert.length
+					failed: studentsToInsert.length,
+					skipped: 0,
+					skippedReasons: {}
 				};
 			} else {
 				const totalSucceeded = data?.length || 0;
@@ -1129,7 +1130,9 @@ async function updateForeignKeys(
 				importStats.tables.students = { 
 					attempted: studentsToInsert.length, 
 					succeeded: totalSucceeded, 
-					failed: studentsToInsert.length - totalSucceeded 
+					failed: studentsToInsert.length - totalSucceeded,
+					skipped: 0,
+					skippedReasons: {}
 				};
 			}
 			
@@ -1187,7 +1190,6 @@ async function updateForeignKeys(
 					message.sequence_id = sequenceId;
 					messagesToInsert.push(message);
 				} else {
-					console.warn(`    ⚠️ No sequence found for message ${message.airtable_record_id} with sequence ref ${message._airtable_sequence_id}`);
 				}
 			} else {
 				console.warn(`    ⚠️ Message ${message.airtable_record_id} has no sequence reference`);
@@ -1209,7 +1211,9 @@ async function updateForeignKeys(
 				importStats.tables.template_follow_up_messages = { 
 					attempted: messagesToInsert.length, 
 					succeeded: messagesToInsert.length, 
-					failed: 0 
+					failed: 0,
+					skipped: 0,
+					skippedReasons: {}
 				};
 			}
 		}
@@ -1366,7 +1370,6 @@ async function updateForeignKeys(
 			} else {
 				console.log(`    ✅ Inserted ${enrollmentsToInsert.length} enrollments`);
 				importStats.tables.enrollments.succeeded = enrollmentsToInsert.length;
-				console.log(`    ⚠️ Skipped ${importStats.tables.enrollments.skipped || 0} enrollments due to missing references`);
 			}
 		}
 	}
@@ -1411,7 +1414,7 @@ async function updateForeignKeys(
 				importStats.errors.push({ table: "student_assessments", error: error.message });
 			} else {
 				console.log(`    ✅ Inserted ${assessmentsToInsert.length} assessments`);
-				importStats.tables.student_assessments = { attempted: assessmentsToInsert.length, succeeded: assessmentsToInsert.length, failed: 0 };
+				importStats.tables.student_assessments = { attempted: assessmentsToInsert.length, succeeded: assessmentsToInsert.length, failed: 0, skipped: 0, skippedReasons: {} };
 			}
 		}
 	}
@@ -1447,7 +1450,7 @@ async function updateForeignKeys(
 				importStats.errors.push({ table: "automated_follow_ups", error: error.message });
 			} else {
 				console.log(`    ✅ Inserted ${followUpsToInsert.length} automated follow ups`);
-				importStats.tables.automated_follow_ups = { attempted: followUpsToInsert.length, succeeded: followUpsToInsert.length, failed: 0 };
+				importStats.tables.automated_follow_ups = { attempted: followUpsToInsert.length, succeeded: followUpsToInsert.length, failed: 0, skipped: 0, skippedReasons: {} };
 				
 				// Rebuild lookup map for automated_follow_ups
 				const { data } = await supabase
@@ -1476,11 +1479,8 @@ async function updateForeignKeys(
 				if (!touchpoint.student_id) {
 					// Debug: Check if the map exists and has entries
 					if (!lookupMaps.students) {
-						console.warn(`    ⚠️ Students lookup map is undefined!`);
 					} else if (lookupMaps.students.size === 0) {
-						console.warn(`    ⚠️ Students lookup map is empty!`);
 					}
-					console.warn(`    ⚠️ No student found for touchpoint ${touchpoint.airtable_record_id} with student ref ${touchpoint._airtable_student_id}`);
 				}
 			}
 			if (touchpoint._airtable_automated_follow_up_id) {
@@ -1493,7 +1493,6 @@ async function updateForeignKeys(
 				delete touchpoint._airtable_automated_follow_up_id;
 				touchpointsToInsert.push(touchpoint);
 			} else {
-				console.warn(`    ⚠️ Skipping touchpoint ${touchpoint.airtable_record_id} - no student_id`);
 			}
 		}
 		
@@ -1509,7 +1508,7 @@ async function updateForeignKeys(
 				importStats.errors.push({ table: "touchpoints", error: error.message });
 			} else {
 				console.log(`    ✅ Inserted ${touchpointsToInsert.length} touchpoints`);
-				importStats.tables.touchpoints = { attempted: touchpointsToInsert.length, succeeded: touchpointsToInsert.length, failed: 0 };
+				importStats.tables.touchpoints = { attempted: touchpointsToInsert.length, succeeded: touchpointsToInsert.length, failed: 0, skipped: 0, skippedReasons: {} };
 			}
 		}
 	}
@@ -1524,18 +1523,14 @@ async function updateForeignKeys(
 			if (session._airtable_cohort_id) {
 				session.cohort_id = lookupMaps.cohorts?.get(session._airtable_cohort_id);
 				if (!session.cohort_id) {
-					console.warn(`    ⚠️ No cohort found for weekly session ${session.airtable_record_id} with cohort ref ${session._airtable_cohort_id}`);
 					// Check if this cohort exists in the imported cohorts array
 					const cohortExists = cohorts.find(c => c.airtable_record_id === session._airtable_cohort_id);
-					if (cohortExists) {
-						console.warn(`      → Cohort WAS in import list but not in lookup map!`);
-					}
+					if (cohortExists) {					}
 				}
 			}
 			if (session._airtable_teacher_id) {
 				session.teacher_id = lookupMaps.teachers?.get(session._airtable_teacher_id);
 				if (!session.teacher_id) {
-					console.warn(`    ⚠️ No teacher found for weekly session ${session.airtable_record_id} with teacher ref ${session._airtable_teacher_id}`);
 				}
 			}
 			
@@ -1561,7 +1556,7 @@ async function updateForeignKeys(
 				importStats.errors.push({ table: "weekly_sessions", error: error.message });
 			} else {
 				console.log(`    ✅ Inserted ${sessionsToInsert.length} weekly sessions`);
-				importStats.tables.weekly_sessions = { attempted: sessionsToInsert.length, succeeded: sessionsToInsert.length, failed: 0 };
+				importStats.tables.weekly_sessions = { attempted: sessionsToInsert.length, succeeded: sessionsToInsert.length, failed: 0, skipped: 0, skippedReasons: {} };
 			}
 		}
 	}
@@ -1608,7 +1603,7 @@ async function updateForeignKeys(
 				importStats.errors.push({ table: "classes", error: error.message });
 			} else {
 				console.log(`    ✅ Inserted ${classesToInsert.length} classes`);
-				importStats.tables.classes = { attempted: classesToInsert.length, succeeded: classesToInsert.length, failed: 0 };
+				importStats.tables.classes = { attempted: classesToInsert.length, succeeded: classesToInsert.length, failed: 0, skipped: 0, skippedReasons: {} };
 			}
 		}
 	}
@@ -1642,16 +1637,15 @@ async function cleanExistingData() {
 	for (const table of tablesToClean) {
 		try {
 			// Delete all records from the table
-			const { error, count } = await supabase
+			const { error } = await supabase
 				.from(table)
 				.delete()
-				.neq('id', '00000000-0000-0000-0000-000000000000') // Delete all (workaround for no WHERE clause)
-				.select('*', { count: 'exact', head: true });
+				.neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (workaround for no WHERE clause)
 			
 			if (error) {
 				console.log(`  ⚠️  Could not clean ${table}: ${error.message}`);
 			} else {
-				console.log(`  ✓ Cleaned ${table} (removed ${count || 0} records)`);
+				console.log(`  ✓ Cleaned ${table}`);
 			}
 		} catch (e) {
 			console.log(`  ⚠️  Error cleaning ${table}:`, e);
