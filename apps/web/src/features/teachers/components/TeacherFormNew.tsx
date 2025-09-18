@@ -219,7 +219,7 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 											{ label: "Exec", value: "Exec" },
 										]}
 										value={form.watch("role") || []}
-										onValueChange={(value) => form.setValue("role", value)}
+										onValueChange={(value) => form.setValue("role", value as ("Teacher" | "Evaluator" | "Marketing/Admin" | "Exec")[])}
 										placeholder="Select roles..."
 									/>
 								</FormField>
