@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
 		const productIds = searchParams.getAll("productId"); // Support multiple products
 		const dateFrom = searchParams.get("dateFrom") || "";
 		const dateTo = searchParams.get("dateTo") || "";
+		const useAirtableDate = searchParams.get("useAirtableDate") === "true";
 		const studentId = searchParams.get("studentId") || "";
 		const cohortId = searchParams.get("cohortId") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
@@ -83,11 +84,25 @@ export async function GET(request: NextRequest) {
 		}
 
 		if (dateFrom) {
-			query = query.gte("created_at", dateFrom);
+			// Use airtable_created_at if available, otherwise created_at
+			if (useAirtableDate) {
+				query = query.or(
+					`airtable_created_at.gte.${dateFrom},and(airtable_created_at.is.null,created_at.gte.${dateFrom})`,
+				);
+			} else {
+				query = query.gte("created_at", dateFrom);
+			}
 		}
 
 		if (dateTo) {
-			query = query.lte("created_at", dateTo);
+			// Use airtable_created_at if available, otherwise created_at
+			if (useAirtableDate) {
+				query = query.or(
+					`airtable_created_at.lte.${dateTo},and(airtable_created_at.is.null,created_at.lte.${dateTo})`,
+				);
+			} else {
+				query = query.lte("created_at", dateTo);
+			}
 		}
 
 		if (studentId) {

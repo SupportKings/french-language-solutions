@@ -26,8 +26,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				template_follow_up_sequences(
 					id,
 					display_name,
-					subject,
-					first_follow_up_delay_minutes
+					subject
 				)
 			`)
 			.eq("student_id", studentId)
@@ -57,10 +56,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				display_name:
 					(followUp.template_follow_up_sequences as any)?.display_name ||
 					"Follow-up Sequence",
-				subject: (followUp.template_follow_up_sequences as any)?.subject || "",
-				first_follow_up_delay_minutes:
-					(followUp.template_follow_up_sequences as any)
-						?.first_follow_up_delay_minutes || 0,
+				subject: (followUp.template_follow_up_sequences as any)?.subject || ""
 			},
 		}));
 

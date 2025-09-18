@@ -51,6 +51,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useCreateCohort, useUpdateCohort } from "../queries/cohorts.queries";
 
 // Schema for the cohort form
 const cohortFormSchema = z.object({
@@ -141,7 +142,8 @@ const dayOptions = [
 
 export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const router = useRouter();
-	const [isLoading, setIsLoading] = useState(false);
+	const createCohortMutation = useCreateCohort();
+	const updateCohortMutation = useUpdateCohort();
 	const [teachers, setTeachers] = useState<any[]>([]);
 	const [products, setProducts] = useState<any[]>([]);
 	const [showSessions, setShowSessions] = useState(
@@ -230,7 +232,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	};
 
 	const onSubmit = async (data: CohortFormValues) => {
-		setIsLoading(true);
 		try {
 			const formattedData = {
 				...data,
@@ -239,22 +240,23 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 					: null,
 				current_level_id: data.current_level_id || data.starting_level_id,
 				max_students: data.max_students || 20,
+				google_drive_folder_id: data.google_drive_folder_id || null,
+				airtable_record_id: data.airtable_record_id || null,
+				room_type: data.room_type || null,
+				product_id: data.product_id || null,
+				starting_level_id: data.starting_level_id || null,
 			};
 
-			const response = await fetch(
-				isEditMode ? `/api/cohorts/${cohort.id}` : "/api/cohorts",
-				{
-					method: isEditMode ? "PATCH" : "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(formattedData),
-				},
-			);
-
-			if (!response.ok) {
-				throw new Error("Failed to save cohort");
+			// Use mutation hooks for better cache management
+			let savedCohort;
+			if (isEditMode) {
+				savedCohort = await updateCohortMutation.mutateAsync({
+					id: cohort.id,
+					data: formattedData,
+				});
+			} else {
+				savedCohort = await createCohortMutation.mutateAsync(formattedData);
 			}
-
-			const savedCohort = await response.json();
 
 			// Delete removed weekly sessions
 			if (isEditMode && originalSessionIds.length > 0) {
@@ -378,16 +380,16 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			if (onSuccess) {
 				onSuccess();
 			} else {
-				router.push(`/admin/cohorts/${savedCohort.id}`);
-				router.refresh();
+				// Small delay to allow cache invalidation to complete
+				setTimeout(() => {
+					router.push(`/admin/cohorts/${savedCohort.id}`);
+				}, 100);
 			}
 		} catch (error) {
 			console.error("Error saving cohort:", error);
 			toast.error(
 				isEditMode ? "Failed to update cohort" : "Failed to create cohort",
 			);
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -403,17 +405,21 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 	// Transform teachers for select options with max students
 	const teacherOptions = teachers.map((teacher) => {
-		const name = `${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() || "Unknown";
+		const name =
+			`${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() ||
+			"Unknown";
 		// Get the appropriate max students based on product location
-		const selectedProduct = products.find(p => p.id === form.watch("product_id"));
+		const selectedProduct = products.find(
+			(p) => p.id === form.watch("product_id"),
+		);
 		const isOnline = selectedProduct?.location === "online";
-		const maxStudents = isOnline 
-			? teacher.max_students_online 
+		const maxStudents = isOnline
+			? teacher.max_students_online
 			: teacher.max_students_in_person;
-		
+
 		// Show capacity with location context
-		const label = maxStudents 
-			? `${name} (Max: ${maxStudents} students ${isOnline ? 'online' : 'in-person'})` 
+		const label = maxStudents
+			? `${name} (Max: ${maxStudents} students ${isOnline ? "online" : "in-person"})`
 			: `${name}`;
 		return {
 			label,
@@ -432,17 +438,17 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const calculateActualMaxStudents = () => {
 		const sessions = form.watch("weekly_sessions") || [];
 		const selectedTeachers = new Set(
-			sessions
-				.filter((s) => s.teacher_id)
-				.map((s) => s.teacher_id)
+			sessions.filter((s) => s.teacher_id).map((s) => s.teacher_id),
 		);
-		
+
 		if (selectedTeachers.size === 0) {
 			return form.watch("max_students") || 20;
 		}
 
 		// Get product location to determine which capacity to use
-		const selectedProduct = products.find(p => p.id === form.watch("product_id"));
+		const selectedProduct = products.find(
+			(p) => p.id === form.watch("product_id"),
+		);
 		const isOnline = selectedProduct?.location === "online";
 
 		// Find the minimum capacity among selected teachers
@@ -450,8 +456,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		selectedTeachers.forEach((teacherId) => {
 			const teacher = teachers.find((t) => t.id === teacherId);
 			if (teacher) {
-				const teacherCapacity = isOnline 
-					? teacher.max_students_online 
+				const teacherCapacity = isOnline
+					? teacher.max_students_online
 					: teacher.max_students_in_person;
 				if (teacherCapacity && teacherCapacity < minCapacity) {
 					minCapacity = teacherCapacity;
@@ -460,8 +466,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		});
 
 		const cohortMax = form.watch("max_students") || 20;
-		return minCapacity === Number.MAX_SAFE_INTEGER 
-			? cohortMax 
+		return minCapacity === Number.MAX_SAFE_INTEGER
+			? cohortMax
 			: Math.min(cohortMax, minCapacity);
 	};
 
@@ -512,9 +518,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								<SelectField
 									placeholder="Select a product"
 									value={form.watch("product_id") || ""}
-									onValueChange={(value) =>
-										form.setValue("product_id", value)
-									}
+									onValueChange={(value) => form.setValue("product_id", value)}
 									options={productOptions}
 								/>
 							</FormField>
@@ -796,32 +800,12 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								</FormField>
 							</FormRow>
 						</FormSection>
-
-			
-						{/* External References */}
-						<FormSection
-							title="External References"
-							description="IDs from external systems"
-							icon={Settings}
-						>
-							<FormField
-								label="Airtable Record ID"
-								hint="Record ID from Airtable"
-								error={form.formState.errors.airtable_record_id?.message}
-							>
-								<InputField
-									placeholder="rec..."
-									error={!!form.formState.errors.airtable_record_id}
-									{...form.register("airtable_record_id")}
-								/>
-							</FormField>
-						</FormSection>
 					</div>
 				</FormContent>
 
 				<FormActions
 					primaryLabel={
-						isLoading
+						createCohortMutation.isPending || updateCohortMutation.isPending
 							? isEditMode
 								? "Updating..."
 								: "Creating..."
@@ -829,7 +813,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								? "Update Cohort"
 								: "Create Cohort"
 					}
-					primaryLoading={isLoading}
+					primaryLoading={
+						createCohortMutation.isPending || updateCohortMutation.isPending
+					}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}

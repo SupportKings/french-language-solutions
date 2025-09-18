@@ -11,7 +11,6 @@ import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,6 +18,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -76,7 +76,6 @@ const formatDate = (dateString: string | null) => {
 		return "Invalid date";
 	}
 };
-
 
 export default function EnrollmentDetailView({
 	enrollmentId,
@@ -232,7 +231,9 @@ export default function EnrollmentDetailView({
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div>
-								<h1 className="font-semibold text-xl">{studentName} – Enrollment Details</h1>
+								<h1 className="font-semibold text-xl">
+									{studentName} – Enrollment Details
+								</h1>
 								<div className="mt-0.5 flex items-center gap-2">
 									<Badge
 										variant={
@@ -338,12 +339,17 @@ export default function EnrollmentDetailView({
 											{currentEnrollment.student?.id ? (
 												<LinkedRecordBadge
 													href={`/admin/students/${currentEnrollment.student.id}`}
-													label={currentEnrollment.student.full_name || "View Student"}
+													label={
+														currentEnrollment.student.full_name ||
+														"View Student"
+													}
 													icon={User}
 													className="text-xs"
 												/>
 											) : (
-												<span className="text-muted-foreground text-sm">Not linked</span>
+												<span className="text-muted-foreground text-sm">
+													Not linked
+												</span>
 											)}
 										</div>
 									</div>
@@ -355,12 +361,17 @@ export default function EnrollmentDetailView({
 											{currentEnrollment.cohort?.id ? (
 												<LinkedRecordBadge
 													href={`/admin/cohorts/${currentEnrollment.cohort.id}`}
-													label={currentEnrollment.cohort.product?.display_name || "View Cohort"}
+													label={
+														currentEnrollment.cohort.product?.display_name ||
+														"View Cohort"
+													}
 													icon={School}
 													className="text-xs"
 												/>
 											) : (
-												<span className="text-muted-foreground text-sm">Not linked</span>
+												<span className="text-muted-foreground text-sm">
+													Not linked
+												</span>
 											)}
 										</div>
 									</div>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { cohortsQueries } from "@/features/cohorts/queries/cohorts.queries";
+import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 
 import { getUser } from "@/queries/getUser";
 
@@ -26,20 +27,23 @@ export default async function ClassesPage({
 
 	// Parse search params for cohort filters
 	const filters = {
-		search: params.search as string | undefined,
 		format: params.format as any,
 		cohort_status: params.cohort_status as any,
 		starting_level: params.starting_level as any,
 		current_level: params.current_level as any,
 		room_type: params.room_type as any,
+		teacher_ids: params.teacher_ids as any,
 		page: params.page ? Number.parseInt(params.page as string) : 1,
 		limit: params.limit ? Number.parseInt(params.limit as string) : 20,
 	};
 
-	// Prefetch cohorts data
+	// Prefetch data in parallel
 	console.log("🏃 Server-side prefetching with filters:", filters);
 	try {
-		await queryClient.prefetchQuery(cohortsQueries.list(filters));
+		await Promise.all([
+			queryClient.prefetchQuery(cohortsQueries.list(filters)),
+			queryClient.prefetchQuery(teachersQueries.list()),
+		]);
 		console.log("✅ Server prefetch successful");
 	} catch (error) {
 		console.error("❌ Server prefetch failed:", error);

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+
 import { usePathname } from "next/navigation";
 
 import { Link } from "@/components/fastLink";
@@ -45,14 +46,14 @@ export function NavCollapsible({
 	const isActive = (url: string) => {
 		// Skip placeholder URLs
 		if (url === "#") return false;
-		
+
 		if (url === "/dashboard") {
 			return pathname === "/dashboard";
 		}
-		
+
 		// For exact match check
 		if (pathname === url) return true;
-		
+
 		// For parent-child relationship, be more specific
 		// e.g., /admin/students should be active for /admin/students/enrollments
 		// but NOT for /admin/students itself when we're on /admin/students/enrollments
@@ -63,19 +64,24 @@ export function NavCollapsible({
 	const hasActiveSubItem = (subItems?: { title: string; url: string }[]) => {
 		if (!subItems) return false;
 		// Check for exact match with current pathname
-		return subItems.some((subItem) => pathname === subItem.url || pathname.startsWith(subItem.url + "/"));
+		return subItems.some(
+			(subItem) =>
+				pathname === subItem.url || pathname.startsWith(subItem.url + "/"),
+		);
 	};
 
 	// Track open state for each collapsible item
-	const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(() => {
-		const initialState: Record<string, boolean> = {};
-		items.forEach((item) => {
-			if (item.items && item.items.length > 0) {
-				initialState[item.title] = hasActiveSubItem(item.items);
-			}
-		});
-		return initialState;
-	});
+	const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(
+		() => {
+			const initialState: Record<string, boolean> = {};
+			items.forEach((item) => {
+				if (item.items && item.items.length > 0) {
+					initialState[item.title] = hasActiveSubItem(item.items);
+				}
+			});
+			return initialState;
+		},
+	);
 
 	return (
 		<SidebarGroup>
@@ -93,7 +99,9 @@ export function NavCollapsible({
 							<SidebarMenuItem key={item.title}>
 								<SidebarMenuButton
 									asChild
-									isActive={pathname === item.url || pathname.startsWith(item.url + "/")}
+									isActive={
+										pathname === item.url || pathname.startsWith(item.url + "/")
+									}
 									tooltip={item.title}
 								>
 									<Link prefetch={true} href={item.url}>
@@ -108,7 +116,7 @@ export function NavCollapsible({
 					// Multi-item collapsible
 					return (
 						<SidebarMenuItem key={item.title}>
-							<Collapsible 
+							<Collapsible
 								open={openItems[item.title] ?? false}
 								onOpenChange={(open) => {
 									setOpenItems((prev) => ({ ...prev, [item.title]: open }));
@@ -135,17 +143,18 @@ export function NavCollapsible({
 												// More precise active state detection
 												// Check if this is the most specific match among all sub-items
 												let subItemIsActive = false;
-												
+
 												if (pathname === subItem.url) {
 													// Exact match
 													subItemIsActive = true;
 												} else if (pathname.startsWith(subItem.url + "/")) {
 													// Check if this is the most specific match
 													// by ensuring no other sub-item has a longer matching URL
-													subItemIsActive = !item.items?.some(otherItem => 
-														otherItem.url !== subItem.url && 
-														otherItem.url.length > subItem.url.length && 
-														pathname.startsWith(otherItem.url)
+													subItemIsActive = !item.items?.some(
+														(otherItem) =>
+															otherItem.url !== subItem.url &&
+															otherItem.url.length > subItem.url.length &&
+															pathname.startsWith(otherItem.url),
 													);
 												}
 

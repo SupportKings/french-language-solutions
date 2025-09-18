@@ -1,10 +1,13 @@
 "use client";
 
-import { Bot, Calendar, GraduationCap, Settings, Users } from "lucide-react";
 import React from "react";
 
+import { Bot, Calendar, GraduationCap, Settings, Users } from "lucide-react";
+
 // Memoize icons to prevent hydration issues
-const GraduationCapIcon = React.memo(() => <GraduationCap className="h-4 w-4" />);
+const GraduationCapIcon = React.memo(() => (
+	<GraduationCap className="h-4 w-4" />
+));
 GraduationCapIcon.displayName = "GraduationCapIcon";
 
 const CalendarIcon = React.memo(() => <Calendar className="h-4 w-4" />);

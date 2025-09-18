@@ -24,8 +24,7 @@ export async function GET(request: NextRequest) {
 					message_content,
 					created_at,
 					updated_at
-				),
-				automated_follow_ups (count)
+				)
 			`,
 			{ count: "exact" },
 		);
@@ -55,13 +54,30 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
+		// Get active counts for each sequence
+		const sequenceIds = data?.map((s: any) => s.id) || [];
+		const activeCounts: Record<string, number> = {};
+		
+		if (sequenceIds.length > 0) {
+			// Get counts of active follow-ups (activated or ongoing) for all sequences at once
+			const { data: followUpCounts } = await supabase
+				.from("automated_follow_ups")
+				.select("sequence_id")
+				.in("sequence_id", sequenceIds)
+				.in("status", ["activated", "ongoing"]);
+
+			// Count by sequence_id
+			followUpCounts?.forEach((fu: any) => {
+				activeCounts[fu.sequence_id] = (activeCounts[fu.sequence_id] || 0) + 1;
+			});
+		}
+
 		// Transform data to include count
 		const transformedData = data?.map((sequence: any) => ({
 			...sequence,
 			_count: {
-				automated_follow_ups: sequence.automated_follow_ups?.[0]?.count || 0,
+				automated_follow_ups: activeCounts[sequence.id] || 0,
 			},
-			automated_follow_ups: undefined, // Remove the raw count array
 		}));
 
 		const totalPages = count ? Math.ceil(count / limit) : 0;
@@ -93,8 +109,7 @@ export async function POST(request: NextRequest) {
 			.from("template_follow_up_sequences")
 			.insert({
 				display_name: body.display_name,
-				subject: body.subject,
-				first_follow_up_delay_minutes: body.first_follow_up_delay_minutes,
+				subject: body.subject
 			})
 			.select()
 			.single();

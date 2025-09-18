@@ -1,7 +1,7 @@
 "use client";
 
-import { SidebarItemComponent } from "@/components/sidebar/sidebar-item";
 import { IconWrapper } from "@/components/sidebar/icon-wrapper";
+import { SidebarItemComponent } from "@/components/sidebar/sidebar-item";
 
 export function NavMain({
 	items,

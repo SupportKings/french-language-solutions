@@ -22,7 +22,6 @@ import {
 	Edit,
 	Mail,
 	MessageSquare,
-	Timer,
 	XCircle,
 } from "lucide-react";
 import { useSequence } from "../queries/sequences.queries";
@@ -119,22 +118,7 @@ export function SequenceDetails({ sequenceId }: SequenceDetailsProps) {
 					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-						<div className="flex items-center gap-3 rounded-lg bg-muted/50 p-4">
-							<Timer className="h-5 w-5 text-muted-foreground" />
-							<div>
-								<p className="text-muted-foreground text-sm">
-									First Follow-up Delay
-								</p>
-								<p className="font-medium">
-									{sequence.first_follow_up_delay_minutes < 60
-										? `${sequence.first_follow_up_delay_minutes} minutes`
-										: sequence.first_follow_up_delay_minutes < 1440
-											? `${Math.floor(sequence.first_follow_up_delay_minutes / 60)} hours`
-											: `${Math.floor(sequence.first_follow_up_delay_minutes / 1440)} days`}
-								</p>
-							</div>
-						</div>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="flex items-center gap-3 rounded-lg bg-muted/50 p-4">
 							<MessageSquare className="h-5 w-5 text-muted-foreground" />
 							<div>

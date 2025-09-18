@@ -411,7 +411,9 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 										{/* Homework */}
 										<TableCell>
 											<Select
-												value={record.homeworkCompleted ? "completed" : "pending"}
+												value={
+													record.homeworkCompleted ? "completed" : "pending"
+												}
 												onValueChange={(value) => {
 													updateAttendance(record.id, {
 														homeworkCompleted: value === "completed",
@@ -499,7 +501,6 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 												</Button>
 											)}
 										</TableCell>
-
 									</TableRow>
 								);
 							})

@@ -9,7 +9,6 @@ import {
 	useDataTableFilters,
 } from "@/components/data-table-filter";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 import { CohortsTable } from "@/features/cohorts/components/CohortsTable";
 import { useCohorts } from "@/features/cohorts/queries/cohorts.queries";
@@ -21,10 +20,11 @@ import type {
 } from "@/features/cohorts/schemas/cohort.schema";
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
+import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
+import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { useQueryState } from "nuqs";
 
 // Extended cohort type with relationships
@@ -34,6 +34,13 @@ interface CohortWithRelations extends Cohort {
 	} | null;
 	starting_level?: LanguageLevel | null;
 	current_level?: LanguageLevel | null;
+	weekly_sessions?: Array<{
+		teacher?: {
+			id: string;
+			first_name: string;
+			last_name: string;
+		} | null;
+	}> | null;
 }
 
 // Define column configurations for data-table-filter
@@ -82,17 +89,33 @@ const cohortColumns = [
 			{ label: "Large", value: "large" },
 		],
 	},
+	{
+		id: "teacher_ids",
+		accessor: (cohort: CohortWithRelations) => {
+			// Extract unique teacher IDs from weekly sessions - return first teacher for display
+			const teacherIds =
+				cohort.weekly_sessions
+					?.map((session) => session.teacher?.id)
+					.filter((id): id is string => !!id) || [];
+			const uniqueTeacherIds = [...new Set(teacherIds)];
+			return uniqueTeacherIds.length > 0 ? uniqueTeacherIds[0] : undefined;
+		},
+		displayName: "Teachers",
+		icon: Users,
+		type: "option" as const,
+		options: [], // Will be populated dynamically
+	},
 ];
 
 export function ClassesPageClient() {
 	console.log("🔥 ClassesPageClient component mounted");
 	const router = useRouter();
 
-	// Fetch language levels for filter options
+	// Fetch language levels and teachers for filter options
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
+	const { data: teachersData } = useQuery(teachersQueries.list());
 
-	// URL state management for search
-	const [search, setSearch] = useQueryState("search", { defaultValue: "" });
+	// URL state management for pagination
 	const [pageState, setPageState] = useQueryState("page", {
 		parse: (value) => Number.parseInt(value) || 1,
 		serialize: (value) => value.toString(),
@@ -100,11 +123,11 @@ export function ClassesPageClient() {
 	});
 	const page = pageState ?? 1;
 
-	const debouncedSearch = useDebounce(search, 300);
-
-	// Update cohortColumns with language level options
+	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
 		const columns = [...cohortColumns];
+
+		// Update language level options
 		const levelColumnIndex = columns.findIndex(
 			(col) => col.id === "starting_level_id",
 		);
@@ -117,8 +140,23 @@ export function ClassesPageClient() {
 				})),
 			};
 		}
+
+		// Update teacher options
+		const teacherColumnIndex = columns.findIndex(
+			(col) => col.id === "teacher_ids",
+		);
+		if (teacherColumnIndex !== -1 && teachersData?.data) {
+			columns[teacherColumnIndex] = {
+				...columns[teacherColumnIndex],
+				options: teachersData.data.map((teacher: Teacher) => ({
+					label: `${teacher.first_name} ${teacher.last_name}`,
+					value: teacher.id,
+				})),
+			};
+		}
+
 		return columns;
-	}, [languageLevels]);
+	}, [languageLevels, teachersData]);
 
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
@@ -154,7 +192,6 @@ export function ClassesPageClient() {
 		};
 
 		// Only add filters if they have values
-		if (debouncedSearch) query.search = debouncedSearch;
 		if (filterParams.format && filterParams.format.length > 0) {
 			query.format = filterParams.format as CohortFormat[];
 		}
@@ -170,10 +207,13 @@ export function ClassesPageClient() {
 		if (filterParams.room_type && filterParams.room_type.length > 0) {
 			query.room_type = filterParams.room_type as RoomType[];
 		}
+		if (filterParams.teacher_ids && filterParams.teacher_ids.length > 0) {
+			query.teacher_ids = filterParams.teacher_ids as string[];
+		}
 
 		console.log("🎯 Final queryFilters:", query);
 		return query;
-	}, [debouncedSearch, filterParams, page]);
+	}, [filterParams, page]);
 
 	// Fetch cohorts data
 	console.log("🔍 Query filters being sent:", queryFilters);
@@ -189,17 +229,16 @@ export function ClassesPageClient() {
 		<div className="space-y-6">
 			{/* Table with integrated search, filters and actions */}
 			<div className="rounded-md border">
-				{/* Combined header with search, filters, and add button */}
+				{/* Combined header with filters and add button */}
 				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
-					{/* Search bar and action button */}
+					{/* Filters and action button */}
 					<div className="flex items-center gap-3">
-						<div className="relative max-w-sm flex-1">
-							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
-							<Input
-								placeholder="Search cohorts..."
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-								className="h-9 bg-muted/50 pl-9"
+						<div className="flex-1">
+							<DataTableFilter
+								columns={columns}
+								filters={filters}
+								actions={actions}
+								strategy={strategy}
 							/>
 						</div>
 
@@ -214,14 +253,6 @@ export function ClassesPageClient() {
 							</Button>
 						</div>
 					</div>
-
-					{/* Filter bar */}
-					<DataTableFilter
-						columns={columns}
-						filters={filters}
-						actions={actions}
-						strategy={strategy}
-					/>
 				</div>
 
 				{/* Cohorts Table content */}

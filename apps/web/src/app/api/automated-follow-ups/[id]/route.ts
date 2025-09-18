@@ -29,8 +29,7 @@ export async function GET(
 				sequences:template_follow_up_sequences!sequence_id (
 					id,
 					display_name,
-					subject,
-					first_follow_up_delay_minutes
+					subject
 				),
 				touchpoints (
 					id,

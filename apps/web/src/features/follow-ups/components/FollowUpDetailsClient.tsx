@@ -187,7 +187,9 @@ export function FollowUpDetailsClient({
 									</p>
 								</div>
 								<div className="space-y-1">
-									<p className="text-muted-foreground text-xs">Last Message Sent at</p>
+									<p className="text-muted-foreground text-xs">
+										Last Message Sent at
+									</p>
 									<p className="font-medium text-sm">
 										{followUp.last_message_sent_at
 											? format(new Date(followUp.last_message_sent_at), "MMM d")

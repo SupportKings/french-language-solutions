@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/popover";
 
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
-import { createStudentSchema } from "@/features/students/schemas/student.schema";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -50,37 +49,37 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Extend the createStudentSchema for form-specific needs
-// Convert date strings to Date objects for the form and make fields optional for empty strings
-const studentFormSchema = createStudentSchema
-	.extend({
-		subjective_deadline_for_student: z.date().optional().nullable(),
-		email: z
-			.string()
-			.email("Invalid email")
-			.optional()
-			.nullable()
-			.or(z.literal("")),
-		mobile_phone_number: z
-			.string()
-			.max(20)
-			.optional()
-			.nullable()
-			.or(z.literal("")),
-		city: z.string().optional().nullable().or(z.literal("")),
-		purpose_to_learn: z.string().optional().nullable().or(z.literal("")),
-		desired_starting_language_level_id: z.string().optional().nullable(),
-		communication_channel: z
-			.enum(["sms_email", "email", "sms"])
-			.optional()
-			.nullable(),
-		is_full_beginner: z.boolean().optional().nullable(),
-		is_under_16: z.boolean().optional().nullable(),
-	})
-	.refine((data) => {
-		// Ensure required fields are present
-		return true;
-	});
+// Create a simpler schema that only requires full_name
+const studentFormSchema = z.object({
+	full_name: z.string().min(1, "Full name is required"),
+	email: z.string().optional(),
+	mobile_phone_number: z.string().optional(),
+	city: z.string().optional(),
+	purpose_to_learn: z.string().optional(),
+	desired_starting_language_level_id: z.string().optional(),
+	initial_channel: z
+		.enum(["form", "quiz", "call", "message", "email", "assessment"])
+		.optional(),
+	communication_channel: z
+		.enum(["sms_email", "email", "sms"])
+		.optional(),
+	is_full_beginner: z.boolean().optional(),
+	is_under_16: z.boolean().optional(),
+	subjective_deadline_for_student: z.date().optional().nullable(),
+	// Add other fields that might be in the form but not required
+	website_quiz_submission_date: z.string().optional(),
+	added_to_email_newsletter: z.boolean().optional(),
+}).refine((data) => {
+	// Validate email format only if provided
+	if (data.email && data.email.length > 0) {
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		return emailRegex.test(data.email);
+	}
+	return true;
+}, {
+	message: "Invalid email format",
+	path: ["email"],
+});
 
 type StudentFormValues = z.infer<typeof studentFormSchema>;
 
@@ -121,6 +120,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 	});
 
 	async function onSubmit(values: StudentFormValues) {
+		console.log("Form submitted with values:", values);
 		setIsLoading(true);
 
 		try {
@@ -128,13 +128,22 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 
 			const method = student ? "PATCH" : "POST";
 
-			// Format dates for API
+			// Format dates for API and clean up empty strings
 			const payload = {
 				...values,
 				subjective_deadline_for_student: values.subjective_deadline_for_student
 					? format(values.subjective_deadline_for_student, "yyyy-MM-dd")
 					: null,
+				// Convert empty strings to null for optional fields
+				email: values.email || null,
+				mobile_phone_number: values.mobile_phone_number || null,
+				city: values.city || null,
+				purpose_to_learn: values.purpose_to_learn || null,
+				initial_channel: values.initial_channel || null,
+				desired_starting_language_level_id: values.desired_starting_language_level_id || null,
 			};
+
+			console.log("Sending payload:", payload);
 
 			const response = await fetch(url, {
 				method,
@@ -142,8 +151,11 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				body: JSON.stringify(payload),
 			});
 
+			const responseData = await response.json();
+			console.log("Response:", response.status, responseData);
+
 			if (!response.ok) {
-				throw new Error("Failed to save student");
+				throw new Error(responseData.error || "Failed to save student");
 			}
 
 			toast.success(
@@ -160,7 +172,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			}
 		} catch (error) {
 			console.error("Error saving student:", error);
-			toast.error("Failed to save student");
+			toast.error(error instanceof Error ? error.message : "Failed to save student");
 		} finally {
 			setIsLoading(false);
 		}
@@ -207,7 +219,10 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				}
 			/>
 
-			<form onSubmit={form.handleSubmit(onSubmit)}>
+			<form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+				console.log("Form validation errors:", errors);
+				toast.error("Please fix the form errors");
+			})}>
 				<FormContent>
 					<div className="space-y-4">
 						{/* Info Banner for new students */}
@@ -423,9 +438,7 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				<FormActions
 					primaryLabel={isEditMode ? "Update Student" : "Create Student"}
 					primaryLoading={isLoading}
-					primaryDisabled={
-						!form.formState.isValid && form.formState.isSubmitted
-					}
+					primaryDisabled={isLoading}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}

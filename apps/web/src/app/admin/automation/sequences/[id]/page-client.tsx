@@ -30,7 +30,7 @@ import {
 
 import { SequenceMessageModal } from "@/features/sequences/components/SequenceMessageModal";
 import { SequenceMessagesSection } from "@/features/sequences/components/SequenceMessagesSection";
-import { useSequence } from "@/features/sequences/queries/sequences.queries";
+import { useSequence, useDeleteSequence } from "@/features/sequences/queries/sequences.queries";
 
 import { format } from "date-fns";
 import {
@@ -45,7 +45,6 @@ import {
 	MessageSquare,
 	MoreVertical,
 	Plus,
-	Timer,
 	Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -82,6 +81,8 @@ export function SequenceDetailPageClient({
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [messageModalOpen, setMessageModalOpen] = useState(false);
 	const [messageToEdit, setMessageToEdit] = useState<any>(null);
+	
+	const deleteSequenceMutation = useDeleteSequence();
 
 	// Update the sequence when data changes
 	useEffect(() => {
@@ -112,13 +113,6 @@ export function SequenceDetailPageClient({
 			if (editedSequence.subject !== sequence.subject) {
 				changes.subject = editedSequence.subject;
 			}
-			if (
-				editedSequence.first_follow_up_delay_minutes !==
-				sequence.first_follow_up_delay_minutes
-			) {
-				changes.first_follow_up_delay_minutes =
-					editedSequence.first_follow_up_delay_minutes;
-			}
 
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
@@ -147,18 +141,10 @@ export function SequenceDetailPageClient({
 	const handleDeleteSequence = async () => {
 		setIsDeleting(true);
 		try {
-			const response = await fetch(`/api/sequences/${sequenceId}`, {
-				method: "DELETE",
-			});
-
-			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.error || "Failed to delete sequence");
-			}
-
+			await deleteSequenceMutation.mutateAsync(sequenceId);
 			toast.success("Sequence deleted successfully");
-			router.push("/admin/sequences");
-			router.refresh();
+			// Navigate back to the list - the mutation will invalidate the cache
+			router.push("/admin/automation/sequences");
 		} catch (error: any) {
 			toast.error(error.message || "Failed to delete sequence");
 		} finally {
@@ -236,7 +222,7 @@ export function SequenceDetailPageClient({
 					<p className="mb-4 text-muted-foreground">
 						The sequence you're looking for doesn't exist or couldn't be loaded.
 					</p>
-					<Button onClick={() => router.push("/admin/sequences")}>
+					<Button onClick={() => router.push("/admin/automation/sequences")}>
 						Back to Sequences
 					</Button>
 				</div>
@@ -258,7 +244,7 @@ export function SequenceDetailPageClient({
 				<div className="px-10 py-4">
 					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
 						<Link
-							href="/admin/sequences"
+							href="/admin/automation/sequences"
 							className="transition-colors hover:text-foreground"
 						>
 							Sequences
@@ -362,53 +348,6 @@ export function SequenceDetailPageClient({
 										</div>
 									</div>
 
-									<div className="flex items-start gap-3">
-										<Timer className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												First Follow-up Delay:
-											</p>
-											{editing ? (
-												<InlineEditField
-													value={String(
-														editedSequence?.first_follow_up_delay_minutes ||
-															1440,
-													)}
-													onSave={(value) =>
-														updateEditedField(
-															"first_follow_up_delay_minutes",
-															Number.parseInt(value) || 1440,
-														)
-													}
-													editing={editing}
-													type="select"
-													options={[
-														{ label: "5 minutes", value: "5" },
-														{ label: "15 minutes", value: "15" },
-														{ label: "30 minutes", value: "30" },
-														{ label: "1 hour", value: "60" },
-														{ label: "2 hours", value: "120" },
-														{ label: "4 hours", value: "240" },
-														{ label: "8 hours", value: "480" },
-														{ label: "12 hours", value: "720" },
-														{ label: "24 hours", value: "1440" },
-														{ label: "2 days", value: "2880" },
-														{ label: "3 days", value: "4320" },
-														{ label: "5 days", value: "7200" },
-														{ label: "1 week", value: "10080" },
-														{ label: "2 weeks", value: "20160" },
-													]}
-													placeholder="Select delay"
-												/>
-											) : (
-												<p className="font-medium text-sm">
-													{formatDelay(
-														sequence.first_follow_up_delay_minutes || 1440,
-													)}
-												</p>
-											)}
-										</div>
-									</div>
 								</div>
 							</div>
 

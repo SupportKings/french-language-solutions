@@ -143,8 +143,10 @@ export type Database = {
 			};
 			automated_follow_ups: {
 				Row: {
+					airtable_record_id: string | null;
 					completed_at: string | null;
 					created_at: string;
+					current_step: number;
 					id: string;
 					last_message_sent_at: string | null;
 					sequence_id: string;
@@ -154,8 +156,10 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					completed_at?: string | null;
 					created_at?: string;
+					current_step?: number;
 					id?: string;
 					last_message_sent_at?: string | null;
 					sequence_id: string;
@@ -165,8 +169,10 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					completed_at?: string | null;
 					created_at?: string;
+					current_step?: number;
 					id?: string;
 					last_message_sent_at?: string | null;
 					sequence_id?: string;
@@ -194,6 +200,7 @@ export type Database = {
 			};
 			classes: {
 				Row: {
+					airtable_record_id: string | null;
 					cohort_id: string;
 					created_at: string;
 					deleted_at: string | null;
@@ -209,6 +216,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					cohort_id: string;
 					created_at?: string;
 					deleted_at?: string | null;
@@ -224,6 +232,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					cohort_id?: string;
 					created_at?: string;
 					deleted_at?: string | null;
@@ -327,6 +336,7 @@ export type Database = {
 			};
 			enrollments: {
 				Row: {
+					airtable_enrollment_created_at: string | null;
 					airtable_record_id: string | null;
 					cohort_id: string;
 					created_at: string;
@@ -336,6 +346,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_enrollment_created_at?: string | null;
 					airtable_record_id?: string | null;
 					cohort_id: string;
 					created_at?: string;
@@ -345,6 +356,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_enrollment_created_at?: string | null;
 					airtable_record_id?: string | null;
 					cohort_id?: string;
 					created_at?: string;
@@ -372,6 +384,7 @@ export type Database = {
 			};
 			language_levels: {
 				Row: {
+					airtable_record_id: string | null;
 					code: string;
 					created_at: string;
 					display_name: string;
@@ -381,6 +394,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					code: string;
 					created_at?: string;
 					display_name: string;
@@ -390,6 +404,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					code?: string;
 					created_at?: string;
 					display_name?: string;
@@ -532,6 +547,7 @@ export type Database = {
 			};
 			student_assessments: {
 				Row: {
+					airtable_record_id: string | null;
 					calendar_event_url: string | null;
 					created_at: string;
 					id: string;
@@ -547,6 +563,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					calendar_event_url?: string | null;
 					created_at?: string;
 					id?: string;
@@ -562,6 +579,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					calendar_event_url?: string | null;
 					created_at?: string;
 					id?: string;
@@ -610,6 +628,7 @@ export type Database = {
 			students: {
 				Row: {
 					added_to_email_newsletter: boolean | null;
+					airtable_lead_created_at: string | null;
 					airtable_record_id: string | null;
 					city: string | null;
 					communication_channel: Database["public"]["Enums"]["communication_channel"];
@@ -640,6 +659,7 @@ export type Database = {
 				};
 				Insert: {
 					added_to_email_newsletter?: boolean | null;
+					airtable_lead_created_at?: string | null;
 					airtable_record_id?: string | null;
 					city?: string | null;
 					communication_channel?: Database["public"]["Enums"]["communication_channel"];
@@ -670,6 +690,7 @@ export type Database = {
 				};
 				Update: {
 					added_to_email_newsletter?: boolean | null;
+					airtable_lead_created_at?: string | null;
 					airtable_record_id?: string | null;
 					city?: string | null;
 					communication_channel?: Database["public"]["Enums"]["communication_channel"];
@@ -806,6 +827,7 @@ export type Database = {
 			};
 			template_follow_up_messages: {
 				Row: {
+					airtable_record_id: string | null;
 					created_at: string;
 					id: string;
 					message_content: string;
@@ -816,6 +838,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					created_at?: string;
 					id?: string;
 					message_content: string;
@@ -826,6 +849,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					created_at?: string;
 					id?: string;
 					message_content?: string;
@@ -847,6 +871,8 @@ export type Database = {
 			};
 			template_follow_up_sequences: {
 				Row: {
+					airtable_record_id: string | null;
+					backend_name: string | null;
 					created_at: string;
 					display_name: string;
 					first_follow_up_delay_minutes: number;
@@ -855,6 +881,8 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
+					backend_name?: string | null;
 					created_at?: string;
 					display_name: string;
 					first_follow_up_delay_minutes: number;
@@ -863,6 +891,8 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
+					backend_name?: string | null;
 					created_at?: string;
 					display_name?: string;
 					first_follow_up_delay_minutes?: number;
@@ -874,6 +904,7 @@ export type Database = {
 			};
 			touchpoints: {
 				Row: {
+					airtable_record_id: string | null;
 					automated_follow_up_id: string | null;
 					channel: Database["public"]["Enums"]["touchpoint_channel"];
 					created_at: string;
@@ -888,6 +919,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					automated_follow_up_id?: string | null;
 					channel: Database["public"]["Enums"]["touchpoint_channel"];
 					created_at?: string;
@@ -902,6 +934,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					automated_follow_up_id?: string | null;
 					channel?: Database["public"]["Enums"]["touchpoint_channel"];
 					created_at?: string;
@@ -1009,6 +1042,7 @@ export type Database = {
 			};
 			weekly_sessions: {
 				Row: {
+					airtable_record_id: string | null;
 					cohort_id: string;
 					created_at: string;
 					day_of_week: Database["public"]["Enums"]["day_of_week"];
@@ -1020,6 +1054,7 @@ export type Database = {
 					updated_at: string;
 				};
 				Insert: {
+					airtable_record_id?: string | null;
 					cohort_id: string;
 					created_at?: string;
 					day_of_week: Database["public"]["Enums"]["day_of_week"];
@@ -1031,6 +1066,7 @@ export type Database = {
 					updated_at?: string;
 				};
 				Update: {
+					airtable_record_id?: string | null;
 					cohort_id?: string;
 					created_at?: string;
 					day_of_week?: Database["public"]["Enums"]["day_of_week"];
@@ -1075,7 +1111,8 @@ export type Database = {
 				| "activated"
 				| "ongoing"
 				| "answer_received"
-				| "disabled";
+				| "disabled"
+				| "completed";
 			class_mode: "online" | "in_person" | "hybrid";
 			class_status: "scheduled" | "in_progress" | "completed" | "cancelled";
 			cohort_status: "enrollment_open" | "enrollment_closed" | "class_ended";
@@ -1267,6 +1304,7 @@ export const Constants = {
 				"ongoing",
 				"answer_received",
 				"disabled",
+				"completed",
 			],
 			class_mode: ["online", "in_person", "hybrid"],
 			class_status: ["scheduled", "in_progress", "completed", "cancelled"],

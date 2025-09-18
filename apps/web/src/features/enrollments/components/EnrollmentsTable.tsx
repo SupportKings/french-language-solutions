@@ -20,6 +20,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -46,6 +47,7 @@ import {
 	Plus,
 	Search,
 	Trash,
+	User,
 	Users,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -100,7 +102,8 @@ const getEnrollmentColumns = (products: any[]) => [
 	},
 	{
 		id: "created_at",
-		accessor: (enrollment: any) => enrollment.created_at,
+		accessor: (enrollment: any) =>
+			enrollment.airtable_created_at || enrollment.created_at,
 		displayName: "Created Date",
 		icon: CalendarDays,
 		type: "date" as const,
@@ -168,12 +171,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		const dateValues = dateFilter?.values || [];
 		let dateFrom = "";
 		let dateTo = "";
+		let useAirtableDate = false;
 
 		if (dateValues.length > 0 && dateValues[0]) {
 			// Create date and set to start of day (00:00:00.000)
 			const fromDate = new Date(dateValues[0]);
 			fromDate.setHours(0, 0, 0, 0);
 			dateFrom = fromDate.toISOString();
+			useAirtableDate = true;
 		}
 
 		if (dateValues.length > 1 && dateValues[1]) {
@@ -193,6 +198,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			productIds: productFilter?.values || [],
 			dateFrom,
 			dateTo,
+			useAirtableDate,
 		};
 	}, [filters]);
 
@@ -229,6 +235,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			// Add date filters
 			if (filterQuery.dateFrom) {
 				params.append("dateFrom", filterQuery.dateFrom);
+				if (filterQuery.useAirtableDate) {
+					params.append("useAirtableDate", "true");
+				}
 			}
 			if (filterQuery.dateTo) {
 				params.append("dateTo", filterQuery.dateTo);
@@ -353,16 +362,16 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									className="transition-colors duration-150 hover:bg-muted/50"
 								>
 									<TableCell>
-										<Link href={`/admin/students/enrollment/${enrollment.id}`}>
-											<div>
-												<p className="font-medium">
-													{enrollment.students?.full_name}
-												</p>
-												<p className="text-muted-foreground text-sm">
-													{enrollment.students?.email || "No email"}
-												</p>
-											</div>
-										</Link>
+										{enrollment.students ? (
+											<LinkedRecordBadge
+												href={`/admin/students/${enrollment.student_id}`}
+												label={enrollment.students.full_name}
+												icon={User}
+												title={enrollment.students.email || "No email"}
+											/>
+										) : (
+											<span className="text-muted-foreground">No student</span>
+										)}
 									</TableCell>
 									<TableCell>
 										<div className="space-y-1">
@@ -437,7 +446,13 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
-											{format(new Date(enrollment.created_at), "MMM d, yyyy")}
+											{format(
+												new Date(
+													enrollment.airtable_created_at ||
+														enrollment.created_at,
+												),
+												"MMM d, yyyy",
+											)}
 										</p>
 									</TableCell>
 									<TableCell>
