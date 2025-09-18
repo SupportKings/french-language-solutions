@@ -159,7 +159,7 @@ const enumMappings: Record<string, Record<string, string>> = {
 		"50 - Follow Up Ongoing": "ongoing",
 		"-2 - Answer Received": "answer_received",
 		"-1 - Disabled Manually": "disabled",
-		"100 - Completed": "answer_received",
+		"100 - Completed": "completed",
 	},
 	follow_up_message_status: {
 		"Active": "active",
@@ -184,6 +184,12 @@ const enumMappings: Record<string, Record<string, string>> = {
 		"Friday": "friday",
 		"Saturday": "saturday",
 		"Sunday": "sunday",
+	},
+	team_roles: {
+		"Teacher": "Teacher",
+		"Evaluator": "Evaluator",
+		"Marketing/Admin": "Marketing/Admin",
+		"Exec": "Exec",
 	},
 };
 
@@ -240,6 +246,34 @@ function mapYesNoToBoolean(value: string | null | undefined): boolean | null {
 // Helper: Convert checkbox to boolean
 function mapCheckboxToBoolean(value: boolean | null | undefined): boolean | null {
 	return value === true ? true : value === false ? false : null;
+}
+
+// Helper: Map multi-select field to array of enum values
+function mapMultiSelectToEnumArray(values: string[] | null | undefined, enumType: string): string[] | null {
+	if (!values || !Array.isArray(values) || values.length === 0) return null;
+	
+	const mapping = enumMappings[enumType];
+	if (!mapping) {
+		importStats.warnings.push({ 
+			message: `No mapping defined for enum type: ${enumType}`,
+			context: { values, enumType }
+		});
+		return null;
+	}
+	
+	const mappedValues: string[] = [];
+	for (const value of values) {
+		if (mapping[value]) {
+			mappedValues.push(mapping[value]);
+		} else {
+			importStats.warnings.push({ 
+				message: `No exact mapping for ${enumType}.${value} in multi-select`,
+				context: { value, enumType }
+			});
+		}
+	}
+	
+	return mappedValues.length > 0 ? mappedValues : null;
 }
 
 // Helper: Convert date to ISO 8601
@@ -411,7 +445,7 @@ async function importTeachers() {
 		const teacher = {
 			first_name: fields["First Name"] || "",
 			last_name: fields["Last Name"] || "",
-			onboarding_status: mapEnum(fields["Team Onboarding Status"], "onboarding_status") || "new",
+			onboarding_status: mapEnum(fields["Team Onboarding Status"], "onboarding_status"),
 			contract_type: mapEnum(fields["Contract Type"], "contract_type"),
 			group_class_bonus_terms: mapEnum(fields["Group Class Bonus Terms"], "group_class_bonus_terms"),
 			max_students_in_person: fields["Maximum Students Per In-Person Class"] || null,
@@ -420,6 +454,7 @@ async function importTeachers() {
 			available_for_in_person_classes: mapYesNoToBoolean(fields["Available for In-Person Classes"]),
 			mobile_phone_number: formatPhoneNumber(fields["Mobile Phone Number"]),
 			admin_notes: fields["Teacher Notes"] || null,
+			role: mapMultiSelectToEnumArray(fields["Roles"], "team_roles"),
 			days_available_in_person: fields["Days Available for In-Person Classes"]?.map((d: string) => mapEnum(d, "day_of_week")).filter(Boolean) || null,
 			days_available_online: fields["Days Available for Online Classes"]?.map((d: string) => mapEnum(d, "day_of_week")).filter(Boolean) || null,
 			available_for_booking: fields["Available for Booking?"] === "Available" ? true : false,
@@ -470,7 +505,7 @@ async function importStudents() {
 			email: validateEmail(fields["Email"]),
 			mobile_phone_number: formatPhoneNumber(fields["Mobile Phone Number"]),
 			city: fields["City"] || null,
-			communication_channel: mapEnum(fields["Default Communication Channel"], "communication_channel") || "email",
+			communication_channel: mapEnum(fields["Default Communication Channel"], "communication_channel"),
 			initial_channel: mapEnum(fields["Initial Channel"], "initial_channel"),
 			is_full_beginner: fields["Student's Beginning Level (from Enrollment Form)"] === "Complete Beginner (A0)" ? true : false,
 			is_under_16: fields["Age Group"] === "Under 16" ? true : false,
@@ -511,8 +546,8 @@ async function importProducts() {
 		
 		const product = {
 			display_name: fields["Internal Nickname"] || "",
-			format: mapEnum(fields["Format"], "product_format") || "group",
-			location: mapEnum(fields["Location"], "product_location") || "online",
+			format: mapEnum(fields["Format"], "product_format"),
+			location: mapEnum(fields["Location"], "product_location"),
 			pandadoc_contract_template_id: fields["Contract Template ID (PandaDoc)"] || null,
 			signup_link_for_self_checkout: fields["Signup Link (for Self-Checkout)"] || null,
 			airtable_record_id: record.id,
@@ -640,7 +675,7 @@ async function importTemplateFollowUpMessages() {
 			step_index: fields["Step Index"] || 0,
 			message_content: fields["Message"] || "",
 			time_delay_hours: fields["Time Delay (Hours)"] || 0,
-			status: mapEnum(fields["Status"], "follow_up_message_status") || "active",
+			status: mapEnum(fields["Status"], "follow_up_message_status"),
 			airtable_record_id: record.id,
 			// Store the Airtable sequence reference for Pass 2
 			_airtable_sequence_id: fields["Follow Up Sequence"]?.[0] || null,
@@ -677,7 +712,7 @@ async function importCohorts() {
 			product_id: null, // Will be set in Pass 2
 			starting_level_id: null, // Will be set in Pass 2
 			current_level_id: null, // Will be set in Pass 2
-			cohort_status: mapEnum(fields["Cohort Status"], "cohort_status") || "enrollment_open",
+			cohort_status: mapEnum(fields["Cohort Status"], "cohort_status"),
 			max_students: maxStudents,
 			room_type: mapEnum(fields["Max Students - Restricted by Room (Manual)"], "room_type"),
 			start_date: convertToISO8601(fields["Start Date"]),
@@ -712,7 +747,7 @@ async function importEnrollments() {
 		const enrollment = {
 			student_id: null, // Will be set in Pass 2
 			cohort_id: null, // Will be set in Pass 2
-			status: mapEnum(fields["Enrollment Status"], "enrollment_status") || "interested",
+			status: mapEnum(fields["Enrollment Status"], "enrollment_status"),
 			airtable_record_id: record.id,
 			airtable_enrollment_created_at: convertToISO8601(fields["Created"]),
 			// Store Airtable references for Pass 2
@@ -747,7 +782,7 @@ async function importStudentAssessments() {
 		
 		const assessment = {
 			student_id: null, // Will be set in Pass 2
-			result: mapEnum(fields["Result"], "assessment_result") || "requested",
+			result: mapEnum(fields["Result"], "assessment_result"),
 			level_id: null, // Will be set in Pass 2
 			interview_held_by: null, // Will be set in Pass 2
 			level_checked_by: null, // Will be set in Pass 2
@@ -786,7 +821,7 @@ async function importAutomatedFollowUps() {
 		const followUp = {
 			student_id: null, // Will be set in Pass 2
 			sequence_id: null, // Will be set in Pass 2
-			status: mapEnum(fields["Status"], "automated_follow_up_status") || "activated",
+			status: mapEnum(fields["Status"], "automated_follow_up_status"),
 			started_at: convertToISO8601(fields["Activated Time"]) || new Date().toISOString(),
 			last_message_sent_at: convertToISO8601(fields["Last Follow Up Time"]),
 			completed_at: fields["Status"] === "100 - Completed" ? convertToISO8601(fields["Last Follow Up Time"]) : null,
@@ -850,17 +885,22 @@ async function importWeeklySessions() {
 	for (const record of records) {
 		const fields = record.fields;
 		
-		// Get day of week - could be from linked Days of Week table or direct field
-		let dayOfWeek = null;
-		if (fields["Day of Week"]) {
-			dayOfWeek = mapEnum(fields["Day of Week"], "day_of_week");
-		} else if (fields["Days of Week"]?.[0]) {
-			// If it's a linked record, we'd need to look it up
-			// For now, skip if not direct
-			importStats.warnings.push({ 
-				message: "Day of Week is linked record - needs lookup",
-				context: { record: record.id }
+		// Get day of week from the formula field "Day of Week (String)"
+		// This field contains values like "Monday", "Tuesday", "Saturday", etc.
+		const dayOfWeekString = fields["Day of Week (String)"];
+		if (!dayOfWeekString) {
+			trackSkippedRecord("weekly_sessions", record.id, "Day of Week (String) field is missing", {
+				availableFields: Object.keys(fields)
 			});
+			continue;
+		}
+		
+		const dayOfWeek = mapEnum(dayOfWeekString, "day_of_week");
+		if (!dayOfWeek) {
+			trackSkippedRecord("weekly_sessions", record.id, "Could not map Day of Week value", {
+				dayOfWeekString: dayOfWeekString
+			});
+			continue;
 		}
 		
 		// Handle time fields - Start Time is duration (seconds), End Time is formula
@@ -924,7 +964,7 @@ async function importWeeklySessions() {
 		const session = {
 			cohort_id: null, // Will be set in Pass 2
 			teacher_id: null, // Will be set in Pass 2
-			day_of_week: dayOfWeek || "monday", // Default if missing
+			day_of_week: dayOfWeek, // Required field, already validated above
 			start_time: startTime,
 			end_time: endTime,
 			google_calendar_event_id: fields["Google Calendar Event ID"] || null,

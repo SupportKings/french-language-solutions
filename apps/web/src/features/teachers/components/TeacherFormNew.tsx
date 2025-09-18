@@ -19,6 +19,7 @@ import {
 	TextareaField,
 } from "@/components/form-layout/FormLayout";
 import { DaysSelector } from "@/components/ui/days-selector";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Briefcase, CalendarDays, Clock, FileText, User } from "lucide-react";
@@ -50,6 +51,7 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 		defaultValues: {
 			first_name: teacher?.first_name || "",
 			last_name: teacher?.last_name || "",
+			role: teacher?.role || [],
 			group_class_bonus_terms: teacher?.group_class_bonus_terms || undefined,
 			onboarding_status: teacher?.onboarding_status || "new",
 			google_calendar_id: teacher?.google_calendar_id || "",
@@ -76,15 +78,15 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 		try {
 			if (isEditMode) {
 				await updateTeacher.mutateAsync({ id: teacher.id, data });
-				toast.success("Teacher updated successfully");
+				toast.success("Team member updated successfully");
 			} else {
 				await createTeacher.mutateAsync(data);
-				toast.success("Teacher created successfully");
+				toast.success("Team member created successfully");
 			}
-			router.push("/admin/teachers");
+			router.push("/admin/team-members");
 		} catch (error) {
 			toast.error(
-				isEditMode ? "Failed to update teacher" : "Failed to create teacher",
+				isEditMode ? "Failed to update team member" : "Failed to create team member",
 			);
 		} finally {
 			setIsSubmitting(false);
@@ -92,7 +94,7 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 	};
 
 	const handleCancel = () => {
-		router.push("/admin/teachers");
+		router.push("/admin/team-members");
 	};
 
 	const onboardingStatuses = [
@@ -115,13 +117,13 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 	return (
 		<FormLayout>
 			<FormHeader
-				backUrl="/admin/teachers"
-				backLabel="Teachers"
-				title={isEditMode ? "Edit Teacher" : "New Teacher"}
+				backUrl="/admin/team-members"
+				backLabel="Team Members"
+				title={isEditMode ? "Edit Team Member" : "New Team Member"}
 				subtitle={
 					isEditMode
 						? `Update ${teacher.first_name} ${teacher.last_name}'s information`
-						: "Add a new teacher to your team"
+						: "Add a new team member to your organization"
 				}
 				badge={
 					isEditMode ? { label: "Editing", variant: "warning" } : undefined
@@ -136,14 +138,14 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 							<InfoBanner
 								variant="info"
 								title="Getting Started"
-								message="Create a teacher profile to start assigning them to classes. You can update their availability and qualifications later."
+								message="Create a team member profile to start assigning them roles and responsibilities. You can update their availability and qualifications later."
 							/>
 						)}
 
 						{/* Basic Information */}
 						<FormSection
 							title="Basic Information"
-							description="Teacher's personal and contact details"
+							description="Team member's personal and contact details"
 							icon={User}
 							required
 						>
@@ -199,10 +201,30 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 
 						{/* Contract & Status */}
 						<FormSection
-							title="Contract & Status"
-							description="Employment details and current status"
+							title="Role & Employment"
+							description="Team member role and employment status"
 							icon={Briefcase}
 						>
+							<FormRow>
+								<FormField
+									label="Role(s)"
+									hint="Select all roles that apply"
+									error={form.formState.errors.role?.message}
+								>
+									<MultiSelect
+										options={[
+											{ label: "Teacher", value: "Teacher" },
+											{ label: "Evaluator", value: "Evaluator" },
+											{ label: "Marketing/Admin", value: "Marketing/Admin" },
+											{ label: "Exec", value: "Exec" },
+										]}
+										value={form.watch("role") || []}
+										onValueChange={(value) => form.setValue("role", value)}
+										placeholder="Select roles..."
+									/>
+								</FormField>
+								<div />
+							</FormRow>
 							<FormRow>
 								<FormField
 									label="Onboarding Status"

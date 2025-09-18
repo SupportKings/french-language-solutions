@@ -278,10 +278,10 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 		setIsDeleting(true);
 		try {
 			await deleteTeacher.mutateAsync(teacherToDelete);
-			toast.success("Teacher deleted successfully");
+			toast.success("Team member deleted successfully");
 		} catch (error: unknown) {
 			const errorMessage =
-				error instanceof Error ? error.message : "Failed to delete teacher";
+				error instanceof Error ? error.message : "Failed to delete team member";
 			toast.error(errorMessage);
 			console.error("Delete teacher error:", error);
 		} finally {
@@ -295,7 +295,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 			<Card>
 				<CardContent className="py-10">
 					<p className="text-center text-muted-foreground">
-						Failed to load teachers
+						Failed to load team members
 					</p>
 				</CardContent>
 			</Card>
@@ -321,10 +321,10 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 						</div>
 
 						<div className="ml-auto">
-							<Link href="/admin/teachers/new">
+							<Link href="/admin/team-members/new">
 								<Button size="sm" className="h-9">
 									<Plus className="mr-1.5 h-4 w-4" />
-									New Teacher
+									New Team Member
 								</Button>
 							</Link>
 						</div>
@@ -342,7 +342,8 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Teacher</TableHead>
+							<TableHead>Team Member</TableHead>
+							<TableHead>Role</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Contract</TableHead>
 							<TableHead>Active Cohorts</TableHead>
@@ -359,6 +360,9 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 								<TableRow key={i}>
 									<TableCell>
 										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
 									</TableCell>
 									<TableCell>
 										<Skeleton className="h-5 w-20" />
@@ -389,17 +393,18 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 						) : data?.data?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={9}
+									colSpan={10}
 									className="text-center text-muted-foreground"
 								>
-									No teachers found
+									No team members found
 								</TableCell>
 							</TableRow>
 						) : (
 							data?.data?.map((teacher: any) => (
 								<TableRow
 									key={teacher.id}
-									className="transition-colors duration-150 hover:bg-muted/50"
+									className="transition-colors duration-150 hover:bg-muted/50 cursor-pointer"
+									onClick={() => router.push(`/admin/team-members/${teacher.id}`)}
 								>
 									<TableCell>
 										<div>
@@ -410,6 +415,19 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 												{teacher.mobile_phone_number || "No phone"}
 											</p>
 										</div>
+									</TableCell>
+									<TableCell>
+										{teacher.role && teacher.role.length > 0 ? (
+											<div className="flex flex-wrap gap-1">
+												{teacher.role.map((r: string) => (
+													<Badge key={r} variant="outline" className="text-xs">
+														{r}
+													</Badge>
+												))}
+											</div>
+										) : (
+											<span className="text-muted-foreground text-sm">Not set</span>
+										)}
 									</TableCell>
 									<TableCell>
 										<Badge
@@ -524,7 +542,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 											)}
 										</div>
 									</TableCell>
-									<TableCell>
+									<TableCell onClick={(e) => e.stopPropagation()}>
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
 												<Button variant="ghost" size="icon">
@@ -532,7 +550,7 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
-												<Link href={`/admin/teachers/${teacher.id}`}>
+												<Link href={`/admin/team-members/${teacher.id}`}>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />
 														View
@@ -588,8 +606,8 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 				open={!!teacherToDelete}
 				onOpenChange={(open) => !open && setTeacherToDelete(null)}
 				onConfirm={handleDelete}
-				title="Delete Teacher"
-				description="Are you sure you want to delete this teacher?"
+				title="Delete Team Member"
+				description="Are you sure you want to delete this team member?"
 				isDeleting={isDeleting}
 			/>
 		</div>

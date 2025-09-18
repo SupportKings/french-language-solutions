@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
 				user_id,
 				first_name,
 				last_name,
+				role,
 				group_class_bonus_terms,
 				onboarding_status,
 				google_calendar_id,

@@ -59,8 +59,8 @@ const data = {
 			],
 		},
 		{
-			title: "Teachers",
-			url: "/admin/teachers",
+			title: "Team Members",
+			url: "/admin/team-members",
 			icon: Users,
 			isActive: false,
 		},
