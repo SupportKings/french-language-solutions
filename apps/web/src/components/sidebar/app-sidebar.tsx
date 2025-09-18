@@ -183,8 +183,8 @@ export function AppSidebar({
 			});
 
 			navItems.push({
-				title: "Teachers",
-				url: "/admin/teachers",
+				title: "Team Members",
+				url: "/admin/team-members",
 				icon: "Users",
 			});
 
