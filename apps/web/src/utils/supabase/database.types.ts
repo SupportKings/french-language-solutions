@@ -266,9 +266,10 @@ export type Database = {
       }
       cohorts: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_status: Database["public"]["Enums"]["cohort_status"]
-          created_at: string
+          created_at: string | null
           current_level_id: string | null
           google_drive_folder_id: string | null
           id: string
@@ -281,9 +282,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_status?: Database["public"]["Enums"]["cohort_status"]
-          created_at?: string
+          created_at?: string | null
           current_level_id?: string | null
           google_drive_folder_id?: string | null
           id?: string
@@ -296,9 +298,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_status?: Database["public"]["Enums"]["cohort_status"]
-          created_at?: string
+          created_at?: string | null
           current_level_id?: string | null
           google_drive_folder_id?: string | null
           id?: string
@@ -547,9 +550,10 @@ export type Database = {
       }
       student_assessments: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           calendar_event_url: string | null
-          created_at: string
+          created_at: string | null
           id: string
           interview_held_by: string | null
           is_paid: boolean
@@ -563,9 +567,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           calendar_event_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           interview_held_by?: string | null
           is_paid?: boolean
@@ -579,9 +584,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           calendar_event_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           interview_held_by?: string | null
           is_paid?: boolean
@@ -902,6 +908,7 @@ export type Database = {
       }
       touchpoints: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           automated_follow_up_id: string | null
           channel: Database["public"]["Enums"]["touchpoint_channel"]
@@ -917,10 +924,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           automated_follow_up_id?: string | null
           channel: Database["public"]["Enums"]["touchpoint_channel"]
-          created_at?: string
+          created_at: string
           external_id?: string | null
           external_metadata?: string | null
           id?: string
@@ -932,6 +940,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           automated_follow_up_id?: string | null
           channel?: Database["public"]["Enums"]["touchpoint_channel"]
@@ -1040,6 +1049,7 @@ export type Database = {
       }
       weekly_sessions: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_id: string
           created_at: string
@@ -1052,9 +1062,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id: string
-          created_at?: string
+          created_at: string
           day_of_week: Database["public"]["Enums"]["day_of_week"]
           end_time: string
           google_calendar_event_id?: string | null
@@ -1064,6 +1075,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string
           created_at?: string

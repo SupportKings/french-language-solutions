@@ -57,7 +57,8 @@ import type { AutomatedFollowUpQuery } from "../schemas/automated-follow-up.sche
 const statusColors = {
 	activated: "info",
 	ongoing: "warning",
-	answer_received: "success",
+	answer_received: "secondary",
+	completed: "success",
 	disabled: "destructive",
 };
 
@@ -65,6 +66,7 @@ const statusLabels = {
 	activated: "Activated",
 	ongoing: "Ongoing",
 	answer_received: "Answer Received",
+	completed: "Completed",
 	disabled: "Disabled",
 };
 
@@ -72,6 +74,7 @@ const statusIcons = {
 	activated: Play,
 	ongoing: Clock,
 	answer_received: CheckCircle,
+	completed: CheckCircle,
 	disabled: XCircle,
 };
 
@@ -306,7 +309,10 @@ export function AutomatedFollowUpsTable() {
 												variant={(statusColors as any)[touchpoint.status]}
 												className="gap-1"
 											>
-												<StatusIcon className="h-3 w-3" />
+												{(() => {
+													const Icon = (statusIcons as any)[touchpoint.status];
+													return Icon ? <Icon className="h-3 w-3" /> : null;
+												})()}
 												{(statusLabels as any)[touchpoint.status]}
 											</Badge>
 										</TableCell>
