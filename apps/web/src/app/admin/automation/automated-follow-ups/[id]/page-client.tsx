@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 
 import { useAutomatedFollowUp } from "@/features/automated-follow-ups/queries/automated-follow-ups.queries";
 import { TouchpointsTable } from "@/features/follow-ups/components/TouchpointsTable";
@@ -367,12 +368,12 @@ export function AutomatedFollowUpDetailPageClient({
 												Follow-up Sequence:
 											</p>
 											{sequence ? (
-												<Link
+												<LinkedRecordBadge
 													href={`/admin/automation/sequences/${followUpData.sequence_id || ""}`}
-													className="flex items-center gap-1 text-primary text-sm hover:underline"
-												>
-													{sequence.display_name}
-												</Link>
+													label={sequence.display_name}
+													icon={MessageSquare}
+													title={sequence.subject || "No subject"}
+												/>
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No sequence assigned
@@ -390,27 +391,6 @@ export function AutomatedFollowUpDetailPageClient({
 												</p>
 												<p className="font-medium text-sm">
 													{sequence.subject}
-												</p>
-											</div>
-										</div>
-									)}
-
-									{sequence?.first_follow_up_delay_minutes && (
-										<div className="flex items-start gap-3">
-											<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-											<div className="flex-1 space-y-0.5">
-												<p className="text-muted-foreground text-xs">
-													First Delay:
-												</p>
-												<p className="font-medium text-sm">
-													{(() => {
-														const minutes =
-															sequence.first_follow_up_delay_minutes;
-														if (minutes < 60) return `${minutes} minutes`;
-														if (minutes < 1440)
-															return `${Math.floor(minutes / 60)} hours`;
-														return `${Math.floor(minutes / 1440)} days`;
-													})()}
 												</p>
 											</div>
 										</div>

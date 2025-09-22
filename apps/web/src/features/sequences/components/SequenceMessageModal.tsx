@@ -98,9 +98,11 @@ export function SequenceMessageModal({
 			}
 
 			toast.success(`Message ${isEdit ? "updated" : "added"} successfully!`);
-			// Refresh the page to get updated data
-			window.location.reload();
 			onClose();
+			// Refresh the page to get updated data
+			setTimeout(() => {
+				window.location.reload();
+			}, 100);
 		} catch (error) {
 			console.error(`Error ${isEdit ? "updating" : "adding"} message:`, error);
 			toast.error(`Failed to ${isEdit ? "update" : "add"} message`);
@@ -109,8 +111,14 @@ export function SequenceMessageModal({
 		}
 	};
 
+	const handleClose = () => {
+		if (!isLoading) {
+			onClose();
+		}
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={onClose}>
+		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-[650px]">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-lg">
@@ -244,7 +252,7 @@ Best regards,
 						<Button
 							type="button"
 							variant="outline"
-							onClick={onClose}
+							onClick={handleClose}
 							disabled={isLoading}
 						>
 							Cancel

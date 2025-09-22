@@ -2,12 +2,23 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -35,6 +46,7 @@ import {
 	MapPin,
 	MoreVertical,
 	Plus,
+	Trash2,
 	Users,
 	Video,
 } from "lucide-react";
@@ -58,6 +70,9 @@ export function CohortClasses({
 	const [selectedClass, setSelectedClass] = useState<any>(null);
 	const [classModalOpen, setClassModalOpen] = useState(false);
 	const [createModalOpen, setCreateModalOpen] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [classToDelete, setClassToDelete] = useState<any>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Pagination state
 	const [currentPage, setCurrentPage] = useState(1);
@@ -138,6 +153,43 @@ export function CohortClasses({
 		});
 		// Reset to first page to show the new class
 		setCurrentPage(1);
+	};
+
+	// Handle delete class
+	const handleDeleteClass = async () => {
+		if (!classToDelete) return;
+
+		setIsDeleting(true);
+		try {
+			const response = await fetch(`/api/classes/${classToDelete.id}`, {
+				method: "DELETE",
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to delete class");
+			}
+
+			// Remove the class from the list
+			setClasses((prevClasses) =>
+				prevClasses.filter((c) => c.id !== classToDelete.id),
+			);
+
+			toast.success("Class deleted successfully");
+			setDeleteDialogOpen(false);
+			setClassToDelete(null);
+		} catch (error) {
+			console.error("Error deleting class:", error);
+			toast.error("Failed to delete class");
+		} finally {
+			setIsDeleting(false);
+		}
+	};
+
+	// Open delete dialog
+	const openDeleteDialog = (e: React.MouseEvent, classItem: any) => {
+		e.stopPropagation();
+		setClassToDelete(classItem);
+		setDeleteDialogOpen(true);
 	};
 
 	// Format time helper
@@ -451,6 +503,16 @@ export function CohortClasses({
 																	<CheckCircle2 className="mr-2 h-3.5 w-3.5" />
 																	View Attendance
 																</DropdownMenuItem>
+																<DropdownMenuSeparator />
+																<DropdownMenuItem
+																	onClick={(e) =>
+																		openDeleteDialog(e, classItem)
+																	}
+																	className="text-destructive focus:text-destructive"
+																>
+																	<Trash2 className="mr-2 h-3.5 w-3.5" />
+																	Delete Class
+																</DropdownMenuItem>
 															</DropdownMenuContent>
 														</DropdownMenu>
 													</TableCell>
@@ -610,6 +672,56 @@ export function CohortClasses({
 				cohortId={cohortId}
 				onSuccess={handleClassCreated}
 			/>
+
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will permanently delete this class. This action cannot be
+							undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					{classToDelete && (
+						<div className="my-4 rounded-lg bg-muted p-3">
+							<p className="font-medium text-sm">
+								{format(
+									new Date(classToDelete.start_time),
+									"EEEE, MMMM d, yyyy",
+								)}
+							</p>
+							<p className="text-muted-foreground text-sm">
+								{format(new Date(classToDelete.start_time), "h:mm a")} -{" "}
+								{format(new Date(classToDelete.end_time), "h:mm a")}
+							</p>
+							{classToDelete.teachers && (
+								<p className="mt-1 text-muted-foreground text-sm">
+									Teacher: {classToDelete.teachers.first_name}{" "}
+									{classToDelete.teachers.last_name}
+								</p>
+							)}
+						</div>
+					)}
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDeleteClass}
+							disabled={isDeleting}
+							className="bg-destructive hover:bg-destructive/90"
+						>
+							{isDeleting ? (
+								<>
+									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									Deleting...
+								</>
+							) : (
+								"Delete Class"
+							)}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }

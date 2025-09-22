@@ -34,7 +34,6 @@ import {
 	MessageSquare,
 	MoreHorizontal,
 	Search,
-	Timer,
 	Trash,
 	Users,
 } from "lucide-react";
@@ -87,17 +86,6 @@ export function SequencesTable() {
 		}
 	};
 
-	const formatDelay = (minutes: number) => {
-		if (minutes < 60) {
-			return `${minutes} min`;
-		}
-		if (minutes < 1440) {
-			const hours = Math.floor(minutes / 60);
-			return `${hours} hr${hours > 1 ? "s" : ""}`;
-		}
-		const days = Math.floor(minutes / 1440);
-		return `${days} day${days > 1 ? "s" : ""}`;
-	};
 
 	if (error) {
 		return (
@@ -137,7 +125,6 @@ export function SequencesTable() {
 							<TableHead>Sequence Name</TableHead>
 							<TableHead>Subject</TableHead>
 							<TableHead>Messages</TableHead>
-							<TableHead>First Delay</TableHead>
 							<TableHead>Active Follow-ups</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
@@ -163,9 +150,6 @@ export function SequencesTable() {
 										<Skeleton className="h-5 w-24" />
 									</TableCell>
 									<TableCell>
-										<Skeleton className="h-5 w-24" />
-									</TableCell>
-									<TableCell>
 										<Skeleton className="h-5 w-8" />
 									</TableCell>
 								</TableRow>
@@ -173,7 +157,7 @@ export function SequencesTable() {
 						) : data?.data?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={7}
+									colSpan={6}
 									className="text-center text-muted-foreground"
 								>
 									No sequences found
@@ -211,14 +195,6 @@ export function SequencesTable() {
 											{sequence.template_follow_up_messages?.length || 0}{" "}
 											messages
 										</Badge>
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-1">
-											<Timer className="h-4 w-4 text-muted-foreground" />
-											<span className="text-sm">
-												{formatDelay(sequence.first_follow_up_delay_minutes)}
-											</span>
-										</div>
 									</TableCell>
 									<TableCell>
 										<div className="flex items-center gap-1">

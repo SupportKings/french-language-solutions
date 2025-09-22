@@ -627,7 +627,7 @@ export function CohortAttendance({
 						</Select>
 					</div>
 
-					{availableClasses.length > 0 && (
+					{availableClasses.length > 0 ? (
 						<Button
 							variant="outline"
 							size="sm"
@@ -636,6 +636,21 @@ export function CohortAttendance({
 							<Plus className="mr-2 h-4 w-4" />
 							Create Attendance
 						</Button>
+					) : (
+						<div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5 text-muted-foreground text-xs">
+							<MinusCircle className="h-3.5 w-3.5" />
+							{classes.length === 0 ? (
+								<span>No classes scheduled yet</span>
+							) : enrolledStudents.filter((e) =>
+									["paid", "welcome_package_sent"].includes(e.status),
+								).length === 0 ? (
+								<span>
+									No eligible students (need paid/welcome sent status)
+								</span>
+							) : (
+								<span>All classes have attendance records</span>
+							)}
+						</div>
 					)}
 				</div>
 
@@ -823,7 +838,9 @@ export function CohortAttendance({
 												<TableRow>
 													<TableHead className="w-[250px]">Student</TableHead>
 													<TableHead className="w-[180px]">Homework</TableHead>
-													<TableHead className="w-[180px]">Attendance</TableHead>
+													<TableHead className="w-[180px]">
+														Attendance
+													</TableHead>
 													<TableHead>Notes</TableHead>
 												</TableRow>
 											</TableHeader>
@@ -863,7 +880,11 @@ export function CohortAttendance({
 															{/* Homework */}
 															<TableCell>
 																<Select
-																	value={record.homeworkCompleted ? "completed" : "pending"}
+																	value={
+																		record.homeworkCompleted
+																			? "completed"
+																			: "pending"
+																	}
 																	onValueChange={(value) => {
 																		updateAttendance(record.id, {
 																			homeworkCompleted: value === "completed",
@@ -896,7 +917,9 @@ export function CohortAttendance({
 																<Select
 																	value={record.status}
 																	onValueChange={(value) => {
-																		updateAttendance(record.id, { status: value });
+																		updateAttendance(record.id, {
+																			status: value,
+																		});
 																	}}
 																	disabled={isUpdating}
 																>
@@ -951,7 +974,6 @@ export function CohortAttendance({
 																	</Button>
 																)}
 															</TableCell>
-
 														</TableRow>
 													);
 												})}

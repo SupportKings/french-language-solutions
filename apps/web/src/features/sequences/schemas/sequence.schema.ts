@@ -15,7 +15,6 @@ export const sequenceSchema = z.object({
 	id: z.string().uuid(),
 	display_name: z.string(),
 	subject: z.string(),
-	first_follow_up_delay_minutes: z.number(),
 	created_at: z.string(),
 	updated_at: z.string(),
 	// Relations
@@ -46,11 +45,7 @@ export const createSequenceSchema = z.object({
 	subject: z
 		.string()
 		.min(1, "Subject is required")
-		.max(200, "Subject is too long"),
-	first_follow_up_delay_minutes: z
-		.number()
-		.min(1, "Delay must be at least 1 minute")
-		.max(43200, "Delay cannot exceed 30 days"),
+		.max(200, "Subject is too long")
 });
 
 export type CreateSequence = z.infer<typeof createSequenceSchema>;

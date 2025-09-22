@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const createMessageSchema = z.object({
-	status: z.enum(["draft", "active", "scheduled"]).default("active"),
+	status: z.enum(["active", "disabled"]).default("active"),
 	time_delay_hours: z.number().int().positive().default(24),
 	message_content: z.string().min(1, "Message content cannot be empty"),
 });

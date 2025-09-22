@@ -22,12 +22,7 @@ import {
 } from "@/components/ui/select";
 
 import { format } from "date-fns";
-import {
-	Clock,
-	Loader2,
-	Mail,
-	User,
-} from "lucide-react";
+import { Clock, Loader2, Mail, User } from "lucide-react";
 import { toast } from "sonner";
 
 interface EnrollmentDetailsModalProps {
@@ -38,15 +33,51 @@ interface EnrollmentDetailsModalProps {
 }
 
 const statusOptions = [
-	{ value: "interested", label: "Interested", color: "bg-yellow-500/10 text-yellow-700 border-yellow-200" },
-	{ value: "beginner_form_filled", label: "Form Filled", color: "bg-indigo-500/10 text-indigo-700 border-indigo-200" },
-	{ value: "contract_signed", label: "Contract Signed", color: "bg-purple-500/10 text-purple-700 border-purple-200" },
-	{ value: "paid", label: "Paid", color: "bg-green-500/10 text-green-700 border-green-200" },
-	{ value: "welcome_package_sent", label: "Welcome Package Sent", color: "bg-blue-500/10 text-blue-700 border-blue-200" },
-	{ value: "payment_abandoned", label: "Payment Abandoned", color: "bg-orange-500/10 text-orange-700 border-orange-200" },
-	{ value: "contract_abandoned", label: "Contract Abandoned", color: "bg-orange-500/10 text-orange-700 border-orange-200" },
-	{ value: "declined_contract", label: "Declined Contract", color: "bg-red-500/10 text-red-700 border-red-200" },
-	{ value: "dropped_out", label: "Dropped Out", color: "bg-red-500/10 text-red-700 border-red-200" },
+	{
+		value: "interested",
+		label: "Interested",
+		color: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
+	},
+	{
+		value: "beginner_form_filled",
+		label: "Form Filled",
+		color: "bg-indigo-500/10 text-indigo-700 border-indigo-200",
+	},
+	{
+		value: "contract_signed",
+		label: "Contract Signed",
+		color: "bg-purple-500/10 text-purple-700 border-purple-200",
+	},
+	{
+		value: "paid",
+		label: "Paid",
+		color: "bg-green-500/10 text-green-700 border-green-200",
+	},
+	{
+		value: "welcome_package_sent",
+		label: "Welcome Package Sent",
+		color: "bg-blue-500/10 text-blue-700 border-blue-200",
+	},
+	{
+		value: "payment_abandoned",
+		label: "Payment Abandoned",
+		color: "bg-orange-500/10 text-orange-700 border-orange-200",
+	},
+	{
+		value: "contract_abandoned",
+		label: "Contract Abandoned",
+		color: "bg-orange-500/10 text-orange-700 border-orange-200",
+	},
+	{
+		value: "declined_contract",
+		label: "Declined Contract",
+		color: "bg-red-500/10 text-red-700 border-red-200",
+	},
+	{
+		value: "dropped_out",
+		label: "Dropped Out",
+		color: "bg-red-500/10 text-red-700 border-red-200",
+	},
 ];
 
 export function EnrollmentDetailsModal({
@@ -70,7 +101,6 @@ export function EnrollmentDetailsModal({
 			setIsEditing(false);
 		}
 	}, [enrollment]);
-
 
 	const handleSave = async () => {
 		setIsSaving(true);
@@ -106,7 +136,6 @@ export function EnrollmentDetailsModal({
 		setIsEditing(false);
 	};
 
-
 	if (!enrollment) return null;
 
 	const student = enrollment.students;
@@ -136,7 +165,7 @@ export function EnrollmentDetailsModal({
 									{student?.full_name || "Unknown Student"}
 								</p>
 								{student?.email && (
-									<p className="text-muted-foreground text-sm flex items-center gap-1 mt-1">
+									<p className="mt-1 flex items-center gap-1 text-muted-foreground text-sm">
 										<Mail className="h-3 w-3" />
 										{student.email}
 									</p>
@@ -174,25 +203,27 @@ export function EnrollmentDetailsModal({
 								<>
 									<div className="grid grid-cols-2 gap-3">
 										<div>
-											<Label className="text-muted-foreground text-xs">Status</Label>
+											<Label className="text-muted-foreground text-xs">
+												Status
+											</Label>
 											<div className="mt-1">
 												{(() => {
 													const statusOption = statusOptions.find(
-														(opt) => opt.value === enrollment.status
+														(opt) => opt.value === enrollment.status,
 													);
 													return (
 														<Badge
 															variant="outline"
 															className={`${
 																statusOption?.color ||
-																"bg-gray-500/10 text-gray-700 border-gray-200"
+																"border-gray-200 bg-gray-500/10 text-gray-700"
 															}`}
 														>
 															{statusOption?.label ||
 																enrollment.status
 																	?.replace(/_/g, " ")
 																	.replace(/\b\w/g, (l: string) =>
-																		l.toUpperCase()
+																		l.toUpperCase(),
 																	)}
 														</Badge>
 													);
@@ -200,8 +231,10 @@ export function EnrollmentDetailsModal({
 											</div>
 										</div>
 										<div>
-											<Label className="text-muted-foreground text-xs">Enrolled Date</Label>
-											<p className="font-medium text-sm flex items-center gap-1 mt-1">
+											<Label className="text-muted-foreground text-xs">
+												Enrolled Date
+											</Label>
+											<p className="mt-1 flex items-center gap-1 font-medium text-sm">
 												<Clock className="h-3 w-3 text-muted-foreground" />
 												{enrollmentDate
 													? format(enrollmentDate, "MMM d, yyyy")
@@ -218,7 +251,11 @@ export function EnrollmentDetailsModal({
 				<DialogFooter>
 					{isEditing ? (
 						<>
-							<Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+							<Button
+								variant="outline"
+								onClick={handleCancel}
+								disabled={isSaving}
+							>
 								Cancel
 							</Button>
 							<Button onClick={handleSave} disabled={isSaving}>
@@ -231,9 +268,7 @@ export function EnrollmentDetailsModal({
 							<Button variant="outline" onClick={onClose}>
 								Close
 							</Button>
-							<Button onClick={() => setIsEditing(true)}>
-								Edit Details
-							</Button>
+							<Button onClick={() => setIsEditing(true)}>Edit Details</Button>
 						</>
 					)}
 				</DialogFooter>

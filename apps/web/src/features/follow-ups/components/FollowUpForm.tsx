@@ -127,7 +127,7 @@ export function FollowUpForm({
 
 	const selectedSequenceId = form.watch("sequence_id");
 	const selectedSequence = sequencesData?.data?.find(
-		(s: any) => s.id === selectedSequenceId
+		(s: any) => s.id === selectedSequenceId,
 	);
 
 	const onSubmit = async (values: FormValues) => {
@@ -328,8 +328,8 @@ export function FollowUpForm({
 											</div>
 										) : (
 											sequencesData?.data?.map((sequence: any) => (
-												<SelectItem 
-													key={sequence.id} 
+												<SelectItem
+													key={sequence.id}
 													value={sequence.id}
 													className="flex flex-col items-start py-2"
 												>
@@ -337,18 +337,8 @@ export function FollowUpForm({
 														{sequence.display_name}
 													</div>
 													{sequence.subject && (
-														<div className="text-muted-foreground text-xs mt-0.5">
+														<div className="mt-0.5 text-muted-foreground text-xs">
 															Subject: {sequence.subject}
-														</div>
-													)}
-													{sequence.first_follow_up_delay_minutes && (
-														<div className="text-muted-foreground text-xs">
-															First message after{" "}
-															{sequence.first_follow_up_delay_minutes < 60
-																? `${sequence.first_follow_up_delay_minutes} minutes`
-																: sequence.first_follow_up_delay_minutes < 1440
-																? `${Math.floor(sequence.first_follow_up_delay_minutes / 60)} hours`
-																: `${Math.floor(sequence.first_follow_up_delay_minutes / 1440)} days`}
 														</div>
 													)}
 												</SelectItem>

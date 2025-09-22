@@ -240,14 +240,20 @@ export function SequenceMessagesSection({
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
 												<DropdownMenuItem
-													onClick={() => onEditMessage(message)}
+													onClick={(e) => {
+														e.stopPropagation();
+														onEditMessage(message);
+													}}
 												>
 													<Edit className="mr-2 h-3.5 w-3.5" />
 													Edit Message
 												</DropdownMenuItem>
 												{index > 0 && (
 													<DropdownMenuItem
-														onClick={() => handleMoveMessage(message.id, "up")}
+														onClick={(e) => {
+															e.stopPropagation();
+															handleMoveMessage(message.id, "up");
+														}}
 													>
 														<ArrowUp className="mr-2 h-3.5 w-3.5" />
 														Move Up
@@ -255,9 +261,10 @@ export function SequenceMessagesSection({
 												)}
 												{index < sortedMessages.length - 1 && (
 													<DropdownMenuItem
-														onClick={() =>
-															handleMoveMessage(message.id, "down")
-														}
+														onClick={(e) => {
+															e.stopPropagation();
+															handleMoveMessage(message.id, "down");
+														}}
 													>
 														<ArrowDown className="mr-2 h-3.5 w-3.5" />
 														Move Down
@@ -266,7 +273,10 @@ export function SequenceMessagesSection({
 												<DropdownMenuSeparator />
 												<DropdownMenuItem
 													className="text-destructive focus:text-destructive"
-													onClick={() => setDeleteMessageId(message.id)}
+													onClick={(e) => {
+														e.stopPropagation();
+														setDeleteMessageId(message.id);
+													}}
 												>
 													<Trash2 className="mr-2 h-3.5 w-3.5" />
 													Delete Message

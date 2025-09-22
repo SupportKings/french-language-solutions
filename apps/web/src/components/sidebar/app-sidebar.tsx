@@ -112,8 +112,8 @@ export function AppSidebar({
 	const currentArea = pathname.includes("/dashboard/settings")
 		? "settings"
 		: pathname.includes("/admin")
-		? "admin"
-		: "main";
+			? "admin"
+			: "main";
 
 	const isImpersonating =
 		session.session.impersonatedBy !== null &&
@@ -355,11 +355,9 @@ export function AppSidebar({
 								{/* Show impersonation banner at the top if impersonating */}
 								{isImpersonating && <ImpersonationBanner session={session} />}
 
-								
 								<div className="">
 									<NavCollapsible items={data.navMain} />
 								</div>
-
 
 								<NavSecondary className="mt-auto" />
 							</div>

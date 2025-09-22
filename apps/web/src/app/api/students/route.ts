@@ -23,6 +23,9 @@ export async function GET(request: NextRequest) {
 			"added_to_email_newsletter",
 		);
 		const is_under_16 = searchParams.get("is_under_16");
+		const dateFrom = searchParams.get("dateFrom") || "";
+		const dateTo = searchParams.get("dateTo") || "";
+		const useAirtableDate = searchParams.get("useAirtableDate") === "true";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -106,6 +109,27 @@ export async function GET(request: NextRequest) {
 
 			if (is_under_16 !== null && is_under_16 !== undefined) {
 				query = query.eq("is_under_16", is_under_16 === "true");
+			}
+
+			// Date filters
+			if (dateFrom) {
+				if (useAirtableDate) {
+					query = query.or(
+						`airtable_created_at.gte.${dateFrom},and(airtable_created_at.is.null,created_at.gte.${dateFrom})`,
+					);
+				} else {
+					query = query.gte("created_at", dateFrom);
+				}
+			}
+
+			if (dateTo) {
+				if (useAirtableDate) {
+					query = query.or(
+						`airtable_created_at.lte.${dateTo},and(airtable_created_at.is.null,created_at.lte.${dateTo})`,
+					);
+				} else {
+					query = query.lte("created_at", dateTo);
+				}
 			}
 		} else {
 			// For complex filtering, fetch all data
