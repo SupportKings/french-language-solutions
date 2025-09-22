@@ -110,4 +110,57 @@ export class FollowUpController {
 			return c.json({ success: false, error: "Failed to stop follow-ups" }, 500);
 		}
 	}
+
+	async triggerNextMessages(c: Context) {
+		try {
+			// Parse optional request body
+			const body = await c.req.json().catch(() => ({}));
+			const { webhookUrl } = body;
+
+			// Use provided webhook URL or fallback to environment variable
+			const makeWebhookUrl = webhookUrl || process.env.MAKE_WEBHOOK_URL;
+
+			if (!makeWebhookUrl) {
+				return c.json(
+					{ 
+						success: false, 
+						error: "Webhook URL not configured. Set MAKE_WEBHOOK_URL environment variable or provide webhookUrl in request body" 
+					}, 
+					400
+				);
+			}
+
+			// Call service to find and trigger webhooks
+			const result = await this.service.triggerNextMessages(makeWebhookUrl);
+
+			return c.json(result);
+		} catch (error) {
+			console.error("Error triggering next messages:", error);
+			return c.json({ 
+				success: false, 
+				error: "Failed to trigger next messages",
+				details: error instanceof Error ? error.message : "Unknown error"
+			}, 500);
+		}
+	}
+
+	async checkRecentEngagementsToStop(c: Context) {
+		try {
+			// Parse optional request body for custom time range (default 1 hour)
+			const body = await c.req.json().catch(() => ({}));
+			const { hoursBack = 1 } = body;
+
+			// Call service to check recent engagements and stop follow-ups
+			const result = await this.service.checkRecentEngagementsToStop(hoursBack);
+
+			return c.json(result);
+		} catch (error) {
+			console.error("Error checking recent engagements:", error);
+			return c.json({ 
+				success: false, 
+				error: "Failed to check recent engagements",
+				details: error instanceof Error ? error.message : "Unknown error"
+			}, 500);
+		}
+	}
 }

@@ -12,8 +12,6 @@ import { env } from "./lib/config";
 import studentsRoutes from "./modules/students/routes";
 import classBookingRoutes from "./modules/class-booking/routes";
 import followUpRoutes from "./modules/follow-ups/routes";
-import { followUpWebhookRouter } from "./modules/follow-ups/webhook-handler";
-import { initializeSimpleScheduler } from "./modules/follow-ups/cron-scheduler";
 
 const app = new Hono();
 
@@ -66,7 +64,6 @@ app.use(
 app.route("/api/students", studentsRoutes);
 app.route("/api/class-booking", classBookingRoutes);
 app.route("/api/follow-ups", followUpRoutes);
-app.route("/api", followUpWebhookRouter);
 
 // Health check endpoint
 app.get("/health", (c) => {
@@ -94,16 +91,6 @@ console.log(`🚀 Server configured to run on port ${port}`);
 console.log(`📝 Environment: ${env.NODE_ENV}`);
 console.log(`🔗 CORS origins: ${env.CORS_ORIGIN}`);
 
-// Initialize follow-up message scheduler
-const followUpScheduler = initializeSimpleScheduler(5); // Check every 5 minutes
-console.log(`⏰ Follow-up message scheduler initialized`);
-
-// Cleanup on process termination
-process.on("SIGINT", () => {
-	console.log("Shutting down schedulers...");
-	followUpScheduler.stop();
-	process.exit(0);
-});
 
 export default {
 	port,

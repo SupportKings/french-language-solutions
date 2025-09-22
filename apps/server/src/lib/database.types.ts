@@ -1094,7 +1094,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      automated_follow_ups_with_schedule: {
+        Row: {
+          id: string
+          student_id: string
+          sequence_id: string
+          status: Database["public"]["Enums"]["automated_follow_up_status"]
+          current_step: number
+          started_at: string
+          last_message_sent_at: string | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+          airtable_record_id: string | null
+          next_message_scheduled_at: string | null
+          next_message_step_index: number | null
+          has_next_message: boolean
+          total_messages_in_sequence: number
+        }
+        Insert: never
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: "automated_follow_ups_sequence_id_template_follow_up_sequences_i"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "template_follow_up_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_follow_ups_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never

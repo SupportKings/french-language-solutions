@@ -266,9 +266,10 @@ export type Database = {
       }
       cohorts: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_status: Database["public"]["Enums"]["cohort_status"]
-          created_at: string
+          created_at: string | null
           current_level_id: string | null
           google_drive_folder_id: string | null
           id: string
@@ -281,9 +282,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_status?: Database["public"]["Enums"]["cohort_status"]
-          created_at?: string
+          created_at?: string | null
           current_level_id?: string | null
           google_drive_folder_id?: string | null
           id?: string
@@ -296,9 +298,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_status?: Database["public"]["Enums"]["cohort_status"]
-          created_at?: string
+          created_at?: string | null
           current_level_id?: string | null
           google_drive_folder_id?: string | null
           id?: string
@@ -336,7 +339,7 @@ export type Database = {
       }
       enrollments: {
         Row: {
-          airtable_enrollment_created_at: string | null
+          airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_id: string
           created_at: string
@@ -346,7 +349,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          airtable_enrollment_created_at?: string | null
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id: string
           created_at?: string
@@ -356,7 +359,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          airtable_enrollment_created_at?: string | null
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string
           created_at?: string
@@ -547,9 +550,10 @@ export type Database = {
       }
       student_assessments: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           calendar_event_url: string | null
-          created_at: string
+          created_at: string | null
           id: string
           interview_held_by: string | null
           is_paid: boolean
@@ -563,9 +567,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           calendar_event_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           interview_held_by?: string | null
           is_paid?: boolean
@@ -579,9 +584,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           calendar_event_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           interview_held_by?: string | null
           is_paid?: boolean
@@ -628,7 +634,7 @@ export type Database = {
       students: {
         Row: {
           added_to_email_newsletter: boolean | null
-          airtable_lead_created_at: string | null
+          airtable_created_at: string | null
           airtable_record_id: string | null
           city: string | null
           communication_channel: Database["public"]["Enums"]["communication_channel"]
@@ -639,6 +645,7 @@ export type Database = {
           email: string | null
           first_name: string | null
           full_name: string
+          heard_from: string | null
           id: string
           initial_channel: Database["public"]["Enums"]["initial_channel"] | null
           is_full_beginner: boolean | null
@@ -657,7 +664,7 @@ export type Database = {
         }
         Insert: {
           added_to_email_newsletter?: boolean | null
-          airtable_lead_created_at?: string | null
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           city?: string | null
           communication_channel?: Database["public"]["Enums"]["communication_channel"]
@@ -668,6 +675,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           full_name: string
+          heard_from?: string | null
           id?: string
           initial_channel?:
             | Database["public"]["Enums"]["initial_channel"]
@@ -688,7 +696,7 @@ export type Database = {
         }
         Update: {
           added_to_email_newsletter?: boolean | null
-          airtable_lead_created_at?: string | null
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           city?: string | null
           communication_channel?: Database["public"]["Enums"]["communication_channel"]
@@ -699,6 +707,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           full_name?: string
+          heard_from?: string | null
           id?: string
           initial_channel?:
             | Database["public"]["Enums"]["initial_channel"]
@@ -756,6 +765,7 @@ export type Database = {
           mobile_phone_number: string | null
           onboarding_status: Database["public"]["Enums"]["onboarding_status"]
           qualified_for_under_16: boolean | null
+          role: Database["public"]["Enums"]["team_roles"][] | null
           updated_at: string
           user_id: string | null
         }
@@ -787,6 +797,7 @@ export type Database = {
           mobile_phone_number?: string | null
           onboarding_status?: Database["public"]["Enums"]["onboarding_status"]
           qualified_for_under_16?: boolean | null
+          role?: Database["public"]["Enums"]["team_roles"][] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -818,6 +829,7 @@ export type Database = {
           mobile_phone_number?: string | null
           onboarding_status?: Database["public"]["Enums"]["onboarding_status"]
           qualified_for_under_16?: boolean | null
+          role?: Database["public"]["Enums"]["team_roles"][] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -873,7 +885,6 @@ export type Database = {
           backend_name: string | null
           created_at: string
           display_name: string
-          first_follow_up_delay_minutes: number
           id: string
           subject: string
           updated_at: string
@@ -883,7 +894,6 @@ export type Database = {
           backend_name?: string | null
           created_at?: string
           display_name: string
-          first_follow_up_delay_minutes: number
           id?: string
           subject: string
           updated_at?: string
@@ -893,7 +903,6 @@ export type Database = {
           backend_name?: string | null
           created_at?: string
           display_name?: string
-          first_follow_up_delay_minutes?: number
           id?: string
           subject?: string
           updated_at?: string
@@ -902,6 +911,7 @@ export type Database = {
       }
       touchpoints: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           automated_follow_up_id: string | null
           channel: Database["public"]["Enums"]["touchpoint_channel"]
@@ -917,10 +927,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           automated_follow_up_id?: string | null
           channel: Database["public"]["Enums"]["touchpoint_channel"]
-          created_at?: string
+          created_at: string
           external_id?: string | null
           external_metadata?: string | null
           id?: string
@@ -932,6 +943,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           automated_follow_up_id?: string | null
           channel?: Database["public"]["Enums"]["touchpoint_channel"]
@@ -952,6 +964,13 @@ export type Database = {
             columns: ["automated_follow_up_id"]
             isOneToOne: false
             referencedRelation: "automated_follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "touchpoints_automated_follow_up_id_automated_follow_ups_id_fk"
+            columns: ["automated_follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "automated_follow_ups_with_schedule"
             referencedColumns: ["id"]
           },
           {
@@ -1040,6 +1059,7 @@ export type Database = {
       }
       weekly_sessions: {
         Row: {
+          airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_id: string
           created_at: string
@@ -1052,9 +1072,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id: string
-          created_at?: string
+          created_at: string
           day_of_week: Database["public"]["Enums"]["day_of_week"]
           end_time: string
           google_calendar_event_id?: string | null
@@ -1064,6 +1085,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string
           created_at?: string
@@ -1094,7 +1116,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      automated_follow_ups_with_schedule: {
+        Row: {
+          airtable_record_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          current_step: number | null
+          has_next_message: boolean | null
+          id: string | null
+          last_message_sent_at: string | null
+          next_message_scheduled_at: string | null
+          next_message_step_index: number | null
+          sequence_id: string | null
+          started_at: string | null
+          status:
+            | Database["public"]["Enums"]["automated_follow_up_status"]
+            | null
+          student_id: string | null
+          total_messages_in_sequence: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_follow_ups_sequence_id_template_follow_up_sequences_i"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "template_follow_up_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_follow_ups_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
@@ -1151,6 +1209,7 @@ export type Database = {
       product_format: "group" | "private" | "hybrid"
       product_location: "online" | "in_person" | "hybrid"
       room_type: "for_one_to_one" | "medium" | "medium_plus" | "large"
+      team_roles: "Teacher" | "Evaluator" | "Marketing/Admin" | "Exec"
       touchpoint_channel: "sms" | "call" | "whatsapp" | "email"
       touchpoint_source:
         | "manual"
@@ -1345,6 +1404,7 @@ export const Constants = {
       product_format: ["group", "private", "hybrid"],
       product_location: ["online", "in_person", "hybrid"],
       room_type: ["for_one_to_one", "medium", "medium_plus", "large"],
+      team_roles: ["Teacher", "Evaluator", "Marketing/Admin", "Exec"],
       touchpoint_channel: ["sms", "call", "whatsapp", "email"],
       touchpoint_source: [
         "manual",

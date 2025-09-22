@@ -412,4 +412,231 @@ export class FollowUpService {
 			}))
 		};
 	}
+
+	/**
+	 * Find follow-ups ready to send next message and trigger webhooks
+	 */
+	async triggerNextMessages(webhookUrl: string) {
+		try {
+			// Query the view to find follow-ups ready to send next message
+			const { data: followUps, error: queryError } = await supabase
+				.from("automated_follow_ups_with_schedule")
+				.select("*")
+				.lte("next_message_scheduled_at", new Date().toISOString())
+				.not("next_message_scheduled_at", "is", null)
+				.eq("has_next_message", true)
+				.in("status", ["activated", "ongoing"])
+				.order("next_message_scheduled_at", { ascending: true });
+
+			if (queryError) {
+				console.error("Error fetching follow-ups:", queryError);
+				return {
+					success: false,
+					error: "Failed to fetch follow-ups",
+					details: queryError
+				};
+			}
+
+			if (!followUps || followUps.length === 0) {
+				return {
+					success: true,
+					message: "No follow-ups ready to send messages",
+					processed: 0,
+					timestamp: new Date().toISOString()
+				};
+			}
+
+			// Process each follow-up
+			const results: Array<{
+				recordId: string;
+				success: boolean;
+				error?: string;
+				statusCode?: number;
+			}> = [];
+
+			for (const followUp of followUps) {
+				// Trigger make.com webhook with recordID as URL parameter
+				try {
+					const webhookUrlWithParam = `${webhookUrl}?recordID=${followUp.id}`;
+					
+					const response = await fetch(webhookUrlWithParam, {
+						method: "GET", // Using GET with URL param
+						headers: {
+							"User-Agent": "FLS-Automated-Follow-Up/1.0"
+						}
+					});
+
+					results.push({
+						recordId: followUp.id,
+						success: response.ok,
+						statusCode: response.status,
+						error: !response.ok ? `HTTP ${response.status}: ${response.statusText}` : undefined
+					});
+
+					if (response.ok) {
+						console.log(`Successfully triggered webhook for record: ${followUp.id}`);
+					} else {
+						console.error(`Failed to trigger webhook for record: ${followUp.id}, status: ${response.status}`);
+					}
+
+					// Add small delay to avoid overwhelming make.com
+					await new Promise(resolve => setTimeout(resolve, 100));
+
+				} catch (webhookError) {
+					const errorMessage = webhookError instanceof Error ? webhookError.message : "Unknown error";
+					console.error(`Error triggering webhook for record ${followUp.id}:`, errorMessage);
+					
+					results.push({
+						recordId: followUp.id,
+						success: false,
+						error: errorMessage
+					});
+				}
+			}
+
+			// Summary statistics
+			const successful = results.filter(r => r.success).length;
+			const failed = results.filter(r => !r.success).length;
+
+			return {
+				success: true,
+				message: `Processed ${followUps.length} follow-ups`,
+				summary: {
+					total: followUps.length,
+					successful,
+					failed
+				},
+				results,
+				timestamp: new Date().toISOString()
+			};
+
+		} catch (error) {
+			console.error("Error in triggerNextMessages:", error);
+			return {
+				success: false,
+				error: "Internal error triggering messages",
+				details: error instanceof Error ? error.message : "Unknown error"
+			};
+		}
+	}
+
+	/**
+	 * Check recent engagements (touchpoints and assessments) and stop follow-ups for those students
+	 */
+	async checkRecentEngagementsToStop(hoursBack: number = 1) {
+		try {
+			// Calculate the timestamp for X hours ago
+			const cutoffTime = new Date();
+			cutoffTime.setHours(cutoffTime.getHours() - hoursBack);
+			const cutoffTimeISO = cutoffTime.toISOString();
+
+			// Find all touchpoints created after the cutoff time
+			const { data: recentTouchpoints, error: touchpointError } = await supabase
+				.from("touchpoints")
+				.select("student_id, created_at, type, channel")
+				.gte("created_at", cutoffTimeISO)
+				.order("created_at", { ascending: false });
+
+			if (touchpointError) {
+				console.error("Error fetching recent touchpoints:", touchpointError);
+				return {
+					success: false,
+					error: "Failed to fetch recent touchpoints",
+					details: touchpointError
+				};
+			}
+
+			// Find all assessments created (booked) after the cutoff time
+			const { data: recentAssessments, error: assessmentError } = await supabase
+				.from("student_assessments")
+				.select("student_id, created_at, scheduled_for, result")
+				.gte("created_at", cutoffTimeISO)
+				.order("created_at", { ascending: false });
+
+			if (assessmentError) {
+				console.error("Error fetching recent assessments:", assessmentError);
+				return {
+					success: false,
+					error: "Failed to fetch recent assessments",
+					details: assessmentError
+				};
+			}
+
+			// Combine student IDs from both touchpoints and assessments
+			const touchpointStudentIds = recentTouchpoints?.map(tp => tp.student_id) || [];
+			const assessmentStudentIds = recentAssessments?.map(a => a.student_id) || [];
+			const allStudentIds = [...touchpointStudentIds, ...assessmentStudentIds];
+			const uniqueStudentIds = [...new Set(allStudentIds)];
+
+			if (uniqueStudentIds.length === 0) {
+				return {
+					success: true,
+					message: `No engagements found in the last ${hoursBack} hour(s)`,
+					touchpointsFound: 0,
+					assessmentsFound: 0,
+					studentsProcessed: 0,
+					followUpsStopped: 0,
+					timestamp: new Date().toISOString()
+				};
+			}
+
+			console.log(`Found ${recentTouchpoints?.length || 0} touchpoints and ${recentAssessments?.length || 0} assessments for ${uniqueStudentIds.length} unique students`);
+
+			// Process each student using the existing stopAllFollowUps function
+			const results = [];
+			let totalFollowUpsStopped = 0;
+
+			for (const studentId of uniqueStudentIds) {
+				// Call the existing stopAllFollowUps function for each student
+				const stopResult = await this.stopAllFollowUps(studentId);
+				
+				const studentTouchpoints = recentTouchpoints?.filter(tp => tp.student_id === studentId) || [];
+				const studentAssessments = recentAssessments?.filter(a => a.student_id === studentId) || [];
+				
+				results.push({
+					studentId,
+					engagements: {
+						touchpointsCount: studentTouchpoints.length,
+						latestTouchpoint: studentTouchpoints[0]?.created_at,
+						touchpointTypes: [...new Set(studentTouchpoints.map(tp => tp.type))],
+						assessmentsCount: studentAssessments.length,
+						latestAssessment: studentAssessments[0]?.created_at,
+						assessmentScheduledFor: studentAssessments[0]?.scheduled_for
+					},
+					stopResult: {
+						success: stopResult.success,
+						followUpsStopped: stopResult.stopped_count || 0,
+						message: stopResult.message
+					}
+				});
+
+				if (stopResult.success && stopResult.stopped_count) {
+					totalFollowUpsStopped += stopResult.stopped_count;
+				}
+			}
+
+			return {
+				success: true,
+				message: `Checked ${uniqueStudentIds.length} students with recent engagements, stopped ${totalFollowUpsStopped} follow-ups`,
+				summary: {
+					hoursBack,
+					cutoffTime: cutoffTimeISO,
+					touchpointsFound: recentTouchpoints?.length || 0,
+					assessmentsFound: recentAssessments?.length || 0,
+					studentsProcessed: uniqueStudentIds.length,
+					followUpsStopped: totalFollowUpsStopped
+				},
+				studentResults: results,
+				timestamp: new Date().toISOString()
+			};
+
+		} catch (error) {
+			console.error("Error in checkRecentEngagementsToStop:", error);
+			return {
+				success: false,
+				error: "Internal error checking recent engagements",
+				details: error instanceof Error ? error.message : "Unknown error"
+			};
+		}
+	}
 }
