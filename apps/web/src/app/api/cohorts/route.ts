@@ -102,13 +102,22 @@ export async function GET(request: NextRequest) {
 				.select("cohort_id")
 				.in("teacher_id", teacher_ids);
 
-			if (cohortIds && cohortIds.length > 0) {
-				const uniqueCohortIds = [...new Set(cohortIds.map((c) => c.cohort_id))];
-				query = query.in("id", uniqueCohortIds);
-			} else {
-				// No cohorts found with these teachers, return empty result
-				query = query.in("id", []);
+			if (!cohortIds || cohortIds.length === 0) {
+				// No cohorts found with these teachers, return empty result immediately
+				return NextResponse.json({
+					data: [],
+					meta: {
+						total: 0,
+						page,
+						limit,
+						totalPages: 0,
+					},
+				});
 			}
+			
+			// Apply filter for cohorts with matching teacher IDs
+			const uniqueCohortIds = [...new Set(cohortIds.map((c) => c.cohort_id))];
+			query = query.in("id", uniqueCohortIds);
 		}
 
 		const { data, error, count } = await query;

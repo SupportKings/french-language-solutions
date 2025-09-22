@@ -4,7 +4,7 @@ export const automatedFollowUpSchema = z.object({
 	id: z.string().uuid(),
 	student_id: z.string().uuid(),
 	sequence_id: z.string().uuid(),
-	status: z.enum(["activated", "ongoing", "answer_received", "disabled"]),
+	status: z.enum(["activated", "ongoing", "answer_received", "completed", "disabled"]),
 	started_at: z.string(),
 	last_message_sent_at: z.string().nullable(),
 	completed_at: z.string().nullable(),
@@ -33,7 +33,7 @@ export type AutomatedFollowUp = z.infer<typeof automatedFollowUpSchema>;
 export const automatedFollowUpQuerySchema = z.object({
 	search: z.string().optional(),
 	status: z
-		.array(z.enum(["activated", "ongoing", "answer_received", "disabled"]))
+		.array(z.enum(["activated", "ongoing", "answer_received", "completed", "disabled"]))
 		.optional(),
 	sequence_id: z.array(z.string()).optional(),
 	page: z.number().int().positive().default(1),

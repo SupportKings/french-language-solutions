@@ -18,7 +18,7 @@ async function getTeacher(id: string) {
 	return response.json();
 }
 
-export default async function TeacherDetailPage({
+export default async function TeamMemberDetailPage({
 	params,
 }: {
 	params: Promise<{ id: string }>;

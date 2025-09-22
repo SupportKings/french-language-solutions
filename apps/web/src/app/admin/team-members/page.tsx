@@ -1,5 +1,5 @@
 import { TeachersTable } from "@/features/teachers/components/TeachersTable";
 
-export default function TeachersPage() {
+export default function TeamMembersPage() {
 	return <TeachersTable />;
 }

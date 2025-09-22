@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
+import { MultiSelect } from "@/components/ui/multi-select";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -81,8 +82,13 @@ export default function TeacherDetailsClient({
 	// Update the teacher when data changes
 	useEffect(() => {
 		if (initialTeacher) {
-			setTeacher(initialTeacher);
-			setEditedTeacher(initialTeacher);
+			// Ensure role is always an array
+			const teacherWithRole = {
+				...initialTeacher,
+				role: initialTeacher.role || []
+			};
+			setTeacher(teacherWithRole);
+			setEditedTeacher(teacherWithRole);
 		}
 	}, [initialTeacher]);
 
@@ -100,10 +106,11 @@ export default function TeacherDetailsClient({
 
 	// Update edited teacher field locally
 	const updateEditedField = async (field: string, value: any) => {
-		setEditedTeacher({
-			...editedTeacher,
+		console.log(`Updating field ${field} to:`, value); // Debug log
+		setEditedTeacher((prev: any) => ({
+			...prev,
 			[field]: value,
-		});
+		}));
 		// Return a resolved promise to match the expected type
 		return Promise.resolve();
 	};
@@ -144,11 +151,29 @@ export default function TeacherDetailsClient({
 			if (editedTeacher.admin_notes !== teacher.admin_notes) {
 				changes.admin_notes = editedTeacher.admin_notes;
 			}
+			// Compare role arrays properly
+			const teacherRole = teacher.role || [];
+			const editedRole = editedTeacher.role || [];
+			console.log("Current teacher role:", teacherRole); // Debug
+			console.log("Edited teacher role:", editedRole); // Debug
+			console.log("Role comparison:", JSON.stringify(editedRole.sort()), "vs", JSON.stringify(teacherRole.sort())); // Debug
+			
+			// Create copies for sorting to avoid mutating original arrays
+			const sortedEditedRole = [...editedRole].sort();
+			const sortedTeacherRole = [...teacherRole].sort();
+			
+			if (JSON.stringify(sortedEditedRole) !== JSON.stringify(sortedTeacherRole)) {
+				changes.role = editedRole;
+				console.log("Role will be updated to:", editedRole); // Debug
+			}
 
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
+				toast.info("No changes to save");
 				return;
 			}
+
+			console.log("Saving changes:", changes); // Debug log
 
 			const response = await fetch(`/api/teachers/${teacher.id}`, {
 				method: "PATCH",
@@ -159,8 +184,13 @@ export default function TeacherDetailsClient({
 			if (!response.ok) throw new Error("Failed to update");
 
 			const updated = await response.json();
-			setTeacher(updated);
-			setEditedTeacher(updated);
+			// Ensure role is always an array in the response
+			const updatedWithRole = {
+				...updated,
+				role: updated.role || []
+			};
+			setTeacher(updatedWithRole);
+			setEditedTeacher(updatedWithRole);
 			toast.success("Changes saved successfully");
 		} catch (error) {
 			toast.error("Failed to save changes");
@@ -208,16 +238,6 @@ export default function TeacherDetailsClient({
 		router.push(`/admin/cohorts/new?${params.toString()}`);
 	};
 
-	const navigateToSetFollowUp = () => {
-		const params = new URLSearchParams({
-			teacherId: teacher.id,
-			teacherName: fullName,
-		});
-		router.push(
-			`/admin/automation/automated-follow-ups/new?${params.toString()}`,
-		);
-	};
-
 	return (
 		<div className="min-h-screen bg-muted/30">
 			{/* Enhanced Header with Breadcrumb */}
@@ -225,10 +245,10 @@ export default function TeacherDetailsClient({
 				<div className="px-6 py-3">
 					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
 						<Link
-							href="/admin/teachers"
+							href="/admin/team-members"
 							className="transition-colors hover:text-foreground"
 						>
-							Teachers
+							Team Members
 						</Link>
 						<ChevronRight className="h-3 w-3" />
 						<span>{fullName}</span>
@@ -266,6 +286,15 @@ export default function TeacherDetailsClient({
 											}
 										</Badge>
 									)}
+									{teacher.role && teacher.role.length > 0 && (
+										<div className="flex flex-wrap gap-1">
+											{teacher.role.map((r: string) => (
+												<Badge key={r} variant="outline" className="h-4 px-1.5 text-[10px]">
+													{r}
+												</Badge>
+											))}
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
@@ -281,14 +310,11 @@ export default function TeacherDetailsClient({
 									<Calendar className="mr-2 h-3.5 w-3.5" />
 									Assign to Class
 								</DropdownMenuItem>
-								<DropdownMenuItem onClick={navigateToSetFollowUp}>
-									<MessageSquare className="mr-2 h-3.5 w-3.5" />
-									Set Follow-up
-								</DropdownMenuItem>
+							
 								<DropdownMenuSeparator />
 								<DropdownMenuItem className="text-destructive">
 									<Trash2 className="mr-2 h-3.5 w-3.5" />
-									Delete Teacher
+									Delete Team Member
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
@@ -297,10 +323,16 @@ export default function TeacherDetailsClient({
 			</div>
 
 			<div className="space-y-4 px-6 py-4">
-				{/* Teacher Information with inline editing */}
+				{/* Team Member Information with inline editing */}
 				<EditableSection
-					title="Teacher Information"
-					onEditStart={() => setEditedTeacher(teacher)}
+					title="Team Member Information"
+					onEditStart={() => {
+						const editTeacher = {
+							...teacher,
+							role: teacher.role || []
+						};
+						setEditedTeacher(editTeacher);
+					}}
 					onSave={saveAllChanges}
 					onCancel={() => setEditedTeacher(teacher)}
 				>
@@ -369,9 +401,48 @@ export default function TeacherDetailsClient({
 							{/* Employment Details */}
 							<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-									Employment
+									Employment & Role
 								</h3>
 								<div className="space-y-3">
+									<div className="flex items-start gap-3">
+										<Shield className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Role(s):
+											</p>
+											{editing ? (
+												<MultiSelect
+													options={[
+														{ label: "Teacher", value: "Teacher" },
+														{ label: "Evaluator", value: "Evaluator" },
+														{ label: "Marketing/Admin", value: "Marketing/Admin" },
+														{ label: "Exec", value: "Exec" },
+													]}
+													value={editedTeacher.role || []}
+													onValueChange={(newRoles) => {
+														console.log("MultiSelect onValueChange called with:", newRoles);
+														updateEditedField("role", newRoles);
+													}}
+													placeholder="Select roles..."
+												/>
+											) : (
+												<div>
+													{teacher.role && teacher.role.length > 0 ? (
+														<div className="flex flex-wrap gap-1">
+															{teacher.role.map((r: string) => (
+																<Badge key={r} variant="outline" className="h-5 text-xs">
+																	{r}
+																</Badge>
+															))}
+														</div>
+													) : (
+														<span className="text-muted-foreground text-sm">—</span>
+													)}
+												</div>
+											)}
+										</div>
+									</div>
+
 									<div className="flex items-start gap-3">
 										<Briefcase className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">

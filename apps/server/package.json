@@ -19,9 +19,10 @@
 	"dependencies": {
 		"@hono/trpc-server": "^0.4.0",
 		"@hono/zod-validator": "^0.7.2",
+		"@supabase/supabase-js": "^2.57.4",
 		"@trpc/client": "^11.4.2",
 		"@trpc/server": "^11.4.2",
-		"dotenv": "^16.4.7",
+		"dotenv": "^17.2.2",
 		"drizzle-orm": "^0.44.2",
 		"hono": "^4.8.2",
 		"pg": "^8.14.1",
