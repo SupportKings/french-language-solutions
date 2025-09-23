@@ -2,12 +2,11 @@ import { supabase } from "../../lib/supabase";
 import { formatCohortForMake } from "./utils";
 
 export class ClassBookingService {
-
-	async findAvailableCohortsWithSessions(currentLevelCode: string = "a0") {
+	async findAvailableCohortsWithSessions(currentLevelCode = "a0") {
 		// Get current date + 14 days
 		const minStartDate = new Date();
 		minStartDate.setDate(minStartDate.getDate() + 14);
-		const minStartDateStr = minStartDate.toISOString().split('T')[0];
+		const minStartDateStr = minStartDate.toISOString().split("T")[0];
 
 		// Find language level with code a0
 		const { data: level, error: levelError } = await supabase
@@ -60,7 +59,10 @@ export class ClassBookingService {
 
 			const activeEnrollments = count || 0;
 			// Treat null as unlimited capacity (Infinity for comparison)
-			const maxStudents = cohort.max_students === null ? Infinity : cohort.max_students;
+			const maxStudents =
+				cohort.max_students === null
+					? Number.POSITIVE_INFINITY
+					: cohort.max_students;
 
 			// Only include if there's space
 			if (activeEnrollments < maxStudents) {
@@ -68,7 +70,7 @@ export class ClassBookingService {
 					...cohort,
 					activeEnrollmentCount: activeEnrollments,
 					// Store the normalized max for consistent handling later
-					normalizedMaxStudents: maxStudents
+					normalizedMaxStudents: maxStudents,
 				});
 			}
 		}
@@ -95,9 +97,10 @@ export class ClassBookingService {
 				// Calculate available spots, ensuring it's never negative
 				// If max_students is null (unlimited), return null for available_spots
 				// Otherwise, calculate and ensure non-negative
-				const availableSpots = cohort.max_students === null 
-					? null // Unlimited capacity
-					: Math.max(0, cohort.max_students - cohort.activeEnrollmentCount);
+				const availableSpots =
+					cohort.max_students === null
+						? null // Unlimited capacity
+						: Math.max(0, cohort.max_students - cohort.activeEnrollmentCount);
 
 				return {
 					id: cohort.id,
@@ -108,18 +111,19 @@ export class ClassBookingService {
 					room_type: cohort.room_type,
 					product: cohort.products,
 					current_level: cohort.language_levels,
-					weekly_sessions: sessions || []
+					weekly_sessions: sessions || [],
 				};
-			})
+			}),
 		);
 
 		return cohortsWithSessions;
 	}
 
-	async getAvailableCohorts(levelCode: string = "a0") {
+	async getAvailableCohorts(levelCode = "a0") {
 		// Get available cohorts
-		const cohortsWithSessions = await this.findAvailableCohortsWithSessions(levelCode);
-		
+		const cohortsWithSessions =
+			await this.findAvailableCohortsWithSessions(levelCode);
+
 		// Format cohorts for Make.com
 		const formattedCohorts = cohortsWithSessions.map(formatCohortForMake);
 

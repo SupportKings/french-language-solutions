@@ -23,9 +23,14 @@ export class FollowUpService {
 		}
 
 		// Check if student has any enrollment with restricted statuses
-		const restrictedStatuses = ["paid", "welcome_package_sent", "dropped_out", "declined_contract"];
-		const hasRestrictedStatus = allEnrollments.some(enrollment => 
-			restrictedStatuses.includes(enrollment.status)
+		const restrictedStatuses = [
+			"paid",
+			"welcome_package_sent",
+			"dropped_out",
+			"declined_contract",
+		];
+		const hasRestrictedStatus = allEnrollments.some((enrollment) =>
+			restrictedStatuses.includes(enrollment.status),
 		);
 
 		// Student has enrollments but none with restricted statuses - meets condition
@@ -75,7 +80,7 @@ export class FollowUpService {
 	 */
 	async createFollowUp(studentId: string, sequenceId: string) {
 		const now = new Date().toISOString();
-		
+
 		const { data: followUp, error } = await supabase
 			.from("automated_follow_ups")
 			.insert({
@@ -85,7 +90,7 @@ export class FollowUpService {
 				status: "activated",
 				started_at: now,
 				created_at: now,
-				updated_at: now
+				updated_at: now,
 			})
 			.select()
 			.single();
@@ -109,18 +114,20 @@ export class FollowUpService {
 			return {
 				success: false,
 				error: "Follow-up sequence not found",
-				code: "SEQUENCE_NOT_FOUND"
+				code: "SEQUENCE_NOT_FOUND",
 			};
 		}
 
 		// Check enrollment conditions
-		const meetsEnrollmentConditions = await this.checkEnrollmentConditions(studentId);
+		const meetsEnrollmentConditions =
+			await this.checkEnrollmentConditions(studentId);
 		if (!meetsEnrollmentConditions) {
 			return {
 				success: false,
 				error: "Student does not meet enrollment conditions",
 				code: "ENROLLMENT_CONDITIONS_NOT_MET",
-				details: "Student either has no enrollments or has enrollment with status: paid, welcome_package_sent, dropped_out, or declined_contract"
+				details:
+					"Student either has no enrollments or has enrollment with status: paid, welcome_package_sent, dropped_out, or declined_contract",
 			};
 		}
 
@@ -131,14 +138,15 @@ export class FollowUpService {
 				success: false,
 				error: "Student already has active follow-up",
 				code: "ACTIVE_FOLLOW_UP_EXISTS",
-				details: "Student has an automated follow-up with status: activated or ongoing"
+				details:
+					"Student has an automated follow-up with status: activated or ongoing",
 			};
 		}
 
 		// All conditions met - create the follow-up
 		try {
 			const followUp = await this.createFollowUp(studentId, sequence.id);
-			
+
 			return {
 				success: true,
 				data: {
@@ -146,15 +154,15 @@ export class FollowUpService {
 					student_id: followUp.student_id,
 					sequence_id: followUp.sequence_id,
 					status: followUp.status,
-					started_at: followUp.started_at
-				}
+					started_at: followUp.started_at,
+				},
 			};
 		} catch (error) {
 			return {
 				success: false,
 				error: "Failed to create follow-up",
 				code: "CREATE_FAILED",
-				details: error
+				details: error,
 			};
 		}
 	}
@@ -255,7 +263,7 @@ export class FollowUpService {
 			return {
 				success: false,
 				error: "Follow-up not found",
-				code: "FOLLOW_UP_NOT_FOUND"
+				code: "FOLLOW_UP_NOT_FOUND",
 			};
 		}
 
@@ -265,7 +273,8 @@ export class FollowUpService {
 				success: false,
 				error: `Cannot advance follow-up with status: ${followUp.status}`,
 				code: "INVALID_STATUS",
-				details: "Follow-up must have status 'activated' or 'ongoing' to advance"
+				details:
+					"Follow-up must have status 'activated' or 'ongoing' to advance",
 			};
 		}
 
@@ -276,15 +285,16 @@ export class FollowUpService {
 		if (nextMessage) {
 			// Advance to next step
 			const newStep = followUp.current_step + 1;
-			const newStatus = followUp.current_step === 1 ? "ongoing" : followUp.status;
-			
+			const newStatus =
+				followUp.current_step === 1 ? "ongoing" : followUp.status;
+
 			const { data: updatedFollowUp, error: updateError } = await supabase
 				.from("automated_follow_ups")
 				.update({
 					current_step: newStep,
 					status: newStatus,
 					last_message_sent_at: now,
-					updated_at: now
+					updated_at: now,
 				})
 				.eq("id", followUpId)
 				.select()
@@ -296,7 +306,7 @@ export class FollowUpService {
 					success: false,
 					error: "Failed to advance follow-up",
 					code: "UPDATE_FAILED",
-					details: updateError
+					details: updateError,
 				};
 			}
 
@@ -310,43 +320,42 @@ export class FollowUpService {
 						id: nextMessage.id,
 						step_index: nextMessage.step_index,
 						message_content: nextMessage.message_content,
-						time_delay_hours: nextMessage.time_delay_hours
-					}
-				}
-			};
-		} else {
-			// No next message - mark as completed
-			const { data: completedFollowUp, error: completeError } = await supabase
-				.from("automated_follow_ups")
-				.update({
-					status: "completed",
-					completed_at: now,
-					updated_at: now
-				})
-				.eq("id", followUpId)
-				.select()
-				.single();
-
-			if (completeError) {
-				console.error("Error completing follow-up:", completeError);
-				return {
-					success: false,
-					error: "Failed to complete follow-up",
-					code: "COMPLETE_FAILED",
-					details: completeError
-				};
-			}
-
-			return {
-				success: true,
-				data: {
-					follow_up_id: completedFollowUp.id,
-					status: "completed",
-					completed_at: completedFollowUp.completed_at,
-					message: "Follow-up sequence completed"
-				}
+						time_delay_hours: nextMessage.time_delay_hours,
+					},
+				},
 			};
 		}
+		// No next message - mark as completed
+		const { data: completedFollowUp, error: completeError } = await supabase
+			.from("automated_follow_ups")
+			.update({
+				status: "completed",
+				completed_at: now,
+				updated_at: now,
+			})
+			.eq("id", followUpId)
+			.select()
+			.single();
+
+		if (completeError) {
+			console.error("Error completing follow-up:", completeError);
+			return {
+				success: false,
+				error: "Failed to complete follow-up",
+				code: "COMPLETE_FAILED",
+				details: completeError,
+			};
+		}
+
+		return {
+			success: true,
+			data: {
+				follow_up_id: completedFollowUp.id,
+				status: "completed",
+				completed_at: completedFollowUp.completed_at,
+				message: "Follow-up sequence completed",
+			},
+		};
 	}
 
 	/**
@@ -366,7 +375,7 @@ export class FollowUpService {
 				success: false,
 				error: "Failed to fetch active follow-ups",
 				code: "FETCH_FAILED",
-				details: fetchError
+				details: fetchError,
 			};
 		}
 
@@ -374,19 +383,19 @@ export class FollowUpService {
 			return {
 				success: true,
 				message: "No active follow-ups to stop",
-				stopped_count: 0
+				stopped_count: 0,
 			};
 		}
 
 		// Update all active follow-ups to disabled status
 		const now = new Date().toISOString();
-		const followUpIds = activeFollowUps.map(f => f.id);
-		
+		const followUpIds = activeFollowUps.map((f) => f.id);
+
 		const { data: stoppedFollowUps, error: updateError } = await supabase
 			.from("automated_follow_ups")
 			.update({
 				status: "disabled",
-				updated_at: now
+				updated_at: now,
 			})
 			.in("id", followUpIds)
 			.select();
@@ -397,7 +406,7 @@ export class FollowUpService {
 				success: false,
 				error: "Failed to stop follow-ups",
 				code: "UPDATE_FAILED",
-				details: updateError
+				details: updateError,
 			};
 		}
 
@@ -405,11 +414,11 @@ export class FollowUpService {
 			success: true,
 			message: `Successfully stopped ${stoppedFollowUps.length} follow-up(s)`,
 			stopped_count: stoppedFollowUps.length,
-			stopped_follow_ups: stoppedFollowUps.map(f => ({
+			stopped_follow_ups: stoppedFollowUps.map((f) => ({
 				id: f.id,
-				previous_status: activeFollowUps.find(af => af.id === f.id)?.status,
-				new_status: f.status
-			}))
+				previous_status: activeFollowUps.find((af) => af.id === f.id)?.status,
+				new_status: f.status,
+			})),
 		};
 	}
 
@@ -433,7 +442,7 @@ export class FollowUpService {
 				return {
 					success: false,
 					error: "Failed to fetch follow-ups",
-					details: queryError
+					details: queryError,
 				};
 			}
 
@@ -442,7 +451,7 @@ export class FollowUpService {
 					success: true,
 					message: "No follow-ups ready to send messages",
 					processed: 0,
-					timestamp: new Date().toISOString()
+					timestamp: new Date().toISOString(),
 				};
 			}
 
@@ -458,45 +467,56 @@ export class FollowUpService {
 				// Trigger make.com webhook with recordID as URL parameter
 				try {
 					const webhookUrlWithParam = `${webhookUrl}?recordID=${followUp.id}`;
-					
+
 					const response = await fetch(webhookUrlWithParam, {
 						method: "GET", // Using GET with URL param
 						headers: {
-							"User-Agent": "FLS-Automated-Follow-Up/1.0"
-						}
+							"User-Agent": "FLS-Automated-Follow-Up/1.0",
+						},
 					});
 
 					results.push({
 						recordId: followUp.id,
 						success: response.ok,
 						statusCode: response.status,
-						error: !response.ok ? `HTTP ${response.status}: ${response.statusText}` : undefined
+						error: !response.ok
+							? `HTTP ${response.status}: ${response.statusText}`
+							: undefined,
 					});
 
 					if (response.ok) {
-						console.log(`Successfully triggered webhook for record: ${followUp.id}`);
+						console.log(
+							`Successfully triggered webhook for record: ${followUp.id}`,
+						);
 					} else {
-						console.error(`Failed to trigger webhook for record: ${followUp.id}, status: ${response.status}`);
+						console.error(
+							`Failed to trigger webhook for record: ${followUp.id}, status: ${response.status}`,
+						);
 					}
 
 					// Add small delay to avoid overwhelming make.com
-					await new Promise(resolve => setTimeout(resolve, 100));
-
+					await new Promise((resolve) => setTimeout(resolve, 100));
 				} catch (webhookError) {
-					const errorMessage = webhookError instanceof Error ? webhookError.message : "Unknown error";
-					console.error(`Error triggering webhook for record ${followUp.id}:`, errorMessage);
-					
+					const errorMessage =
+						webhookError instanceof Error
+							? webhookError.message
+							: "Unknown error";
+					console.error(
+						`Error triggering webhook for record ${followUp.id}:`,
+						errorMessage,
+					);
+
 					results.push({
 						recordId: followUp.id,
 						success: false,
-						error: errorMessage
+						error: errorMessage,
 					});
 				}
 			}
 
 			// Summary statistics
-			const successful = results.filter(r => r.success).length;
-			const failed = results.filter(r => !r.success).length;
+			const successful = results.filter((r) => r.success).length;
+			const failed = results.filter((r) => !r.success).length;
 
 			return {
 				success: true,
@@ -504,18 +524,17 @@ export class FollowUpService {
 				summary: {
 					total: followUps.length,
 					successful,
-					failed
+					failed,
 				},
 				results,
-				timestamp: new Date().toISOString()
+				timestamp: new Date().toISOString(),
 			};
-
 		} catch (error) {
 			console.error("Error in triggerNextMessages:", error);
 			return {
 				success: false,
 				error: "Internal error triggering messages",
-				details: error instanceof Error ? error.message : "Unknown error"
+				details: error instanceof Error ? error.message : "Unknown error",
 			};
 		}
 	}
@@ -523,17 +542,18 @@ export class FollowUpService {
 	/**
 	 * Check recent engagements (touchpoints and assessments) and stop follow-ups for those students
 	 */
-	async checkRecentEngagementsToStop(hoursBack: number = 1) {
+	async checkRecentEngagementsToStop(hoursBack = 1) {
 		try {
 			// Calculate the timestamp for X hours ago
 			const cutoffTime = new Date();
 			cutoffTime.setHours(cutoffTime.getHours() - hoursBack);
 			const cutoffTimeISO = cutoffTime.toISOString();
 
-			// Find all touchpoints created after the cutoff time
+			// Find all outbound touchpoints created after the cutoff time
 			const { data: recentTouchpoints, error: touchpointError } = await supabase
 				.from("touchpoints")
 				.select("student_id, created_at, type, channel")
+				.eq("type", "outbound")
 				.gte("created_at", cutoffTimeISO)
 				.order("created_at", { ascending: false });
 
@@ -542,7 +562,7 @@ export class FollowUpService {
 				return {
 					success: false,
 					error: "Failed to fetch recent touchpoints",
-					details: touchpointError
+					details: touchpointError,
 				};
 			}
 
@@ -558,13 +578,15 @@ export class FollowUpService {
 				return {
 					success: false,
 					error: "Failed to fetch recent assessments",
-					details: assessmentError
+					details: assessmentError,
 				};
 			}
 
 			// Combine student IDs from both touchpoints and assessments
-			const touchpointStudentIds = recentTouchpoints?.map(tp => tp.student_id) || [];
-			const assessmentStudentIds = recentAssessments?.map(a => a.student_id) || [];
+			const touchpointStudentIds =
+				recentTouchpoints?.map((tp) => tp.student_id) || [];
+			const assessmentStudentIds =
+				recentAssessments?.map((a) => a.student_id) || [];
 			const allStudentIds = [...touchpointStudentIds, ...assessmentStudentIds];
 			const uniqueStudentIds = [...new Set(allStudentIds)];
 
@@ -576,11 +598,13 @@ export class FollowUpService {
 					assessmentsFound: 0,
 					studentsProcessed: 0,
 					followUpsStopped: 0,
-					timestamp: new Date().toISOString()
+					timestamp: new Date().toISOString(),
 				};
 			}
 
-			console.log(`Found ${recentTouchpoints?.length || 0} touchpoints and ${recentAssessments?.length || 0} assessments for ${uniqueStudentIds.length} unique students`);
+			console.log(
+				`Found ${recentTouchpoints?.length || 0} touchpoints and ${recentAssessments?.length || 0} assessments for ${uniqueStudentIds.length} unique students`,
+			);
 
 			// Process each student using the existing stopAllFollowUps function
 			const results = [];
@@ -589,25 +613,29 @@ export class FollowUpService {
 			for (const studentId of uniqueStudentIds) {
 				// Call the existing stopAllFollowUps function for each student
 				const stopResult = await this.stopAllFollowUps(studentId);
-				
-				const studentTouchpoints = recentTouchpoints?.filter(tp => tp.student_id === studentId) || [];
-				const studentAssessments = recentAssessments?.filter(a => a.student_id === studentId) || [];
-				
+
+				const studentTouchpoints =
+					recentTouchpoints?.filter((tp) => tp.student_id === studentId) || [];
+				const studentAssessments =
+					recentAssessments?.filter((a) => a.student_id === studentId) || [];
+
 				results.push({
 					studentId,
 					engagements: {
 						touchpointsCount: studentTouchpoints.length,
 						latestTouchpoint: studentTouchpoints[0]?.created_at,
-						touchpointTypes: [...new Set(studentTouchpoints.map(tp => tp.type))],
+						touchpointTypes: [
+							...new Set(studentTouchpoints.map((tp) => tp.type)),
+						],
 						assessmentsCount: studentAssessments.length,
 						latestAssessment: studentAssessments[0]?.created_at,
-						assessmentScheduledFor: studentAssessments[0]?.scheduled_for
+						assessmentScheduledFor: studentAssessments[0]?.scheduled_for,
 					},
 					stopResult: {
 						success: stopResult.success,
 						followUpsStopped: stopResult.stopped_count || 0,
-						message: stopResult.message
-					}
+						message: stopResult.message,
+					},
 				});
 
 				if (stopResult.success && stopResult.stopped_count) {
@@ -624,18 +652,17 @@ export class FollowUpService {
 					touchpointsFound: recentTouchpoints?.length || 0,
 					assessmentsFound: recentAssessments?.length || 0,
 					studentsProcessed: uniqueStudentIds.length,
-					followUpsStopped: totalFollowUpsStopped
+					followUpsStopped: totalFollowUpsStopped,
 				},
 				studentResults: results,
-				timestamp: new Date().toISOString()
+				timestamp: new Date().toISOString(),
 			};
-
 		} catch (error) {
 			console.error("Error in checkRecentEngagementsToStop:", error);
 			return {
 				success: false,
 				error: "Internal error checking recent engagements",
-				details: error instanceof Error ? error.message : "Unknown error"
+				details: error instanceof Error ? error.message : "Unknown error",
 			};
 		}
 	}

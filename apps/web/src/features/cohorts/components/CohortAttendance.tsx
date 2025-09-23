@@ -823,7 +823,9 @@ export function CohortAttendance({
 												<TableRow>
 													<TableHead className="w-[250px]">Student</TableHead>
 													<TableHead className="w-[180px]">Homework</TableHead>
-													<TableHead className="w-[180px]">Attendance</TableHead>
+													<TableHead className="w-[180px]">
+														Attendance
+													</TableHead>
 													<TableHead>Notes</TableHead>
 												</TableRow>
 											</TableHeader>
@@ -863,7 +865,11 @@ export function CohortAttendance({
 															{/* Homework */}
 															<TableCell>
 																<Select
-																	value={record.homeworkCompleted ? "completed" : "pending"}
+																	value={
+																		record.homeworkCompleted
+																			? "completed"
+																			: "pending"
+																	}
 																	onValueChange={(value) => {
 																		updateAttendance(record.id, {
 																			homeworkCompleted: value === "completed",
@@ -896,7 +902,9 @@ export function CohortAttendance({
 																<Select
 																	value={record.status}
 																	onValueChange={(value) => {
-																		updateAttendance(record.id, { status: value });
+																		updateAttendance(record.id, {
+																			status: value,
+																		});
 																	}}
 																	disabled={isUpdating}
 																>
@@ -951,7 +959,6 @@ export function CohortAttendance({
 																	</Button>
 																)}
 															</TableCell>
-
 														</TableRow>
 													);
 												})}

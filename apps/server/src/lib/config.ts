@@ -5,8 +5,13 @@ const envSchema = z.object({
 	DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 	CORS_ORIGIN: z.string().optional().default("http://localhost:3001"),
 	SUPABASE_URL: z.string().min(1, "SUPABASE_URL is required"),
-	SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-	NODE_ENV: z.enum(["development", "production", "test"]).optional().default("development"),
+	SUPABASE_SERVICE_ROLE_KEY: z
+		.string()
+		.min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
+	NODE_ENV: z
+		.enum(["development", "production", "test"])
+		.optional()
+		.default("development"),
 	// Legacy/unused - kept for compatibility but not required
 	NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
 	SUPABASE_ANON_KEY: z.string().optional(),

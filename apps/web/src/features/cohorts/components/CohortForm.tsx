@@ -403,17 +403,21 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 	// Transform teachers for select options with max students
 	const teacherOptions = teachers.map((teacher) => {
-		const name = `${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() || "Unknown";
+		const name =
+			`${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() ||
+			"Unknown";
 		// Get the appropriate max students based on product location
-		const selectedProduct = products.find(p => p.id === form.watch("product_id"));
+		const selectedProduct = products.find(
+			(p) => p.id === form.watch("product_id"),
+		);
 		const isOnline = selectedProduct?.location === "online";
-		const maxStudents = isOnline 
-			? teacher.max_students_online 
+		const maxStudents = isOnline
+			? teacher.max_students_online
 			: teacher.max_students_in_person;
-		
+
 		// Show capacity with location context
-		const label = maxStudents 
-			? `${name} (Max: ${maxStudents} students ${isOnline ? 'online' : 'in-person'})` 
+		const label = maxStudents
+			? `${name} (Max: ${maxStudents} students ${isOnline ? "online" : "in-person"})`
 			: `${name}`;
 		return {
 			label,
@@ -432,17 +436,17 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const calculateActualMaxStudents = () => {
 		const sessions = form.watch("weekly_sessions") || [];
 		const selectedTeachers = new Set(
-			sessions
-				.filter((s) => s.teacher_id)
-				.map((s) => s.teacher_id)
+			sessions.filter((s) => s.teacher_id).map((s) => s.teacher_id),
 		);
-		
+
 		if (selectedTeachers.size === 0) {
 			return form.watch("max_students") || 20;
 		}
 
 		// Get product location to determine which capacity to use
-		const selectedProduct = products.find(p => p.id === form.watch("product_id"));
+		const selectedProduct = products.find(
+			(p) => p.id === form.watch("product_id"),
+		);
 		const isOnline = selectedProduct?.location === "online";
 
 		// Find the minimum capacity among selected teachers
@@ -450,8 +454,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		selectedTeachers.forEach((teacherId) => {
 			const teacher = teachers.find((t) => t.id === teacherId);
 			if (teacher) {
-				const teacherCapacity = isOnline 
-					? teacher.max_students_online 
+				const teacherCapacity = isOnline
+					? teacher.max_students_online
 					: teacher.max_students_in_person;
 				if (teacherCapacity && teacherCapacity < minCapacity) {
 					minCapacity = teacherCapacity;
@@ -460,8 +464,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		});
 
 		const cohortMax = form.watch("max_students") || 20;
-		return minCapacity === Number.MAX_SAFE_INTEGER 
-			? cohortMax 
+		return minCapacity === Number.MAX_SAFE_INTEGER
+			? cohortMax
 			: Math.min(cohortMax, minCapacity);
 	};
 
@@ -512,9 +516,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								<SelectField
 									placeholder="Select a product"
 									value={form.watch("product_id") || ""}
-									onValueChange={(value) =>
-										form.setValue("product_id", value)
-									}
+									onValueChange={(value) => form.setValue("product_id", value)}
 									options={productOptions}
 								/>
 							</FormField>
@@ -797,7 +799,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							</FormRow>
 						</FormSection>
 
-			
 						{/* External References */}
 						<FormSection
 							title="External References"

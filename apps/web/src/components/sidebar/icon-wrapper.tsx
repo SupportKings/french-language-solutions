@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import type { LucideIcon } from "lucide-react";
 
 type IconWrapperProps = {
@@ -27,7 +28,13 @@ export function IconWrapper({ name, size = 16, className }: IconWrapperProps) {
 
 	// Return a placeholder with the same dimensions to prevent layout shift
 	if (!Icon) {
-		return <div style={{ width: size, height: size }} className={className} aria-hidden />;
+		return (
+			<div
+				style={{ width: size, height: size }}
+				className={className}
+				aria-hidden
+			/>
+		);
 	}
 
 	return <Icon size={size} className={className} aria-hidden />;

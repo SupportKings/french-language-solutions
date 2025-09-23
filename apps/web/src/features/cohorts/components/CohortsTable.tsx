@@ -19,12 +19,7 @@ import {
 } from "@/components/ui/table";
 
 import { format } from "date-fns";
-import {
-	BookOpen,
-	Clock,
-	User,
-	Users,
-} from "lucide-react";
+import { BookOpen, Clock, User, Users } from "lucide-react";
 import type {
 	Cohort,
 	CohortStatus,
@@ -91,7 +86,6 @@ const getStatusVariant = (status: CohortStatus) => {
 	}
 };
 
-
 // Format status for display
 const formatStatus = (status: CohortStatus) => {
 	return status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -110,7 +104,6 @@ const formatLevel = (level: any) => {
 	}
 	return "—";
 };
-
 
 export function CohortsTable({
 	cohorts,

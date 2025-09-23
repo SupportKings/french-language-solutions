@@ -23,6 +23,8 @@ app.delete("/:id", (c) => controller.delete(c));
 app.get("/search/email", (c) => controller.searchByEmail(c));
 
 // Search students by Tally form submission ID
-app.get("/search/tally-submission-id", (c) => controller.getByTallySubmissionId(c));
+app.get("/search/tally-submission-id", (c) =>
+	controller.getByTallySubmissionId(c),
+);
 
 export default app;

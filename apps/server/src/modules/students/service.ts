@@ -38,7 +38,8 @@ export class StudentService {
 			.eq("email", email)
 			.single();
 
-		if (error && error.code !== "PGRST116") { // PGRST116 is "no rows returned"
+		if (error && error.code !== "PGRST116") {
+			// PGRST116 is "no rows returned"
 			console.error("Error finding student by email:", error);
 		}
 
@@ -89,11 +90,11 @@ export class StudentService {
 			updated_at: new Date().toISOString(),
 			// Spread other fields, they should already have correct column names
 			...Object.keys(data).reduce((acc, key) => {
-				if (!['name', 'email', 'phone'].includes(key)) {
+				if (!["name", "email", "phone"].includes(key)) {
 					acc[key] = data[key];
 				}
 				return acc;
-			}, {} as any)
+			}, {} as any),
 		};
 
 		const { data: student, error } = await supabase
@@ -154,22 +155,24 @@ export class StudentService {
 		return data;
 	}
 
-	async upsert(email: string, data: {
-		name: string;
-		[key: string]: any;
-	}) {
+	async upsert(
+		email: string,
+		data: {
+			name: string;
+			[key: string]: any;
+		},
+	) {
 		const existing = await this.findByEmail(email);
-		
+
 		if (existing) {
 			return {
 				action: "updated" as const,
 				student: await this.update(existing.id, data),
 			};
-		} else {
-			return {
-				action: "created" as const,
-				student: await this.create({ ...data, email }),
-			};
 		}
+		return {
+			action: "created" as const,
+			student: await this.create({ ...data, email }),
+		};
 	}
 }

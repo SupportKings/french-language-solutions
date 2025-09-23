@@ -19,13 +19,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance";
@@ -222,13 +222,19 @@ export function CohortDetailPageClient({
 
 			setLoadingEnrollments(true);
 			try {
-				const response = await fetch(`/api/enrollments?cohortId=${cohortId}&limit=1000`);
+				const response = await fetch(
+					`/api/enrollments?cohortId=${cohortId}&limit=1000`,
+				);
 				if (response.ok) {
 					const result = await response.json();
 					const enrollments = result.enrollments || [];
-					
-					const paid = enrollments.filter((e: any) => e.status === "paid").length;
-					const welcomePackageSent = enrollments.filter((e: any) => e.status === "welcome_package_sent").length;
+
+					const paid = enrollments.filter(
+						(e: any) => e.status === "paid",
+					).length;
+					const welcomePackageSent = enrollments.filter(
+						(e: any) => e.status === "welcome_package_sent",
+					).length;
 					const total = paid + welcomePackageSent;
 					const maxStudents = cohort?.max_students || 10;
 
@@ -687,14 +693,16 @@ export function CohortDetailPageClient({
 			<div className="space-y-4 px-6 py-4">
 				{/* Enrollment Progress - Compact */}
 				<div className="rounded-lg border bg-card">
-					<div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
-						<h2 className="font-medium text-sm flex items-center gap-2">
+					<div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
+						<h2 className="flex items-center gap-2 font-medium text-sm">
 							<Users className="h-4 w-4 text-primary" />
 							Enrollment Progress
 						</h2>
 						<div className="text-right">
 							{loadingEnrollments ? (
-								<span className="text-muted-foreground text-xs">Loading...</span>
+								<span className="text-muted-foreground text-xs">
+									Loading...
+								</span>
 							) : (
 								<>
 									<div className="font-semibold text-lg">
@@ -718,14 +726,15 @@ export function CohortDetailPageClient({
 										className="h-full bg-gradient-to-r from-blue-800 to-blue-600/80 transition-all duration-500 ease-out"
 										style={{
 											width: `${Math.min(
-												(enrollmentData.total / enrollmentData.maxStudents) * 100,
-												100
+												(enrollmentData.total / enrollmentData.maxStudents) *
+													100,
+												100,
 											)}%`,
 										}}
 									/>
 								</div>
 								{enrollmentData.total > enrollmentData.maxStudents && (
-									<div className="absolute right-0 top-0 h-2 w-1 bg-yellow-500 rounded-r-full" />
+									<div className="absolute top-0 right-0 h-2 w-1 rounded-r-full bg-yellow-500" />
 								)}
 							</div>
 
@@ -738,20 +747,27 @@ export function CohortDetailPageClient({
 								</div>
 								<div className="flex items-center gap-1.5">
 									<div className="h-2 w-2 rounded-full bg-blue-500" />
-									<span className="text-muted-foreground">Welcome Package Sent:</span>
-									<span className="font-medium">{enrollmentData.welcomePackageSent}</span>
+									<span className="text-muted-foreground">
+										Welcome Package Sent:
+									</span>
+									<span className="font-medium">
+										{enrollmentData.welcomePackageSent}
+									</span>
 								</div>
 								<div className="text-right">
 									{enrollmentData.maxStudents - enrollmentData.total > 0 ? (
 										<span className="text-muted-foreground">
-											<span className="font-medium text-foreground">{enrollmentData.maxStudents - enrollmentData.total}</span> spots left
+											<span className="font-medium text-foreground">
+												{enrollmentData.maxStudents - enrollmentData.total}
+											</span>{" "}
+											spots left
 										</span>
 									) : enrollmentData.total > enrollmentData.maxStudents ? (
-										<span className="text-yellow-600 font-medium">
+										<span className="font-medium text-yellow-600">
 											+{enrollmentData.total - enrollmentData.maxStudents} over
 										</span>
 									) : (
-										<span className="text-green-600 font-medium">Full</span>
+										<span className="font-medium text-green-600">Full</span>
 									)}
 								</div>
 							</div>
@@ -849,12 +865,11 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
-
 								</div>
 							</div>
 
-														{/* Language Levels */}
-														<div className="space-y-4">
+							{/* Language Levels */}
+							<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 									Language Progress
 								</h3>
@@ -956,7 +971,6 @@ export function CohortDetailPageClient({
 								</div>
 							</div>
 
-
 							{/* Product Information */}
 							<div className="space-y-4">
 								<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
@@ -971,10 +985,15 @@ export function CohortDetailPageClient({
 												<InlineEditField
 													value={editedCohort?.product_id || ""}
 													onSave={async (value) => {
-														await updateEditedField("product_id", value || null);
+														await updateEditedField(
+															"product_id",
+															value || null,
+														);
 														// Update format and location based on selected product
 														if (value) {
-															const selectedProduct = products.find(p => p.id === value);
+															const selectedProduct = products.find(
+																(p) => p.id === value,
+															);
 															if (selectedProduct) {
 																setEditedCohort((prev: any) => ({
 																	...prev,
@@ -1021,9 +1040,18 @@ export function CohortDetailPageClient({
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">Format:</p>
 											<p className="font-medium text-sm">
-												{editedCohort?.products?.format || cohort.products?.format
-													? (editedCohort?.products?.format || cohort.products?.format).charAt(0).toUpperCase() +
-														(editedCohort?.products?.format || cohort.products?.format).slice(1)
+												{editedCohort?.products?.format ||
+												cohort.products?.format
+													? (
+															editedCohort?.products?.format ||
+															cohort.products?.format
+														)
+															.charAt(0)
+															.toUpperCase() +
+														(
+															editedCohort?.products?.format ||
+															cohort.products?.format
+														).slice(1)
 													: "N/A"}
 											</p>
 										</div>
@@ -1035,21 +1063,22 @@ export function CohortDetailPageClient({
 											<p className="text-muted-foreground text-xs">Location:</p>
 											<p className="font-medium text-sm">
 												{(() => {
-													const location = editedCohort?.products?.location || cohort.products?.location;
+													const location =
+														editedCohort?.products?.location ||
+														cohort.products?.location;
 													if (!location) return "N/A";
 													return location === "in_person"
 														? "In-Person"
 														: location === "online"
 															? "Online"
-															: location.charAt(0).toUpperCase() + location.slice(1);
+															: location.charAt(0).toUpperCase() +
+																location.slice(1);
 												})()}
 											</p>
 										</div>
 									</div>
 								</div>
 							</div>
-
-
 						</div>
 					)}
 				</EditableSection>
@@ -1113,8 +1142,6 @@ export function CohortDetailPageClient({
 													{formatTime(session.end_time)}
 												</span>
 											</div>
-
-											
 										</div>
 										{/* Content */}
 										<div className="space-y-2 p-3">
@@ -1162,7 +1189,6 @@ export function CohortDetailPageClient({
 													</Badge>
 												</div>
 											)}
-
 										</div>
 									</div>
 								))}

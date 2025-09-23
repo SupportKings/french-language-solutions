@@ -18,19 +18,17 @@ export class ClassBookingController {
 			return c.json({
 				success: true,
 				cohorts: cohorts,
-				count: cohorts.length
+				count: cohorts.length,
 			});
-
 		} catch (error) {
 			console.error("Error getting available cohorts:", error);
 			return c.json(
 				{
 					success: false,
-					error: "Failed to retrieve available cohorts"
+					error: "Failed to retrieve available cohorts",
 				},
-				500
+				500,
 			);
 		}
 	}
-
 }
