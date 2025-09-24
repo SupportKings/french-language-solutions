@@ -3,8 +3,7 @@
   "installCommand": "curl -fsSL https://bun.sh/install | bash",
   "functions": {
     "src/index.ts": {
-      "maxDuration": 30,
-      "runtime": "nodejs20.x"
+      "maxDuration": 30
     }
   },
   "rewrites": [
