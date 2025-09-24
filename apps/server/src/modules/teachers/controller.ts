@@ -32,14 +32,23 @@ export class TeacherController {
 	 */
 	async getAvailableTeachers(c: Context) {
 		try {
+			console.log("📥 Teachers available endpoint called");
+			console.log("📝 Request method:", c.req.method);
+			console.log("📝 Request URL:", c.req.url);
+
 			// Parse and validate request body
 			const body = await c.req.json();
+			console.log("📝 Request body:", JSON.stringify(body));
+
 			const validatedData = getAvailableTeachersSchema.parse(body);
+			console.log("✅ Validation passed:", validatedData);
 
 			// Get available teachers
 			const availableTeachers = await this.teacherService.getAvailableTeachers(
 				validatedData as GetAvailableTeachersRequest,
 			);
+
+			console.log(`✅ Found ${availableTeachers.length} available teachers`);
 
 			return c.json({
 				success: true,
@@ -47,7 +56,10 @@ export class TeacherController {
 				count: availableTeachers.length,
 			});
 		} catch (error) {
+			console.error("❌ Error in getAvailableTeachers:", error);
+
 			if (error instanceof z.ZodError) {
+				console.error("❌ Validation errors:", error.issues);
 				return c.json(
 					{
 						success: false,
@@ -63,6 +75,8 @@ export class TeacherController {
 
 			const errorMessage =
 				error instanceof Error ? error.message : "Unknown error occurred";
+
+			console.error("❌ Error message:", errorMessage);
 
 			return c.json(
 				{
