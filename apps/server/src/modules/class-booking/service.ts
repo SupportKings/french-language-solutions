@@ -5,8 +5,10 @@ export class ClassBookingService {
 	async findAvailableCohortsWithSessions(currentLevelCode = "a0") {
 		// Get current date + 14 days
 		const minStartDate = new Date();
-		minStartDate.setDate(minStartDate.getDate() + 14);
+		minStartDate.setDate(minStartDate.getDate() - 14);
 		const minStartDateStr = minStartDate.toISOString().split("T")[0];
+
+		console.log("🔍 Min start date:", minStartDateStr);
 
 		// Find language level with code a0
 		const { data: level, error: levelError } = await supabase
@@ -15,6 +17,7 @@ export class ClassBookingService {
 			.eq("code", currentLevelCode)
 			.single();
 
+		
 		if (levelError || !level) {
 			console.error("Error finding language level:", levelError);
 			return [];
@@ -31,6 +34,9 @@ export class ClassBookingService {
 			.gte("start_date", minStartDateStr)
 			.eq("current_level_id", level.id)
 			.eq("cohort_status", "enrollment_open");
+
+
+			console.log("🔍 Found cohorts:", cohorts);
 
 		if (cohortsError || !cohorts) {
 			console.error("Error finding cohorts:", cohortsError);
