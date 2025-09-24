@@ -39,4 +39,8 @@ export interface AvailableTeacher {
 	first_name: string;
 	last_name: string;
 	google_calendar_id: string;
+	current_weekly_hours: number;
+	daily_hours: Record<DayOfWeek, number>;
+	maximum_hours_per_week: number | null;
+	maximum_hours_per_day: number | null;
 }

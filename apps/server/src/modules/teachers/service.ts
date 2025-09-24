@@ -106,13 +106,13 @@ export class TeacherService {
 			.from("teachers")
 			.select(`
 				*,
-				weekly_sessions!weekly_sessions_teacher_id_fkey (
+				weekly_sessions!weekly_sessions_teacher_id_teachers_id_fk (
 					id,
 					cohort_id,
 					day_of_week,
 					start_time,
 					end_time,
-					cohort:cohorts!weekly_sessions_cohort_id_fkey (
+					cohort:cohorts!weekly_sessions_cohort_id_cohorts_id_fk (
 						id,
 						cohort_status
 					)
@@ -186,12 +186,16 @@ export class TeacherService {
 				continue;
 			}
 
-			// Teacher is available - only return essential info
+			// Teacher is available - return info with workload data and limits
 			availableTeachers.push({
 				id: teacher.id,
 				first_name: teacher.first_name,
 				last_name: teacher.last_name,
 				google_calendar_id: teacher.google_calendar_id!,
+				current_weekly_hours: weeklyHours,
+				daily_hours: dailyHours,
+				maximum_hours_per_week: teacher.maximum_hours_per_week,
+				maximum_hours_per_day: teacher.maximum_hours_per_day,
 			});
 		}
 
