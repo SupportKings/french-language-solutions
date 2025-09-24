@@ -97,11 +97,8 @@ if (env.NODE_ENV !== "production" || !process.env.VERCEL) {
 	console.log(`🔗 CORS origins: ${env.CORS_ORIGIN}`);
 }
 
-// Export the Hono app for Vercel
-export { app };
+// Export the Hono app and port
+export { app, port };
 
-// Export port for local development
-export { port };
-
-// Default export for backwards compatibility
+// Default export for CommonJS compatibility
 export default app;

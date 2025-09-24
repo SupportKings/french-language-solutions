@@ -1,9 +1,8 @@
 {
 	"name": "server",
 	"main": "dist/index.js",
-	"type": "module",
 	"scripts": {
-		"build": "tsdown src/index.ts --unbundle --out-dir dist --esm --platform node",
+		"build": "tsdown src/index.ts --unbundle --out-dir dist --format cjs --platform node",
 		"check-types": "tsc --noEmit",
 		"compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
 		"dev": "bun run --hot src/index.ts",

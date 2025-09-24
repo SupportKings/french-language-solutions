@@ -29,6 +29,11 @@ export function validateEnv(): Env {
 				console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
 			}
 		}
+		// In production (Vercel), throw error instead of exiting
+		if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+			throw new Error("Invalid environment variables");
+		}
+		// In development, exit the process
 		process.exit(1);
 	}
 }
