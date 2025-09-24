@@ -1,9 +1,15 @@
 {
-  "buildCommand": "bun install && bun run build",
+  "buildCommand": "bun install && bun run build && mkdir -p api && cp -r dist/* api/",
   "installCommand": "curl -fsSL https://bun.sh/install | bash",
   "functions": {
-    "dist/index.js": {
+    "api/index.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
 }
