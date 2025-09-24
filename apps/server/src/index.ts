@@ -3,6 +3,7 @@ import "dotenv/config";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { handle } from "hono/vercel";
 import { logger } from "hono/logger";
 import { env } from "./lib/config";
 import { createContext } from "./lib/context";
@@ -94,7 +95,8 @@ console.log(`🚀 Server configured to run on port ${port}`);
 console.log(`📝 Environment: ${env.NODE_ENV}`);
 console.log(`🔗 CORS origins: ${env.CORS_ORIGIN}`);
 
-export default {
-	port,
-	fetch: app.fetch,
-};
+// For Vercel deployment
+export default handle(app);
+
+// For local development with Bun
+export { app, port };
