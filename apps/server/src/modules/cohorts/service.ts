@@ -172,7 +172,7 @@ export class CohortService {
 				.in("id", Array.from(teacherUserIds));
 
 			if (users) {
-				users.forEach((user) => {
+				users.forEach((user: { email: string | null }) => {
 					if (user.email) {
 						attendees.push(user.email);
 					}
