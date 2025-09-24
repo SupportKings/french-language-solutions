@@ -33,6 +33,30 @@ async function getRawBody(req) {
       // Don't use req.body as it throws "Invalid JSON" error in Vercel
       if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'DELETE') {
         body = await getRawBody(req)
+
+        // Debug logging
+        console.log('🔍 Request URL:', url)
+        console.log('🔍 Request Method:', req.method)
+        console.log('🔍 Content-Type:', req.headers['content-type'])
+        console.log('🔍 Body length:', body?.length)
+
+        // Log first 500 chars of body to see what's being sent
+        if (body) {
+          console.log('🔍 Body preview (first 500 chars):', body.substring(0, 500))
+
+          // Check if it's valid JSON
+          try {
+            const parsed = JSON.parse(body)
+            console.log('✅ Valid JSON parsed:', parsed)
+          } catch (e) {
+            console.error('❌ Invalid JSON at handler level:', e.message)
+            console.error('❌ Full body:', body)
+            // Show the problematic area around position 152
+            if (body.length >= 152) {
+              console.error('❌ Around position 152:', body.substring(140, 165))
+            }
+          }
+        }
       }
   
       const request = new Request(url, {
