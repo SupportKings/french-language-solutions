@@ -30,7 +30,7 @@ export class FollowUpService {
 			"dropped_out",
 			"declined_contract",
 		];
-		const hasRestrictedStatus = allEnrollments.some((enrollment) =>
+		const hasRestrictedStatus = allEnrollments.some((enrollment: { id: string; status: string }) =>
 			restrictedStatuses.includes(enrollment.status),
 		);
 
@@ -392,7 +392,7 @@ export class FollowUpService {
 
 		// Update all active follow-ups to disabled status
 		const now = new Date().toISOString();
-		const followUpIds = activeFollowUps.map((f) => f.id);
+		const followUpIds = activeFollowUps.map((f: { id: string }) => f.id);
 
 		const { data: stoppedFollowUps, error: updateError } = await supabase
 			.from("automated_follow_ups")
@@ -417,9 +417,9 @@ export class FollowUpService {
 			success: true,
 			message: `Successfully stopped ${stoppedFollowUps.length} follow-up(s)`,
 			stopped_count: stoppedFollowUps.length,
-			stopped_follow_ups: stoppedFollowUps.map((f) => ({
+			stopped_follow_ups: stoppedFollowUps.map((f: any) => ({
 				id: f.id,
-				previous_status: activeFollowUps.find((af) => af.id === f.id)?.status,
+				previous_status: activeFollowUps.find((af: { id: string; status: string }) => af.id === f.id)?.status,
 				new_status: f.status,
 			})),
 		};
@@ -598,9 +598,9 @@ export class FollowUpService {
 
 			// Combine student IDs from both touchpoints and assessments
 			const touchpointStudentIds =
-				recentTouchpoints?.map((tp) => tp.student_id) || [];
+				recentTouchpoints?.map((tp: { student_id: string }) => tp.student_id) || [];
 			const assessmentStudentIds =
-				recentAssessments?.map((a) => a.student_id) || [];
+				recentAssessments?.map((a: { student_id: string }) => a.student_id) || [];
 			const allStudentIds = [...touchpointStudentIds, ...assessmentStudentIds];
 			const uniqueStudentIds = [...new Set(allStudentIds)];
 
@@ -631,9 +631,9 @@ export class FollowUpService {
 				const stopResult = await this.stopAllFollowUps(studentId);
 
 				const studentTouchpoints =
-					recentTouchpoints?.filter((tp) => tp.student_id === studentId) || [];
+					recentTouchpoints?.filter((tp: { student_id: string }) => tp.student_id === studentId) || [];
 				const studentAssessments =
-					recentAssessments?.filter((a) => a.student_id === studentId) || [];
+					recentAssessments?.filter((a: { student_id: string }) => a.student_id === studentId) || [];
 
 				results.push({
 					studentId,
@@ -641,7 +641,7 @@ export class FollowUpService {
 						touchpointsCount: studentTouchpoints.length,
 						latestTouchpoint: studentTouchpoints[0]?.created_at,
 						touchpointTypes: [
-							...new Set(studentTouchpoints.map((tp) => tp.type)),
+							...new Set(studentTouchpoints.map((tp: { type: string }) => tp.type)),
 						],
 						assessmentsCount: studentAssessments.length,
 						latestAssessment: studentAssessments[0]?.created_at,
