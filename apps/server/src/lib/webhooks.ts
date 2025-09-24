@@ -1,14 +1,9 @@
 /**
  * Webhook Configuration
  *
- * TODO: Update these webhook URLs with your actual Make.com webhook URLs
- * Each webhook triggers a different automation scenario in Make.com
- *
  * WEBHOOK PURPOSES:
  * - cohortSetup: Creates Google Calendar events when cohort setup is finalized
  * - followUpTriggered: Automated email/SMS sequences for follow-ups
- * - touchpointCreated: CRM integration, interaction tracking for touchpoints
- * - assessmentCompleted: Level placement, course recommendations after assessments
  */
 
 export const webhooks = {
@@ -33,7 +28,7 @@ export function isWebhookConfigured(
 	const url = providerWebhooks[webhookKey];
 
 	// Check if URL exists and is not a placeholder
-	return Boolean(url && !url.includes("YOUR_") && !url.includes("_HERE"));
+	return Boolean(url);
 }
 
 /**
