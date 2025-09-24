@@ -3,7 +3,6 @@ import "dotenv/config";
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { handle } from "hono/vercel";
 import { logger } from "hono/logger";
 import { env } from "./lib/config";
 import { createContext } from "./lib/context";
@@ -91,12 +90,18 @@ app.notFound((c) => {
 
 const port = Number(env.PORT);
 
-console.log(`🚀 Server configured to run on port ${port}`);
-console.log(`📝 Environment: ${env.NODE_ENV}`);
-console.log(`🔗 CORS origins: ${env.CORS_ORIGIN}`);
+// Only log in development or when not in Vercel
+if (env.NODE_ENV !== "production" || !process.env.VERCEL) {
+	console.log(`🚀 Server configured to run on port ${port}`);
+	console.log(`📝 Environment: ${env.NODE_ENV}`);
+	console.log(`🔗 CORS origins: ${env.CORS_ORIGIN}`);
+}
 
-// For Vercel deployment
-export default handle(app);
+// Export the Hono app for Vercel
+export { app };
 
-// For local development with Bun
-export { app, port };
+// Export port for local development
+export { port };
+
+// Default export for backwards compatibility
+export default app;
