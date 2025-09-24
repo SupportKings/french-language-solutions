@@ -134,26 +134,8 @@ export class FollowUpController {
 
 	async triggerNextMessages(c: Context) {
 		try {
-			// Parse optional request body
-			const body = await c.req.json().catch(() => ({}));
-			const { webhookUrl } = body;
-
-			// Use provided webhook URL or fallback to environment variable
-			const makeWebhookUrl = webhookUrl || process.env.MAKE_WEBHOOK_URL;
-
-			if (!makeWebhookUrl) {
-				return c.json(
-					{
-						success: false,
-						error:
-							"Webhook URL not configured. Set MAKE_WEBHOOK_URL environment variable or provide webhookUrl in request body",
-					},
-					400,
-				);
-			}
-
 			// Call service to find and trigger webhooks
-			const result = await this.service.triggerNextMessages(makeWebhookUrl);
+			const result = await this.service.triggerNextMessages();
 
 			return c.json(result);
 		} catch (error) {
@@ -185,6 +167,30 @@ export class FollowUpController {
 				{
 					success: false,
 					error: "Failed to check recent engagements",
+					details: error instanceof Error ? error.message : "Unknown error",
+				},
+				500,
+			);
+		}
+	}
+
+	/**
+	 * Find students needing follow-ups and trigger the flow
+	 * Criteria:
+	 * - Not full beginners
+	 * - Created within last 24 hours
+	 * - No assessment-related touchpoint in last 24 hours
+	 */
+	async findAndTriggerStudentFollowUps(c: Context) {
+		try {
+			const result = await this.service.findAndTriggerStudentFollowUps();
+			return c.json(result);
+		} catch (error) {
+			console.error("Error finding and triggering student follow-ups:", error);
+			return c.json(
+				{
+					success: false,
+					error: "Failed to find and trigger student follow-ups",
 					details: error instanceof Error ? error.message : "Unknown error",
 				},
 				500,

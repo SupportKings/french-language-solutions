@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { getWebhookUrl } from "../../lib/webhooks";
 
 export class FollowUpService {
 	/**
@@ -190,7 +191,8 @@ export class FollowUpService {
 	async getStudentFollowUps(studentId: string) {
 		const { data: followUps, error } = await supabase
 			.from("automated_follow_ups")
-			.select(`
+			.select(
+				`
 				*,
 				template_follow_up_sequences (
 					id,
@@ -198,7 +200,8 @@ export class FollowUpService {
 					subject,
 					backend_name
 				)
-			`)
+			`,
+			)
 			.eq("student_id", studentId)
 			.order("created_at", { ascending: false });
 
@@ -425,7 +428,7 @@ export class FollowUpService {
 	/**
 	 * Find follow-ups ready to send next message and trigger webhooks
 	 */
-	async triggerNextMessages(webhookUrl: string) {
+	async triggerNextMessages() {
 		try {
 			// Query the view to find follow-ups ready to send next message
 			const { data: followUps, error: queryError } = await supabase
@@ -466,6 +469,17 @@ export class FollowUpService {
 			for (const followUp of followUps) {
 				// Trigger make.com webhook with recordID as URL parameter
 				try {
+					// Get webhook URL from centralized configuration
+					const webhookUrl = getWebhookUrl("make", "followUpTriggered");
+					if (!webhookUrl) {
+						results.push({
+							recordId: followUp.id,
+							success: false,
+							error: "Webhook URL not configured",
+						});
+						continue;
+					}
+
 					const webhookUrlWithParam = `${webhookUrl}?recordID=${followUp.id}`;
 
 					const response = await fetch(webhookUrlWithParam, {
@@ -603,7 +617,9 @@ export class FollowUpService {
 			}
 
 			console.log(
-				`Found ${recentTouchpoints?.length || 0} touchpoints and ${recentAssessments?.length || 0} assessments for ${uniqueStudentIds.length} unique students`,
+				`Found ${recentTouchpoints?.length || 0} touchpoints and ${
+					recentAssessments?.length || 0
+				} assessments for ${uniqueStudentIds.length} unique students`,
 			);
 
 			// Process each student using the existing stopAllFollowUps function
@@ -663,6 +679,141 @@ export class FollowUpService {
 				success: false,
 				error: "Internal error checking recent engagements",
 				details: error instanceof Error ? error.message : "Unknown error",
+			};
+		}
+	}
+
+	/**
+	 * Find students that need automated follow-ups based on criteria:
+	 * 1. Student is not a full beginner
+	 * 2. Student record created within last 24 hours
+	 * 3. No touchpoint mentioning "assessment" in last 24 hours
+	 *
+	 * Then trigger the follow-up flow for these students
+	 */
+	async findAndTriggerStudentFollowUps() {
+		try {
+			// Calculate 24 hours ago
+			const twentyFourHoursAgo = new Date();
+			twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+			const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+
+			// Find students created in last 24 hours who are not full beginners
+			const { data: recentStudents, error: studentError } = await supabase
+				.from("students")
+				.select(
+					"id, first_name, last_name, email, mobile_phone_number, is_full_beginner, created_at",
+				)
+				.gte("created_at", twentyFourHoursAgoISO)
+				.eq("is_full_beginner", false); // Not full beginner
+
+			if (studentError) {
+				console.error("Error fetching recent students:", studentError);
+				return {
+					success: false,
+					error: "Failed to fetch recent students",
+					details: studentError,
+				};
+			}
+
+			if (!recentStudents || recentStudents.length === 0) {
+				return {
+					success: true,
+					message: "No students found matching criteria",
+					processed: 0,
+					timestamp: new Date().toISOString(),
+				};
+			}
+
+			// For each student, check if they have any touchpoint mentioning assessment in last 24 hours
+			const studentsNeedingFollowUp = [];
+
+			for (const student of recentStudents) {
+				// Check for recent touchpoints that indicate assessment activity
+				const { data: touchpoints, error: touchpointError } = await supabase
+					.from("touchpoints")
+					.select("id, message")
+					.eq("student_id", student.id)
+					.gte("created_at", twentyFourHoursAgoISO)
+					.ilike("message", "%assessment%")
+					.limit(1);
+
+				if (touchpointError) {
+					console.error(
+						`Error checking touchpoints for student ${student.id}:`,
+						touchpointError,
+					);
+					continue;
+				}
+
+				// If no recent assessment-related touchpoint, add to follow-up list
+				if (!touchpoints || touchpoints.length === 0) {
+					studentsNeedingFollowUp.push(student);
+				}
+			}
+
+			if (studentsNeedingFollowUp.length === 0) {
+				return {
+					success: true,
+					message:
+						"No students need follow-ups (all have recent assessment-related touchpoints)",
+					processed: 0,
+					studentsChecked: recentStudents.length,
+					timestamp: new Date().toISOString(),
+				};
+			}
+
+			// Set follow-ups for these students
+			const results = [];
+
+			for (const student of studentsNeedingFollowUp) {
+				try {
+					// Use the existing setFollowUp method to create follow-up
+					const followUpResult = await this.setFollowUp(student.id, "default");
+
+					results.push({
+						studentId: student.id,
+						studentName: `${student.first_name} ${student.last_name}`,
+						success: followUpResult.success,
+						followUpId: followUpResult.data?.follow_up_id,
+						error: followUpResult.error,
+						code: followUpResult.code,
+					});
+				} catch (error) {
+					const errorMessage =
+						error instanceof Error ? error.message : "Unknown error";
+					results.push({
+						studentId: student.id,
+						studentName: `${student.first_name} ${student.last_name}`,
+						success: false,
+						error: errorMessage,
+					});
+				}
+			}
+
+			// Summary
+			const successful = results.filter((r) => r.success).length;
+			const failed = results.filter((r) => !r.success).length;
+
+			return {
+				success: true,
+				message: `Processed ${studentsNeedingFollowUp.length} students for follow-ups`,
+				summary: {
+					studentsChecked: recentStudents.length,
+					studentsNeedingFollowUp: studentsNeedingFollowUp.length,
+					followUpsCreated: successful,
+					failed: failed,
+				},
+				results,
+				timestamp: new Date().toISOString(),
+			};
+		} catch (error) {
+			console.error("Error in findAndTriggerStudentFollowUps:", error);
+			return {
+				success: false,
+				error: "Internal error finding students for follow-ups",
+				details: error instanceof Error ? error.message : "Unknown error",
+				timestamp: new Date().toISOString(),
 			};
 		}
 	}

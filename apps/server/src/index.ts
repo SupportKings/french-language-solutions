@@ -7,6 +7,7 @@ import { logger } from "hono/logger";
 import { env } from "./lib/config";
 import { createContext } from "./lib/context";
 import classBookingRoutes from "./modules/class-booking/routes";
+import cohortsRoutes from "./modules/cohorts/routes";
 import followUpRoutes from "./modules/follow-ups/routes";
 // Import API modules
 import studentsRoutes from "./modules/students/routes";
@@ -63,6 +64,7 @@ app.use(
 // Mount API routes
 app.route("/api/students", studentsRoutes);
 app.route("/api/class-booking", classBookingRoutes);
+app.route("/api/cohorts", cohortsRoutes);
 app.route("/api/follow-ups", followUpRoutes);
 app.route("/api/teachers", teachersRoutes);
 

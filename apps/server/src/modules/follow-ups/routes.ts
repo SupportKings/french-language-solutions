@@ -31,4 +31,9 @@ followUpRoutes.post("/check-recent-engagements-to-stop", (c) =>
 	controller.checkRecentEngagementsToStop(c),
 );
 
+// Find students needing follow-ups and trigger the flow
+followUpRoutes.post("/find-and-trigger-students", (c) =>
+	controller.findAndTriggerStudentFollowUps(c),
+);
+
 export default followUpRoutes;
