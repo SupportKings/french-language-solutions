@@ -63,14 +63,14 @@ export class CohortService {
 			.from("cohorts")
 			.select(`
 				*,
-				product:products!cohorts_product_id_fkey(*),
-				weekly_sessions!weekly_sessions_cohort_id_fkey(
+				product:products!cohorts_product_id_products_id_fk(*),
+				weekly_sessions(
 					*,
-					teacher:teachers!weekly_sessions_teacher_id_fkey(*)
+					teacher:teachers(*)
 				),
-				enrollments!enrollments_cohort_id_fkey(
+				enrollments!enrollments_cohort_id_cohorts_id_fk(
 					*,
-					student:students!enrollments_student_id_fkey(*)
+					student:students!enrollments_student_id_students_id_fk(*)
 				)
 			`)
 			.eq("id", cohortId)
@@ -151,10 +151,12 @@ export class CohortService {
 		// Collect all attendee emails
 		const attendees: string[] = [];
 
-		// Add student emails
+		// Add student emails (only paid or welcome_package_sent)
 		cohort.enrollments.forEach((enrollment) => {
-			if (enrollment.student.email) {
-				attendees.push(enrollment.student.email);
+			if (enrollment.status === 'paid' || enrollment.status === 'welcome_package_sent') {
+				if (enrollment.student.email) {
+					attendees.push(enrollment.student.email);
+				}
 			}
 		});
 
@@ -233,50 +235,89 @@ export class CohortService {
 	/**
 	 * Get all attendees for a cohort (students + teachers)
 	 * Returns an array of email addresses
+	 * Only includes students with 'paid' or 'welcome_package_sent' enrollment status
 	 */
 	async getAttendees(cohortId: string): Promise<string[]> {
-		// Fetch cohort with all details
-		const cohort = await this.getCohortWithDetails(cohortId);
-
-		if (!cohort) {
-			return [];
-		}
-
 		const attendees: string[] = [];
 
-		// Add student emails from enrollments
-		cohort.enrollments.forEach((enrollment) => {
-			if (enrollment.student.email) {
-				attendees.push(enrollment.student.email);
-			}
-		});
+		// Fetch enrollments with student data directly
+		const { data: enrollments, error: enrollmentError } = await supabase
+			.from("enrollments")
+			.select(`
+				id,
+				status,
+				students!inner(
+					id,
+					email
+				)
+			`)
+			.eq("cohort_id", cohortId)
+			.in("status", ["paid", "welcome_package_sent"]);
 
-		// Add teacher emails from weekly sessions
-		const teacherUserIds = new Set<string>();
-		cohort.weekly_sessions.forEach((session) => {
-			if (session.teacher.user_id) {
-				teacherUserIds.add(session.teacher.user_id);
-			}
-		});
+		if (enrollmentError) {
+			console.error("Error fetching enrollments:", enrollmentError);
+		} else if (enrollments) {
+			console.log(`Found ${enrollments.length} paid/welcome_package_sent enrollments`);
+			enrollments.forEach((enrollment: any) => {
+				if (enrollment.students?.email) {
+					attendees.push(enrollment.students.email);
+					console.log(`Added student email: ${enrollment.students.email}`);
+				}
+			});
+		}
 
-		// Fetch teacher emails from user table
-		if (teacherUserIds.size > 0) {
-			const { data: users } = await supabase
-				.from("user")
-				.select("email")
-				.in("id", Array.from(teacherUserIds));
+		// Fetch weekly sessions with teacher data
+		const { data: sessions, error: sessionError } = await supabase
+			.from("weekly_sessions")
+			.select(`
+				id,
+				teachers!inner(
+					id,
+					user_id
+				)
+			`)
+			.eq("cohort_id", cohortId);
 
-			if (users) {
-				users.forEach((user: { email: string | null }) => {
-					if (user.email) {
-						attendees.push(user.email);
-					}
-				});
+		if (sessionError) {
+			console.error("Error fetching sessions:", sessionError);
+		} else if (sessions) {
+			console.log(`Found ${sessions.length} weekly sessions`);
+
+			// Collect unique teacher user IDs
+			const teacherUserIds = new Set<string>();
+			sessions.forEach((session: any) => {
+				if (session.teachers?.user_id) {
+					teacherUserIds.add(session.teachers.user_id);
+				}
+			});
+
+			console.log(`Found ${teacherUserIds.size} unique teacher user IDs`);
+
+			// Fetch teacher emails from user table
+			if (teacherUserIds.size > 0) {
+				const { data: users, error: userError } = await supabase
+					.from("user")
+					.select("email")
+					.in("id", Array.from(teacherUserIds));
+
+				if (userError) {
+					console.error("Error fetching teacher emails:", userError);
+				} else if (users) {
+					console.log(`Found ${users.length} teacher users`);
+					users.forEach((user: { email: string | null }) => {
+						if (user.email) {
+							attendees.push(user.email);
+							console.log(`Added teacher email: ${user.email}`);
+						}
+					});
+				}
 			}
 		}
 
-		// Return unique emails (in case a teacher appears in multiple sessions)
-		return [...new Set(attendees)];
+		// Return unique emails
+		const uniqueAttendees = [...new Set(attendees)];
+		console.log(`Total unique attendees for cohort ${cohortId}: ${uniqueAttendees.length}`);
+		return uniqueAttendees;
 	}
 
 	/**
