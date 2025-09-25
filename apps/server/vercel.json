@@ -1,12 +1,9 @@
 {
-    "buildCommand": "bun run build",
-    "functions": {
-      "api/index.js": {
-        "maxDuration": 30
-      }
-    },
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/api/index" }
-    ]
-  }
-  
+	"buildCommand": "bun run build",
+	"functions": {
+		"api/index.js": {
+			"maxDuration": 30
+		}
+	},
+	"rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+}

@@ -9,11 +9,15 @@
 export const webhooks = {
 	make: {
 		// Cohort Management
-		cohortSetup: "https://hook.us2.make.com/jqmkof2b84wozj56e7x6u8suahdu1vxh",
+		cohortSetup: "https://hook.us2.make.com/gcqt42iur4lpbcovbcztrgce88g9xbbe",
 
 		// Follow-up & Communication
 		followUpTriggered:
 			"https://hook.us2.make.com/71afzg8jb9pgft3m9tiidput88jl5buv",
+
+		// Abandoned Enrollments Processing
+		abandonedEnrollments:
+			"https://hook.us2.make.com/uq8wedjms4ou7qo5gpms3thm34375wjm",
 	},
 } as const;
 

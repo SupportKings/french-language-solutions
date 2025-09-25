@@ -270,6 +270,19 @@ export class FollowUpService {
 			};
 		}
 
+		// If follow-up is failed, keep it as failed without advancing
+		if ((followUp.status as string) === "failed") {
+			return {
+				success: true,
+				data: {
+					follow_up_id: followUp.id,
+					status: "failed",
+					message: "Follow-up is in failed status and will not be advanced",
+					current_step: followUp.current_step,
+				},
+			};
+		}
+
 		// Check if follow-up is in a valid state to advance
 		if (!["activated", "ongoing"].includes(followUp.status)) {
 			return {
@@ -363,9 +376,10 @@ export class FollowUpService {
 
 	/**
 	 * Stop all active follow-ups for a student
+	 * Note: Failed follow-ups are not stopped, they remain in failed state
 	 */
 	async stopAllFollowUps(studentId: string) {
-		// Find all active follow-ups for this student
+		// Find all active follow-ups for this student (excluding failed ones)
 		const { data: activeFollowUps, error: fetchError } = await supabase
 			.from("automated_follow_ups")
 			.select("id, status")
@@ -431,6 +445,7 @@ export class FollowUpService {
 	async triggerNextMessages() {
 		try {
 			// Query the view to find follow-ups ready to send next message
+			// Exclude failed follow-ups from processing
 			const { data: followUps, error: queryError } = await supabase
 				.from("automated_follow_ups_with_schedule")
 				.select("*")
@@ -467,7 +482,7 @@ export class FollowUpService {
 			}> = [];
 
 			for (const followUp of followUps) {
-				// Trigger make.com webhook with recordID as URL parameter
+				// Trigger make.com webhook with detailed payload
 				try {
 					// Get webhook URL from centralized configuration
 					const webhookUrl = getWebhookUrl("make", "followUpTriggered");
@@ -480,13 +495,86 @@ export class FollowUpService {
 						continue;
 					}
 
-					const webhookUrlWithParam = `${webhookUrl}?recordID=${followUp.id}`;
+					// Fetch student data for the payload
+					const { data: student, error: studentError } = await supabase
+						.from("students")
+						.select("id, first_name, last_name, email, mobile_phone_number")
+						.eq("id", followUp.student_id)
+						.single();
 
-					const response = await fetch(webhookUrlWithParam, {
-						method: "GET", // Using GET with URL param
-						headers: {
-							"User-Agent": "FLS-Automated-Follow-Up/1.0",
+					if (studentError || !student) {
+						console.error(
+							`Error fetching student data for ${followUp.student_id}:`,
+							studentError,
+						);
+						results.push({
+							recordId: followUp.id,
+							success: false,
+							error: "Failed to fetch student data",
+						});
+						continue;
+					}
+
+					// Fetch sequence details
+					const { data: sequence } = await supabase
+						.from("template_follow_up_sequences")
+						.select("id, display_name, subject, backend_name")
+						.eq("id", followUp.sequence_id)
+						.single();
+
+					// Get the next message to send its ID
+					const nextMessage = await this.findNextTemplateMessage(followUp.id);
+					if (!nextMessage) {
+						console.error(
+							`No next message found for follow-up ${followUp.id}`,
+						);
+						results.push({
+							recordId: followUp.id,
+							success: false,
+							error: "No next message found",
+						});
+						continue;
+					}
+
+					// Prepare comprehensive webhook payload
+					const webhookPayload = {
+						// Follow-up information
+						followUpId: followUp.id,
+						followUpStatus: followUp.status,
+						currentStep: followUp.current_step,
+						startedAt: followUp.started_at,
+						lastMessageSentAt: followUp.last_message_sent_at,
+						nextMessageId: nextMessage.id,
+
+						// Student information
+						student: {
+							id: student.id,
+							firstName: student.first_name,
+							lastName: student.last_name,
+							fullName: `${student.first_name || ""} ${student.last_name || ""}`.trim(),
+							email: student.email,
+							mobilePhone: student.mobile_phone_number,
 						},
+
+						// Sequence information
+						sequence: sequence ? {
+							id: sequence.id,
+							displayName: sequence.display_name,
+							subject: sequence.subject,
+							backendName: sequence.backend_name,
+						} : null,
+
+						// Metadata
+						timestamp: new Date().toISOString(),
+					};
+
+					const response = await fetch(webhookUrl, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"User-Agent": "FLS-Automated-Follow-Up/2.0",
+						},
+						body: JSON.stringify(webhookPayload),
 					});
 
 					results.push({
@@ -500,11 +588,11 @@ export class FollowUpService {
 
 					if (response.ok) {
 						console.log(
-							`Successfully triggered webhook for record: ${followUp.id}`,
+							`Successfully triggered webhook for follow-up: ${followUp.id}, student: ${student.id}, step: ${followUp.current_step}`,
 						);
 					} else {
 						console.error(
-							`Failed to trigger webhook for record: ${followUp.id}, status: ${response.status}`,
+							`Failed to trigger webhook for follow-up: ${followUp.id}, status: ${response.status}`,
 						);
 					}
 

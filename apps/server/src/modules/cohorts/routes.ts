@@ -5,6 +5,21 @@ const app = new Hono();
 const controller = new CohortController();
 
 /**
+ * GET /api/cohorts/:cohortId/attendees
+ *
+ * Get all attendees for a cohort (students and teachers)
+ *
+ * Returns:
+ * {
+ *   "success": true,
+ *   "cohort_id": "uuid-here",
+ *   "attendees": ["email1@example.com", "email2@example.com"],
+ *   "count": 2
+ * }
+ */
+app.get("/:cohortId/attendees", (c) => controller.getAttendees(c));
+
+/**
  * POST /api/cohorts/finalize-setup
  *
  * Finalize cohort setup and create Google Calendar events

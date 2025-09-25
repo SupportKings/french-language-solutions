@@ -135,12 +135,14 @@ export class CohortService {
 				const eventSummary = `${productName} - ${location}: ${dayName} / ${teacherName}`;
 
 				return {
+					session_id: session.id, // Supabase ID of the weekly session
 					first_event_start_time: firstEventStart.toISOString(),
 					first_event_end_time: firstEventEnd.toISOString(),
 					day_of_week_abbreviation: this.getDayAbbreviation(
 						session.day_of_week,
 					),
 					teacher_name: teacherName,
+					teacher_calendar_id: session.teacher.google_calendar_id || null,
 					event_summary: eventSummary,
 				};
 			},
@@ -191,16 +193,17 @@ export class CohortService {
 			cohort_id: cohort.id,
 			event_summary,
 			location: eventLocation,
-			sessions: JSON.stringify(sessions), // Convert to JSON string for Make.com
-			attendees: JSON.stringify(attendees), // Convert to JSON string for Make.com
+			sessions: sessions, // Array of session objects
+			attendees: attendees, // Array of email strings
 		};
 	}
 
 	/**
 	 * Sends webhook to Make.com to create Google Calendar events
 	 *
-	 * The sessions and attendees are sent as JSON strings so Make.com can
-	 * parse them directly into arrays/collections without additional operations
+	 * Sessions are sent as an array of objects with calendar event details
+	 * Attendees are sent as an array of email strings
+	 * This format allows Make.com to easily iterate and process the data
 	 */
 	async sendToMakeWebhook(payload: MakeWebhookPayload): Promise<boolean> {
 		const webhookResult = await triggerWebhook("make", "cohortSetup", payload);
@@ -225,6 +228,55 @@ export class CohortService {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get all attendees for a cohort (students + teachers)
+	 * Returns an array of email addresses
+	 */
+	async getAttendees(cohortId: string): Promise<string[]> {
+		// Fetch cohort with all details
+		const cohort = await this.getCohortWithDetails(cohortId);
+
+		if (!cohort) {
+			return [];
+		}
+
+		const attendees: string[] = [];
+
+		// Add student emails from enrollments
+		cohort.enrollments.forEach((enrollment) => {
+			if (enrollment.student.email) {
+				attendees.push(enrollment.student.email);
+			}
+		});
+
+		// Add teacher emails from weekly sessions
+		const teacherUserIds = new Set<string>();
+		cohort.weekly_sessions.forEach((session) => {
+			if (session.teacher.user_id) {
+				teacherUserIds.add(session.teacher.user_id);
+			}
+		});
+
+		// Fetch teacher emails from user table
+		if (teacherUserIds.size > 0) {
+			const { data: users } = await supabase
+				.from("user")
+				.select("email")
+				.in("id", Array.from(teacherUserIds));
+
+			if (users) {
+				users.forEach((user: { email: string | null }) => {
+					if (user.email) {
+						attendees.push(user.email);
+					}
+				});
+			}
+		}
+
+		// Return unique emails (in case a teacher appears in multiple sessions)
+		return [...new Set(attendees)];
 	}
 
 	/**

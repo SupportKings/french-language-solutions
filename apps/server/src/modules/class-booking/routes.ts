@@ -9,4 +9,14 @@ app.get("/available-beginner-cohorts", (c) =>
 	controller.getAvailableBeginnerCohorts(c),
 );
 
+// Process abandoned contracts and payments
+app.post("/process-abandoned-enrollments", (c) =>
+	controller.processAbandonedEnrollments(c),
+);
+
+// Get Stripe payment URL for an enrollment
+app.get("/enrollment/:enrollmentId/payment-url", (c) =>
+	controller.getPaymentUrl(c),
+);
+
 export default app;

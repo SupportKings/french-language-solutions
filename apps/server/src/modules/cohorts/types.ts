@@ -14,10 +14,12 @@ export interface FinalizeSetupRequest {
 }
 
 export interface WeeklySessionForCalendar {
+	session_id: string; // Supabase ID of the weekly session
 	first_event_start_time: string; // ISO datetime string
 	first_event_end_time: string; // ISO datetime string
 	day_of_week_abbreviation: string; // MO, TU, WE, TH, FR, SA, SU
 	teacher_name: string;
+	teacher_calendar_id: string | null; // Google Calendar ID for the teacher
 	event_summary: string; // Individual summary for this session
 }
 
@@ -25,8 +27,8 @@ export interface MakeWebhookPayload {
 	cohort_id: string;
 	event_summary: string;
 	location: string;
-	sessions: string; // JSON string of WeeklySessionForCalendar[]
-	attendees: string; // JSON string of email array
+	sessions: WeeklySessionForCalendar[]; // Array of session objects
+	attendees: string[]; // Array of email strings
 }
 
 export interface CohortWithDetails extends Cohort {
