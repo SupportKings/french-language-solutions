@@ -1,54 +1,77 @@
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
-import { createClient } from "@/lib/supabase/server";
+import { notFound, redirect } from "next/navigation";
 
-import { EnrollmentDetailsClient } from "@/features/enrollments/components/EnrollmentDetailsClient";
+import { getEnrollment } from "@/features/enrollments/actions/getEnrollment";
+import EnrollmentDetailSkeleton from "@/features/enrollments/components/enrollment.detail.skeleton";
+import EnrollmentDetailView from "@/features/enrollments/components/enrollment.detail.view";
 
-interface EnrollmentPageProps {
-	params: Promise<{ id: string }>;
+import { getUser } from "@/queries/getUser";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+
+interface EnrollmentDetailPageProps {
+	params: Promise<{
+		id: string;
+	}>;
 }
 
-export default async function EnrollmentDetailsPage({
+export default function EnrollmentDetailPage({
 	params,
-}: EnrollmentPageProps) {
+}: EnrollmentDetailPageProps) {
+	return (
+		<Suspense fallback={<EnrollmentDetailSkeleton enrollmentId="" />}>
+			<EnrollmentDetailPageAsync params={params} />
+		</Suspense>
+	);
+}
+
+async function EnrollmentDetailPageAsync({
+	params,
+}: EnrollmentDetailPageProps) {
 	const { id } = await params;
-	const supabase = await createClient();
 
-	// Fetch enrollment with all related data
-	const { data: enrollment, error } = await supabase
-		.from("enrollments")
-		.select(`
-			*,
-			students(
-				id,
-				full_name,
-				email,
-				mobile_phone_number,
-				city
-			),
-			cohorts(
-				id,
-				format,
-				starting_level,
-				start_date,
-				cohort_status,
-				current_level,
-				room_type,
-				product_id
-			)
-		`)
-		.eq("id", id)
-		.single();
-
-	if (error) {
-		console.error("Error fetching enrollment:", error);
+	// Validate that id is provided
+	if (!id) {
 		notFound();
 	}
 
-	if (!enrollment) {
-		console.error("Enrollment not found for ID:", id);
-		notFound();
+	const queryClient = new QueryClient();
+	const session = await getUser();
+
+	if (!session) {
+		redirect("/");
 	}
 
-	return <EnrollmentDetailsClient enrollment={enrollment} />;
+	// Prefetch the enrollment data with error handling
+	await Promise.all([
+		queryClient.prefetchQuery({
+			queryKey: ["enrollments", "detail", id],
+			queryFn: () => getEnrollment(id),
+		}),
+	]).catch((error) => {
+		// Convert not-found responses into 404 error (fail-fast)
+		if (error?.message?.includes("not found") || error?.status === 404) {
+			notFound();
+		}
+		// Propagate other errors
+		throw error;
+	});
+
+	// Verify the QueryClient cache contains the expected data
+	const cachedData = queryClient.getQueryData(["enrollments", "detail", id]);
+	if (!cachedData) {
+		// Throw error to prevent rendering a broken hydration boundary
+		throw new Error(`Failed to prefetch enrollment data for id: ${id}`);
+	}
+
+	return (
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<EnrollmentDetailView enrollmentId={id} />
+		</HydrationBoundary>
+	);
 }

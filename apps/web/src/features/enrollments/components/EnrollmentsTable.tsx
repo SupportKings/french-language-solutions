@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
 
@@ -115,6 +116,7 @@ interface EnrollmentsTableProps {
 }
 
 export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
+	const router = useRouter();
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const [products, setProducts] = useState<any[]>([]);
@@ -359,9 +361,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							data?.enrollments?.map((enrollment: any) => (
 								<TableRow
 									key={enrollment.id}
-									className="transition-colors duration-150 hover:bg-muted/50"
+									className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+									onClick={() => router.push(`/admin/students/enrollments/${enrollment.id}`)}
 								>
-									<TableCell>
+									<TableCell onClick={(e) => e.stopPropagation()}>
 										{enrollment.students ? (
 											<LinkedRecordBadge
 												href={`/admin/students/${enrollment.student_id}`}
@@ -458,13 +461,17 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									<TableCell>
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" size="icon">
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={(e) => e.stopPropagation()}
+												>
 													<MoreHorizontal className="h-4 w-4" />
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
 												<Link
-													href={`/admin/students/enrollment/${enrollment.id}`}
+													href={`/admin/students/enrollments/${enrollment.id}`}
 												>
 													<DropdownMenuItem>
 														<Eye className="mr-2 h-4 w-4" />

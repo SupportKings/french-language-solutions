@@ -155,7 +155,7 @@ export const updateEnrollmentAction = actionClient
 
 			// 4. Revalidate relevant paths
 			revalidatePath("/admin/enrollments");
-			revalidatePath(`/admin/students/enrollment/${id}`);
+			revalidatePath(`/admin/students/enrollments/${id}`);
 			revalidatePath("/admin/students");
 
 			return {
