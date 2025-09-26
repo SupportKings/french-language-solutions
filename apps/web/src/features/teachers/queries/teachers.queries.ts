@@ -7,6 +7,50 @@ import type {
 
 const TEACHER_QUERY_KEY = "teachers";
 
+// Query keys factory
+export const teachersKeys = {
+	all: [TEACHER_QUERY_KEY] as const,
+	lists: () => [...teachersKeys.all, "list"] as const,
+	list: (params: TeacherQuery) => [...teachersKeys.lists(), params] as const,
+	details: () => [...teachersKeys.all, "detail"] as const,
+	detail: (id: string) => [...teachersKeys.details(), id] as const,
+};
+
+// Server queries for prefetching
+export const teachersQueries = {
+	list: (params: Partial<TeacherQuery> = {}) => {
+		const defaultParams: TeacherQuery = {
+			page: 1,
+			limit: 100, // Get all teachers for filter dropdown
+			sortBy: "first_name",
+			sortOrder: "asc",
+			...params,
+		};
+
+		return {
+			queryKey: teachersKeys.list(defaultParams),
+			queryFn: async () => {
+				const searchParams = new URLSearchParams();
+				Object.entries(defaultParams).forEach(([key, value]) => {
+					if (value !== undefined && value !== null && value !== "") {
+						if (Array.isArray(value)) {
+							value.forEach((v) => searchParams.append(key, String(v)));
+						} else {
+							searchParams.append(key, String(value));
+						}
+					}
+				});
+
+				const response = await fetch(`/api/teachers?${searchParams}`);
+				if (!response.ok) {
+					throw new Error("Failed to fetch teachers");
+				}
+				return response.json();
+			},
+		};
+	},
+};
+
 // Fetch teachers list
 export function useTeachers(query: TeacherQuery) {
 	return useQuery({

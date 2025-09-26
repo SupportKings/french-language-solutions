@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const updateMessageSchema = z.object({
-	status: z.enum(["draft", "active", "scheduled"]).optional(),
+	status: z.enum(["active", "disabled"]).optional(),
 	time_delay_hours: z.number().min(0).optional(),
 	message_content: z.string().optional(),
 });
@@ -73,31 +73,64 @@ export async function DELETE(
 	{ params }: { params: Promise<{ id: string; messageId: string }> },
 ) {
 	try {
-		const { messageId } = await params;
+		const { id: sequenceId, messageId } = await params;
 		const supabase = await createClient();
 
-		// Use atomic RPC function to delete message and reorder indices
-		const { error: rpcError } = await supabase.rpc(
-			"delete_message_and_reorder",
-			{
-				p_message_id: messageId,
-			},
-		);
+		// First, get the message to be deleted to know its step_index
+		const { data: messageToDelete, error: fetchError } = await supabase
+			.from("template_follow_up_messages")
+			.select("step_index, sequence_id")
+			.eq("id", messageId)
+			.single();
 
-		if (rpcError) {
-			// Check if message not found
-			if (rpcError.message?.includes("Message not found")) {
-				return NextResponse.json(
-					{ error: "Message not found" },
-					{ status: 404 },
-				);
-			}
+		if (fetchError || !messageToDelete) {
+			return NextResponse.json(
+				{ error: "Message not found" },
+				{ status: 404 },
+			);
+		}
 
-			console.error("Error deleting message:", rpcError);
+		// Delete the message
+		const { error: deleteError } = await supabase
+			.from("template_follow_up_messages")
+			.delete()
+			.eq("id", messageId);
+
+		if (deleteError) {
+			console.error("Error deleting message:", deleteError);
 			return NextResponse.json(
 				{ error: "Failed to delete message" },
 				{ status: 500 },
 			);
+		}
+
+		// Get all messages that need reordering (those with step_index greater than deleted message)
+		const { data: messagesToReorder, error: fetchReorderError } = await supabase
+			.from("template_follow_up_messages")
+			.select("id, step_index")
+			.eq("sequence_id", messageToDelete.sequence_id)
+			.gt("step_index", messageToDelete.step_index)
+			.order("step_index");
+
+		if (fetchReorderError) {
+			console.error("Error fetching messages to reorder:", fetchReorderError);
+			// Message is already deleted, return success anyway
+			return NextResponse.json({ success: true });
+		}
+
+		// Update each message's step_index
+		if (messagesToReorder && messagesToReorder.length > 0) {
+			for (const message of messagesToReorder) {
+				const { error: updateError } = await supabase
+					.from("template_follow_up_messages")
+					.update({ step_index: message.step_index - 1 })
+					.eq("id", message.id);
+
+				if (updateError) {
+					console.error(`Error updating message ${message.id}:`, updateError);
+					// Continue with other messages even if one fails
+				}
+			}
 		}
 
 		return NextResponse.json({ success: true });

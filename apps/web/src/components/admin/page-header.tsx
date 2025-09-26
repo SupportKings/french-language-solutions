@@ -42,12 +42,12 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Products & Pricing",
 		description: "Manage products and pricing",
 	},
-	"/admin/teachers": {
-		title: "Teachers",
-		description: "Manage your teaching staff",
+	"/admin/team-members": {
+		title: "Team Members",
+		description: "Manage your team members",
 	},
 	"/admin/team": {
-		title: "Teachers",
+		title: "Team",
 		description: "Manage your teaching staff",
 	},
 	"/admin/team/support": {

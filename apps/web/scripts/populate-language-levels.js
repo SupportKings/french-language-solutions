@@ -2,7 +2,7 @@
 // Run with: node scripts/populate-language-levels.js
 
 const { createClient } = require("@supabase/supabase-js");
-require("dotenv").config({ path: ".env.local" });
+require("dotenv").config({ path: ".env" });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey =
@@ -84,32 +84,10 @@ const languageLevels = [
 	{ code: "b2.12", display_name: "B2.12", level_group: "b2", level_number: 12 },
 
 	// C1 Levels (1-12)
-	{ code: "c1.1", display_name: "C1.1", level_group: "c1", level_number: 1 },
-	{ code: "c1.2", display_name: "C1.2", level_group: "c1", level_number: 2 },
-	{ code: "c1.3", display_name: "C1.3", level_group: "c1", level_number: 3 },
-	{ code: "c1.4", display_name: "C1.4", level_group: "c1", level_number: 4 },
-	{ code: "c1.5", display_name: "C1.5", level_group: "c1", level_number: 5 },
-	{ code: "c1.6", display_name: "C1.6", level_group: "c1", level_number: 6 },
-	{ code: "c1.7", display_name: "C1.7", level_group: "c1", level_number: 7 },
-	{ code: "c1.8", display_name: "C1.8", level_group: "c1", level_number: 8 },
-	{ code: "c1.9", display_name: "C1.9", level_group: "c1", level_number: 9 },
-	{ code: "c1.10", display_name: "C1.10", level_group: "c1", level_number: 10 },
-	{ code: "c1.11", display_name: "C1.11", level_group: "c1", level_number: 11 },
-	{ code: "c1.12", display_name: "C1.12", level_group: "c1", level_number: 12 },
+	{ code: "c1.0", display_name: "C1", level_group: "c1", level_number: 1 },
 
 	// C2 Levels (1-12)
-	{ code: "c2.1", display_name: "C2.1", level_group: "c2", level_number: 1 },
-	{ code: "c2.2", display_name: "C2.2", level_group: "c2", level_number: 2 },
-	{ code: "c2.3", display_name: "C2.3", level_group: "c2", level_number: 3 },
-	{ code: "c2.4", display_name: "C2.4", level_group: "c2", level_number: 4 },
-	{ code: "c2.5", display_name: "C2.5", level_group: "c2", level_number: 5 },
-	{ code: "c2.6", display_name: "C2.6", level_group: "c2", level_number: 6 },
-	{ code: "c2.7", display_name: "C2.7", level_group: "c2", level_number: 7 },
-	{ code: "c2.8", display_name: "C2.8", level_group: "c2", level_number: 8 },
-	{ code: "c2.9", display_name: "C2.9", level_group: "c2", level_number: 9 },
-	{ code: "c2.10", display_name: "C2.10", level_group: "c2", level_number: 10 },
-	{ code: "c2.11", display_name: "C2.11", level_group: "c2", level_number: 11 },
-	{ code: "c2.12", display_name: "C2.12", level_group: "c2", level_number: 12 },
+	{ code: "c2.0", display_name: "C2", level_group: "c2", level_number: 1 },
 ];
 
 async function populateLanguageLevels() {

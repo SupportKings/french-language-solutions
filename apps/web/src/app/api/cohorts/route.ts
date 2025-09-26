@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
 		// Parse query parameters - handle multiple values
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
-		const search = searchParams.get("search") || "";
 		const format = searchParams.getAll("format");
 		const cohort_status = searchParams.getAll("cohort_status");
 		const starting_level_id = searchParams.getAll("starting_level_id");
 		const current_level_id = searchParams.getAll("current_level_id");
 		const room_type = searchParams.getAll("room_type");
+		const teacher_ids = searchParams.getAll("teacher_ids");
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
 			format,
 			starting_level_id,
 			room_type,
+			teacher_ids,
 		});
 
 		// Calculate offset
@@ -70,13 +71,6 @@ export async function GET(request: NextRequest) {
 			.range(offset, offset + limit - 1)
 			.order(sortBy, { ascending: sortOrder === "asc" });
 
-		// Apply search filter
-		if (search) {
-			query = query.or(
-				`starting_level.ilike.%${search}%,current_level.ilike.%${search}%,products.format.ilike.%${search}%`,
-			);
-		}
-
 		// Apply filters - handle multiple values with IN operator
 		if (format.length > 0) {
 			query = query.in("products.format", format);
@@ -100,6 +94,32 @@ export async function GET(request: NextRequest) {
 			query = query.in("room_type", room_type);
 		}
 
+		// Filter by teacher IDs - cohorts that have weekly sessions with any of the selected teachers
+		if (teacher_ids.length > 0) {
+			// Get cohort IDs that have weekly sessions with the selected teachers
+			const { data: cohortIds } = await supabase
+				.from("weekly_sessions")
+				.select("cohort_id")
+				.in("teacher_id", teacher_ids);
+
+			if (!cohortIds || cohortIds.length === 0) {
+				// No cohorts found with these teachers, return empty result immediately
+				return NextResponse.json({
+					data: [],
+					meta: {
+						total: 0,
+						page,
+						limit,
+						totalPages: 0,
+					},
+				});
+			}
+			
+			// Apply filter for cohorts with matching teacher IDs
+			const uniqueCohortIds = [...new Set(cohortIds.map((c) => c.cohort_id))];
+			query = query.in("id", uniqueCohortIds);
+		}
+
 		const { data, error, count } = await query;
 
 		if (error) {
@@ -116,6 +136,7 @@ export async function GET(request: NextRequest) {
 			cohort_status,
 			starting_level_id,
 			room_type,
+			teacher_ids,
 		});
 
 		// Return in same format as students - using meta instead of pagination

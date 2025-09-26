@@ -98,8 +98,16 @@ export const followUpMessageStatusEnum = pgEnum("follow_up_message_status", [
 // Automated follow-up status
 export const automatedFollowUpStatusEnum = pgEnum(
 	"automated_follow_up_status",
-	["activated", "ongoing", "answer_received", "disabled"],
+	["activated", "ongoing", "answer_received", "disabled", "completed"],
 );
+
+// Team roles enum
+export const teamRolesEnum = pgEnum("team_roles", [
+	"Teacher",
+	"Evaluator",
+	"Marketing/Admin",
+	"Exec",
+]);
 
 // Touchpoint enums
 export const touchpointChannelEnum = pgEnum("touchpoint_channel", [

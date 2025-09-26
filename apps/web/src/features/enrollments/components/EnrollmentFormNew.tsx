@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -32,10 +32,10 @@ import {
 } from "@/components/ui/popover";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useDebounce } from "@uidotdev/usehooks";
 import {
 	AlertCircle,
 	BookOpen,
-	Calendar,
 	Check,
 	ChevronsUpDown,
 	UserCheck,
@@ -67,7 +67,6 @@ interface EnrollmentFormNewProps {
 	enrollment?: any;
 	studentId?: string;
 	cohortId?: string;
-	cohortName?: string;
 	redirectTo?: string;
 	onSuccess?: () => void;
 }
@@ -76,7 +75,6 @@ export function EnrollmentFormNew({
 	enrollment,
 	studentId,
 	cohortId,
-	cohortName,
 	redirectTo,
 	onSuccess,
 }: EnrollmentFormNewProps) {
@@ -88,6 +86,10 @@ export function EnrollmentFormNew({
 	const [loadingCohorts, setLoadingCohorts] = useState(false);
 	const [studentPopoverOpen, setStudentPopoverOpen] = useState(false);
 	const [cohortPopoverOpen, setCohortPopoverOpen] = useState(false);
+	const [studentSearch, setStudentSearch] = useState("");
+	const [cohortSearch, setCohortSearch] = useState("");
+	const debouncedStudentSearch = useDebounce(studentSearch, 300);
+	const debouncedCohortSearch = useDebounce(cohortSearch, 300);
 	const isEditMode = !!enrollment;
 
 	const form = useForm<EnrollmentFormValues>({
@@ -99,49 +101,79 @@ export function EnrollmentFormNew({
 		},
 	});
 
-	// Fetch students
-	useEffect(() => {
-		async function fetchStudents() {
-			setLoadingStudents(true);
-			try {
-				const response = await fetch("/api/students?limit=100");
-				if (response.ok) {
-					const result = await response.json();
-					console.log("Fetched students data:", result); // Debug log
-					// The API returns { data: [...], meta: {...} }
-					const studentsList = result.data || [];
-					setStudents(Array.isArray(studentsList) ? studentsList : []);
-				}
-			} catch (error) {
-				console.error("Error fetching students:", error);
-			} finally {
-				setLoadingStudents(false);
+	// Fetch students with search
+	const fetchStudents = useCallback(async (searchTerm = "") => {
+		setLoadingStudents(true);
+		try {
+			const queryParams = new URLSearchParams();
+			if (searchTerm) {
+				queryParams.append("search", searchTerm);
 			}
+			queryParams.append("limit", "20");
+
+			const response = await fetch(`/api/students?${queryParams}`);
+			if (response.ok) {
+				const result = await response.json();
+				const studentsList = result.data || [];
+				// Filter to only show students with emails when searching
+				const filteredStudents = searchTerm
+					? studentsList.filter(
+							(s: any) => s.email && s.full_name !== "Unknown",
+						)
+					: studentsList.filter((s: any) => s.full_name !== "Unknown");
+				setStudents(filteredStudents);
+			}
+		} catch (error) {
+			console.error("Error fetching students:", error);
+			setStudents([]);
+		} finally {
+			setLoadingStudents(false);
 		}
-		fetchStudents();
 	}, []);
 
-	// Fetch cohorts
+	// Trigger student search when debounced search changes
 	useEffect(() => {
-		async function fetchCohorts() {
-			setLoadingCohorts(true);
-			try {
-				const response = await fetch("/api/cohorts?limit=100");
-				if (response.ok) {
-					const result = await response.json();
-					console.log("Fetched cohorts data:", result); // Debug log
-					// The API returns { data: [...], meta: {...} }
-					const cohortsList = result.data || [];
-					setCohorts(Array.isArray(cohortsList) ? cohortsList : []);
-				}
-			} catch (error) {
-				console.error("Error fetching cohorts:", error);
-			} finally {
-				setLoadingCohorts(false);
-			}
+		if (studentPopoverOpen) {
+			fetchStudents(debouncedStudentSearch);
 		}
-		fetchCohorts();
+	}, [debouncedStudentSearch, studentPopoverOpen, fetchStudents]);
+
+	// Fetch cohorts with search (search by product name)
+	const fetchCohorts = useCallback(async (searchTerm = "") => {
+		setLoadingCohorts(true);
+		try {
+			const queryParams = new URLSearchParams();
+			queryParams.append("limit", "20");
+
+			const response = await fetch(`/api/cohorts?${queryParams}`);
+			if (response.ok) {
+				const result = await response.json();
+				let cohortsList = result.data || [];
+
+				// Filter cohorts by product display_name if search term is provided
+				if (searchTerm) {
+					cohortsList = cohortsList.filter((cohort: any) => {
+						const productName = cohort.products?.display_name || "";
+						return productName.toLowerCase().includes(searchTerm.toLowerCase());
+					});
+				}
+
+				setCohorts(cohortsList);
+			}
+		} catch (error) {
+			console.error("Error fetching cohorts:", error);
+			setCohorts([]);
+		} finally {
+			setLoadingCohorts(false);
+		}
 	}, []);
+
+	// Trigger cohort search when debounced search changes
+	useEffect(() => {
+		if (cohortPopoverOpen) {
+			fetchCohorts(debouncedCohortSearch);
+		}
+	}, [debouncedCohortSearch, cohortPopoverOpen, fetchCohorts]);
 
 	async function onSubmit(values: EnrollmentFormValues) {
 		setIsLoading(true);
@@ -287,22 +319,35 @@ export function EnrollmentFormNew({
 										</PopoverTrigger>
 										{!studentId && (
 											<PopoverContent className="w-[400px] p-0">
-												<Command>
-													<CommandInput placeholder="Search students..." />
+												<Command shouldFilter={false}>
+													<CommandInput
+														placeholder="Search by email..."
+														value={studentSearch}
+														onValueChange={setStudentSearch}
+													/>
+													{!studentSearch && (
+														<div className="border-b p-2 text-muted-foreground text-sm">
+															<AlertCircle className="mr-1 inline-block h-3 w-3" />
+															Students without data will not be shown
+														</div>
+													)}
 													<CommandEmpty>
 														{loadingStudents
-															? "Loading students..."
-															: "No student found."}
+															? "Searching..."
+															: studentSearch
+																? "No students found with this email."
+																: ""}
 													</CommandEmpty>
 													<CommandGroup className="max-h-64 overflow-auto">
-														{students.length > 0
+														{students.length > 0 && studentSearch
 															? students.map((student) => (
 																	<CommandItem
 																		key={student.id}
-																		value={student.full_name?.toLowerCase()}
+																		value={student.id}
 																		onSelect={() => {
 																			form.setValue("student_id", student.id);
 																			setStudentPopoverOpen(false);
+																			setStudentSearch("");
 																		}}
 																	>
 																		<Check
@@ -323,13 +368,17 @@ export function EnrollmentFormNew({
 																		</div>
 																	</CommandItem>
 																))
-															: !loadingStudents && (
-																	<div className="p-2 text-muted-foreground text-sm">
-																		No students available. Please create
-																		students first.
-																	</div>
-																)}
+															: null}
 													</CommandGroup>
+													{students.length === 0 &&
+														!loadingStudents &&
+														studentSearch && (
+															<div className="p-3 text-center text-muted-foreground text-xs">
+																<AlertCircle className="mx-auto mb-1 h-4 w-4" />
+																Note: Students with name "Unknown" will not be
+																shown
+															</div>
+														)}
 												</Command>
 											</PopoverContent>
 										)}
@@ -372,22 +421,38 @@ export function EnrollmentFormNew({
 											</Button>
 										</PopoverTrigger>
 										<PopoverContent className="w-[400px] p-0">
-											<Command className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground">
-												<CommandInput placeholder="Search cohorts..." />
+											<Command
+												shouldFilter={false}
+												className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground"
+											>
+												<CommandInput
+													placeholder="Search by product name..."
+													value={cohortSearch}
+													onValueChange={setCohortSearch}
+												/>
+												{!cohortSearch && (
+													<div className="border-b p-2 text-muted-foreground text-sm">
+														<AlertCircle className="mr-1 inline-block h-3 w-3" />
+														Type a product name to search for cohorts
+													</div>
+												)}
 												<CommandEmpty>
 													{loadingCohorts
-														? "Loading cohorts..."
-														: "No cohort found."}
+														? "Searching..."
+														: cohortSearch
+															? "No cohorts found with this product name."
+															: ""}
 												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto [&_[cmdk-item]]:cursor-pointer">
-													{cohorts.length > 0
+													{cohorts.length > 0 && cohortSearch
 														? cohorts.map((cohort, index) => (
 																<CommandItem
 																	key={`cohort-${cohort.id}-${index}`}
-																	value={`${cohort.products?.display_name || cohort.products?.format || "course"} ${cohort.starting_level?.display_name || cohort.starting_level?.code || ""}`.toLowerCase()}
+																	value={cohort.id}
 																	onSelect={() => {
 																		form.setValue("cohort_id", cohort.id);
 																		setCohortPopoverOpen(false);
+																		setCohortSearch("");
 																	}}
 																	className="cursor-pointer"
 																>
@@ -422,12 +487,7 @@ export function EnrollmentFormNew({
 																	</div>
 																</CommandItem>
 															))
-														: !loadingCohorts && (
-																<div className="p-2 text-muted-foreground text-sm">
-																	No cohorts available. Please create cohorts
-																	first.
-																</div>
-															)}
+														: null}
 												</CommandGroup>
 											</Command>
 										</PopoverContent>

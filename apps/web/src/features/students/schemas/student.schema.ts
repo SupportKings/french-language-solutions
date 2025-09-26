@@ -37,6 +37,7 @@ export const studentSchema = z.object({
 	subjective_deadline_for_student: z.string().nullable(), // Date as string from DB
 	purpose_to_learn: z.string().nullable(),
 	airtable_record_id: z.string().nullable(),
+	airtable_created_at: z.string().nullable(), // Airtable creation date
 	created_at: z.string(), // Timestamp as string from DB
 	updated_at: z.string(), // Timestamp as string from DB
 	deleted_at: z.string().nullable(), // Timestamp as string from DB
@@ -51,6 +52,7 @@ export const createStudentSchema = studentSchema.omit({
 	updated_at: true,
 	deleted_at: true,
 	airtable_record_id: true,
+	airtable_created_at: true,
 	user_id: true,
 	convertkit_id: true,
 	openphone_contact_id: true,

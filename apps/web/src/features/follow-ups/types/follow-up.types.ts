@@ -23,7 +23,6 @@ export interface AutomatedFollowUp {
 		id: string;
 		display_name: string;
 		subject: string;
-		first_follow_up_delay_minutes: number;
 		messages_count?: number;
 	};
 }
@@ -52,7 +51,6 @@ export interface AutomatedFollowUpWithRelations extends AutomatedFollowUp {
 		id: string;
 		display_name: string;
 		subject: string;
-		first_follow_up_delay_minutes: number;
 	};
 	touchpoints?: {
 		id: string;

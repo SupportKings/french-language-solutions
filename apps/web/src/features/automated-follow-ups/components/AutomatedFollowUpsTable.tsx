@@ -20,6 +20,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -39,6 +40,7 @@ import {
 	CheckCircle,
 	Clock,
 	Eye,
+	Loader2,
 	MessageSquare,
 	MoreHorizontal,
 	Play,
@@ -57,7 +59,8 @@ import type { AutomatedFollowUpQuery } from "../schemas/automated-follow-up.sche
 const statusColors = {
 	activated: "info",
 	ongoing: "warning",
-	answer_received: "success",
+	answer_received: "secondary",
+	completed: "success",
 	disabled: "destructive",
 };
 
@@ -65,6 +68,7 @@ const statusLabels = {
 	activated: "Activated",
 	ongoing: "Ongoing",
 	answer_received: "Answer Received",
+	completed: "Completed",
 	disabled: "Disabled",
 };
 
@@ -72,11 +76,13 @@ const statusIcons = {
 	activated: Play,
 	ongoing: Clock,
 	answer_received: CheckCircle,
+	completed: CheckCircle,
 	disabled: XCircle,
 };
 
+
 // Define column configurations for data-table-filter - will be populated dynamically
-const getColumnConfigurations = (sequences: any[]) =>
+const getColumnConfigurations = (sequences: any[], isLoadingSequences: boolean) =>
 	[
 		{
 			id: "status",
@@ -92,13 +98,17 @@ const getColumnConfigurations = (sequences: any[]) =>
 		{
 			id: "sequence_id",
 			accessor: (touchpoint: any) => touchpoint.sequence_id,
-			displayName: "Sequence",
-			icon: MessageSquare,
+			displayName: isLoadingSequences ? "Sequence (Loading...)" : "Sequence",
+			icon: isLoadingSequences ? Loader2 : MessageSquare,
 			type: "option" as const,
-			options: sequences.map((sequence) => ({
-				label: sequence.display_name || "Unknown",
-				value: sequence.id,
-			})),
+			options: isLoadingSequences 
+				? [{ label: "Loading sequences...", value: "loading", disabled: true }]
+				: sequences.length === 0 
+					? [{ label: "No sequences available", value: "none", disabled: true }]
+					: sequences.map((sequence) => ({
+						label: sequence.display_name || "Unknown",
+						value: sequence.id,
+					})),
 		},
 	] as const;
 
@@ -117,14 +127,14 @@ export function AutomatedFollowUpsTable() {
 	const deleteFollowUp = useDeleteAutomatedFollowUp();
 
 	// Fetch sequences for filters
-	const { data: sequencesData } = useSequences({ page: 1, limit: 100 });
+	const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({ page: 1, limit: 100 });
 	const sequences = sequencesData?.data || [];
 
 	// Data table filters hook - use dynamic columns
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: getColumnConfigurations(sequences),
+		columnsConfig: getColumnConfigurations(sequences, isLoadingSequences),
 	});
 
 	// Convert filters to query params - support multiple values
@@ -276,41 +286,46 @@ export function AutomatedFollowUpsTable() {
 										}
 									>
 										<TableCell>
-											<div className="flex items-center gap-2">
-												<User className="h-4 w-4 text-muted-foreground" />
-												<div>
-													<p className="font-medium">
-														{touchpoint.students?.full_name || "Unknown"}
-													</p>
-													<p className="text-muted-foreground text-sm">
-														{touchpoint.students?.email || "No email"}
-													</p>
-												</div>
-											</div>
+											{touchpoint.students ? (
+												<LinkedRecordBadge
+													href={`/admin/students/${touchpoint.student_id}`}
+													label={touchpoint.students.full_name}
+													icon={User}
+													title={touchpoint.students.email || "No email"}
+												/>
+											) : (
+												<span className="text-muted-foreground">Unknown</span>
+											)}
 										</TableCell>
 										<TableCell>
-											<div className="flex items-center gap-2">
-												<MessageSquare className="h-4 w-4 text-muted-foreground" />
-												<div>
-													<p className="font-medium">
-														{touchpoint.sequence?.display_name ||
-															touchpoint.sequences?.display_name ||
-															"Unknown"}
-													</p>
-													<p className="text-muted-foreground text-sm">
-														{touchpoint.sequence?.subject ||
-															touchpoint.sequences?.subject ||
-															"No subject"}
-													</p>
-												</div>
-											</div>
+											{touchpoint.sequence || touchpoint.sequences ? (
+												<LinkedRecordBadge
+													href={`/admin/automation/sequences/${touchpoint.sequence_id}`}
+													label={
+														touchpoint.sequence?.display_name ||
+														touchpoint.sequences?.display_name ||
+														"Sequence"
+													}
+													icon={MessageSquare}
+													title={
+														touchpoint.sequence?.subject ||
+														touchpoint.sequences?.subject ||
+														"No subject"
+													}
+												/>
+											) : (
+												<span className="text-muted-foreground">Unknown</span>
+											)}
 										</TableCell>
 										<TableCell>
 											<Badge
 												variant={(statusColors as any)[touchpoint.status]}
 												className="gap-1"
 											>
-												<StatusIcon className="h-3 w-3" />
+												{(() => {
+													const Icon = (statusIcons as any)[touchpoint.status];
+													return Icon ? <Icon className="h-3 w-3" /> : null;
+												})()}
 												{(statusLabels as any)[touchpoint.status]}
 											</Badge>
 										</TableCell>

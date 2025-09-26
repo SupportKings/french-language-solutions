@@ -55,7 +55,6 @@ export const WeeklySessionSchema = z.object({
 
 // Query schemas
 export const CohortQuerySchema = z.object({
-	search: z.string().optional(),
 	format: z.union([CohortFormatEnum, z.array(CohortFormatEnum)]).optional(),
 	cohort_status: z
 		.union([CohortStatusEnum, z.array(CohortStatusEnum)])
@@ -67,6 +66,9 @@ export const CohortQuerySchema = z.object({
 		.union([z.string().uuid(), z.array(z.string().uuid())])
 		.optional(),
 	room_type: z.union([RoomTypeEnum, z.array(RoomTypeEnum)]).optional(),
+	teacher_ids: z
+		.union([z.string().uuid(), z.array(z.string().uuid())])
+		.optional(),
 	page: z.number().min(1).default(1),
 	limit: z.number().min(1).max(100).default(20),
 });

@@ -30,7 +30,6 @@ interface Teacher {
 	id: string;
 	first_name: string;
 	last_name: string;
-	email: string;
 }
 
 interface ClassCreateModalProps {
@@ -316,11 +315,6 @@ export function ClassCreateModal({
 								{teachers.map((teacher) => (
 									<SelectItem key={teacher.id} value={teacher.id}>
 										{teacher.first_name} {teacher.last_name}
-										{teacher.email && (
-											<span className="ml-2 text-muted-foreground">
-												({teacher.email})
-											</span>
-										)}
 									</SelectItem>
 								))}
 							</SelectContent>

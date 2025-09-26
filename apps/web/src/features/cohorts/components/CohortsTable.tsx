@@ -184,7 +184,7 @@ export function CohortsTable({
 		<Table>
 			<TableHeader>
 				<TableRow>
-					<TableHead>Product</TableHead>
+					<TableHead className="w-[200px]">Product</TableHead>
 					<TableHead>Format</TableHead>
 					<TableHead>Students</TableHead>
 					<TableHead>Level Progress</TableHead>
@@ -253,7 +253,7 @@ export function CohortsTable({
 								className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
 								onClick={() => router.push(`/admin/cohorts/${cohort.id}`)}
 							>
-								<TableCell>
+								<TableCell className="max-w-[200px]">
 									<div className="flex h-12 items-center">
 										<LinkedRecordBadge
 											href={
@@ -269,6 +269,12 @@ export function CohortsTable({
 											}
 											icon={BookOpen}
 											className="text-xs"
+											title={
+												cohort.products?.display_name ||
+												(cohort.products?.format
+													? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+													: "Product")
+											}
 										/>
 									</div>
 								</TableCell>

@@ -36,6 +36,7 @@ import { WeeklySessionModal } from "@/features/cohorts/components/WeeklySessionM
 import {
 	useCohort,
 	useCohortWithSessions,
+	useDeleteCohort,
 } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
 
@@ -47,6 +48,7 @@ import {
 	CheckCircle2,
 	ChevronRight,
 	Clock,
+	FolderOpen,
 	GraduationCap,
 	MapPin,
 	MoreVertical,
@@ -137,12 +139,12 @@ export function CohortDetailPageClient({
 	const router = useRouter();
 	const { data: cohortData, isLoading, error, isSuccess } = useCohort(cohortId);
 	const { data: cohortWithSessions } = useCohortWithSessions(cohortId);
+	const deleteCohortMutation = useDeleteCohort();
 	const [cohort, setCohort] = useState<any>(null);
 	const [weeklySessionModalOpen, setWeeklySessionModalOpen] = useState(false);
 	const [sessionToEdit, setSessionToEdit] = useState<any>(null);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
-	const [isDeleting, setIsDeleting] = useState(false);
 	const [isFinalizing, setIsFinalizing] = useState(false);
 	const [products, setProducts] = useState<any[]>([]);
 	const [loadingProducts, setLoadingProducts] = useState(false);
@@ -303,6 +305,11 @@ export function CohortDetailPageClient({
 			if (editedCohort.folder_url !== cohort.folder_url) {
 				changes.folder_url = editedCohort.folder_url;
 			}
+			if (
+				editedCohort.google_drive_folder_id !== cohort.google_drive_folder_id
+			) {
+				changes.google_drive_folder_id = editedCohort.google_drive_folder_id;
+			}
 
 			// If no changes, return early
 			if (Object.keys(changes).length === 0) {
@@ -341,24 +348,16 @@ export function CohortDetailPageClient({
 
 	// Delete cohort
 	const handleDeleteCohort = async () => {
-		setIsDeleting(true);
 		try {
-			const response = await fetch(`/api/cohorts/${cohortId}`, {
-				method: "DELETE",
-			});
-
-			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.error || "Failed to delete cohort");
-			}
-
+			await deleteCohortMutation.mutateAsync(cohortId);
 			toast.success("Cohort deleted successfully");
-			router.push("/admin/cohorts");
-			router.refresh();
+			setShowDeleteConfirm(false);
+			// Small delay to allow cache invalidation to complete
+			setTimeout(() => {
+				router.push("/admin/cohorts");
+			}, 100);
 		} catch (error: any) {
 			toast.error(error.message || "Failed to delete cohort");
-		} finally {
-			setIsDeleting(false);
 			setShowDeleteConfirm(false);
 		}
 	};
@@ -878,6 +877,56 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
+
+									<div className="flex items-start gap-3">
+										<FolderOpen className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Google Drive:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={editedCohort?.google_drive_folder_id || ""}
+													onSave={(value) =>
+														updateEditedField(
+															"google_drive_folder_id",
+															value || null,
+														)
+													}
+													editing={editing}
+													type="text"
+													placeholder="Enter Google Drive folder ID"
+												/>
+											) : (
+												<div className="flex items-center gap-2">
+													{cohort.google_drive_folder_id ? (
+														<Button
+															variant="outline"
+															size="sm"
+															className="h-7 border-yellow-200 bg-yellow-50 text-yellow-800 hover:bg-yellow-100 hover:text-yellow-900"
+															onClick={() => {
+																const folderUrl = `https://drive.google.com/drive/folders/${cohort.google_drive_folder_id}`;
+																window.open(folderUrl, "_blank");
+															}}
+														>
+															<FolderOpen className="mr-1.5 h-3.5 w-3.5" />
+															Open Drive
+														</Button>
+													) : (
+														<Button
+															variant="outline"
+															size="sm"
+															className="h-7"
+															disabled
+														>
+															<FolderOpen className="mr-1.5 h-3.5 w-3.5" />
+															No Drive folder
+														</Button>
+													)}
+												</div>
+											)}
+										</div>
+									</div>
 								</div>
 							</div>
 
@@ -1306,18 +1355,25 @@ export function CohortDetailPageClient({
 						<AlertDialogTitle>Delete Cohort</AlertDialogTitle>
 						<AlertDialogDescription>
 							Are you sure you want to delete this cohort? This action cannot be
-							undone. All associated classes and weekly sessions will be
-							removed.
+							undone. The following will be permanently deleted:
+							<ul className="mt-2 ml-4 list-disc text-sm">
+								<li>All weekly sessions</li>
+								<li>All scheduled classes</li>
+								<li>All attendance records</li>
+								<li>All student enrollments</li>
+							</ul>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+						<AlertDialogCancel disabled={deleteCohortMutation.isPending}>
+							Cancel
+						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDeleteCohort}
-							disabled={isDeleting}
+							disabled={deleteCohortMutation.isPending}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{isDeleting ? "Deleting..." : "Delete"}
+							{deleteCohortMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

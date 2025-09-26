@@ -51,6 +51,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useCreateCohort, useUpdateCohort } from "../queries/cohorts.queries";
 
 // Schema for the cohort form
 const cohortFormSchema = z.object({
@@ -141,7 +142,8 @@ const dayOptions = [
 
 export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const router = useRouter();
-	const [isLoading, setIsLoading] = useState(false);
+	const createCohortMutation = useCreateCohort();
+	const updateCohortMutation = useUpdateCohort();
 	const [teachers, setTeachers] = useState<any[]>([]);
 	const [products, setProducts] = useState<any[]>([]);
 	const [showSessions, setShowSessions] = useState(
@@ -230,7 +232,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	};
 
 	const onSubmit = async (data: CohortFormValues) => {
-		setIsLoading(true);
 		try {
 			const formattedData = {
 				...data,
@@ -239,22 +240,23 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 					: null,
 				current_level_id: data.current_level_id || data.starting_level_id,
 				max_students: data.max_students || 20,
+				google_drive_folder_id: data.google_drive_folder_id || null,
+				airtable_record_id: data.airtable_record_id || null,
+				room_type: data.room_type || null,
+				product_id: data.product_id || null,
+				starting_level_id: data.starting_level_id || null,
 			};
 
-			const response = await fetch(
-				isEditMode ? `/api/cohorts/${cohort.id}` : "/api/cohorts",
-				{
-					method: isEditMode ? "PATCH" : "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(formattedData),
-				},
-			);
-
-			if (!response.ok) {
-				throw new Error("Failed to save cohort");
+			// Use mutation hooks for better cache management
+			let savedCohort;
+			if (isEditMode) {
+				savedCohort = await updateCohortMutation.mutateAsync({
+					id: cohort.id,
+					data: formattedData,
+				});
+			} else {
+				savedCohort = await createCohortMutation.mutateAsync(formattedData);
 			}
-
-			const savedCohort = await response.json();
 
 			// Delete removed weekly sessions
 			if (isEditMode && originalSessionIds.length > 0) {
@@ -378,16 +380,16 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			if (onSuccess) {
 				onSuccess();
 			} else {
-				router.push(`/admin/cohorts/${savedCohort.id}`);
-				router.refresh();
+				// Small delay to allow cache invalidation to complete
+				setTimeout(() => {
+					router.push(`/admin/cohorts/${savedCohort.id}`);
+				}, 100);
 			}
 		} catch (error) {
 			console.error("Error saving cohort:", error);
 			toast.error(
 				isEditMode ? "Failed to update cohort" : "Failed to create cohort",
 			);
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -798,7 +800,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								</FormField>
 							</FormRow>
 						</FormSection>
-
+			
 						{/* External References */}
 						<FormSection
 							title="External References"
@@ -822,7 +824,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 				<FormActions
 					primaryLabel={
-						isLoading
+						createCohortMutation.isPending || updateCohortMutation.isPending
 							? isEditMode
 								? "Updating..."
 								: "Creating..."
@@ -830,7 +832,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								? "Update Cohort"
 								: "Create Cohort"
 					}
-					primaryLoading={isLoading}
+					primaryLoading={
+						createCohortMutation.isPending || updateCohortMutation.isPending
+					}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}

@@ -12,13 +12,15 @@ import {
 	dayOfWeekEnum,
 	groupClassBonusTermsEnum,
 	onboardingStatusEnum,
+	teamRolesEnum,
 } from "./enums";
 
 export const teachers = pgTable("teachers", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	userId: text("user_id"), // Optional - references Better Auth user.id when auth needed
+	userId: text("user_id"),
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
+	role: teamRolesEnum("role").array(),
 	groupClassBonusTerms: groupClassBonusTermsEnum("group_class_bonus_terms"),
 	onboardingStatus: onboardingStatusEnum("onboarding_status")
 		.notNull()
@@ -39,9 +41,9 @@ export const teachers = pgTable("teachers", {
 	maxStudentsOnline: integer("max_students_online"),
 	daysAvailableOnline: dayOfWeekEnum("days_available_online").array(),
 	daysAvailableInPerson: dayOfWeekEnum("days_available_in_person").array(),
-	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }), // E.164 format
+	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }),
 	adminNotes: text("admin_notes"),
-	airtableRecordId: text("airtable_record_id"), // For migration tracking
+	airtableRecordId: text("airtable_record_id"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
