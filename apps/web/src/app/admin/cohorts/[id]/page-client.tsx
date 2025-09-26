@@ -28,6 +28,7 @@ import {
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { finalizeSetup } from "@/features/cohorts/actions/finalize-setup";
 import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance";
 import { CohortClasses } from "@/features/cohorts/components/CohortClasses";
 import { CohortEnrollments } from "@/features/cohorts/components/CohortEnrollments";
@@ -363,21 +364,33 @@ export function CohortDetailPageClient({
 
 	// Finalize setup
 	const handleFinalizeSetup = async () => {
+		// Check if cohort has a start date before proceeding
+		if (!cohort?.start_date) {
+			toast.error("Cohort start date is required to finalize setup");
+			setShowFinalizeConfirm(false);
+			return;
+		}
+
 		setIsFinalizing(true);
 		try {
-			const response = await fetch(`/api/cohorts/${cohortId}`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ setup_finalized: true }),
-			});
+			// Call the server action to finalize setup and create calendar events
+			const result = await finalizeSetup({ cohortId });
 
-			if (!response.ok) throw new Error("Failed to finalize setup");
-
-			const updated = await response.json();
-			setCohort(updated);
-			toast.success("Cohort setup finalized successfully");
+			if (result?.data?.success) {
+				// Update the local cohort state to reflect the finalized status
+				setCohort({
+					...cohort,
+					setup_finalized: true,
+				});
+				toast.success(
+					result?.data?.message || "Cohort setup finalized successfully",
+				);
+			} else {
+				toast.error(result?.data?.message || "Failed to finalize setup");
+			}
 		} catch (error) {
-			toast.error("Failed to finalize setup");
+			console.error("Error finalizing setup:", error);
+			toast.error("An unexpected error occurred while finalizing setup");
 		} finally {
 			setIsFinalizing(false);
 			setShowFinalizeConfirm(false);
@@ -1374,9 +1387,9 @@ export function CohortDetailPageClient({
 					<AlertDialogHeader>
 						<AlertDialogTitle>Finalize Cohort Setup</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to finalize the setup for this cohort? Once
-							finalized, this action cannot be undone. Make sure all details are
-							correct:
+							This will create recurring Google Calendar events for all weekly
+							sessions and send invitations to enrolled students and assigned
+							teachers. Make sure all details are correct:
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<div className="py-3">
