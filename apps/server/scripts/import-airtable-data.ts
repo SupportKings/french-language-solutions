@@ -460,6 +460,7 @@ async function importTeachers() {
 			available_for_booking: fields["Available for Booking?"] === "Available" ? true : false,
 			qualified_for_under_16: mapYesNoToBoolean(fields["Qualified for Under 16"]),
 			maximum_hours_per_day: fields["Maximum Working Hours Per Day"] || null,
+			email: fields["Email"] || null,
 			maximum_hours_per_week: fields["Maximum Working Hours Per Week"] || null,
 			google_calendar_id: fields["Google Calendar ID"] || null,
 			airtable_record_id: record.id,
@@ -511,7 +512,7 @@ async function importStudents() {
 			is_under_16: fields["Age Group"] === "Under 16" ? true : false,
 			purpose_to_learn: fields["Why do you want to learn french?"] || null,
 			subjective_deadline_for_student: fields["Student's Subjective Deadline"] || null,
-			added_to_email_newsletter: mapCheckboxToBoolean(fields["Added to Email Newsletter"]),
+			added_to_email_newsletter: fields["ConvertKit Subscriber ID"] ? true : false,
 			website_quiz_submission_date: convertToISO8601(fields["Website Quiz Completed Date"]),
 			desired_starting_language_level_id: null, // Will be set in Pass 2
 			convertkit_id: fields["ConvertKit Subscriber ID"] || null,
@@ -521,8 +522,9 @@ async function importStudents() {
 			stripe_customer_id: fields["Stripe Customer ID"] || null,
 			tally_form_submission_id: fields["Submission ID"] || null,
 			airtable_record_id: record.id,
+			heard_from: fields["How did you hear about us?"] || null,
 			// Store Airtable references for Pass 2
-			_airtable_desired_starting_level_id: fields["Desired Starting Language Level"]?.[0] || null,
+			_airtable_desired_starting_level_id: fields["Desired Starting Language Level"]?.[0] || null
 		};
 		
 		students.push(student);
