@@ -136,7 +136,10 @@ export function PageHeader() {
 			};
 		}
 		else if (pathname.match(/^\/admin\/automation\/automated-follow-ups\/[^/]+$/)) {
-		
+			info = {
+				title: "Automated Follow-up Details",
+				description: "View and edit automated follow-up information",
+			};
 		}
 		else if (pathname.match(/^\/admin\/automation\/sequences\/[^/]+$/)) {
 			info = {
@@ -159,7 +162,7 @@ export function PageHeader() {
 				title: "Product Details",
 				description: "View and edit product information",
 			};
-		} else if (pathname.match(/^\/admin\/team\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/team-members\/[^/]+$/)) {
 			info = {
 				title: "Team Member Details",
 				description: "View and edit team member information",

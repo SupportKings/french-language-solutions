@@ -9,7 +9,6 @@ import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
 import { MultiSelect } from "@/components/ui/multi-select";
 import {
@@ -19,6 +18,22 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { CreateUserDialog } from "@/features/teachers/components/CreateUserDialog";
+import {
+	offboardTeacher,
+	permanentlyDeleteTeacher,
+} from "@/features/teachers/actions/offboardTeacher";
 
 import { format } from "date-fns";
 import {
@@ -28,15 +43,13 @@ import {
 	ChevronRight,
 	Clock,
 	CreditCard,
-	DollarSign,
 	MapPin,
-	MessageSquare,
 	MoreVertical,
 	Phone,
-	Plus,
 	Shield,
 	Trash2,
 	User,
+	UserMinus,
 	Users,
 	Video,
 } from "lucide-react";
@@ -78,6 +91,10 @@ export default function TeacherDetailsClient({
 	const [pendingChanges, setPendingChanges] = useState<Record<string, any>>({});
 	// Local state for edited values
 	const [editedTeacher, setEditedTeacher] = useState<any>(initialTeacher);
+	const [showOffboardDialog, setShowOffboardDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [isOffboarding, setIsOffboarding] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	// Update the teacher when data changes
 	useEffect(() => {
@@ -238,6 +255,85 @@ export default function TeacherDetailsClient({
 		router.push(`/admin/cohorts/new?${params.toString()}`);
 	};
 
+	// Handle offboarding
+	const handleOffboard = async () => {
+		setIsOffboarding(true);
+		try {
+			const result = await offboardTeacher({ teacherId: teacher.id });
+
+			if (result?.data?.success) {
+				toast.success(result.data.message);
+				// Refresh the teacher data
+				const response = await fetch(`/api/teachers/${teacher.id}`);
+				if (response.ok) {
+					const updated = await response.json();
+					setTeacher(updated);
+					setEditedTeacher(updated);
+				}
+			} else if (result?.validationErrors) {
+				const errors = result.validationErrors._errors || [];
+				toast.error(errors[0] || "Failed to offboard teacher");
+			}
+		} catch (error) {
+			toast.error("Failed to offboard teacher");
+		} finally {
+			setIsOffboarding(false);
+			setShowOffboardDialog(false);
+		}
+	};
+
+	// Handle deletion
+	const handleDelete = async () => {
+		setIsDeleting(true);
+		try {
+			const result = await permanentlyDeleteTeacher({ teacherId: teacher.id });
+
+			if (result?.data?.success) {
+				toast.success(result.data.message);
+				router.push("/admin/team-members");
+			} else if (result?.validationErrors) {
+				const errors = result.validationErrors._errors || [];
+				toast.error(errors[0] || "Failed to delete teacher");
+			}
+		} catch (error) {
+			toast.error("Failed to delete teacher");
+		} finally {
+			setIsDeleting(false);
+			setShowDeleteDialog(false);
+		}
+	};
+
+	// Refresh teacher data after user creation
+	const refreshTeacher = async () => {
+		console.log("Refreshing teacher data...");
+
+		// Use router.refresh() to revalidate server data
+		router.refresh();
+
+		// Also fetch the updated data directly
+		const response = await fetch(`/api/teachers/${teacher.id}`, {
+			cache: 'no-store',
+			headers: {
+				'Cache-Control': 'no-cache',
+			},
+		});
+		if (response.ok) {
+			const updated = await response.json();
+			console.log("Updated teacher data:", updated);
+			console.log("Has user_id:", !!updated.user_id);
+
+			// Update local state with the new data
+			const teacherWithUser = {
+				...updated,
+				userDetails: updated.user_id ? { role: 'user' } : null // Basic user details
+			};
+			setTeacher(teacherWithUser);
+			setEditedTeacher(teacherWithUser);
+		} else {
+			console.error("Failed to refresh teacher data");
+		}
+	};
+
 	return (
 		<div className="min-h-screen bg-muted/30">
 			{/* Enhanced Header with Breadcrumb */}
@@ -286,6 +382,19 @@ export default function TeacherDetailsClient({
 											}
 										</Badge>
 									)}
+									{teacher.user_id && (
+										<Badge
+											variant="success"
+											className="h-4 px-1.5 text-[10px]"
+										>
+											Has User Account
+										</Badge>
+									)}
+									{teacher.userDetails?.role && (
+										<Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+											{teacher.userDetails.role}
+										</Badge>
+									)}
 									{teacher.role && teacher.role.length > 0 && (
 										<div className="flex flex-wrap gap-1">
 											{teacher.role.map((r: string) => (
@@ -299,25 +408,48 @@ export default function TeacherDetailsClient({
 							</div>
 						</div>
 
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="outline" size="sm">
-									<MoreVertical className="h-3.5 w-3.5" />
+						<div className="flex items-center gap-2">
+							{/* User Account Management */}
+							{!teacher.user_id ? (
+								<CreateUserDialog
+									teacherId={teacher.id}
+									teacherName={fullName}
+									onSuccess={refreshTeacher}
+								/>
+							) : teacher.onboarding_status !== "offboarded" ? (
+								<Button
+									variant="destructive"
+									size="sm"
+									onClick={() => setShowOffboardDialog(true)}
+								>
+									<UserMinus className="mr-2 h-3.5 w-3.5" />
+									Offboard
 								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-56">
-								<DropdownMenuItem onClick={navigateToAssignClass}>
-									<Calendar className="mr-2 h-3.5 w-3.5" />
-									Assign to Class
-								</DropdownMenuItem>
-							
-								<DropdownMenuSeparator />
-								<DropdownMenuItem className="text-destructive">
-									<Trash2 className="mr-2 h-3.5 w-3.5" />
-									Delete Team Member
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+							) : null}
+
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button variant="outline" size="sm">
+										<MoreVertical className="h-3.5 w-3.5" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="w-56">
+									<DropdownMenuItem onClick={navigateToAssignClass}>
+										<Calendar className="mr-2 h-3.5 w-3.5" />
+										Assign to Class
+									</DropdownMenuItem>
+
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="text-destructive"
+										onClick={() => setShowDeleteDialog(true)}
+									>
+										<Trash2 className="mr-2 h-3.5 w-3.5" />
+										Archive Team Member
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -954,12 +1086,32 @@ export default function TeacherDetailsClient({
 								</code>
 							</div>
 							{teacher.user_id && (
-								<div className="flex items-center gap-2">
-									<span>User:</span>
-									<code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono">
-										{teacher.user_id.slice(0, 8)}
-									</code>
-								</div>
+								<>
+									<div className="flex items-center gap-2">
+										<span>User:</span>
+										<code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono">
+											{teacher.user_id.slice(0, 8)}
+										</code>
+									</div>
+									{teacher.userDetails && (
+										<>
+											<div className="flex items-center gap-2">
+												<span>Email:</span>
+												<span className="text-foreground/90">
+													{teacher.userDetails.email}
+												</span>
+											</div>
+											{teacher.userDetails.role && (
+												<div className="flex items-center gap-2">
+													<span>Auth Role:</span>
+													<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+														{teacher.userDetails.role}
+													</Badge>
+												</div>
+											)}
+										</>
+									)}
+								</>
 							)}
 							<div className="flex items-center gap-2">
 								<Clock className="h-3 w-3" />
@@ -985,6 +1137,63 @@ export default function TeacherDetailsClient({
 					</div>
 				</div>
 			</div>
+
+			{/* Offboard Confirmation Dialog */}
+			<AlertDialog open={showOffboardDialog} onOpenChange={setShowOffboardDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Offboard Team Member</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to offboard {fullName}? This will:
+							<ul className="mt-2 list-disc pl-6">
+								<li>Set their status to "Offboarded"</li>
+								<li>Delete their user account (if exists)</li>
+								<li>Remove their availability for classes</li>
+							</ul>
+							After offboarding, you'll need to create a new user account if they need access again.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isOffboarding}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleOffboard}
+							disabled={isOffboarding}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{isOffboarding ? "Offboarding..." : "Offboard"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive Team Member</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to archive {fullName}? This will:
+							<ul className="mt-2 list-disc pl-6">
+								<li>Set their status to "Offboarded"</li>
+								<li>Delete their user account (if exists)</li>
+								<li>Preserve their teacher record for history</li>
+								<li>Remove their availability for classes</li>
+							</ul>
+							Note: The teacher record will be preserved but marked as offboarded.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDelete}
+							disabled={isDeleting}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{isDeleting ? "Archiving..." : "Archive"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

@@ -147,6 +147,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_step: number
+          error_message: string | null
           id: string
           last_message_sent_at: string | null
           sequence_id: string
@@ -160,6 +161,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_step?: number
+          error_message?: string | null
           id?: string
           last_message_sent_at?: string | null
           sequence_id: string
@@ -173,6 +175,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_step?: number
+          error_message?: string | null
           id?: string
           last_message_sent_at?: string | null
           sequence_id?: string
@@ -645,6 +648,7 @@ export type Database = {
           email: string | null
           first_name: string | null
           full_name: string
+          heard_from: string | null
           id: string
           initial_channel: Database["public"]["Enums"]["initial_channel"] | null
           is_full_beginner: boolean | null
@@ -674,6 +678,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           full_name: string
+          heard_from?: string | null
           id?: string
           initial_channel?:
             | Database["public"]["Enums"]["initial_channel"]
@@ -705,6 +710,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           full_name?: string
+          heard_from?: string | null
           id?: string
           initial_channel?:
             | Database["public"]["Enums"]["initial_channel"]
@@ -830,7 +836,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teachers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       template_follow_up_messages: {
         Row: {
@@ -928,7 +942,7 @@ export type Database = {
           airtable_record_id?: string | null
           automated_follow_up_id?: string | null
           channel: Database["public"]["Enums"]["touchpoint_channel"]
-          created_at: string
+          created_at?: string
           external_id?: string | null
           external_metadata?: string | null
           id?: string
@@ -961,6 +975,13 @@ export type Database = {
             columns: ["automated_follow_up_id"]
             isOneToOne: false
             referencedRelation: "automated_follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "touchpoints_automated_follow_up_id_automated_follow_ups_id_fk"
+            columns: ["automated_follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "automated_follow_ups_with_schedule"
             referencedColumns: ["id"]
           },
           {
@@ -1065,7 +1086,7 @@ export type Database = {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id: string
-          created_at: string
+          created_at?: string
           day_of_week: Database["public"]["Enums"]["day_of_week"]
           end_time: string
           google_calendar_event_id?: string | null
@@ -1106,10 +1127,109 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      automated_follow_ups_with_schedule: {
+        Row: {
+          airtable_record_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          current_step: number | null
+          has_next_message: boolean | null
+          id: string | null
+          last_message_sent_at: string | null
+          messages_sent_count: number | null
+          next_message_scheduled_at: string | null
+          next_message_step_index: number | null
+          sequence_id: string | null
+          started_at: string | null
+          status:
+            | Database["public"]["Enums"]["automated_follow_up_status"]
+            | null
+          student_id: string | null
+          total_messages_in_sequence: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_follow_ups_sequence_id_template_follow_up_sequences_i"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "template_follow_up_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_follow_ups_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      bytea_to_text: {
+        Args: { data: string }
+        Returns: string
+      }
+      http: {
+        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_delete: {
+        Args:
+          | { content: string; content_type: string; uri: string }
+          | { uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_get: {
+        Args: { data: Json; uri: string } | { uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_head: {
+        Args: { uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_header: {
+        Args: { field: string; value: string }
+        Returns: Database["public"]["CompositeTypes"]["http_header"]
+      }
+      http_list_curlopt: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          curlopt: string
+          value: string
+        }[]
+      }
+      http_patch: {
+        Args: { content: string; content_type: string; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_post: {
+        Args:
+          | { content: string; content_type: string; uri: string }
+          | { data: Json; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_put: {
+        Args: { content: string; content_type: string; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_reset_curlopt: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      http_set_curlopt: {
+        Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
+      text_to_bytea: {
+        Args: { data: string }
+        Returns: string
+      }
+      urlencode: {
+        Args: { data: Json } | { string: string } | { string: string }
+        Returns: string
+      }
     }
     Enums: {
       assessment_result:
@@ -1123,6 +1243,7 @@ export type Database = {
         | "answer_received"
         | "disabled"
         | "completed"
+        | "failed"
       class_mode: "online" | "in_person" | "hybrid"
       class_status: "scheduled" | "in_progress" | "completed" | "cancelled"
       cohort_status: "enrollment_open" | "enrollment_closed" | "class_ended"
@@ -1176,7 +1297,23 @@ export type Database = {
       user_role: "admin" | "support" | "teacher" | "student"
     }
     CompositeTypes: {
-      [_ in never]: never
+      http_header: {
+        field: string | null
+        value: string | null
+      }
+      http_request: {
+        method: unknown | null
+        uri: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content_type: string | null
+        content: string | null
+      }
+      http_response: {
+        status: number | null
+        content_type: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content: string | null
+      }
     }
   }
 }
@@ -1313,6 +1450,7 @@ export const Constants = {
         "answer_received",
         "disabled",
         "completed",
+        "failed",
       ],
       class_mode: ["online", "in_person", "hybrid"],
       class_status: ["scheduled", "in_progress", "completed", "cancelled"],
