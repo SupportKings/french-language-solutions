@@ -1683,6 +1683,7 @@ async function main() {
 		console.log("   Example: bun run scripts/import-airtable-data.ts --clean");
 	}
 	
+	
 	console.log("\nUsing THREE-PASS strategy:");
 	console.log("  1. Pre-Import: Match language levels");
 	console.log("  2. Pass 1: Import all data with airtable_record_id");
