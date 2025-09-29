@@ -364,14 +364,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
 									onClick={() => router.push(`/admin/students/enrollments/${enrollment.id}`)}
 								>
-									<TableCell onClick={(e) => e.stopPropagation()}>
+									<TableCell>
 										{enrollment.students ? (
-											<LinkedRecordBadge
-												href={`/admin/students/${enrollment.student_id}`}
-												label={enrollment.students.full_name}
-												icon={User}
-												title={enrollment.students.email || "No email"}
-											/>
+												<LinkedRecordBadge
+													href={`/admin/students/${enrollment.student_id}`}
+													label={enrollment.students.full_name}
+													icon={User}
+													title={enrollment.students.email || "No email"}
+												/>
 										) : (
 											<span className="text-muted-foreground">No student</span>
 										)}
