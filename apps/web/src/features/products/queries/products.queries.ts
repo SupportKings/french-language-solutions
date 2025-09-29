@@ -15,6 +15,37 @@ export const productKeys = {
 	detail: (id: string) => [...productKeys.details(), id] as const,
 };
 
+// Server queries for prefetching
+export const productQueries = {
+	list: (filters?: any) => ({
+		queryKey: productKeys.list(filters),
+		queryFn: async () => {
+			const params = new URLSearchParams();
+			if (filters) {
+				Object.entries(filters).forEach(([key, value]) => {
+					if (value !== undefined && value !== null && value !== "") {
+						params.append(key, String(value));
+					}
+				});
+			}
+			const response = await fetch(`/api/products?${params}`);
+			if (!response.ok) {
+				throw new Error("Failed to fetch products");
+			}
+			return response.json();
+		},
+	}),
+	detail: (id: string) => ({
+		queryKey: productKeys.detail(id),
+		queryFn: () => fetchProduct(id),
+	}),
+};
+
+// Hook to fetch products list
+export const useProducts = (filters?: any) => {
+	return useQuery(productQueries.list(filters));
+};
+
 // Fetch a single product
 export const fetchProduct = async (productId: string): Promise<Product> => {
 	const response = await fetch(`/api/products/${productId}`);

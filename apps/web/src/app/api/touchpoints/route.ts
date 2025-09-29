@@ -36,11 +36,21 @@ export async function GET(request: NextRequest) {
 			{ count: "exact" },
 		);
 
-		// Apply filters
+		// Apply search filter - search in joined students table
 		if (search) {
-			query = query.or(
-				`students.full_name.ilike.%${search}%,students.email.ilike.%${search}%,message.ilike.%${search}%`,
-			);
+			// First, get matching student IDs
+			const { data: studentIds } = await supabase
+				.from("students")
+				.select("id")
+				.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,mobile_phone_number.ilike.%${search}%`);
+
+			if (studentIds && studentIds.length > 0) {
+				const ids = studentIds.map(s => s.id);
+				query = query.in("student_id", ids);
+			} else {
+				// No matching students, return empty result
+				query = query.eq("student_id", "00000000-0000-0000-0000-000000000000");
+			}
 		}
 
 		if (channel.length > 0) {

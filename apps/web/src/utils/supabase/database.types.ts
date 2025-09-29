@@ -836,7 +836,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teachers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       template_follow_up_messages: {
         Row: {
@@ -934,7 +942,7 @@ export type Database = {
           airtable_record_id?: string | null
           automated_follow_up_id?: string | null
           channel: Database["public"]["Enums"]["touchpoint_channel"]
-          created_at: string
+          created_at?: string
           external_id?: string | null
           external_metadata?: string | null
           id?: string
@@ -990,8 +998,8 @@ export type Database = {
           banExpires: string | null
           banned: boolean | null
           banReason: string | null
-          bio: string
-          calendar_link: string
+          bio: string | null
+          calendar_link: string | null
           createdAt: string
           email: string
           emailVerified: boolean
@@ -1005,8 +1013,8 @@ export type Database = {
           banExpires?: string | null
           banned?: boolean | null
           banReason?: string | null
-          bio: string
-          calendar_link: string
+          bio?: string | null
+          calendar_link?: string | null
           createdAt?: string
           email: string
           emailVerified: boolean
@@ -1020,8 +1028,8 @@ export type Database = {
           banExpires?: string | null
           banned?: boolean | null
           banReason?: string | null
-          bio?: string
-          calendar_link?: string
+          bio?: string | null
+          calendar_link?: string | null
           createdAt?: string
           email?: string
           emailVerified?: boolean
@@ -1078,7 +1086,7 @@ export type Database = {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id: string
-          created_at: string
+          created_at?: string
           day_of_week: Database["public"]["Enums"]["day_of_week"]
           end_time: string
           google_calendar_event_id?: string | null

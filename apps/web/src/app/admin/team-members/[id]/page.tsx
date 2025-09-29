@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
 
+import { getTeacherUser } from "@/features/teachers/actions/getTeacherUser";
+
 import TeacherDetailsClient from "./page-client";
 
 async function getTeacher(id: string) {
@@ -30,5 +32,17 @@ export default async function TeamMemberDetailPage({
 		notFound();
 	}
 
-	return <TeacherDetailsClient teacher={teacher} />;
+	// Fetch user details if teacher has a user_id
+	let userDetails = null;
+	if (teacher.user_id) {
+		userDetails = await getTeacherUser(teacher.user_id);
+	}
+
+	// Merge user details into teacher object
+	const teacherWithUser = {
+		...teacher,
+		userDetails,
+	};
+
+	return <TeacherDetailsClient teacher={teacherWithUser} />;
 }
