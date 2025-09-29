@@ -5,5 +5,19 @@
 			"maxDuration": 30
 		}
 	},
-	"rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+	"rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+	"crons": [
+		{
+			"path": "/process-abandoned-enrollments",
+			"schedule": "*/15 * * * *"
+		},
+		{
+			"path": "/trigger-next-messages",
+			"schedule": "*/15 * * * *"
+		},
+		{
+			"path": "/check-recent-engagements-to-stop",
+			"schedule": "0 */4 * * *"
+		}
+	]
 }
