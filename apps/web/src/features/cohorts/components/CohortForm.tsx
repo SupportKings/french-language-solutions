@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -19,6 +19,7 @@ import {
 	SelectField,
 	TextareaField,
 } from "@/components/form-layout/FormLayout";
+import { SearchableSelect } from "@/components/form-layout/SearchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -28,6 +29,8 @@ import {
 } from "@/components/ui/popover";
 
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+import { productQueries, useProducts } from "@/features/products/queries/products.queries";
+import { teachersQueries, useTeachers } from "@/features/teachers/queries/teachers.queries";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -144,8 +147,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const router = useRouter();
 	const createCohortMutation = useCreateCohort();
 	const updateCohortMutation = useUpdateCohort();
-	const [teachers, setTeachers] = useState<any[]>([]);
-	const [products, setProducts] = useState<any[]>([]);
 	const [showSessions, setShowSessions] = useState(
 		cohort?.weekly_sessions?.length > 0 || false,
 	);
@@ -161,6 +162,19 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		languageLevelQueries.list(),
 	);
 	const levelOptions = languageLevels || [];
+
+	// Fetch teachers
+	const { data: teachersData, isLoading: teachersLoading } = useTeachers({
+		page: 1,
+		limit: 100,
+		sortBy: "first_name",
+		sortOrder: "asc",
+	});
+	const teachers = teachersData?.data || [];
+
+	// Fetch products
+	const { data: productsData, isLoading: productsLoading } = useProducts();
+	const products = Array.isArray(productsData) ? productsData : productsData?.data || [];
 
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
@@ -178,36 +192,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		},
 	});
 
-	// Fetch teachers and products
-	useEffect(() => {
-		async function fetchData() {
-			try {
-				// Fetch teachers
-				const teachersResponse = await fetch("/api/teachers");
-				if (teachersResponse.ok) {
-					const teachersData = await teachersResponse.json();
-					const teachersList = Array.isArray(teachersData)
-						? teachersData
-						: teachersData.data || [];
-					setTeachers(teachersList);
-				}
-
-				// Fetch products
-				const productsResponse = await fetch("/api/products");
-				if (productsResponse.ok) {
-					const productsData = await productsResponse.json();
-					setProducts(
-						Array.isArray(productsData)
-							? productsData
-							: productsData.data || [],
-					);
-				}
-			} catch (error) {
-				console.error("Error fetching data:", error);
-			}
-		}
-		fetchData();
-	}, []);
 
 	const addWeeklySession = () => {
 		const currentSessions = form.getValues("weekly_sessions") || [];
@@ -404,13 +388,13 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	}));
 
 	// Transform teachers for select options with max students
-	const teacherOptions = teachers.map((teacher) => {
+	const teacherOptions = teachers.map((teacher: any) => {
 		const name =
 			`${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() ||
 			"Unknown";
 		// Get the appropriate max students based on product location
 		const selectedProduct = products.find(
-			(p) => p.id === form.watch("product_id"),
+			(p: any) => p.id === form.watch("product_id"),
 		);
 		const isOnline = selectedProduct?.location === "online";
 		const maxStudents = isOnline
@@ -429,7 +413,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	});
 
 	// Transform products for select options
-	const productOptions = products.map((product) => ({
+	const productOptions = products.map((product: any) => ({
 		label: product.display_name || product.name || "Unknown",
 		value: product.id,
 	}));
@@ -447,14 +431,14 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 		// Get product location to determine which capacity to use
 		const selectedProduct = products.find(
-			(p) => p.id === form.watch("product_id"),
+			(p: any) => p.id === form.watch("product_id"),
 		);
 		const isOnline = selectedProduct?.location === "online";
 
 		// Find the minimum capacity among selected teachers
 		let minCapacity = Number.MAX_SAFE_INTEGER;
 		selectedTeachers.forEach((teacherId) => {
-			const teacher = teachers.find((t) => t.id === teacherId);
+			const teacher = teachers.find((t: any) => t.id === teacherId);
 			if (teacher) {
 				const teacherCapacity = isOnline
 					? teacher.max_students_online
@@ -515,11 +499,13 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								hint="Select the product/format for this cohort"
 								error={form.formState.errors.product_id?.message}
 							>
-								<SelectField
+								<SearchableSelect
 									placeholder="Select a product"
+									searchPlaceholder="Search products..."
 									value={form.watch("product_id") || ""}
 									onValueChange={(value) => form.setValue("product_id", value)}
 									options={productOptions}
+									showOnlyOnSearch={false}
 								/>
 							</FormField>
 							<FormField
@@ -527,17 +513,20 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								required
 								error={form.formState.errors.starting_level_id?.message}
 							>
-								<SelectField
+								<SearchableSelect
 									placeholder={
 										languageLevelsLoading
 											? "Loading levels..."
 											: "Select starting level"
 									}
+									searchPlaceholder="Type to search levels..."
 									value={form.watch("starting_level_id") || ""}
 									onValueChange={(value) =>
 										form.setValue("starting_level_id", value)
 									}
 									options={languageLevelOptions}
+									showOnlyOnSearch={true}
+									disabled={languageLevelsLoading}
 								/>
 							</FormField>
 						</FormSection>
@@ -677,8 +666,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 															?.teacher_id?.message
 													}
 												>
-													<SelectField
+													<SearchableSelect
 														placeholder="Select teacher"
+														searchPlaceholder="Type to search teachers..."
 														value={session.teacher_id || ""}
 														onValueChange={(value) => {
 															const sessions =
@@ -690,6 +680,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 															form.setValue("weekly_sessions", sessions);
 														}}
 														options={teacherOptions}
+														showOnlyOnSearch={true}
 													/>
 												</FormField>
 											</FormRow>
