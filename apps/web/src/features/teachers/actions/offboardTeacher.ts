@@ -106,7 +106,7 @@ export const offboardTeacher = actionClient
 	});
 
 // This action permanently deletes a teacher record from the database
-// In most cases, you should use offboardTeacher instead to preserve data
+// Use with caution - this cannot be undone
 export const permanentlyDeleteTeacher = actionClient
 	.inputSchema(inputSchema)
 	.action(async ({ parsedInput }) => {
@@ -122,7 +122,7 @@ export const permanentlyDeleteTeacher = actionClient
 				});
 			}
 
-			// Use the DELETE endpoint which now handles soft deletion
+			// Use the DELETE endpoint which permanently deletes the teacher
 			const deleteResponse = await fetch(
 				`${process.env.NEXT_PUBLIC_APP_URL}/api/teachers/${parsedInput.teacherId}`,
 				{
@@ -136,20 +136,20 @@ export const permanentlyDeleteTeacher = actionClient
 			if (!deleteResponse.ok) {
 				const errorData = await deleteResponse.json();
 				return returnValidationErrors(inputSchema, {
-					_errors: [errorData.error || "Failed to offboard teacher."],
+					_errors: [errorData.error || "Failed to delete teacher."],
 				});
 			}
 
 			return {
 				success: true,
-				message: "Teacher offboarded and user account removed successfully",
+				message: "Teacher and associated user account deleted permanently",
 			};
 
 		} catch (error) {
 			console.error("Unexpected error in permanentlyDeleteTeacher:", error);
 
 			return returnValidationErrors(inputSchema, {
-				_errors: ["Failed to offboard teacher. Please try again."],
+				_errors: ["Failed to delete teacher. Please try again."],
 			});
 		}
 	});

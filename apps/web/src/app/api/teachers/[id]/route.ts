@@ -207,7 +207,7 @@ export async function PATCH(
 	}
 }
 
-// DELETE /api/teachers/[id] - Soft delete a teacher (offboard them and remove user account)
+// DELETE /api/teachers/[id] - Delete a teacher completely
 export async function DELETE(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
@@ -230,8 +230,7 @@ export async function DELETE(
 			);
 		}
 
-		// If teacher has a user account, delete the user
-		// The cascade will automatically set teacher.user_id to NULL
+		// If teacher has a user account, delete the user first
 		if (teacher.user_id) {
 			const { error: deleteUserError } = await supabase
 				.from("user")
@@ -240,36 +239,26 @@ export async function DELETE(
 
 			if (deleteUserError) {
 				console.error("Error deleting user account:", deleteUserError);
-				// Continue with offboarding even if user deletion fails
+				// Continue with teacher deletion even if user deletion fails
 			}
 		}
 
-		// Update teacher to offboarded status (soft delete)
-		const { data: updatedTeacher, error: updateError } = await supabase
+		// Delete the teacher record completely
+		const { error: deleteError } = await supabase
 			.from("teachers")
-			.update({
-				onboarding_status: "offboarded",
-				available_for_booking: false,
-				available_for_online_classes: false,
-				available_for_in_person_classes: false,
-				user_id: null,
-				updated_at: new Date().toISOString(),
-			})
-			.eq("id", id)
-			.select()
-			.single();
+			.delete()
+			.eq("id", id);
 
-		if (updateError) {
-			console.error("Error offboarding teacher:", updateError);
+		if (deleteError) {
+			console.error("Error deleting teacher:", deleteError);
 			return NextResponse.json(
-				{ error: "Failed to offboard teacher" },
+				{ error: "Failed to delete teacher" },
 				{ status: 500 },
 			);
 		}
 
 		return NextResponse.json({
-			message: "Teacher offboarded successfully",
-			data: updatedTeacher
+			message: "Teacher deleted successfully"
 		});
 	} catch (error) {
 		console.error("Error in DELETE /api/teachers/[id]:", error);

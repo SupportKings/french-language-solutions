@@ -445,7 +445,7 @@ export default function TeacherDetailsClient({
 										onClick={() => setShowDeleteDialog(true)}
 									>
 										<Trash2 className="mr-2 h-3.5 w-3.5" />
-										Archive Team Member
+										Delete Team Member
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -1170,16 +1170,15 @@ export default function TeacherDetailsClient({
 			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Archive Team Member</AlertDialogTitle>
+						<AlertDialogTitle>Delete Team Member</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to archive {fullName}? This will:
+							Are you sure you want to permanently delete {fullName}? This will:
 							<ul className="mt-2 list-disc pl-6">
-								<li>Set their status to "Offboarded"</li>
 								<li>Delete their user account (if exists)</li>
-								<li>Preserve their teacher record for history</li>
-								<li>Remove their availability for classes</li>
+								<li>Remove all their teacher data from the system</li>
+								<li>This action cannot be undone</li>
 							</ul>
-							Note: The teacher record will be preserved but marked as offboarded.
+							<strong className="text-destructive">Warning: This is permanent and cannot be reversed!</strong>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -1189,7 +1188,7 @@ export default function TeacherDetailsClient({
 							disabled={isDeleting}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{isDeleting ? "Archiving..." : "Archive"}
+							{isDeleting ? "Deleting..." : "Delete Permanently"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

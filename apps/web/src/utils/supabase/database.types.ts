@@ -998,8 +998,8 @@ export type Database = {
           banExpires: string | null
           banned: boolean | null
           banReason: string | null
-          bio: string
-          calendar_link: string
+          bio: string | null
+          calendar_link: string | null
           createdAt: string
           email: string
           emailVerified: boolean
@@ -1013,8 +1013,8 @@ export type Database = {
           banExpires?: string | null
           banned?: boolean | null
           banReason?: string | null
-          bio: string
-          calendar_link: string
+          bio?: string | null
+          calendar_link?: string | null
           createdAt?: string
           email: string
           emailVerified: boolean
@@ -1028,8 +1028,8 @@ export type Database = {
           banExpires?: string | null
           banned?: boolean | null
           banReason?: string | null
-          bio?: string
-          calendar_link?: string
+          bio?: string | null
+          calendar_link?: string | null
           createdAt?: string
           email?: string
           emailVerified?: boolean
