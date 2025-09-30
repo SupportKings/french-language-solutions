@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
+import { NavUsersList } from "@/components/admin/nav-users-list";
 import {
 	Sidebar,
 	SidebarContent,
@@ -123,6 +124,7 @@ export function AdminSidebar({
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={data.navMain} />
+				<NavUsersList />
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser user={data.user} />

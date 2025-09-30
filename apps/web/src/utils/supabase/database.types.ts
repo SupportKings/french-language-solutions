@@ -150,10 +150,10 @@ export type Database = {
           error_message: string | null
           id: string
           last_message_sent_at: string | null
-          sequence_id: string
+          sequence_id: string | null
           started_at: string
           status: Database["public"]["Enums"]["automated_follow_up_status"]
-          student_id: string
+          student_id: string | null
           updated_at: string
         }
         Insert: {
@@ -164,10 +164,10 @@ export type Database = {
           error_message?: string | null
           id?: string
           last_message_sent_at?: string | null
-          sequence_id: string
+          sequence_id?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["automated_follow_up_status"]
-          student_id: string
+          student_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -178,10 +178,10 @@ export type Database = {
           error_message?: string | null
           id?: string
           last_message_sent_at?: string | null
-          sequence_id?: string
+          sequence_id?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["automated_follow_up_status"]
-          student_id?: string
+          student_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -344,7 +344,7 @@ export type Database = {
         Row: {
           airtable_created_at: string | null
           airtable_record_id: string | null
-          cohort_id: string
+          cohort_id: string | null
           created_at: string
           id: string
           status: Database["public"]["Enums"]["enrollment_status"]
@@ -354,7 +354,7 @@ export type Database = {
         Insert: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
-          cohort_id: string
+          cohort_id?: string | null
           created_at?: string
           id?: string
           status?: Database["public"]["Enums"]["enrollment_status"]
@@ -364,7 +364,7 @@ export type Database = {
         Update: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
-          cohort_id?: string
+          cohort_id?: string | null
           created_at?: string
           id?: string
           status?: Database["public"]["Enums"]["enrollment_status"]
@@ -647,7 +647,7 @@ export type Database = {
           desired_starting_language_level_id: string | null
           email: string | null
           first_name: string | null
-          full_name: string
+          full_name: string | null
           heard_from: string | null
           id: string
           initial_channel: Database["public"]["Enums"]["initial_channel"] | null
@@ -677,7 +677,7 @@ export type Database = {
           desired_starting_language_level_id?: string | null
           email?: string | null
           first_name?: string | null
-          full_name: string
+          full_name?: string | null
           heard_from?: string | null
           id?: string
           initial_channel?:
@@ -709,7 +709,7 @@ export type Database = {
           desired_starting_language_level_id?: string | null
           email?: string | null
           first_name?: string | null
-          full_name?: string
+          full_name?: string | null
           heard_from?: string | null
           id?: string
           initial_channel?:
@@ -754,6 +754,7 @@ export type Database = {
           days_available_online:
             | Database["public"]["Enums"]["day_of_week"][]
             | null
+          email: string | null
           first_name: string
           google_calendar_id: string | null
           group_class_bonus_terms:
@@ -786,6 +787,7 @@ export type Database = {
           days_available_online?:
             | Database["public"]["Enums"]["day_of_week"][]
             | null
+          email?: string | null
           first_name: string
           google_calendar_id?: string | null
           group_class_bonus_terms?:
@@ -818,6 +820,7 @@ export type Database = {
           days_available_online?:
             | Database["public"]["Enums"]["day_of_week"][]
             | null
+          email?: string | null
           first_name?: string
           google_calendar_id?: string | null
           group_class_bonus_terms?:
@@ -930,7 +933,7 @@ export type Database = {
           external_id: string | null
           external_metadata: string | null
           id: string
-          message: string
+          message: string | null
           occurred_at: string
           source: Database["public"]["Enums"]["touchpoint_source"]
           student_id: string
@@ -946,7 +949,7 @@ export type Database = {
           external_id?: string | null
           external_metadata?: string | null
           id?: string
-          message: string
+          message?: string | null
           occurred_at?: string
           source?: Database["public"]["Enums"]["touchpoint_source"]
           student_id: string
@@ -962,7 +965,7 @@ export type Database = {
           external_id?: string | null
           external_metadata?: string | null
           id?: string
-          message?: string
+          message?: string | null
           occurred_at?: string
           source?: Database["public"]["Enums"]["touchpoint_source"]
           student_id?: string

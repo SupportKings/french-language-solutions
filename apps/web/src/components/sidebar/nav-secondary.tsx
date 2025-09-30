@@ -10,19 +10,30 @@ import {
 	SidebarMenu,
 } from "@/components/ui/sidebar";
 
-import { BookOpen } from "lucide-react";
+import { BookOpen, UserCog } from "lucide-react";
+import { IconWrapper } from "./icon-wrapper";
 import { SidebarItemComponent } from "./sidebar-item";
 
 export function NavSecondary({
+	isAdmin = false,
 	...props
-}: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+}: React.ComponentPropsWithoutRef<typeof SidebarGroup> & {
+	isAdmin?: boolean;
+}) {
 	const pathname = usePathname();
-	const isActive = pathname === "/dashboard/knowledge-base";
 
 	return (
 		<SidebarGroup {...props}>
 			<SidebarGroupContent>
-				<SidebarMenu />
+				<SidebarMenu>
+					{isAdmin && (
+						<SidebarItemComponent
+							href="/admin/portal-users"
+							label="Portal Users"
+							icon={<IconWrapper name="UserCog" size={16} />}
+						/>
+					)}
+				</SidebarMenu>
 			</SidebarGroupContent>
 		</SidebarGroup>
 	);
