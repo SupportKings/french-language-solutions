@@ -10,7 +10,7 @@ app.get("/available-beginner-cohorts", (c) =>
 );
 
 // Process abandoned contracts and payments
-app.post("/process-abandoned-enrollments", (c) =>
+app.get("/process-abandoned-enrollments", (c) =>
 	controller.processAbandonedEnrollments(c),
 );
 

@@ -22,12 +22,12 @@ followUpRoutes.post("/advance", (c) => controller.advanceFollowUp(c));
 followUpRoutes.post("/stop", (c) => controller.stopFollowUps(c));
 
 // Trigger next messages for all ready follow-ups
-followUpRoutes.post("/trigger-next-messages", (c) =>
+followUpRoutes.get("/trigger-next-messages", (c) =>
 	controller.triggerNextMessages(c),
 );
 
 // Check recent engagements (touchpoints and assessments) and stop follow-ups if found
-followUpRoutes.post("/check-recent-engagements-to-stop", (c) =>
+followUpRoutes.get("/check-recent-engagements-to-stop", (c) =>
 	controller.checkRecentEngagementsToStop(c),
 );
 
