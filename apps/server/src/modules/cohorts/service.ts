@@ -148,41 +148,8 @@ export class CohortService {
 			},
 		);
 
-		// Collect all attendee emails
-		const attendees: string[] = [];
-
-		// Add student emails (only paid or welcome_package_sent)
-		cohort.enrollments.forEach((enrollment) => {
-			if (enrollment.status === 'paid' || enrollment.status === 'welcome_package_sent') {
-				if (enrollment.student.email) {
-					attendees.push(enrollment.student.email);
-				}
-			}
-		});
-
-		// Add teacher emails (from weekly sessions)
-		const teacherUserIds = new Set<string>();
-		cohort.weekly_sessions.forEach((session) => {
-			if (session.teacher.user_id) {
-				teacherUserIds.add(session.teacher.user_id);
-			}
-		});
-
-		// Fetch teacher emails from user table
-		if (teacherUserIds.size > 0) {
-			const { data: users } = await supabase
-				.from("user")
-				.select("email")
-				.in("id", Array.from(teacherUserIds));
-
-			if (users) {
-				users.forEach((user: { email: string | null }) => {
-					if (user.email) {
-						attendees.push(user.email);
-					}
-				});
-			}
-		}
+		// Get attendees from the source of truth endpoint
+		const attendees = await this.getAttendees(cohort.id);
 
 		// Location for all events
 		const eventLocation =
