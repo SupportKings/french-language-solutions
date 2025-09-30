@@ -175,10 +175,6 @@ export function AppSidebar({
 						title: "All Cohorts",
 						url: "/admin/cohorts",
 					},
-					{
-						title: "Products & Pricing",
-						url: "/admin/cohorts/products",
-					},
 				],
 			});
 
@@ -213,6 +209,10 @@ export function AppSidebar({
 				url: "#",
 				icon: "Settings",
 				items: [
+					{
+						title: "Products & Pricing",
+						url: "/admin/configuration/products",
+					},
 					{
 						title: "Language Levels",
 						url: "/admin/configuration/language-levels",

@@ -63,7 +63,7 @@ export function ProductForm({ product }: ProductFormProps) {
 				await createProduct.mutateAsync(data);
 				toast.success("Product created successfully");
 			}
-			router.push("/admin/cohorts/products");
+			router.push("/admin/configuration/products");
 			router.refresh();
 		} catch (error) {
 			toast.error(
@@ -75,7 +75,7 @@ export function ProductForm({ product }: ProductFormProps) {
 	};
 
 	const handleCancel = () => {
-		router.push("/admin/cohorts/products");
+		router.push("/admin/configuration/products");
 	};
 
 	const formatOptions = [
@@ -93,7 +93,7 @@ export function ProductForm({ product }: ProductFormProps) {
 	return (
 		<FormLayout>
 			<FormHeader
-				backUrl="/admin/cohorts/products"
+				backUrl="/admin/configuration/products"
 				backLabel="Products"
 				title={isEditMode ? "Edit Product" : "New Product"}
 				subtitle={

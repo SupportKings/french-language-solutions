@@ -38,7 +38,7 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "New Cohort",
 		description: "Create a new cohort",
 	},
-	"/admin/cohorts/products": {
+	"/admin/configuration/products": {
 		title: "Products & Pricing",
 		description: "Manage products and pricing",
 	},
@@ -157,7 +157,7 @@ export function PageHeader() {
 				title: "Teacher Details",
 				description: "View and edit teacher information",
 			};
-		} else if (pathname.match(/^\/admin\/cohorts\/products\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/configuration\/products\/[^/]+$/)) {
 			info = {
 				title: "Product Details",
 				description: "View and edit product information",

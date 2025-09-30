@@ -181,7 +181,7 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 						</div>
 
 						<div className="ml-auto">
-							<Link href="/admin/cohorts/products/new" passHref>
+							<Link href="/admin/configuration/products/new" passHref>
 								<Button size="sm" className="h-9">
 									<Plus className="mr-1.5 h-4 w-4" />
 									Add Product
@@ -247,7 +247,7 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 								>
 									<TableCell>
 										<Link
-											href={`/admin/cohorts/products/${product.id}`}
+											href={`/admin/configuration/products/${product.id}`}
 											className="hover:underline"
 										>
 											<p className="cursor-pointer font-medium transition-colors hover:text-primary">
@@ -281,7 +281,7 @@ export function ProductsTable({ hideTitle = false }: ProductsTableProps) {
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
 												<Link
-													href={`/admin/cohorts/products/${product.id}`}
+													href={`/admin/configuration/products/${product.id}`}
 													passHref
 												>
 													<DropdownMenuItem>

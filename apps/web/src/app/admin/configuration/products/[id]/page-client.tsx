@@ -206,7 +206,7 @@ export function ProductDetailPageClient({
 			}
 
 			toast.success("Product deleted successfully");
-			router.push("/admin/cohorts/products");
+			router.push("/admin/configuration/products");
 			router.refresh();
 		} catch (error: any) {
 			toast.error(error.message || "Failed to delete product");
@@ -290,7 +290,7 @@ export function ProductDetailPageClient({
 					<p className="mb-4 text-muted-foreground">
 						The product you're looking for doesn't exist or couldn't be loaded.
 					</p>
-					<Button onClick={() => router.push("/admin/cohorts/products")}>
+					<Button onClick={() => router.push("/admin/configuration/products")}>
 						Back to Products
 					</Button>
 				</div>
@@ -325,7 +325,7 @@ export function ProductDetailPageClient({
 						</Link>
 						<ChevronRight className="h-3 w-3" />
 						<Link
-							href="/admin/cohorts/products"
+							href="/admin/configuration/products"
 							className="transition-colors hover:text-foreground"
 						>
 							Products

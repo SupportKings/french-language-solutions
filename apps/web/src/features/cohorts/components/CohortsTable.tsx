@@ -258,8 +258,8 @@ export function CohortsTable({
 										<LinkedRecordBadge
 											href={
 												cohort.products?.id
-													? `/admin/cohorts/products/${cohort.products.id}`
-													: "/admin/cohorts/products"
+													? `/admin/configuration/products/${cohort.products.id}`
+													: "/admin/configuration/products"
 											}
 											label={
 												cohort.products?.display_name ||

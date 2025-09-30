@@ -1071,7 +1071,7 @@ export function CohortDetailPageClient({
 												/>
 											) : cohort.products ? (
 												<LinkedRecordBadge
-													href={`/admin/cohorts/products/${cohort.products.id}`}
+													href={`/admin/configuration/products/${cohort.products.id}`}
 													label={cohort.products.display_name}
 													icon={BookOpen}
 													className="text-xs"
