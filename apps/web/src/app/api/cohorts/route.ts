@@ -24,14 +24,6 @@ export async function GET(request: NextRequest) {
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
-		console.log("🔍 Incoming filter params:", {
-			cohort_status,
-			format,
-			starting_level_id,
-			room_type,
-			teacher_ids,
-		});
-
 		// Calculate offset
 		const offset = (page - 1) * limit;
 
@@ -42,7 +34,6 @@ export async function GET(request: NextRequest) {
 		if (!userIsAdmin) {
 			// Teachers only see their assigned cohorts
 			const teacherCohortIds = await getCurrentUserCohortIds(session);
-			console.log("👨‍🏫 Teacher cohort IDs for filtering:", teacherCohortIds);
 
 			if (teacherCohortIds.length === 0) {
 				// Teacher has no cohorts - return empty result immediately
@@ -135,8 +126,6 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		console.log(`📊 Fetched ${data?.length || 0} cohorts (page ${page}, total: ${count})`);
-
 		// 5. Apply in-memory filters for multi-value filters only
 		let filteredCohorts = data || [];
 
@@ -186,8 +175,6 @@ export async function GET(request: NextRequest) {
 			const endIndex = offset + limit;
 			const paginatedCohorts = filteredCohorts.slice(startIndex, endIndex);
 
-			console.log(`Found ${filteredCohorts.length} cohorts after in-memory filtering`);
-
 			return NextResponse.json({
 				data: paginatedCohorts,
 				meta: {
@@ -200,8 +187,6 @@ export async function GET(request: NextRequest) {
 		}
 
 		// No in-memory filters applied - use database count and data
-		console.log(`Found ${data?.length || 0} cohorts (page ${page}, total: ${count})`);
-
 		return NextResponse.json({
 			data: data || [],
 			meta: {

@@ -406,7 +406,7 @@ export function AppSidebar({
 									<NavCollapsible items={data.navMain} />
 								</div>
 
-								<NavSecondary isAdmin={isAdmin} className="mt-auto" />
+								<NavSecondary userRole={userRole} className="mt-auto" />
 							</div>
 						</div>
 

@@ -263,30 +263,13 @@ export async function filterStudentsByAccess(
 
 	// Admins see all students
 	if (await isAdmin(userSession)) {
-		console.log("🔓 Admin user - showing all students:", students.length);
 		return students;
 	}
 
 	// Teachers only see students in their cohorts with specific enrollment statuses
 	const teacherCohortIds = await getCurrentUserCohortIds(userSession);
 
-	console.log("👨‍🏫 Teacher cohort IDs:", teacherCohortIds);
-	console.log("📚 Total students before filtering:", students.length);
-
-	// Debug: Show all unique enrollment statuses in the current dataset
-	const allStatuses = new Set();
-	const allCohortIds = new Set();
-	students.forEach(student => {
-		student.enrollments?.forEach((e: any) => {
-			if (e.status) allStatuses.add(e.status);
-			if (e.cohort_id) allCohortIds.add(e.cohort_id);
-		});
-	});
-	console.log("📋 Unique enrollment statuses in current students:", Array.from(allStatuses));
-	console.log("🎓 Unique cohort IDs in enrollments:", Array.from(allCohortIds).slice(0, 5), '...');
-
 	if (teacherCohortIds.length === 0) {
-		console.log("⚠️ Teacher has no cohorts assigned - returning empty list");
 		return [];
 	}
 
@@ -295,34 +278,11 @@ export async function filterStudentsByAccess(
 	const allowedStatuses = ["paid", "welcome_package_sent"];
 
 	// Filter students who have enrollments in teacher's cohorts with allowed statuses
-	const filtered = students.filter((student) => {
+	return students.filter((student) => {
 		const enrollments = student.enrollments || [];
-
-		// Check each enrollment
-		for (const enrollment of enrollments) {
-			const cohortMatch = teacherCohortIds.includes(enrollment.cohort_id);
-			const statusMatch = allowedStatuses.includes(enrollment.status);
-
-			// Log EVERY student with details
-			console.log(`Student: ${student.full_name || student.email}`);
-			console.log(`  - Enrollment cohort_id: ${enrollment.cohort_id}`);
-			console.log(`  - Enrollment status: ${enrollment.status}`);
-			console.log(`  - Cohort matches teacher cohorts: ${cohortMatch}`);
-			console.log(`  - Status is allowed: ${statusMatch}`);
-			console.log(`  - BOTH match: ${cohortMatch && statusMatch}`);
-
-			if (cohortMatch && statusMatch) {
-				console.log(`✅✅✅ MATCH FOUND! Student ${student.full_name} will be shown!`);
-				return true;
-			}
-		}
-
-		console.log(`❌ No match for ${student.full_name || student.email}`);
-		return false;
+		return enrollments.some((enrollment: any) =>
+			teacherCohortIds.includes(enrollment.cohort_id) &&
+			allowedStatuses.includes(enrollment.status)
+		);
 	});
-
-	console.log("📊 Students after RBAC filtering:", filtered.length);
-	console.log("📊 Filtered student names:", filtered.map(s => s.full_name || s.email));
-
-	return filtered;
 }

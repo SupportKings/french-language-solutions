@@ -41,8 +41,6 @@ import {
 	ChevronRight,
 	Clock,
 	Edit2,
-	ExternalLink,
-	FolderOpen,
 	MapPin,
 	MoreVertical,
 	Plus,
@@ -447,28 +445,6 @@ export function CohortClasses({
 																	<span>{cohortRoom}</span>
 																</div>
 															)}
-
-															<Button
-																variant="outline"
-																size="sm"
-																className={`h-7 px-2 text-xs ${!classItem.google_drive_folder_id ? "cursor-not-allowed opacity-50" : ""}`}
-																onClick={(e) => {
-																	e.stopPropagation();
-																	if (classItem.google_drive_folder_id) {
-																		window.open(
-																			`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`,
-																			"_blank",
-																		);
-																	}
-																}}
-																disabled={!classItem.google_drive_folder_id}
-															>
-																<FolderOpen className="mr-1 h-3 w-3" />
-																Drive
-																{classItem.google_drive_folder_id && (
-																	<ExternalLink className="ml-1 h-2.5 w-2.5" />
-																)}
-															</Button>
 														</div>
 													</TableCell>
 

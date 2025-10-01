@@ -46,7 +46,6 @@ export async function GET(request: NextRequest) {
 
 		if (!userIsAdmin) {
 			teacherCohortIds = await getCurrentUserCohortIds(session);
-			console.log("👨‍🏫 Teacher cohort IDs for filtering:", teacherCohortIds);
 
 			if (teacherCohortIds.length === 0) {
 				// Teacher has no cohorts - return empty result immediately
@@ -80,8 +79,6 @@ export async function GET(request: NextRequest) {
 				.in("status", allowedStatuses);
 
 			studentIds = [...new Set(enrollmentsData?.map((e) => e.student_id) || [])];
-
-			console.log(`📊 Found ${studentIds.length} students with allowed enrollments in teacher's cohorts`);
 
 			if (studentIds.length === 0) {
 				// No students found - return empty result
@@ -174,8 +171,6 @@ export async function GET(request: NextRequest) {
 				{ status: 500 },
 			);
 		}
-
-		console.log(`📊 Fetched ${data?.length || 0} students (page ${page}, total: ${count})`);
 
 		// 5. Process data to add latest enrollment status
 		const processedData = (data || []).map((student) => {
