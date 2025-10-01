@@ -1,17 +1,4 @@
-import {
-	ac,
-	admin,
-	billingAdmin,
-	coach,
-	cpo,
-	csc,
-	csManager,
-	csRep,
-	finance,
-	premiereCoach,
-	salesRep,
-	user,
-} from "@/lib/permissions";
+import { ac, admin, teacher } from "@/lib/permissions";
 
 import { createAuthClient } from "better-auth/client";
 import {
@@ -28,16 +15,7 @@ export const authClient = createAuthClient({
 			ac,
 			roles: {
 				admin,
-				user,
-				coach,
-				premiereCoach,
-				cpo,
-				csManager,
-				csRep,
-				csc,
-				finance,
-				billingAdmin,
-				salesRep,
+				teacher,
 			},
 		}),
 	],

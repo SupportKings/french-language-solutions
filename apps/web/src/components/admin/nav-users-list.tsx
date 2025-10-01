@@ -1,16 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarMenu,
-	SidebarMenuItem,
 	SidebarMenuButton,
+	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { useQuery } from "@tanstack/react-query";
 
 interface User {
 	id: string;
@@ -39,7 +40,7 @@ export function NavUsersList() {
 			<SidebarGroup>
 				<SidebarGroupLabel>Portal Users</SidebarGroupLabel>
 				<SidebarGroupContent>
-					<div className="px-4 py-2 text-sm text-muted-foreground">
+					<div className="px-4 py-2 text-muted-foreground text-sm">
 						Loading...
 					</div>
 				</SidebarGroupContent>
@@ -61,7 +62,10 @@ export function NavUsersList() {
 							<SidebarMenuItem key={user.id}>
 								<SidebarMenuButton className="h-12">
 									<Avatar className="size-6">
-										<AvatarImage src={user.image || undefined} alt={user.name} />
+										<AvatarImage
+											src={user.image || undefined}
+											alt={user.name}
+										/>
 										<AvatarFallback className="text-xs">
 											{user.name
 												.split(" ")
@@ -71,10 +75,10 @@ export function NavUsersList() {
 										</AvatarFallback>
 									</Avatar>
 									<div className="flex flex-col items-start overflow-hidden">
-										<span className="truncate text-sm font-medium">
+										<span className="truncate font-medium text-sm">
 											{user.name}
 										</span>
-										<span className="truncate text-xs text-muted-foreground">
+										<span className="truncate text-muted-foreground text-xs">
 											{user.role || "User"}
 										</span>
 									</div>

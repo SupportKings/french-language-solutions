@@ -86,7 +86,9 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 			router.push("/admin/team-members");
 		} catch (error) {
 			toast.error(
-				isEditMode ? "Failed to update team member" : "Failed to create team member",
+				isEditMode
+					? "Failed to update team member"
+					: "Failed to create team member",
 			);
 		} finally {
 			setIsSubmitting(false);
@@ -219,7 +221,17 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 											{ label: "Exec", value: "Exec" },
 										]}
 										value={form.watch("role") || []}
-										onValueChange={(value) => form.setValue("role", value as ("Teacher" | "Evaluator" | "Marketing/Admin" | "Exec")[])}
+										onValueChange={(value) =>
+											form.setValue(
+												"role",
+												value as (
+													| "Teacher"
+													| "Evaluator"
+													| "Marketing/Admin"
+													| "Exec"
+												)[],
+											)
+										}
 										placeholder="Select roles..."
 									/>
 								</FormField>

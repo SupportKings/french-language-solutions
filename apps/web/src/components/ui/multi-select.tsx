@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -16,7 +18,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
+
+import { Check, ChevronDown, X } from "lucide-react";
 
 export interface MultiSelectOption {
 	label: string;
@@ -69,7 +72,7 @@ export function MultiSelect({
 					className={cn(
 						"flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
 						!value.length && "text-muted-foreground",
-						className
+						className,
 					)}
 					disabled={disabled}
 					onClick={() => setOpen(!open)}
@@ -86,7 +89,7 @@ export function MultiSelect({
 									>
 										{option?.label || val}
 										<span
-											className="ml-1 rounded-full hover:bg-muted-foreground/20 cursor-pointer"
+											className="ml-1 cursor-pointer rounded-full hover:bg-muted-foreground/20"
 											onClick={(e) => handleRemove(val, e)}
 											onKeyDown={(e) => {
 												if (e.key === "Enter") {
@@ -108,7 +111,10 @@ export function MultiSelect({
 					<ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+			<PopoverContent
+				className="w-[--radix-popover-trigger-width] p-0"
+				align="start"
+			>
 				<Command>
 					<CommandInput placeholder="Search..." />
 					<CommandEmpty>No item found.</CommandEmpty>
@@ -122,7 +128,7 @@ export function MultiSelect({
 								<Check
 									className={cn(
 										"mr-2 h-4 w-4",
-										value.includes(option.value) ? "opacity-100" : "opacity-0"
+										value.includes(option.value) ? "opacity-100" : "opacity-0",
 									)}
 								/>
 								{option.label}

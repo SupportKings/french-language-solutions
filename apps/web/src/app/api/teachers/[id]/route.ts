@@ -168,10 +168,7 @@ export async function PATCH(
 
 		if (fetchError || !existingTeacher) {
 			console.error("Teacher not found with ID:", id);
-			return NextResponse.json(
-				{ error: "Teacher not found" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
 		}
 
 		// Update teacher
@@ -224,10 +221,7 @@ export async function DELETE(
 			.single();
 
 		if (fetchError || !teacher) {
-			return NextResponse.json(
-				{ error: "Teacher not found" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
 		}
 
 		// If teacher has a user account, delete the user first
@@ -258,7 +252,7 @@ export async function DELETE(
 		}
 
 		return NextResponse.json({
-			message: "Teacher deleted successfully"
+			message: "Teacher deleted successfully",
 		});
 	} catch (error) {
 		console.error("Error in DELETE /api/teachers/[id]:", error);

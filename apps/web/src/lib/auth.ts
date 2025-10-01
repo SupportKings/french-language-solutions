@@ -1,17 +1,4 @@
-import {
-	ac,
-	admin,
-	billingAdmin,
-	coach,
-	cpo,
-	csc,
-	csManager,
-	csRep,
-	finance,
-	premiereCoach,
-	salesRep,
-	user,
-} from "@/lib/permissions";
+import { ac, admin, teacher } from "@/lib/permissions";
 
 // import { createClient } from "@/utils/supabase/server";
 
@@ -83,16 +70,7 @@ export const auth = betterAuth({
 			ac,
 			roles: {
 				admin,
-				user,
-				coach,
-				premiereCoach,
-				cpo,
-				csManager,
-				csRep,
-				csc,
-				finance,
-				billingAdmin,
-				salesRep,
+				teacher,
 			},
 		}),
 		// Email OTP Plugin

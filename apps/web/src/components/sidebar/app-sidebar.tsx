@@ -130,6 +130,26 @@ export function AppSidebar({
 	const canAccessTeamSettings =
 		rawPermissions?.user?.includes("create") || false;
 
+	// New permission checks for teacher-specific sections
+	const canAccessStudents =
+		rawPermissions?.students?.includes("read_all") ||
+		rawPermissions?.students?.includes("read_assigned") ||
+		false;
+	const canAccessCohorts =
+		rawPermissions?.cohorts?.includes("read_all") ||
+		rawPermissions?.cohorts?.includes("read_assigned") ||
+		false;
+	const canAccessAssessments =
+		rawPermissions?.assessments?.includes("read_all") || false;
+	const canAccessTeachers =
+		rawPermissions?.teachers?.includes("read_all") || false;
+	const canAccessEnrollments =
+		rawPermissions?.enrollments?.includes("read_all") || false;
+	const canAccessAutomation =
+		rawPermissions?.automation?.includes("read") || false;
+	const canAccessConfiguration =
+		rawPermissions?.system?.includes("configure") || false;
+
 	// Define roles that can see "All Tickets"
 	const userRole = session.user.role || "user";
 	const canSeeAllTickets = [
@@ -146,79 +166,106 @@ export function AppSidebar({
 
 		// Admin navigation for admin area
 		if (isAdmin || currentArea === "admin") {
-			navItems.push({
-				title: "Students Hub",
-				url: "#",
-				icon: "GraduationCap",
-				items: [
-					{
+			// Students Hub - only show if user has access
+			if (canAccessStudents || canAccessEnrollments || canAccessAssessments) {
+				const studentHubItems = [];
+
+				if (canAccessStudents) {
+					studentHubItems.push({
 						title: "Students/Leads",
 						url: "/admin/students",
-					},
-					{
+					});
+				}
+
+				if (canAccessEnrollments) {
+					studentHubItems.push({
 						title: "Enrollments",
 						url: "/admin/students/enrollments",
-					},
-					{
+					});
+				}
+
+				if (canAccessAssessments) {
+					studentHubItems.push({
 						title: "Assessments",
 						url: "/admin/students/assessments",
-					},
-				],
-			});
+					});
+				}
 
-			navItems.push({
-				title: "Classes Hub",
-				url: "#",
-				icon: "Calendar",
-				items: [
-					{
-						title: "All Cohorts",
-						url: "/admin/cohorts",
-					},
-				],
-			});
+				if (studentHubItems.length > 0) {
+					navItems.push({
+						title: "Students Hub",
+						url: "#",
+						icon: "GraduationCap",
+						items: studentHubItems,
+					});
+				}
+			}
 
-			navItems.push({
-				title: "Team Members",
-				url: "/admin/team-members",
-				icon: "Users",
-			});
+			// Classes Hub - only show if user has access to cohorts
+			if (canAccessCohorts) {
+				navItems.push({
+					title: "Classes Hub",
+					url: "#",
+					icon: "Calendar",
+					items: [
+						{
+							title: "All Cohorts",
+							url: "/admin/cohorts",
+						},
+					],
+				});
+			}
 
-			navItems.push({
-				title: "Automation",
-				url: "#",
-				icon: "Bot",
-				items: [
-					{
-						title: "Touchpoints",
-						url: "/admin/automation/touchpoints",
-					},
-					{
-						title: "Automated Follow-ups",
-						url: "/admin/automation/automated-follow-ups",
-					},
-					{
-						title: "Sequences",
-						url: "/admin/automation/sequences",
-					},
-				],
-			});
+			// Team Members - only show if user has access to teachers
+			if (canAccessTeachers) {
+				navItems.push({
+					title: "Team Members",
+					url: "/admin/team-members",
+					icon: "Users",
+				});
+			}
 
-			navItems.push({
-				title: "Configuration",
-				url: "#",
-				icon: "Settings",
-				items: [
-					{
-						title: "Products & Pricing",
-						url: "/admin/configuration/products",
-					},
-					{
-						title: "Language Levels",
-						url: "/admin/configuration/language-levels",
-					},
-				],
-			});
+			// Automation - only show if user has access
+			if (canAccessAutomation) {
+				navItems.push({
+					title: "Automation",
+					url: "#",
+					icon: "Bot",
+					items: [
+						{
+							title: "Touchpoints",
+							url: "/admin/automation/touchpoints",
+						},
+						{
+							title: "Automated Follow-ups",
+							url: "/admin/automation/automated-follow-ups",
+						},
+						{
+							title: "Sequences",
+							url: "/admin/automation/sequences",
+						},
+					],
+				});
+			}
+
+			// Configuration - only show if user has access
+			if (canAccessConfiguration) {
+				navItems.push({
+					title: "Configuration",
+					url: "#",
+					icon: "Settings",
+					items: [
+						{
+							title: "Products & Pricing",
+							url: "/admin/configuration/products",
+						},
+						{
+							title: "Language Levels",
+							url: "/admin/configuration/language-levels",
+						},
+					],
+				});
+			}
 
 			return navItems;
 		}

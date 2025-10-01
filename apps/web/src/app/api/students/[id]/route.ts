@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth, canAccessStudent } from "@/lib/rbac-middleware";
 
 interface RouteParams {
 	params: Promise<{ id: string }>;
@@ -10,6 +11,21 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
+
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Check if user can access this specific student
+		const hasAccess = await canAccessStudent(id);
+
+		if (!hasAccess) {
+			return NextResponse.json(
+				{ error: "You don't have permission to access this student" },
+				{ status: 403 },
+			);
+		}
+
+		// 3. Fetch student data
 		const supabase = await createClient();
 
 		const { data, error } = await supabase
@@ -66,7 +82,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		}
 
 		return NextResponse.json(processedData);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in GET /api/students/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
@@ -79,6 +99,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
+
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Check if user can access this specific student
+		const hasAccess = await canAccessStudent(id);
+
+		if (!hasAccess) {
+			return NextResponse.json(
+				{ error: "You don't have permission to update this student" },
+				{ status: 403 },
+			);
+		}
+
+		// 3. Update student
 		const supabase = await createClient();
 		const body = await request.json();
 
@@ -118,7 +153,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		}
 
 		return NextResponse.json(data);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in PATCH /api/students/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
@@ -131,6 +170,21 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
+
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Check if user can access this specific student
+		const hasAccess = await canAccessStudent(id);
+
+		if (!hasAccess) {
+			return NextResponse.json(
+				{ error: "You don't have permission to delete this student" },
+				{ status: 403 },
+			);
+		}
+
+		// 3. Soft delete student
 		const supabase = await createClient();
 
 		// Soft delete by setting deleted_at
@@ -152,7 +206,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 		}
 
 		return NextResponse.json({ message: "Student deleted successfully" });
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in DELETE /api/students/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },

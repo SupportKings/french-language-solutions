@@ -29,8 +29,14 @@ import {
 } from "@/components/ui/popover";
 
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
-import { productQueries, useProducts } from "@/features/products/queries/products.queries";
-import { teachersQueries, useTeachers } from "@/features/teachers/queries/teachers.queries";
+import {
+	productQueries,
+	useProducts,
+} from "@/features/products/queries/products.queries";
+import {
+	teachersQueries,
+	useTeachers,
+} from "@/features/teachers/queries/teachers.queries";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -174,7 +180,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 	// Fetch products
 	const { data: productsData, isLoading: productsLoading } = useProducts();
-	const products = Array.isArray(productsData) ? productsData : productsData?.data || [];
+	const products = Array.isArray(productsData)
+		? productsData
+		: productsData?.data || [];
 
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
@@ -191,7 +199,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			airtable_record_id: cohort?.airtable_record_id || "",
 		},
 	});
-
 
 	const addWeeklySession = () => {
 		const currentSessions = form.getValues("weekly_sessions") || [];

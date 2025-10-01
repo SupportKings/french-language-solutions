@@ -403,8 +403,10 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 							data?.data?.map((teacher: any) => (
 								<TableRow
 									key={teacher.id}
-									className="transition-colors duration-150 hover:bg-muted/50 cursor-pointer"
-									onClick={() => router.push(`/admin/team-members/${teacher.id}`)}
+									className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+									onClick={() =>
+										router.push(`/admin/team-members/${teacher.id}`)
+									}
 								>
 									<TableCell>
 										<div>
@@ -426,7 +428,9 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 												))}
 											</div>
 										) : (
-											<span className="text-muted-foreground text-sm">Not set</span>
+											<span className="text-muted-foreground text-sm">
+												Not set
+											</span>
 										)}
 									</TableCell>
 									<TableCell>
