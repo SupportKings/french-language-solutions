@@ -135,15 +135,15 @@ export const automatedFollowUpsApi = {
 
 	// Stop automated follow-up
 	async stop(id: string): Promise<AutomatedFollowUp> {
-		const response = await fetch(
-			getApiUrl(`/api/automated-follow-ups/${id}/stop`),
-			{
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-				},
+		const response = await fetch(getApiUrl(`/api/automated-follow-ups/${id}`), {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
 			},
-		);
+			body: JSON.stringify({
+				status: "disabled",
+			}),
+		});
 
 		if (!response.ok) {
 			throw new Error("Failed to stop automated follow-up");

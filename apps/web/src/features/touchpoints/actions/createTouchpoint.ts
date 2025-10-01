@@ -41,6 +41,7 @@ export const createTouchpoint = actionClient
 				source: parsedInput.source,
 				occurred_at: parsedInput.occurred_at,
 				automated_follow_up_id: parsedInput.automated_follow_up_id,
+				created_at: new Date().toISOString(),
 			})
 			.select()
 			.single();
