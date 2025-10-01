@@ -18,6 +18,7 @@ export const teachers = pgTable("teachers", {
 	userId: text("user_id"), // Optional - references Better Auth user.id when auth needed
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
+	email: text("email"), // Email address for the teacher
 	groupClassBonusTerms: groupClassBonusTermsEnum("group_class_bonus_terms"),
 	onboardingStatus: onboardingStatusEnum("onboarding_status")
 		.notNull()

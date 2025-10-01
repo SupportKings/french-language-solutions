@@ -20,6 +20,7 @@ export async function GET(
 				user_id,
 				first_name,
 				last_name,
+				email,
 				role,
 				group_class_bonus_terms,
 				onboarding_status,
@@ -100,6 +101,9 @@ export async function PATCH(
 			}),
 			...(validatedData.last_name !== undefined && {
 				last_name: validatedData.last_name,
+			}),
+			...(validatedData.email !== undefined && {
+				email: validatedData.email,
 			}),
 			...(validatedData.role !== undefined && {
 				role: validatedData.role,

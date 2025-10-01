@@ -51,6 +51,7 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 		defaultValues: {
 			first_name: teacher?.first_name || "",
 			last_name: teacher?.last_name || "",
+			email: teacher?.email || "",
 			role: teacher?.role || [],
 			group_class_bonus_terms: teacher?.group_class_bonus_terms || undefined,
 			onboarding_status: teacher?.onboarding_status || "new",
@@ -177,6 +178,18 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 							</FormRow>
 							<FormRow>
 								<FormField
+									label="Email"
+									hint="Email address for the teacher"
+									error={form.formState.errors.email?.message}
+								>
+									<InputField
+										type="email"
+										placeholder="teacher@example.com"
+										error={!!form.formState.errors.email}
+										{...form.register("email")}
+									/>
+								</FormField>
+								<FormField
 									label="Mobile Phone Number"
 									hint="E.164 format (e.g., +33612345678)"
 									error={form.formState.errors.mobile_phone_number?.message}
@@ -187,6 +200,8 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 										{...form.register("mobile_phone_number")}
 									/>
 								</FormField>
+							</FormRow>
+							<FormRow>
 								<FormField
 									label="Google Calendar ID"
 									hint="Calendar ID for scheduling classes"
@@ -198,6 +213,7 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 										{...form.register("google_calendar_id")}
 									/>
 								</FormField>
+								<div />
 							</FormRow>
 						</FormSection>
 

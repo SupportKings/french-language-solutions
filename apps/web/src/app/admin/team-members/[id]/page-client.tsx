@@ -139,14 +139,17 @@ export default function TeacherDetailsClient({
 			const changes: any = {};
 
 			// Check for changes in fields
-			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
-				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
-			}
 			if (editedTeacher.first_name !== teacher.first_name) {
 				changes.first_name = editedTeacher.first_name;
 			}
 			if (editedTeacher.last_name !== teacher.last_name) {
 				changes.last_name = editedTeacher.last_name;
+			}
+			if (editedTeacher.email !== teacher.email) {
+				changes.email = editedTeacher.email;
+			}
+			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
+				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
 			}
 			if (editedTeacher.contract_type !== teacher.contract_type) {
 				changes.contract_type = editedTeacher.contract_type;
@@ -425,6 +428,7 @@ export default function TeacherDetailsClient({
 								<CreateUserDialog
 									teacherId={teacher.id}
 									teacherName={fullName}
+									teacherEmail={teacher.email}
 									onSuccess={refreshTeacher}
 								/>
 							) : teacher.onboarding_status !== "offboarded" ? (
@@ -488,22 +492,6 @@ export default function TeacherDetailsClient({
 								</h3>
 								<div className="space-y-3">
 									<div className="flex items-start gap-3">
-										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Phone:</p>
-											<InlineEditField
-												value={teacher.mobile_phone_number}
-												onSave={async (value) =>
-													updateEditedField("mobile_phone_number", value)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter phone"
-											/>
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
 										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">
@@ -535,6 +523,38 @@ export default function TeacherDetailsClient({
 												editing={editing}
 												type="text"
 												placeholder="Enter last name"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Email:</p>
+											<InlineEditField
+												value={teacher.email}
+												onSave={async (value) =>
+													updateEditedField("email", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter email"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Phone:</p>
+											<InlineEditField
+												value={teacher.mobile_phone_number}
+												onSave={async (value) =>
+													updateEditedField("mobile_phone_number", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter phone"
 											/>
 										</div>
 									</div>

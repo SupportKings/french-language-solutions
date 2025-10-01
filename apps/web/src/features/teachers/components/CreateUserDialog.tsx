@@ -30,19 +30,29 @@ import { toast } from "sonner";
 interface CreateUserDialogProps {
 	teacherId: string;
 	teacherName: string;
+	teacherEmail?: string;
 	onSuccess?: () => void;
 }
 
 export function CreateUserDialog({
 	teacherId,
 	teacherName,
+	teacherEmail,
 	onSuccess,
 }: CreateUserDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [email, setEmail] = useState("");
+	const [email, setEmail] = useState(teacherEmail || "");
 	const [role, setRole] = useState<string>("");
 	const [sendInvite, setSendInvite] = useState(true);
+
+	const handleOpen = (isOpen: boolean) => {
+		setOpen(isOpen);
+		// Reset email to teacherEmail when dialog opens
+		if (isOpen && teacherEmail) {
+			setEmail(teacherEmail);
+		}
+	};
 
 	const handleCreateUser = async () => {
 		if (!email || !role) {
@@ -63,7 +73,7 @@ export function CreateUserDialog({
 			if (result?.data?.success) {
 				toast.success(result.data.message);
 				setOpen(false);
-				setEmail("");
+				setEmail(teacherEmail || "");
 				setRole("");
 				setSendInvite(true);
 				console.log("User created successfully, calling onSuccess callback");
@@ -84,12 +94,12 @@ export function CreateUserDialog({
 
 	return (
 		<>
-			<Button variant="default" size="sm" onClick={() => setOpen(true)}>
+			<Button variant="default" size="sm" onClick={() => handleOpen(true)}>
 				<UserPlus className="mr-2 h-3.5 w-3.5" />
 				Create User Account
 			</Button>
 
-			<Dialog open={open} onOpenChange={setOpen}>
+			<Dialog open={open} onOpenChange={handleOpen}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Create User Account</DialogTitle>
