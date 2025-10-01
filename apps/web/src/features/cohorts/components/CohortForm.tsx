@@ -798,6 +798,25 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								</FormField>
 							</FormRow>
 						</FormSection>
+			
+						{/* External References */}
+						<FormSection
+							title="External References"
+							description="IDs from external systems"
+							icon={Settings}
+						>
+							<FormField
+								label="Airtable Record ID"
+								hint="Record ID from Airtable"
+								error={form.formState.errors.airtable_record_id?.message}
+							>
+								<InputField
+									placeholder="rec..."
+									error={!!form.formState.errors.airtable_record_id}
+									{...form.register("airtable_record_id")}
+								/>
+							</FormField>
+						</FormSection>
 					</div>
 				</FormContent>
 

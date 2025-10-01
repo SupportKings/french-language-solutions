@@ -1,0 +1,23 @@
+{
+	"buildCommand": "bun run build",
+	"functions": {
+		"api/index.js": {
+			"maxDuration": 30
+		}
+	},
+	"rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+	"crons": [
+		{
+			"path": "/api/class-booking/process-abandoned-enrollments",
+			"schedule": "*/15 * * * *"
+		},
+		{
+			"path": "/api/follow-ups/trigger-next-messages",
+			"schedule": "*/15 * * * *"
+		},
+		{
+			"path": "/api/follow-ups/check-recent-engagements-to-stop",
+			"schedule": "0 */4 * * *"
+		}
+	]
+}
