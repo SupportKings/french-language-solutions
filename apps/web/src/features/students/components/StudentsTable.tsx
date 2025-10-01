@@ -423,7 +423,11 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 											className="hover:underline"
 										>
 											<p className="cursor-pointer font-medium transition-colors hover:text-primary">
-												{student.full_name}
+												{student.full_name || (
+													<span className="text-muted-foreground italic">
+														No name provided
+													</span>
+												)}
 											</p>
 										</Link>
 									</TableCell>
