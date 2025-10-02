@@ -190,7 +190,7 @@ export const createTeacherUser = actionClient
 						from: "French Language Solutions <portal@frenchlanguagesolutions.com>",
 						to: [parsedInput.email],
 						subject: `You've been invited to join ${siteConfig.name}`,
-						react: InviteEm4ail({
+						react: InviteEmail({
 							inviteUrl,
 							companyName: siteConfig.name,
 							inviterName: session.user.name,

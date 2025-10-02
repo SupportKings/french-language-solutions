@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireAuth, canAccessStudent } from "@/lib/rbac-middleware";
+import { requireAuth, canAccessStudent, requireAdmin } from "@/lib/rbac-middleware";
 
 interface RouteParams {
 	params: Promise<{ id: string }>;
@@ -171,20 +171,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 
-		// 1. Require authentication
-		await requireAuth();
+		// 1. Require admin authentication
+		await requireAdmin();
 
-		// 2. Check if user can access this specific student
-		const hasAccess = await canAccessStudent(id);
-
-		if (!hasAccess) {
-			return NextResponse.json(
-				{ error: "You don't have permission to delete this student" },
-				{ status: 403 },
-			);
-		}
-
-		// 3. Soft delete student
+		// 2. Soft delete student
 		const supabase = await createClient();
 
 		// Soft delete by setting deleted_at
@@ -209,6 +199,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	} catch (error: any) {
 		if (error.message === "UNAUTHORIZED") {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
+		if (error.message === "FORBIDDEN") {
+			return NextResponse.json(
+				{ error: "You don't have permission to delete this student" },
+				{ status: 403 },
+			);
 		}
 
 		console.error("Error in DELETE /api/students/[id]:", error);
