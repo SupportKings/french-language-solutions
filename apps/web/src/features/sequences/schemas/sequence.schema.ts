@@ -45,7 +45,7 @@ export const createSequenceSchema = z.object({
 	subject: z
 		.string()
 		.min(1, "Subject is required")
-		.max(200, "Subject is too long")
+		.max(200, "Subject is too long"),
 });
 
 export type CreateSequence = z.infer<typeof createSequenceSchema>;

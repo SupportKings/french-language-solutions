@@ -20,6 +20,7 @@ export const teachers = pgTable("teachers", {
 	userId: text("user_id"),
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
+	email: text("email"),
 	role: teamRolesEnum("role").array(),
 	groupClassBonusTerms: groupClassBonusTermsEnum("group_class_bonus_terms"),
 	onboardingStatus: onboardingStatusEnum("onboarding_status")

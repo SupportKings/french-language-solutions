@@ -30,7 +30,10 @@ import {
 
 import { SequenceMessageModal } from "@/features/sequences/components/SequenceMessageModal";
 import { SequenceMessagesSection } from "@/features/sequences/components/SequenceMessagesSection";
-import { useSequence, useDeleteSequence } from "@/features/sequences/queries/sequences.queries";
+import {
+	useDeleteSequence,
+	useSequence,
+} from "@/features/sequences/queries/sequences.queries";
 
 import { format } from "date-fns";
 import {
@@ -81,7 +84,7 @@ export function SequenceDetailPageClient({
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [messageModalOpen, setMessageModalOpen] = useState(false);
 	const [messageToEdit, setMessageToEdit] = useState<any>(null);
-	
+
 	const deleteSequenceMutation = useDeleteSequence();
 
 	// Update the sequence when data changes
@@ -347,7 +350,6 @@ export function SequenceDetailPageClient({
 											/>
 										</div>
 									</div>
-
 								</div>
 							</div>
 

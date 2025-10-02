@@ -122,32 +122,29 @@ export function PageHeader() {
 				title: "Student Details",
 				description: "View and edit student information",
 			};
-		} 
-		else if (pathname.match(/^\/admin\/students\/enrollments\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/students\/enrollments\/[^/]+$/)) {
 			info = {
 				title: "Enrollment Details",
 				description: "View and edit enrollment information",
 			};
-		}
-		else if (pathname.match(/^\/admin\/students\/assessments\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/students\/assessments\/[^/]+$/)) {
 			info = {
 				title: "Assessment Details",
 				description: "View and edit assessment information",
 			};
-		}
-		else if (pathname.match(/^\/admin\/automation\/automated-follow-ups\/[^/]+$/)) {
+		} else if (
+			pathname.match(/^\/admin\/automation\/automated-follow-ups\/[^/]+$/)
+		) {
 			info = {
 				title: "Automated Follow-up Details",
 				description: "View and edit automated follow-up information",
 			};
-		}
-		else if (pathname.match(/^\/admin\/automation\/sequences\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/automation\/sequences\/[^/]+$/)) {
 			info = {
 				title: "Sequence Details",
 				description: "View and edit sequence information",
 			};
-		}
-		else if (pathname.match(/^\/admin\/cohorts\/[^/]+$/)) {
+		} else if (pathname.match(/^\/admin\/cohorts\/[^/]+$/)) {
 			info = {
 				title: "Cohort Details",
 				description: "View and edit cohort information",

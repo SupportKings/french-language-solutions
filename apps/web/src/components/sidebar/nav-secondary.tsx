@@ -15,18 +15,21 @@ import { IconWrapper } from "./icon-wrapper";
 import { SidebarItemComponent } from "./sidebar-item";
 
 export function NavSecondary({
-	isAdmin = false,
+	userRole,
 	...props
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup> & {
-	isAdmin?: boolean;
+	userRole?: string;
 }) {
 	const pathname = usePathname();
+
+	// Only show portal users to admins
+	const canAccessPortalUsers = userRole === "admin";
 
 	return (
 		<SidebarGroup {...props}>
 			<SidebarGroupContent>
 				<SidebarMenu>
-					{isAdmin && (
+					{canAccessPortalUsers && (
 						<SidebarItemComponent
 							href="/admin/portal-users"
 							label="Portal Users"

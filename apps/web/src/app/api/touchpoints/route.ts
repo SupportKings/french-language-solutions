@@ -42,10 +42,12 @@ export async function GET(request: NextRequest) {
 			const { data: studentIds } = await supabase
 				.from("students")
 				.select("id")
-				.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,mobile_phone_number.ilike.%${search}%`);
+				.or(
+					`full_name.ilike.%${search}%,email.ilike.%${search}%,mobile_phone_number.ilike.%${search}%`,
+				);
 
 			if (studentIds && studentIds.length > 0) {
-				const ids = studentIds.map(s => s.id);
+				const ids = studentIds.map((s) => s.id);
 				query = query.in("student_id", ids);
 			} else {
 				// No matching students, return empty result

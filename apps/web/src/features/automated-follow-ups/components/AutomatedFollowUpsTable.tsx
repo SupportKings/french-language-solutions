@@ -80,9 +80,11 @@ const statusIcons = {
 	disabled: XCircle,
 };
 
-
 // Define column configurations for data-table-filter - will be populated dynamically
-const getColumnConfigurations = (sequences: any[], isLoadingSequences: boolean) =>
+const getColumnConfigurations = (
+	sequences: any[],
+	isLoadingSequences: boolean,
+) =>
 	[
 		{
 			id: "status",
@@ -101,14 +103,14 @@ const getColumnConfigurations = (sequences: any[], isLoadingSequences: boolean) 
 			displayName: isLoadingSequences ? "Sequence (Loading...)" : "Sequence",
 			icon: isLoadingSequences ? Loader2 : MessageSquare,
 			type: "option" as const,
-			options: isLoadingSequences 
+			options: isLoadingSequences
 				? [{ label: "Loading sequences...", value: "loading", disabled: true }]
-				: sequences.length === 0 
+				: sequences.length === 0
 					? [{ label: "No sequences available", value: "none", disabled: true }]
 					: sequences.map((sequence) => ({
-						label: sequence.display_name || "Unknown",
-						value: sequence.id,
-					})),
+							label: sequence.display_name || "Unknown",
+							value: sequence.id,
+						})),
 		},
 	] as const;
 
@@ -127,7 +129,10 @@ export function AutomatedFollowUpsTable() {
 	const deleteFollowUp = useDeleteAutomatedFollowUp();
 
 	// Fetch sequences for filters
-	const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({ page: 1, limit: 100 });
+	const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({
+		page: 1,
+		limit: 100,
+	});
 	const sequences = sequencesData?.data || [];
 
 	// Data table filters hook - use dynamic columns

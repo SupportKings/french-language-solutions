@@ -26,6 +26,7 @@ export const CohortSchema = z.object({
 	room_type: RoomTypeEnum.nullable(),
 	airtable_record_id: z.string().nullable(),
 	max_students: z.number().int().positive().default(10),
+	nickname: z.string().nullable(),
 	created_at: z.string(), // ISO date string
 	updated_at: z.string(), // ISO date string
 });

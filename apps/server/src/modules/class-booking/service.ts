@@ -228,7 +228,7 @@ export class ClassBookingService {
 			try {
 				// Determine new status
 				const newStatus =
-					enrollment.status === "interested"
+					enrollment.status === "beginner_form_filled"
 						? "contract_abandoned"
 						: "payment_abandoned";
 

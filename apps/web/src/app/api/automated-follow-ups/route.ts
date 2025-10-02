@@ -69,7 +69,9 @@ export async function GET(request: NextRequest) {
 		query = query.range(start, end);
 
 		// Order by started_at desc, then created_at desc
-		query = query.order("started_at", { ascending: false }).order("created_at", { ascending: false });
+		query = query
+			.order("started_at", { ascending: false })
+			.order("created_at", { ascending: false });
 
 		const { data, error, count } = await query;
 

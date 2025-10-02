@@ -90,7 +90,6 @@ const createClassSchema = z.object({
 		.default("scheduled"),
 	google_calendar_event_id: z.string().optional().nullable(),
 	meeting_link: z.string().optional().nullable(),
-	google_drive_folder_id: z.string().optional().nullable(),
 	teacher_id: z.string().uuid().optional().nullable(),
 	notes: z.string().optional().nullable(),
 });

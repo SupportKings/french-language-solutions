@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 		// Get active counts for each sequence
 		const sequenceIds = data?.map((s: any) => s.id) || [];
 		const activeCounts: Record<string, number> = {};
-		
+
 		if (sequenceIds.length > 0) {
 			// Get counts of active follow-ups (activated or ongoing) for all sequences at once
 			const { data: followUpCounts } = await supabase
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 			.from("template_follow_up_sequences")
 			.insert({
 				display_name: body.display_name,
-				subject: body.subject
+				subject: body.subject,
 			})
 			.select()
 			.single();

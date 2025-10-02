@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
+
 import { createClient } from "@/utils/supabase/server";
 
 import { siteConfig } from "@/siteConfig";
@@ -16,14 +17,13 @@ import { z } from "zod";
 const inputSchema = z.object({
 	teacherId: z.string(),
 	email: z.string().email("Invalid email address"),
-	role: z.enum(["admin", "user"]), // Simple roles: admin or user
+	role: z.enum(["admin", "teacher"]), // Simple roles: admin or teacher
 	sendInvite: z.boolean().default(false),
 });
 
 // Generate a secure random password
 function generateSecurePassword(): string {
-	const chars =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
 	let password = "";
 	for (let i = 0; i < 16; i++) {
 		password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -55,7 +55,7 @@ export const createTeacherUser = actionClient
 					headers: {
 						"Content-Type": "application/json",
 					},
-				}
+				},
 			);
 
 			if (!teacherResponse.ok) {
@@ -125,7 +125,7 @@ export const createTeacherUser = actionClient
 						user_id: newUser.id,
 						// Do NOT update teacher.role - that's for internal team categorization
 					}),
-				}
+				},
 			);
 
 			if (!updateResponse.ok) {
@@ -133,23 +133,29 @@ export const createTeacherUser = actionClient
 				console.error("Failed to update teacher with user_id:", errorText);
 				// This is critical - if we can't link the user to teacher, we should fail
 				throw new Error("Failed to link user to teacher");
-			} else {
-				const updatedTeacher = await updateResponse.json();
-				console.log("Teacher updated successfully with user_id:", updatedTeacher.user_id);
 			}
+			const updatedTeacher = await updateResponse.json();
+			console.log(
+				"Teacher updated successfully with user_id:",
+				updatedTeacher.user_id,
+			);
 
 			// Now try to set role - but don't fail if this doesn't work
 			try {
 				await auth.api.setRole({
 					body: {
 						userId: newUser.id,
-						role: parsedInput.role, // Already validated as "admin" or "user"
+						role: parsedInput.role, // Already validated as "admin" or "teacher"
 					},
 					headers: await headers(),
 				});
-				console.log(`Successfully set role to ${parsedInput.role} for user ${newUser.id}`);
+				console.log(
+					`Successfully set role to ${parsedInput.role} for user ${newUser.id}`,
+				);
 			} catch (roleError) {
-				console.warn("Better Auth API failed to set role, trying direct database update...");
+				console.warn(
+					"Better Auth API failed to set role, trying direct database update...",
+				);
 
 				// Fallback: Update role directly in database
 				try {
@@ -162,7 +168,9 @@ export const createTeacherUser = actionClient
 					if (error) {
 						console.error("Database update failed:", error);
 					} else {
-						console.log(`Successfully set role to ${parsedInput.role} via database`);
+						console.log(
+							`Successfully set role to ${parsedInput.role} via database`,
+						);
 					}
 				} catch (dbError) {
 					console.error("Failed to update role in database:", dbError);
@@ -175,7 +183,7 @@ export const createTeacherUser = actionClient
 				console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 
 				try {
-					const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/signin`;
+					const inviteUrl = `https://french-language-solutions.vercel.app/`;
 					console.log("Invite URL:", inviteUrl);
 
 					const emailResponse = await resend.emails.send({
@@ -211,7 +219,6 @@ export const createTeacherUser = actionClient
 					: "User created successfully",
 				userId: newUser.id,
 			};
-
 		} catch (error) {
 			console.error("Unexpected error in createTeacherUser:", error);
 

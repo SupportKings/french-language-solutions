@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
+
 import { createClient } from "@/utils/supabase/server";
 
 import { returnValidationErrors } from "next-safe-action";
@@ -35,7 +36,7 @@ export const offboardTeacher = actionClient
 					headers: {
 						"Content-Type": "application/json",
 					},
-				}
+				},
 			);
 
 			if (!teacherResponse.ok) {
@@ -80,7 +81,7 @@ export const offboardTeacher = actionClient
 						available_for_in_person_classes: false,
 						user_id: null, // Explicitly set to null
 					}),
-				}
+				},
 			);
 
 			if (!updateResponse.ok) {
@@ -95,7 +96,6 @@ export const offboardTeacher = actionClient
 				success: true,
 				message: "Teacher offboarded and user account removed successfully",
 			};
-
 		} catch (error) {
 			console.error("Unexpected error in offboardTeacher:", error);
 
@@ -130,7 +130,7 @@ export const permanentlyDeleteTeacher = actionClient
 					headers: {
 						"Content-Type": "application/json",
 					},
-				}
+				},
 			);
 
 			if (!deleteResponse.ok) {
@@ -144,7 +144,6 @@ export const permanentlyDeleteTeacher = actionClient
 				success: true,
 				message: "Teacher and associated user account deleted permanently",
 			};
-
 		} catch (error) {
 			console.error("Unexpected error in permanentlyDeleteTeacher:", error);
 

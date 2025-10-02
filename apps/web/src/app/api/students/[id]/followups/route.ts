@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				display_name:
 					(followUp.template_follow_up_sequences as any)?.display_name ||
 					"Follow-up Sequence",
-				subject: (followUp.template_follow_up_sequences as any)?.subject || ""
+				subject: (followUp.template_follow_up_sequences as any)?.subject || "",
 			},
 		}));
 

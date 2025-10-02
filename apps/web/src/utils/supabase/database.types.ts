@@ -277,6 +277,7 @@ export type Database = {
           google_drive_folder_id: string | null
           id: string
           max_students: number | null
+          nickname: string | null
           product_id: string | null
           room_type: Database["public"]["Enums"]["room_type"] | null
           setup_finalized: boolean | null
@@ -293,6 +294,7 @@ export type Database = {
           google_drive_folder_id?: string | null
           id?: string
           max_students?: number | null
+          nickname?: string | null
           product_id?: string | null
           room_type?: Database["public"]["Enums"]["room_type"] | null
           setup_finalized?: boolean | null
@@ -309,6 +311,7 @@ export type Database = {
           google_drive_folder_id?: string | null
           id?: string
           max_students?: number | null
+          nickname?: string | null
           product_id?: string | null
           room_type?: Database["public"]["Enums"]["room_type"] | null
           setup_finalized?: boolean | null

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -17,6 +18,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 
 interface SearchableSelectProps {
 	value?: string;
@@ -57,7 +60,7 @@ export function SearchableSelect({
 		}
 
 		return options.filter((option) =>
-			option.label.toLowerCase().includes(searchValue.toLowerCase())
+			option.label.toLowerCase().includes(searchValue.toLowerCase()),
 		);
 	}, [options, searchValue, showOnlyOnSearch]);
 
@@ -72,7 +75,7 @@ export function SearchableSelect({
 					className={cn(
 						"w-full justify-between font-normal",
 						!value && "text-muted-foreground",
-						className
+						className,
 					)}
 				>
 					<span className="truncate">
@@ -94,9 +97,9 @@ export function SearchableSelect({
 					</div>
 					<CommandList>
 						{filteredOptions.length === 0 ? (
-							<div className="py-6 text-center text-sm text-muted-foreground">
+							<div className="py-6 text-center text-muted-foreground text-sm">
 								{showOnlyOnSearch && !searchValue
-									? `Type to search...`
+									? "Type to search..."
 									: emptyMessage}
 							</div>
 						) : (
@@ -114,7 +117,7 @@ export function SearchableSelect({
 										<Check
 											className={cn(
 												"mr-2 h-4 w-4",
-												value === option.value ? "opacity-100" : "opacity-0"
+												value === option.value ? "opacity-100" : "opacity-0",
 											)}
 										/>
 										{option.label}
