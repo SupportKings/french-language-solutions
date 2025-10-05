@@ -15,7 +15,7 @@ export default async function AdminLayout({
 	const session = await getUser();
 
 	if (!session) {
-		redirect("/sign-in");
+		redirect("/");
 	}
 
 	// Get user's role and permissions

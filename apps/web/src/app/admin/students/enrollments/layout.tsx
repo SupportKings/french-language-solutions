@@ -14,11 +14,11 @@ export default async function EnrollmentsLayout({
 	} catch (error) {
 		console.error("Failed to get user session in enrollments layout:", error);
 		// Redirect to sign-in on auth failures
-		redirect("/sign-in");
+		redirect("/");
 	}
 
 	if (!session) {
-		redirect("/sign-in");
+		redirect("/");
 	}
 
 	// Only admins can access enrollments section

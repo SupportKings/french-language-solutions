@@ -10,7 +10,7 @@ export default async function PortalUsersLayout({
 	const session = await getUser();
 
 	if (!session) {
-		redirect("/sign-in");
+		redirect("/");
 	}
 
 	// Only admins can access portal users

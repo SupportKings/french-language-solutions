@@ -10,7 +10,7 @@ export default async function ConfigurationLayout({
 	const session = await getUser();
 
 	if (!session) {
-		redirect("/sign-in");
+		redirect("/");
 	}
 
 	// Only admins can access configuration

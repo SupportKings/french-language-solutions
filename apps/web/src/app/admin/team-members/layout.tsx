@@ -10,7 +10,7 @@ export default async function TeamMembersLayout({
 	const session = await getUser();
 
 	if (!session) {
-		redirect("/sign-in");
+		redirect("/");
 	}
 
 	// Only admins can access team members
