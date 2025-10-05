@@ -72,11 +72,24 @@ export async function GET(request: NextRequest) {
 			// For teachers: Get student IDs that have paid/welcome_package_sent enrollments in teacher's cohorts
 			const allowedStatuses = ["paid", "welcome_package_sent"];
 
-			const { data: enrollmentsData } = await supabaseClient
+			const { data: enrollmentsData, error: enrollmentsError } = await supabaseClient
 				.from("enrollments")
 				.select("student_id")
 				.in("cohort_id", teacherCohortIds)
 				.in("status", allowedStatuses);
+
+			if (enrollmentsError) {
+				console.error("Error fetching enrollments for teacher:", {
+					error: enrollmentsError,
+					cohortIds: teacherCohortIds,
+					allowedStatuses,
+					sessionUserId: session.user.id,
+				});
+				return NextResponse.json(
+					{ error: "Failed to fetch student enrollments" },
+					{ status: 500 },
+				);
+			}
 
 			studentIds = [...new Set(enrollmentsData?.map((e) => e.student_id) || [])];
 

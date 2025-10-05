@@ -1829,21 +1829,11 @@ async function updateForeignKeys(
 				session.cohort_id = lookupMaps.cohorts?.get(
 					session._airtable_cohort_id,
 				);
-				if (!session.cohort_id) {
-					// Check if this cohort exists in the imported cohorts array
-					const cohortExists = cohorts.find(
-						(c) => c.airtable_record_id === session._airtable_cohort_id,
-					);
-					if (cohortExists) {
-					}
-				}
 			}
 			if (session._airtable_teacher_id) {
 				session.teacher_id = lookupMaps.teachers?.get(
 					session._airtable_teacher_id,
 				);
-				if (!session.teacher_id) {
-				}
 			}
 
 			// Only insert if we have required cohort_id

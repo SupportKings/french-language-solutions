@@ -236,73 +236,20 @@ export const roleDisplayNames = {
 // Type-safe permissions type inferred from role statements
 export type PermissionStatements = typeof admin.statements;
 
-// All possible permission values (extracted from the statement object)
-type PermissionValues =
-	| "create"
-	| "list"
-	| "set-role"
-	| "ban"
-	| "impersonate"
-	| "delete"
-	| "set-password"
-	| "update"
-	| "revoke"
-	| "read"
-	| "write"
-	| "activation_checklist_read"
-	| "activation_checklist_write"
-	| "nps_read"
-	| "nps_write"
-	| "wins_read"
-	| "wins_write"
-	| "testimonials_read"
-	| "testimonials_write"
-	| "status_read"
-	| "status_write"
-	| "onboarding_read"
-	| "onboarding_write"
-	| "offboarding_read"
-	| "offboarding_write"
-	| "assignments_read"
-	| "assignments_write"
-	| "history_read"
-	| "call_feedback_read"
-	| "plan_dates_write"
-	| "capacity_read"
-	| "capacity_write"
-	| "kpis_read"
-	| "reassign"
-	| "executive_read"
-	| "reminders_write"
-	| "transactions_read"
-	| "payment_plans_read"
-	| "payment_plans_write"
-	| "cash_collection_read"
-	| "renewals_read"
-	| "churn_read"
-	| "coach_costs_read"
-	| "coach_costs_write"
-	| "amount_owed_read"
-	| "terms_write"
-	| "forecasting_read"
-	| "cohort_read"
-	| "win_tags_read"
-	| "activity_read"
-	| "configure"
-	| "churn_rate_configure"
-	| "activation_dropoff_configure";
+// Derive all possible permission values from the statement object
+// This automatically includes new resources and actions as they're added
+type PermissionValues = {
+	[K in keyof typeof statement]: (typeof statement)[K][number];
+}[keyof typeof statement];
 
-// Type for statements from any role in the system (type-safe)
+// Derive the resource keys from the statement object
+type StatementResources = keyof typeof statement;
+
+// Type for statements from any role in the system (derived from statement object)
+// Automatically includes all resources (students, cohorts, assessments, teachers, enrollments, etc.)
 export type AnyRoleStatements =
 	| {
-			user?: readonly PermissionValues[];
-			session?: readonly PermissionValues[];
-			clients?: readonly PermissionValues[];
-			coaches?: readonly PermissionValues[];
-			tickets?: readonly PermissionValues[];
-			billing?: readonly PermissionValues[];
-			analytics?: readonly PermissionValues[];
-			system?: readonly PermissionValues[];
+			[K in StatementResources]?: readonly PermissionValues[];
 	  }
 	| readonly PermissionValues[]
 	| Record<string, never>;

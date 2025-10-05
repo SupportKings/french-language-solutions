@@ -174,14 +174,6 @@ export default function TeacherDetailsClient({
 			// Compare role arrays properly
 			const teacherRole = teacher.role || [];
 			const editedRole = editedTeacher.role || [];
-			console.log("Current teacher role:", teacherRole); // Debug
-			console.log("Edited teacher role:", editedRole); // Debug
-			console.log(
-				"Role comparison:",
-				JSON.stringify(editedRole.sort()),
-				"vs",
-				JSON.stringify(teacherRole.sort()),
-			); // Debug
 
 			// Create copies for sorting to avoid mutating original arrays
 			const sortedEditedRole = [...editedRole].sort();

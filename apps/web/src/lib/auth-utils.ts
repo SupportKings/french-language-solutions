@@ -43,10 +43,11 @@ export async function isTeacher() {
 
 /**
  * Check if user has permission to access something
+ * Uses Better Auth's permission system
  */
 export async function hasPermission(
 	resource: string,
-	action: string
+	actions: string[]
 ): Promise<boolean> {
 	const session = await getUserSession();
 	if (!session) return false;
@@ -55,9 +56,20 @@ export async function hasPermission(
 	if (session.user.role === "admin") return true;
 
 	// Check permission using Better Auth's access control
-	// Note: You would need to implement the actual permission check here
-	// based on the session's role statements
-	return false;
+	try {
+		const result = await auth.api.userHasPermission({
+			body: {
+				userId: session.user.id,
+				permissions: {
+					[resource]: actions,
+				},
+			},
+		});
+		return result.success || false;
+	} catch (error) {
+		console.error("Permission check failed:", error);
+		return false;
+	}
 }
 
 /**
@@ -68,10 +80,17 @@ export async function getTeacherIdFromSession(): Promise<string | null> {
 	const session = await getUserSession();
 	if (!session) return null;
 
-	// Query the teachers table to find the teacher with this user_id
-	// You'll need to implement this based on your database setup
-	// For now, returning null as a placeholder
-	return null;
+	// Dynamically import to avoid circular dependencies
+	const { createClient } = await import("@/lib/supabase/server");
+	const supabase = await createClient();
+
+	const { data: teacher } = await supabase
+		.from("teachers")
+		.select("id")
+		.eq("user_id", session.user.id)
+		.maybeSingle();
+
+	return teacher?.id || null;
 }
 
 /**

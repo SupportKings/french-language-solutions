@@ -7,7 +7,15 @@ export default async function EnrollmentsLayout({
 }: {
 	children: React.ReactNode;
 }) {
-	const session = await getUser();
+	let session;
+
+	try {
+		session = await getUser();
+	} catch (error) {
+		console.error("Failed to get user session in enrollments layout:", error);
+		// Redirect to sign-in on auth failures
+		redirect("/sign-in");
+	}
 
 	if (!session) {
 		redirect("/sign-in");

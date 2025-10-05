@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
+import type { Database } from "@/utils/supabase/database.types";
 
 // GET /api/cohorts - List cohorts with pagination and filtering
 export async function GET(request: NextRequest) {
@@ -209,6 +211,25 @@ export async function GET(request: NextRequest) {
 	}
 }
 
+// Zod schema for cohort creation - explicit field whitelisting
+const createCohortSchema = z.object({
+	nickname: z.string().min(1, "Nickname is required"),
+	cohort_status: z.enum([
+		"enrollment_open",
+		"enrollment_closed",
+		"class_ended",
+	]).optional(),
+	start_date: z.string().nullable().optional(),
+	current_level_id: z.string().uuid().nullable().optional(),
+	starting_level_id: z.string().uuid().nullable().optional(),
+	product_id: z.string().uuid().nullable().optional(),
+	max_students: z.number().int().positive().nullable().optional(),
+	room_type: z.enum(["for_one_to_one", "medium", "medium_plus", "large"]).nullable().optional(),
+	setup_finalized: z.boolean().nullable().optional(),
+	google_drive_folder_id: z.string().nullable().optional(),
+	weekly_sessions: z.array(z.any()).optional(), // Handled separately
+});
+
 // POST /api/cohorts - Create a new cohort
 export async function POST(request: NextRequest) {
 	try {
@@ -218,17 +239,38 @@ export async function POST(request: NextRequest) {
 		const supabase = await createClient();
 		const body = await request.json();
 
-		// Remove weekly_sessions from body as they need to be handled separately
-		const { weekly_sessions, ...cohortData } = body;
+		// 2. Validate and whitelist input fields
+		const validation = createCohortSchema.safeParse(body);
 
-		// Insert the cohort
+		if (!validation.success) {
+			return NextResponse.json(
+				{ error: "Invalid input", details: validation.error.issues },
+				{ status: 400 },
+			);
+		}
+
+		const { weekly_sessions, ...validatedData } = validation.data;
+
+		// 3. Build insert object with only whitelisted fields
+		const cohortInsert: Database["public"]["Tables"]["cohorts"]["Insert"] = {
+			nickname: validatedData.nickname,
+			cohort_status: validatedData.cohort_status,
+			start_date: validatedData.start_date,
+			current_level_id: validatedData.current_level_id,
+			starting_level_id: validatedData.starting_level_id,
+			product_id: validatedData.product_id,
+			max_students: validatedData.max_students,
+			room_type: validatedData.room_type,
+			setup_finalized: validatedData.setup_finalized,
+			google_drive_folder_id: validatedData.google_drive_folder_id,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		};
+
+		// 4. Insert the cohort
 		const { data: cohort, error } = await supabase
 			.from("cohorts")
-			.insert({
-				...cohortData,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			})
+			.insert(cohortInsert)
 			.select()
 			.single();
 

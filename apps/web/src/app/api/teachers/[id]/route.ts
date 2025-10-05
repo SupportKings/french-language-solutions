@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/utils/supabase/server";
+import { requireAuth, requirePermission, requireAdmin } from "@/lib/rbac-middleware";
 
 import { teacherFormSchema } from "@/features/teachers/schemas/teacher.schema";
 
@@ -10,6 +11,12 @@ export async function GET(
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Require permission to read teachers
+		await requirePermission("teacher", ["read"]);
+
 		const supabase = await createClient();
 		const { id } = await params;
 
@@ -60,7 +67,14 @@ export async function GET(
 		}
 
 		return NextResponse.json(data);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		if (error.message === "FORBIDDEN") {
+			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+		}
+
 		console.error("Error in GET /api/teachers/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
@@ -75,6 +89,12 @@ export async function PATCH(
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Require permission to update teachers
+		await requirePermission("teacher", ["update"]);
+
 		const supabase = await createClient();
 		const { id } = await params;
 		const body = await request.json();
@@ -186,6 +206,15 @@ export async function PATCH(
 		if (error) {
 			console.error("Error updating teacher:", error);
 			console.error("Update data that failed:", updateData);
+
+			// Check for unique constraint violation on email
+			if (error.code === "23505" && error.message?.includes("teachers_email_unique")) {
+				return NextResponse.json(
+					{ error: "A teacher with this email already exists" },
+					{ status: 409 },
+				);
+			}
+
 			return NextResponse.json(
 				{ error: "Failed to update teacher", details: error.message },
 				{ status: 500 },
@@ -193,7 +222,14 @@ export async function PATCH(
 		}
 
 		return NextResponse.json(data);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		if (error.message === "FORBIDDEN") {
+			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+		}
+
 		console.error("Error in PATCH /api/teachers/[id]:", error);
 		if (error instanceof Error && error.name === "ZodError") {
 			return NextResponse.json(
@@ -208,25 +244,39 @@ export async function PATCH(
 	}
 }
 
-// DELETE /api/teachers/[id] - Delete a teacher completely
+// DELETE /api/teachers/[id] - Delete a teacher completely (Admin only)
 export async function DELETE(
 	request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		// 1. Require admin role for destructive operations
+		const session = await requireAdmin();
+
 		const supabase = await createClient();
 		const { id } = await params;
 
 		// First, get the teacher to check if they have a linked user account
 		const { data: teacher, error: fetchError } = await supabase
 			.from("teachers")
-			.select("id, user_id")
+			.select("id, user_id, first_name, last_name, email")
 			.eq("id", id)
 			.single();
 
 		if (fetchError || !teacher) {
 			return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
 		}
+
+		// Audit log: Record deletion attempt
+		console.info("[AUDIT] Teacher deletion initiated", {
+			timestamp: new Date().toISOString(),
+			admin_user_id: session.user.id,
+			admin_email: session.user.email,
+			teacher_id: teacher.id,
+			teacher_name: `${teacher.first_name} ${teacher.last_name}`,
+			teacher_email: teacher.email,
+			has_user_account: !!teacher.user_id,
+		});
 
 		// If teacher has a user account, delete the user first
 		if (teacher.user_id) {
@@ -255,10 +305,24 @@ export async function DELETE(
 			);
 		}
 
+		// Audit log: Record successful deletion
+		console.info("[AUDIT] Teacher deletion completed successfully", {
+			timestamp: new Date().toISOString(),
+			admin_user_id: session.user.id,
+			teacher_id: id,
+		});
+
 		return NextResponse.json({
 			message: "Teacher deleted successfully",
 		});
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		if (error.message === "FORBIDDEN") {
+			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+		}
+
 		console.error("Error in DELETE /api/teachers/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
