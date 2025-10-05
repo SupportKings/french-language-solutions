@@ -32,8 +32,6 @@ import {
 	Clock,
 	Edit2,
 	ExternalLink,
-	FolderOpen,
-	Save,
 	Users,
 	Video,
 } from "lucide-react";
@@ -48,7 +46,6 @@ interface ClassDetails {
 	meeting_link?: string;
 	notes?: string;
 	attendance_count?: number;
-	google_drive_folder_id?: string;
 	teacher_id?: string;
 	teacher?: {
 		id: string;
@@ -86,7 +83,6 @@ export function ClassDetailsModal({
 				status: classItem.status,
 				meeting_link: classItem.meeting_link || "",
 				notes: classItem.notes || "",
-				google_drive_folder_id: classItem.google_drive_folder_id || "",
 			});
 		}
 	}, [classItem]);
@@ -321,50 +317,6 @@ export function ClassDetailsModal({
 							<p className="text-muted-foreground text-sm">{classItem.notes}</p>
 						) : (
 							<span className="text-muted-foreground text-sm">No notes</span>
-						)}
-					</div>
-
-					{/* Google Drive */}
-					<div className="space-y-2">
-						<Label>Google Drive Folder</Label>
-						{editing ? (
-							<div className="space-y-2">
-								<Input
-									value={formData.google_drive_folder_id || ""}
-									onChange={(e) =>
-										setFormData({
-											...formData,
-											google_drive_folder_id: e.target.value,
-										})
-									}
-									onBlur={() =>
-										updateField(
-											"google_drive_folder_id",
-											formData.google_drive_folder_id,
-										)
-									}
-									placeholder="Google Drive folder ID"
-								/>
-								<p className="text-muted-foreground text-xs">
-									Enter the folder ID from the Google Drive URL (the part after
-									/folders/)
-								</p>
-							</div>
-						) : classItem.google_drive_folder_id ? (
-							<a
-								href={`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="inline-flex items-center gap-2 text-primary text-sm hover:underline"
-							>
-								<FolderOpen className="h-4 w-4" />
-								<span>Open Google Drive Folder</span>
-								<ExternalLink className="h-3 w-3" />
-							</a>
-						) : (
-							<span className="text-muted-foreground text-sm">
-								No folder linked
-							</span>
 						)}
 					</div>
 

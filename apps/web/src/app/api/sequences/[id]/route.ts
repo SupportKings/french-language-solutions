@@ -57,8 +57,8 @@ export async function GET(
 		const responseData = {
 			...data,
 			_count: {
-				automated_follow_ups: activeCount || 0
-			}
+				automated_follow_ups: activeCount || 0,
+			},
 		};
 
 		return NextResponse.json(responseData);
@@ -124,8 +124,8 @@ export async function PATCH(
 		const responseData = {
 			...data,
 			_count: {
-				automated_follow_ups: activeCount || 0
-			}
+				automated_follow_ups: activeCount || 0,
+			},
 		};
 
 		return NextResponse.json(responseData);

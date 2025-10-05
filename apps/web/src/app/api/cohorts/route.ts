@@ -1,10 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
+import type { Database } from "@/utils/supabase/database.types";
 
 // GET /api/cohorts - List cohorts with pagination and filtering
 export async function GET(request: NextRequest) {
 	try {
+		// 1. Require authentication
+		const session = await requireAuth();
+
 		const supabase = await createClient();
 		const searchParams = request.nextUrl.searchParams;
 
@@ -20,18 +26,34 @@ export async function GET(request: NextRequest) {
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
-		console.log("🔍 Incoming filter params:", {
-			cohort_status,
-			format,
-			starting_level_id,
-			room_type,
-			teacher_ids,
-		});
-
 		// Calculate offset
 		const offset = (page - 1) * limit;
 
-		// Build query - change from inner to left join for products
+		// 2. Get teacher's cohort IDs for server-side filtering
+		const userIsAdmin = session.user.role === "admin";
+		let cohortIds: string[] | null = null;
+
+		if (!userIsAdmin) {
+			// Teachers only see their assigned cohorts
+			const teacherCohortIds = await getCurrentUserCohortIds(session);
+
+			if (teacherCohortIds.length === 0) {
+				// Teacher has no cohorts - return empty result immediately
+				return NextResponse.json({
+					data: [],
+					meta: {
+						total: 0,
+						page,
+						limit,
+						totalPages: 0,
+					},
+				});
+			}
+
+			cohortIds = teacherCohortIds;
+		}
+
+		// 3. Build query with server-side filtering
 		let query = supabase
 			.from("cohorts")
 			.select(
@@ -67,58 +89,34 @@ export async function GET(request: NextRequest) {
 				)
 			`,
 				{ count: "exact" },
-			)
-			.range(offset, offset + limit - 1)
-			.order(sortBy, { ascending: sortOrder === "asc" });
+			);
 
-		// Apply filters - handle multiple values with IN operator
-		if (format.length > 0) {
-			query = query.in("products.format", format);
+		// Apply RBAC filter at database level
+		if (cohortIds !== null) {
+			query = query.in("id", cohortIds);
 		}
 
-		if (cohort_status.length > 0) {
-			console.log("Filtering by cohort_status:", cohort_status);
-			// Use proper filter for cohort_status
-			query = query.in("cohort_status", cohort_status);
+		// Apply other filters at database level (single values only)
+		if (cohort_status.length === 1) {
+			query = query.eq("cohort_status", cohort_status[0]);
 		}
 
-		if (starting_level_id.length > 0) {
-			query = query.in("starting_level_id", starting_level_id);
+		if (starting_level_id.length === 1) {
+			query = query.eq("starting_level_id", starting_level_id[0]);
 		}
 
-		if (current_level_id.length > 0) {
-			query = query.in("current_level_id", current_level_id);
+		if (current_level_id.length === 1) {
+			query = query.eq("current_level_id", current_level_id[0]);
 		}
 
-		if (room_type.length > 0) {
-			query = query.in("room_type", room_type);
+		if (room_type.length === 1) {
+			query = query.eq("room_type", room_type[0]);
 		}
 
-		// Filter by teacher IDs - cohorts that have weekly sessions with any of the selected teachers
-		if (teacher_ids.length > 0) {
-			// Get cohort IDs that have weekly sessions with the selected teachers
-			const { data: cohortIds } = await supabase
-				.from("weekly_sessions")
-				.select("cohort_id")
-				.in("teacher_id", teacher_ids);
-
-			if (!cohortIds || cohortIds.length === 0) {
-				// No cohorts found with these teachers, return empty result immediately
-				return NextResponse.json({
-					data: [],
-					meta: {
-						total: 0,
-						page,
-						limit,
-						totalPages: 0,
-					},
-				});
-			}
-			
-			// Apply filter for cohorts with matching teacher IDs
-			const uniqueCohortIds = [...new Set(cohortIds.map((c) => c.cohort_id))];
-			query = query.in("id", uniqueCohortIds);
-		}
+		// Apply sorting and pagination at database level
+		query = query
+			.order(sortBy, { ascending: sortOrder === "asc" })
+			.range(offset, offset + limit - 1);
 
 		const { data, error, count } = await query;
 
@@ -130,16 +128,67 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Log the results for debugging
-		console.log(`Found ${data?.length || 0} cohorts with filters:`, {
-			format,
-			cohort_status,
-			starting_level_id,
-			room_type,
-			teacher_ids,
-		});
+		// 5. Apply in-memory filters for multi-value filters only
+		let filteredCohorts = data || [];
 
-		// Return in same format as students - using meta instead of pagination
+		// Multi-value filters (can't be done efficiently at DB level with PostgREST)
+		if (format.length > 1) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				format.includes(cohort.products?.format),
+			);
+		}
+
+		if (cohort_status.length > 1) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				cohort_status.includes(cohort.cohort_status),
+			);
+		}
+
+		if (starting_level_id.length > 1) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				starting_level_id.includes(cohort.starting_level_id),
+			);
+		}
+
+		if (current_level_id.length > 1) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				current_level_id.includes(cohort.current_level_id),
+			);
+		}
+
+		if (room_type.length > 1) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				room_type.includes(cohort.room_type),
+			);
+		}
+
+		// Teacher filter (complex join - in-memory only)
+		if (teacher_ids.length > 0) {
+			filteredCohorts = filteredCohorts.filter((cohort) => {
+				const cohortTeacherIds =
+					cohort.weekly_sessions?.map((ws: any) => ws.teacher?.id) || [];
+				return teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
+			});
+		}
+
+		// If we applied any in-memory filters, we need to re-paginate
+		if (filteredCohorts.length !== (data?.length || 0)) {
+			const startIndex = offset;
+			const endIndex = offset + limit;
+			const paginatedCohorts = filteredCohorts.slice(startIndex, endIndex);
+
+			return NextResponse.json({
+				data: paginatedCohorts,
+				meta: {
+					total: filteredCohorts.length,
+					page,
+					limit,
+					totalPages: Math.ceil(filteredCohorts.length / limit),
+				},
+			});
+		}
+
+		// No in-memory filters applied - use database count and data
 		return NextResponse.json({
 			data: data || [],
 			meta: {
@@ -149,7 +198,11 @@ export async function GET(request: NextRequest) {
 				totalPages: Math.ceil((count || 0) / limit),
 			},
 		});
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in GET /api/cohorts:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
@@ -158,23 +211,66 @@ export async function GET(request: NextRequest) {
 	}
 }
 
+// Zod schema for cohort creation - explicit field whitelisting
+const createCohortSchema = z.object({
+	nickname: z.string().min(1, "Nickname is required"),
+	cohort_status: z.enum([
+		"enrollment_open",
+		"enrollment_closed",
+		"class_ended",
+	]).optional(),
+	start_date: z.string().nullable().optional(),
+	current_level_id: z.string().uuid().nullable().optional(),
+	starting_level_id: z.string().uuid().nullable().optional(),
+	product_id: z.string().uuid().nullable().optional(),
+	max_students: z.number().int().positive().nullable().optional(),
+	room_type: z.enum(["for_one_to_one", "medium", "medium_plus", "large"]).nullable().optional(),
+	setup_finalized: z.boolean().nullable().optional(),
+	google_drive_folder_id: z.string().nullable().optional(),
+	weekly_sessions: z.array(z.any()).optional(), // Handled separately
+});
+
 // POST /api/cohorts - Create a new cohort
 export async function POST(request: NextRequest) {
 	try {
+		// 1. Require authentication (both teachers and admins can create cohorts)
+		await requireAuth();
+
 		const supabase = await createClient();
 		const body = await request.json();
 
-		// Remove weekly_sessions from body as they need to be handled separately
-		const { weekly_sessions, ...cohortData } = body;
+		// 2. Validate and whitelist input fields
+		const validation = createCohortSchema.safeParse(body);
 
-		// Insert the cohort
+		if (!validation.success) {
+			return NextResponse.json(
+				{ error: "Invalid input", details: validation.error.issues },
+				{ status: 400 },
+			);
+		}
+
+		const { weekly_sessions, ...validatedData } = validation.data;
+
+		// 3. Build insert object with only whitelisted fields
+		const cohortInsert: Database["public"]["Tables"]["cohorts"]["Insert"] = {
+			nickname: validatedData.nickname,
+			cohort_status: validatedData.cohort_status,
+			start_date: validatedData.start_date,
+			current_level_id: validatedData.current_level_id,
+			starting_level_id: validatedData.starting_level_id,
+			product_id: validatedData.product_id,
+			max_students: validatedData.max_students,
+			room_type: validatedData.room_type,
+			setup_finalized: validatedData.setup_finalized,
+			google_drive_folder_id: validatedData.google_drive_folder_id,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		};
+
+		// 4. Insert the cohort
 		const { data: cohort, error } = await supabase
 			.from("cohorts")
-			.insert({
-				...cohortData,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			})
+			.insert(cohortInsert)
 			.select()
 			.single();
 
@@ -187,7 +283,11 @@ export async function POST(request: NextRequest) {
 		}
 
 		return NextResponse.json(cohort);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in POST /api/cohorts:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },

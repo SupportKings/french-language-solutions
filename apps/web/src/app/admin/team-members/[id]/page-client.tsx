@@ -7,17 +7,6 @@ import { useRouter } from "next/navigation";
 
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
-import { MultiSelect } from "@/components/ui/multi-select";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -28,12 +17,23 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DaysDisplay, DaysSelector } from "@/components/ui/days-selector";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MultiSelect } from "@/components/ui/multi-select";
 
-import { CreateUserDialog } from "@/features/teachers/components/CreateUserDialog";
 import {
 	offboardTeacher,
 	permanentlyDeleteTeacher,
 } from "@/features/teachers/actions/offboardTeacher";
+import { CreateUserDialog } from "@/features/teachers/components/CreateUserDialog";
 
 import { format } from "date-fns";
 import {
@@ -102,7 +102,7 @@ export default function TeacherDetailsClient({
 			// Ensure role is always an array
 			const teacherWithRole = {
 				...initialTeacher,
-				role: initialTeacher.role || []
+				role: initialTeacher.role || [],
 			};
 			setTeacher(teacherWithRole);
 			setEditedTeacher(teacherWithRole);
@@ -139,14 +139,17 @@ export default function TeacherDetailsClient({
 			const changes: any = {};
 
 			// Check for changes in fields
-			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
-				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
-			}
 			if (editedTeacher.first_name !== teacher.first_name) {
 				changes.first_name = editedTeacher.first_name;
 			}
 			if (editedTeacher.last_name !== teacher.last_name) {
 				changes.last_name = editedTeacher.last_name;
+			}
+			if (editedTeacher.email !== teacher.email) {
+				changes.email = editedTeacher.email;
+			}
+			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
+				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
 			}
 			if (editedTeacher.contract_type !== teacher.contract_type) {
 				changes.contract_type = editedTeacher.contract_type;
@@ -171,15 +174,14 @@ export default function TeacherDetailsClient({
 			// Compare role arrays properly
 			const teacherRole = teacher.role || [];
 			const editedRole = editedTeacher.role || [];
-			console.log("Current teacher role:", teacherRole); // Debug
-			console.log("Edited teacher role:", editedRole); // Debug
-			console.log("Role comparison:", JSON.stringify(editedRole.sort()), "vs", JSON.stringify(teacherRole.sort())); // Debug
-			
+
 			// Create copies for sorting to avoid mutating original arrays
 			const sortedEditedRole = [...editedRole].sort();
 			const sortedTeacherRole = [...teacherRole].sort();
-			
-			if (JSON.stringify(sortedEditedRole) !== JSON.stringify(sortedTeacherRole)) {
+
+			if (
+				JSON.stringify(sortedEditedRole) !== JSON.stringify(sortedTeacherRole)
+			) {
 				changes.role = editedRole;
 				console.log("Role will be updated to:", editedRole); // Debug
 			}
@@ -204,7 +206,7 @@ export default function TeacherDetailsClient({
 			// Ensure role is always an array in the response
 			const updatedWithRole = {
 				...updated,
-				role: updated.role || []
+				role: updated.role || [],
 			};
 			setTeacher(updatedWithRole);
 			setEditedTeacher(updatedWithRole);
@@ -312,9 +314,9 @@ export default function TeacherDetailsClient({
 
 		// Also fetch the updated data directly
 		const response = await fetch(`/api/teachers/${teacher.id}`, {
-			cache: 'no-store',
+			cache: "no-store",
 			headers: {
-				'Cache-Control': 'no-cache',
+				"Cache-Control": "no-cache",
 			},
 		});
 		if (response.ok) {
@@ -325,7 +327,7 @@ export default function TeacherDetailsClient({
 			// Update local state with the new data
 			const teacherWithUser = {
 				...updated,
-				userDetails: updated.user_id ? { role: 'user' } : null // Basic user details
+				userDetails: updated.user_id ? { role: "user" } : null, // Basic user details
 			};
 			setTeacher(teacherWithUser);
 			setEditedTeacher(teacherWithUser);
@@ -383,22 +385,26 @@ export default function TeacherDetailsClient({
 										</Badge>
 									)}
 									{teacher.user_id && (
-										<Badge
-											variant="success"
-											className="h-4 px-1.5 text-[10px]"
-										>
+										<Badge variant="success" className="h-4 px-1.5 text-[10px]">
 											Has User Account
 										</Badge>
 									)}
 									{teacher.userDetails?.role && (
-										<Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+										<Badge
+											variant="secondary"
+											className="h-4 px-1.5 text-[10px]"
+										>
 											{teacher.userDetails.role}
 										</Badge>
 									)}
 									{teacher.role && teacher.role.length > 0 && (
 										<div className="flex flex-wrap gap-1">
 											{teacher.role.map((r: string) => (
-												<Badge key={r} variant="outline" className="h-4 px-1.5 text-[10px]">
+												<Badge
+													key={r}
+													variant="outline"
+													className="h-4 px-1.5 text-[10px]"
+												>
 													{r}
 												</Badge>
 											))}
@@ -414,6 +420,7 @@ export default function TeacherDetailsClient({
 								<CreateUserDialog
 									teacherId={teacher.id}
 									teacherName={fullName}
+									teacherEmail={teacher.email}
 									onSuccess={refreshTeacher}
 								/>
 							) : teacher.onboarding_status !== "offboarded" ? (
@@ -461,7 +468,7 @@ export default function TeacherDetailsClient({
 					onEditStart={() => {
 						const editTeacher = {
 							...teacher,
-							role: teacher.role || []
+							role: teacher.role || [],
 						};
 						setEditedTeacher(editTeacher);
 					}}
@@ -476,22 +483,6 @@ export default function TeacherDetailsClient({
 									Contact
 								</h3>
 								<div className="space-y-3">
-									<div className="flex items-start gap-3">
-										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Phone:</p>
-											<InlineEditField
-												value={teacher.mobile_phone_number}
-												onSave={async (value) =>
-													updateEditedField("mobile_phone_number", value)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter phone"
-											/>
-										</div>
-									</div>
-
 									<div className="flex items-start gap-3">
 										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
@@ -527,6 +518,38 @@ export default function TeacherDetailsClient({
 											/>
 										</div>
 									</div>
+
+									<div className="flex items-start gap-3">
+										<User className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Email:</p>
+											<InlineEditField
+												value={teacher.email}
+												onSave={async (value) =>
+													updateEditedField("email", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter email"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Phone:</p>
+											<InlineEditField
+												value={teacher.mobile_phone_number}
+												onSave={async (value) =>
+													updateEditedField("mobile_phone_number", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter phone"
+											/>
+										</div>
+									</div>
 								</div>
 							</div>
 
@@ -539,20 +562,24 @@ export default function TeacherDetailsClient({
 									<div className="flex items-start gap-3">
 										<Shield className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Role(s):
-											</p>
+											<p className="text-muted-foreground text-xs">Role(s):</p>
 											{editing ? (
 												<MultiSelect
 													options={[
 														{ label: "Teacher", value: "Teacher" },
 														{ label: "Evaluator", value: "Evaluator" },
-														{ label: "Marketing/Admin", value: "Marketing/Admin" },
+														{
+															label: "Marketing/Admin",
+															value: "Marketing/Admin",
+														},
 														{ label: "Exec", value: "Exec" },
 													]}
 													value={editedTeacher.role || []}
 													onValueChange={(newRoles) => {
-														console.log("MultiSelect onValueChange called with:", newRoles);
+														console.log(
+															"MultiSelect onValueChange called with:",
+															newRoles,
+														);
 														updateEditedField("role", newRoles);
 													}}
 													placeholder="Select roles..."
@@ -562,13 +589,19 @@ export default function TeacherDetailsClient({
 													{teacher.role && teacher.role.length > 0 ? (
 														<div className="flex flex-wrap gap-1">
 															{teacher.role.map((r: string) => (
-																<Badge key={r} variant="outline" className="h-5 text-xs">
+																<Badge
+																	key={r}
+																	variant="outline"
+																	className="h-5 text-xs"
+																>
 																	{r}
 																</Badge>
 															))}
 														</div>
 													) : (
-														<span className="text-muted-foreground text-sm">—</span>
+														<span className="text-muted-foreground text-sm">
+															—
+														</span>
 													)}
 												</div>
 											)}
@@ -1104,7 +1137,10 @@ export default function TeacherDetailsClient({
 											{teacher.userDetails.role && (
 												<div className="flex items-center gap-2">
 													<span>Auth Role:</span>
-													<Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+													<Badge
+														variant="outline"
+														className="h-4 px-1.5 text-[10px]"
+													>
 														{teacher.userDetails.role}
 													</Badge>
 												</div>
@@ -1139,7 +1175,10 @@ export default function TeacherDetailsClient({
 			</div>
 
 			{/* Offboard Confirmation Dialog */}
-			<AlertDialog open={showOffboardDialog} onOpenChange={setShowOffboardDialog}>
+			<AlertDialog
+				open={showOffboardDialog}
+				onOpenChange={setShowOffboardDialog}
+			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Offboard Team Member</AlertDialogTitle>
@@ -1150,11 +1189,14 @@ export default function TeacherDetailsClient({
 								<li>Delete their user account (if exists)</li>
 								<li>Remove their availability for classes</li>
 							</ul>
-							After offboarding, you'll need to create a new user account if they need access again.
+							After offboarding, you'll need to create a new user account if
+							they need access again.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel disabled={isOffboarding}>Cancel</AlertDialogCancel>
+						<AlertDialogCancel disabled={isOffboarding}>
+							Cancel
+						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleOffboard}
 							disabled={isOffboarding}
@@ -1178,7 +1220,9 @@ export default function TeacherDetailsClient({
 								<li>Remove all their teacher data from the system</li>
 								<li>This action cannot be undone</li>
 							</ul>
-							<strong className="text-destructive">Warning: This is permanent and cannot be reversed!</strong>
+							<strong className="text-destructive">
+								Warning: This is permanent and cannot be reversed!
+							</strong>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

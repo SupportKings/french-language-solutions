@@ -56,7 +56,7 @@ export function CohortEnrollments({
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
 	const enrollmentsPerPage = 10;
 	const [studentSearch, setStudentSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("all");
+	const [statusFilter, setStatusFilter] = useState<string>("welcome_package_sent");
 
 	// Fetch enrolled students
 	const fetchEnrolledStudents = async () => {
@@ -138,7 +138,7 @@ export function CohortEnrollments({
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<h2 className="font-semibold text-lg">
-					Enrolled Students{" "}
+					Enrollments{" "}
 					{studentCount > 0 && (
 						<span className="font-normal text-muted-foreground">
 							({studentCount})
@@ -231,7 +231,7 @@ export function CohortEnrollments({
 									</SelectItem>
 									<SelectItem value="paid">Paid</SelectItem>
 									<SelectItem value="welcome_package_sent">
-										Welcome Sent
+										Welcome Package Sent
 									</SelectItem>
 									<SelectItem value="payment_abandoned">
 										Payment Abandoned

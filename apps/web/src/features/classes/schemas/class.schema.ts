@@ -27,7 +27,6 @@ export const classFormSchema = z.object({
 		.optional()
 		.nullable()
 		.or(z.literal("")),
-	google_drive_folder_id: z.string().optional().nullable(),
 	materials: z.string().optional().nullable(),
 	max_students: z.number().int().positive("Must be a positive number"),
 	teacher_id: z

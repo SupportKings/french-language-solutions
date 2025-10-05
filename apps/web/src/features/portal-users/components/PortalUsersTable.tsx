@@ -105,7 +105,10 @@ export function PortalUsersTable() {
 									<TableCell>
 										<div className="flex items-center gap-3">
 											<Avatar className="size-7">
-												<AvatarImage src={user.image || undefined} alt={user.name} />
+												<AvatarImage
+													src={user.image || undefined}
+													alt={user.name}
+												/>
 												<AvatarFallback className="text-xs">
 													{user.name
 														.split(" ")
@@ -128,7 +131,9 @@ export function PortalUsersTable() {
 												{user.role}
 											</Badge>
 										) : (
-											<span className="text-muted-foreground text-sm">User</span>
+											<span className="text-muted-foreground text-sm">
+												User
+											</span>
 										)}
 									</TableCell>
 									<TableCell>

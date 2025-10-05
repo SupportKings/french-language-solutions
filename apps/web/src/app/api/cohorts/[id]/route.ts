@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth, canAccessCohort, requireAdmin } from "@/lib/rbac-middleware";
 
 export async function GET(
 	request: Request,
@@ -8,6 +9,21 @@ export async function GET(
 ) {
 	try {
 		const { id } = await params;
+
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Check if user can access this specific cohort
+		const hasAccess = await canAccessCohort(id);
+
+		if (!hasAccess) {
+			return NextResponse.json(
+				{ error: "You don't have permission to access this cohort" },
+				{ status: 403 },
+			);
+		}
+
+		// 3. Fetch cohort data
 		const supabase = await createClient();
 
 		const { data: cohort, error } = await supabase
@@ -39,7 +55,11 @@ export async function GET(
 		}
 
 		return NextResponse.json(cohort);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in cohort GET:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
@@ -54,6 +74,21 @@ export async function PATCH(
 ) {
 	try {
 		const { id } = await params;
+
+		// 1. Require authentication
+		await requireAuth();
+
+		// 2. Check if user can access this specific cohort
+		const hasAccess = await canAccessCohort(id);
+
+		if (!hasAccess) {
+			return NextResponse.json(
+				{ error: "You don't have permission to update this cohort" },
+				{ status: 403 },
+			);
+		}
+
+		// 3. Update cohort
 		const body = await request.json();
 		const supabase = await createClient();
 
@@ -83,7 +118,11 @@ export async function PATCH(
 		}
 
 		return NextResponse.json(data);
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
 		console.error("Error in cohort PATCH:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
@@ -98,6 +137,11 @@ export async function DELETE(
 ) {
 	try {
 		const { id } = await params;
+
+		// 1. Only admins can delete cohorts
+		await requireAdmin();
+
+		// 2. Delete cohort and related records
 		const supabase = await createClient();
 
 		// First, delete all related records in order of dependency
@@ -166,7 +210,17 @@ export async function DELETE(
 		}
 
 		return NextResponse.json({ success: true });
-	} catch (error) {
+	} catch (error: any) {
+		if (error.message === "UNAUTHORIZED") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		if (error.message === "FORBIDDEN") {
+			return NextResponse.json(
+				{ error: "Only administrators can delete cohorts" },
+				{ status: 403 },
+			);
+		}
+
 		console.error("Error in cohort DELETE:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },

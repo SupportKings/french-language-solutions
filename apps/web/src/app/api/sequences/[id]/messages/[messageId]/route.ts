@@ -84,10 +84,7 @@ export async function DELETE(
 			.single();
 
 		if (fetchError || !messageToDelete) {
-			return NextResponse.json(
-				{ error: "Message not found" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "Message not found" }, { status: 404 });
 		}
 
 		// Delete the message

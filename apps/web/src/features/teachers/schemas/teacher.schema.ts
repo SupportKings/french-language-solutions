@@ -26,6 +26,7 @@ export const teamRoleEnum = z.enum([
 export const teacherFormSchema = z.object({
 	first_name: z.string().min(1, "First name is required"),
 	last_name: z.string().min(1, "Last name is required"),
+	email: z.string().email("Invalid email address").optional(),
 	role: z.array(teamRoleEnum).optional(),
 	group_class_bonus_terms: groupClassBonusTermsEnum.optional(),
 	onboarding_status: onboardingStatusEnum,
@@ -73,6 +74,7 @@ export const teacherFormSchema = z.object({
 export const teacherResponseSchema = teacherFormSchema.extend({
 	id: z.string().uuid(),
 	user_id: z.string().optional(),
+	email: z.string().email().optional(),
 	airtable_record_id: z.string().optional(),
 	role: z.array(teamRoleEnum).optional(),
 	created_at: z.string(),

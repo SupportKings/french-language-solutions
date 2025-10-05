@@ -50,36 +50,39 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 // Create a simpler schema that only requires full_name
-const studentFormSchema = z.object({
-	full_name: z.string().min(1, "Full name is required"),
-	email: z.string().optional(),
-	mobile_phone_number: z.string().optional(),
-	city: z.string().optional(),
-	purpose_to_learn: z.string().optional(),
-	desired_starting_language_level_id: z.string().optional(),
-	initial_channel: z
-		.enum(["form", "quiz", "call", "message", "email", "assessment"])
-		.optional(),
-	communication_channel: z
-		.enum(["sms_email", "email", "sms"])
-		.optional(),
-	is_full_beginner: z.boolean().optional(),
-	is_under_16: z.boolean().optional(),
-	subjective_deadline_for_student: z.date().optional().nullable(),
-	// Add other fields that might be in the form but not required
-	website_quiz_submission_date: z.string().optional(),
-	added_to_email_newsletter: z.boolean().optional(),
-}).refine((data) => {
-	// Validate email format only if provided
-	if (data.email && data.email.length > 0) {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		return emailRegex.test(data.email);
-	}
-	return true;
-}, {
-	message: "Invalid email format",
-	path: ["email"],
-});
+const studentFormSchema = z
+	.object({
+		full_name: z.string().min(1, "Full name is required"),
+		email: z.string().optional(),
+		mobile_phone_number: z.string().optional(),
+		city: z.string().optional(),
+		purpose_to_learn: z.string().optional(),
+		desired_starting_language_level_id: z.string().optional(),
+		initial_channel: z
+			.enum(["form", "quiz", "call", "message", "email", "assessment"])
+			.optional(),
+		communication_channel: z.enum(["sms_email", "email", "sms"]).optional(),
+		is_full_beginner: z.boolean().optional(),
+		is_under_16: z.boolean().optional(),
+		subjective_deadline_for_student: z.date().optional().nullable(),
+		// Add other fields that might be in the form but not required
+		website_quiz_submission_date: z.string().optional(),
+		added_to_email_newsletter: z.boolean().optional(),
+	})
+	.refine(
+		(data) => {
+			// Validate email format only if provided
+			if (data.email && data.email.length > 0) {
+				const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+				return emailRegex.test(data.email);
+			}
+			return true;
+		},
+		{
+			message: "Invalid email format",
+			path: ["email"],
+		},
+	);
 
 type StudentFormValues = z.infer<typeof studentFormSchema>;
 
@@ -140,7 +143,8 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				city: values.city || null,
 				purpose_to_learn: values.purpose_to_learn || null,
 				initial_channel: values.initial_channel || null,
-				desired_starting_language_level_id: values.desired_starting_language_level_id || null,
+				desired_starting_language_level_id:
+					values.desired_starting_language_level_id || null,
 			};
 
 			console.log("Sending payload:", payload);
@@ -172,7 +176,9 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 			}
 		} catch (error) {
 			console.error("Error saving student:", error);
-			toast.error(error instanceof Error ? error.message : "Failed to save student");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to save student",
+			);
 		} finally {
 			setIsLoading(false);
 		}
@@ -219,10 +225,12 @@ export function StudentFormNew({ student, onSuccess }: StudentFormNewProps) {
 				}
 			/>
 
-			<form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-				console.log("Form validation errors:", errors);
-				toast.error("Please fix the form errors");
-			})}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit, (errors) => {
+					console.log("Form validation errors:", errors);
+					toast.error("Please fix the form errors");
+				})}
+			>
 				<FormContent>
 					<div className="space-y-4">
 						{/* Info Banner for new students */}

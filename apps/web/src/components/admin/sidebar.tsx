@@ -3,9 +3,9 @@ import type * as React from "react";
 
 import Image from "next/image";
 
+import { NavUsersList } from "@/components/admin/nav-users-list";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
-import { NavUsersList } from "@/components/admin/nav-users-list";
 import {
 	Sidebar,
 	SidebarContent,

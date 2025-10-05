@@ -230,7 +230,7 @@ export class FollowUpService {
 		}
 
 		// Find template message with step_index = current_step
-		const nextStepIndex = followUp.current_step || 1;
+		const nextStepIndex = followUp.current_step + 1;
 		const { data: nextMessage, error: messageError } = await supabase
 			.from("template_follow_up_messages")
 			.select("*")
@@ -651,11 +651,11 @@ export class FollowUpService {
 			cutoffTime.setHours(cutoffTime.getHours() - hoursBack);
 			const cutoffTimeISO = cutoffTime.toISOString();
 
-			// Find all outbound touchpoints created after the cutoff time
+			// Find all inbound touchpoints created after the cutoff time
 			const { data: recentTouchpoints, error: touchpointError } = await supabase
 				.from("touchpoints")
 				.select("student_id, created_at, type, channel")
-				.eq("type", "outbound")
+				.eq("type", "inbound")
 				.gte("created_at", cutoffTimeISO)
 				.order("created_at", { ascending: false });
 

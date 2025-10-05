@@ -37,6 +37,7 @@ import {
 	useCohort,
 	useCohortWithSessions,
 	useDeleteCohort,
+	useUpdateCohort,
 } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
 
@@ -140,6 +141,7 @@ export function CohortDetailPageClient({
 	const { data: cohortData, isLoading, error, isSuccess } = useCohort(cohortId);
 	const { data: cohortWithSessions } = useCohortWithSessions(cohortId);
 	const deleteCohortMutation = useDeleteCohort();
+	const updateCohortMutation = useUpdateCohort();
 	const [cohort, setCohort] = useState<any>(null);
 	const [weeklySessionModalOpen, setWeeklySessionModalOpen] = useState(false);
 	const [sessionToEdit, setSessionToEdit] = useState<any>(null);
@@ -278,6 +280,9 @@ export function CohortDetailPageClient({
 			const changes: any = {};
 
 			// Check for changes in basic fields
+			if (editedCohort.nickname !== cohort.nickname) {
+				changes.nickname = editedCohort.nickname;
+			}
 			if (editedCohort.cohort_status !== cohort.cohort_status) {
 				changes.cohort_status = editedCohort.cohort_status;
 			}
@@ -316,15 +321,12 @@ export function CohortDetailPageClient({
 				return;
 			}
 
-			const response = await fetch(`/api/cohorts/${cohortId}`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(changes),
+			// Use mutation hook for cache invalidation
+			const updated = await updateCohortMutation.mutateAsync({
+				id: cohortId,
+				data: changes,
 			});
 
-			if (!response.ok) throw new Error("Failed to update");
-
-			const updated = await response.json();
 			setCohort(updated);
 			setEditedCohort(updated);
 			toast.success("Changes saved successfully");
@@ -612,7 +614,7 @@ export function CohortDetailPageClient({
 	// Get initials for avatar
 	const cohortFormat = cohort.products?.format || "group";
 	const initials = cohortFormat === "group" ? "GC" : "PC";
-	const cohortName = `${
+	const cohortName = cohort.nickname || `${
 		cohortFormat.charAt(0).toUpperCase() + cohortFormat.slice(1)
 	} Cohort`;
 	const sessionCount = cohortWithSessions?.weekly_sessions?.length || 0;
@@ -808,6 +810,28 @@ export function CohortDetailPageClient({
 									Basic Details
 								</h3>
 								<div className="space-y-3">
+									<div className="flex items-start gap-3">
+										<BookOpen className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">Nickname:</p>
+											{editing ? (
+												<InlineEditField
+													value={editedCohort?.nickname || ""}
+													onSave={(value) =>
+														updateEditedField("nickname", value || null)
+													}
+													editing={editing}
+													type="text"
+													placeholder="e.g., Antoine's Class"
+												/>
+											) : (
+												<p className="font-medium text-sm">
+													{cohort.nickname || "—"}
+												</p>
+											)}
+										</div>
+									</div>
+
 									<div className="flex items-start gap-3">
 										<Activity className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">

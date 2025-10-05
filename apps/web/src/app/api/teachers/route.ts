@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
 				user_id,
 				first_name,
 				last_name,
+				email,
 				role,
 				group_class_bonus_terms,
 				onboarding_status,
@@ -226,6 +227,8 @@ export async function POST(request: NextRequest) {
 			.insert({
 				first_name: validatedData.first_name,
 				last_name: validatedData.last_name,
+				email: validatedData.email,
+				role: validatedData.role,
 				group_class_bonus_terms: validatedData.group_class_bonus_terms,
 				onboarding_status: validatedData.onboarding_status,
 				google_calendar_id: validatedData.google_calendar_id,
@@ -250,6 +253,15 @@ export async function POST(request: NextRequest) {
 
 		if (error) {
 			console.error("Error creating teacher:", error);
+
+			// Check for unique constraint violation on email
+			if (error.code === "23505" && error.message?.includes("teachers_email_unique")) {
+				return NextResponse.json(
+					{ error: "A teacher with this email already exists" },
+					{ status: 409 },
+				);
+			}
+
 			return NextResponse.json(
 				{ error: "Failed to create teacher" },
 				{ status: 500 },

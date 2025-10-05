@@ -184,7 +184,7 @@ export function CohortsTable({
 		<Table>
 			<TableHeader>
 				<TableRow>
-					<TableHead className="w-[200px]">Product</TableHead>
+					<TableHead className="w-[200px]">Cohort</TableHead>
 					<TableHead>Format</TableHead>
 					<TableHead>Students</TableHead>
 					<TableHead>Level Progress</TableHead>
@@ -254,28 +254,57 @@ export function CohortsTable({
 								onClick={() => router.push(`/admin/cohorts/${cohort.id}`)}
 							>
 								<TableCell className="max-w-[200px]">
-									<div className="flex h-12 items-center">
-										<LinkedRecordBadge
-											href={
-												cohort.products?.id
-													? `/admin/configuration/products/${cohort.products.id}`
-													: "/admin/configuration/products"
-											}
-											label={
-												cohort.products?.display_name ||
-												(cohort.products?.format
-													? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
-													: "Product")
-											}
-											icon={BookOpen}
-											className="text-xs"
-											title={
-												cohort.products?.display_name ||
-												(cohort.products?.format
-													? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
-													: "Product")
-											}
-										/>
+									<div className="flex h-12 flex-col justify-center gap-1">
+										{cohort.nickname ? (
+											<>
+												<span className="font-medium text-sm">
+													{cohort.nickname}
+												</span>
+												<LinkedRecordBadge
+													href={
+														cohort.products?.id
+															? `/admin/configuration/products/${cohort.products.id}`
+															: "/admin/configuration/products"
+													}
+													label={
+														cohort.products?.display_name ||
+														(cohort.products?.format
+															? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+															: "Product")
+													}
+													icon={BookOpen}
+													className="text-xs"
+													title={
+														cohort.products?.display_name ||
+														(cohort.products?.format
+															? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+															: "Product")
+													}
+												/>
+											</>
+										) : (
+											<LinkedRecordBadge
+												href={
+													cohort.products?.id
+														? `/admin/configuration/products/${cohort.products.id}`
+														: "/admin/configuration/products"
+												}
+												label={
+													cohort.products?.display_name ||
+													(cohort.products?.format
+														? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+														: "Product")
+												}
+												icon={BookOpen}
+												className="text-xs"
+												title={
+													cohort.products?.display_name ||
+													(cohort.products?.format
+														? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+														: "Product")
+												}
+											/>
+										)}
 									</div>
 								</TableCell>
 								<TableCell>

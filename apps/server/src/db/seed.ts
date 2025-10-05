@@ -380,6 +380,7 @@ async function seed() {
 				endTime: `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}:00`,
 				teacherId: faker.helpers.arrayElement(insertedTeachers).id,
 				isActive: true,
+				createdAt: new Date(),
 			});
 		}
 	}

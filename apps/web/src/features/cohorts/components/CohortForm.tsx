@@ -29,8 +29,14 @@ import {
 } from "@/components/ui/popover";
 
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
-import { productQueries, useProducts } from "@/features/products/queries/products.queries";
-import { teachersQueries, useTeachers } from "@/features/teachers/queries/teachers.queries";
+import {
+	productQueries,
+	useProducts,
+} from "@/features/products/queries/products.queries";
+import {
+	teachersQueries,
+	useTeachers,
+} from "@/features/teachers/queries/teachers.queries";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -59,6 +65,7 @@ import { useCreateCohort, useUpdateCohort } from "../queries/cohorts.queries";
 // Schema for the cohort form
 const cohortFormSchema = z.object({
 	// Basic Information
+	nickname: z.string().optional(),
 	starting_level_id: z.string().min(1, "Starting level is required"),
 	current_level_id: z.string().optional(),
 	max_students: z.number().int().min(1).max(100).optional(),
@@ -174,11 +181,14 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 	// Fetch products
 	const { data: productsData, isLoading: productsLoading } = useProducts();
-	const products = Array.isArray(productsData) ? productsData : productsData?.data || [];
+	const products = Array.isArray(productsData)
+		? productsData
+		: productsData?.data || [];
 
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
 		defaultValues: {
+			nickname: cohort?.nickname || "",
 			starting_level_id: cohort?.starting_level_id || "",
 			current_level_id: cohort?.current_level_id || "",
 			max_students: cohort?.max_students || 20,
@@ -191,7 +201,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			airtable_record_id: cohort?.airtable_record_id || "",
 		},
 	});
-
 
 	const addWeeklySession = () => {
 		const currentSessions = form.getValues("weekly_sessions") || [];
@@ -219,6 +228,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		try {
 			const formattedData = {
 				...data,
+				nickname: data.nickname || null,
 				start_date: data.start_date
 					? format(data.start_date, "yyyy-MM-dd")
 					: null,
@@ -494,6 +504,17 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							icon={BookOpen}
 							required
 						>
+							<FormField
+								label="Nickname"
+								hint="Optional friendly name for this cohort"
+								error={form.formState.errors.nickname?.message}
+							>
+								<InputField
+									placeholder="e.g., Antoine's Class"
+									error={!!form.formState.errors.nickname}
+									{...form.register("nickname")}
+								/>
+							</FormField>
 							<FormField
 								label="Product"
 								hint="Select the product/format for this cohort"
