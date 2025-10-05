@@ -15,7 +15,7 @@ export async function GET(
 		await requireAuth();
 
 		// 2. Require permission to read teachers
-		await requirePermission("teacher", ["read"]);
+		await requirePermission("teachers", ["read"]);
 
 		const supabase = await createClient();
 		const { id } = await params;
@@ -93,7 +93,7 @@ export async function PATCH(
 		await requireAuth();
 
 		// 2. Require permission to update teachers
-		await requirePermission("teacher", ["update"]);
+		await requirePermission("teachers", ["update"]);
 
 		const supabase = await createClient();
 		const { id } = await params;

@@ -27,7 +27,7 @@ export const statement = {
 	assessments: ["read", "write", "read_all"],
 
 	// Teacher Management (new)
-	teachers: ["read", "write", "read_all"],
+	teachers: ["read", "write", "read_all", "update"],
 
 	// Enrollment Management (new)
 	enrollments: ["read", "write", "read_all"],
@@ -147,7 +147,7 @@ export const admin = ac.newRole({
 	students: ["read_all", "write"],
 	cohorts: ["read_all", "write"],
 	assessments: ["read_all", "write"],
-	teachers: ["read_all", "write"],
+	teachers: ["read", "read_all", "write", "update"],
 	enrollments: ["read_all", "write"],
 	automation: ["read", "write"],
 
