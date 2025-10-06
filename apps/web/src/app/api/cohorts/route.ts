@@ -17,12 +17,16 @@ export async function GET(request: NextRequest) {
 		// Parse query parameters - handle multiple values
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
+		const search = searchParams.get("search") || "";
 		const format = searchParams.getAll("format");
+		const location = searchParams.getAll("location");
 		const cohort_status = searchParams.getAll("cohort_status");
 		const starting_level_id = searchParams.getAll("starting_level_id");
 		const current_level_id = searchParams.getAll("current_level_id");
 		const room_type = searchParams.getAll("room_type");
 		const teacher_ids = searchParams.getAll("teacher_ids");
+		const start_date_from = searchParams.get("start_date_from");
+		const start_date_to = searchParams.get("start_date_to");
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -53,7 +57,20 @@ export async function GET(request: NextRequest) {
 			cohortIds = teacherCohortIds;
 		}
 
-		// 3. Build query with server-side filtering
+		// 3. Determine if we need to fetch all records (for in-memory filtering)
+		const needsInMemoryFiltering =
+			search.length > 0 ||
+			format.length > 0 ||
+			location.length > 0 ||
+			cohort_status.length > 1 ||
+			starting_level_id.length > 1 ||
+			current_level_id.length > 1 ||
+			room_type.length > 1 ||
+			teacher_ids.length > 0 ||
+			start_date_from ||
+			start_date_to;
+
+		// 4. Build query with server-side filtering
 		let query = supabase
 			.from("cohorts")
 			.select(
@@ -62,6 +79,7 @@ export async function GET(request: NextRequest) {
 				products (
 					id,
 					format,
+					location,
 					display_name
 				),
 				starting_level:language_levels!starting_level_id (
@@ -96,27 +114,30 @@ export async function GET(request: NextRequest) {
 			query = query.in("id", cohortIds);
 		}
 
-		// Apply other filters at database level (single values only)
-		if (cohort_status.length === 1) {
+		// Apply other filters at database level (single values only, when no in-memory filtering needed)
+		if (cohort_status.length === 1 && !needsInMemoryFiltering) {
 			query = query.eq("cohort_status", cohort_status[0]);
 		}
 
-		if (starting_level_id.length === 1) {
+		if (starting_level_id.length === 1 && !needsInMemoryFiltering) {
 			query = query.eq("starting_level_id", starting_level_id[0]);
 		}
 
-		if (current_level_id.length === 1) {
+		if (current_level_id.length === 1 && !needsInMemoryFiltering) {
 			query = query.eq("current_level_id", current_level_id[0]);
 		}
 
-		if (room_type.length === 1) {
+		if (room_type.length === 1 && !needsInMemoryFiltering) {
 			query = query.eq("room_type", room_type[0]);
 		}
 
-		// Apply sorting and pagination at database level
-		query = query
-			.order(sortBy, { ascending: sortOrder === "asc" })
-			.range(offset, offset + limit - 1);
+		// Apply default sorting
+		query = query.order(sortBy, { ascending: sortOrder === "asc" });
+
+		// Only apply pagination at DB level if we don't need in-memory filtering
+		if (!needsInMemoryFiltering) {
+			query = query.range(offset, offset + limit - 1);
+		}
 
 		const { data, error, count } = await query;
 
@@ -128,16 +149,32 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// 5. Apply in-memory filters for multi-value filters only
+		// 5. Apply in-memory filters (only when needed)
 		let filteredCohorts = data || [];
 
-		// Multi-value filters (can't be done efficiently at DB level with PostgREST)
-		if (format.length > 1) {
+		// Search filter (nickname)
+		if (search.length > 0) {
+			const searchLower = search.toLowerCase();
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				cohort.nickname?.toLowerCase().includes(searchLower),
+			);
+		}
+
+		// Format filter (any format value)
+		if (format.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				format.includes(cohort.products?.format),
 			);
 		}
 
+		// Location filter (any location value)
+		if (location.length > 0) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				location.includes(cohort.products?.location),
+			);
+		}
+
+		// Multi-value filters (only apply if we fetched all data and have multiple values)
 		if (cohort_status.length > 1) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				cohort_status.includes(cohort.cohort_status),
@@ -171,8 +208,29 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		// If we applied any in-memory filters, we need to re-paginate
-		if (filteredCohorts.length !== (data?.length || 0)) {
+		// Date range filter
+		if (start_date_from || start_date_to) {
+			filteredCohorts = filteredCohorts.filter((cohort) => {
+				if (!cohort.start_date) return false;
+				const cohortDate = new Date(cohort.start_date);
+
+				if (start_date_from && start_date_to) {
+					const fromDate = new Date(start_date_from);
+					const toDate = new Date(start_date_to);
+					return cohortDate >= fromDate && cohortDate <= toDate;
+				} else if (start_date_from) {
+					const fromDate = new Date(start_date_from);
+					return cohortDate >= fromDate;
+				} else if (start_date_to) {
+					const toDate = new Date(start_date_to);
+					return cohortDate <= toDate;
+				}
+				return true;
+			});
+		}
+
+		// 6. Paginate in-memory if needed
+		if (needsInMemoryFiltering) {
 			const startIndex = offset;
 			const endIndex = offset + limit;
 			const paginatedCohorts = filteredCohorts.slice(startIndex, endIndex);

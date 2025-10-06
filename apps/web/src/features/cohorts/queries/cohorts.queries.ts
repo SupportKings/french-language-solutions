@@ -45,6 +45,7 @@ export function useCohorts(params: CohortQuery) {
 			return cohortsApi.list(params);
 		},
 		staleTime: 1000 * 60 * 5, // 5 minutes
+		placeholderData: (previousData) => previousData, // Keep previous data while fetching
 	});
 }
 

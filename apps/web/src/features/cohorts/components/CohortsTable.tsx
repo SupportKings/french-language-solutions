@@ -257,7 +257,7 @@ export function CohortsTable({
 									<div className="flex h-12 flex-col justify-center gap-1">
 										{cohort.nickname ? (
 											<>
-												<span className="font-medium text-sm">
+												<span className="truncate font-medium text-sm" title={cohort.nickname}>
 													{cohort.nickname}
 												</span>
 												<LinkedRecordBadge
@@ -310,7 +310,7 @@ export function CohortsTable({
 								<TableCell>
 									<div className="flex h-12 flex-col justify-center gap-1">
 										{cohort.products?.format && (
-											<Badge variant="secondary" className="w-fit text-xs">
+											<Badge variant="outline" className="w-fit text-xs">
 												{cohort.products.format.charAt(0).toUpperCase() +
 													cohort.products.format.slice(1)}
 											</Badge>

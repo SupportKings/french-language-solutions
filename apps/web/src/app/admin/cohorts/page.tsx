@@ -27,12 +27,16 @@ export default async function ClassesPage({
 
 	// Parse search params for cohort filters
 	const filters = {
+		search: params.search as any,
 		format: params.format as any,
+		location: params.location as any,
 		cohort_status: params.cohort_status as any,
 		starting_level: params.starting_level as any,
 		current_level: params.current_level as any,
 		room_type: params.room_type as any,
 		teacher_ids: params.teacher_ids as any,
+		start_date_from: params.start_date_from as any,
+		start_date_to: params.start_date_to as any,
 		page: params.page ? Number.parseInt(params.page as string) : 1,
 		limit: params.limit ? Number.parseInt(params.limit as string) : 20,
 	};

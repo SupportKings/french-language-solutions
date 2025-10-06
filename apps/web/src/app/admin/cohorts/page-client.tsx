@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -24,13 +24,15 @@ import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
 
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Users } from "lucide-react";
+import { Plus, Search, Users } from "lucide-react";
 import { useQueryState } from "nuqs";
+import { Input } from "@/components/ui/input";
 
 // Extended cohort type with relationships
 interface CohortWithRelations extends Cohort {
 	products?: {
 		format: string;
+		location: string;
 	} | null;
 	starting_level?: LanguageLevel | null;
 	current_level?: LanguageLevel | null;
@@ -57,6 +59,17 @@ const cohortColumns = [
 		],
 	},
 	{
+		id: "location",
+		accessor: (cohort: CohortWithRelations) => cohort.products?.location,
+		displayName: "Location",
+		icon: Users,
+		type: "option" as const,
+		options: [
+			{ label: "Online", value: "online" },
+			{ label: "In-Person", value: "in_person" },
+		],
+	},
+	{
 		id: "cohort_status",
 		accessor: (cohort: CohortWithRelations) => cohort.cohort_status,
 		displayName: "Status",
@@ -72,6 +85,14 @@ const cohortColumns = [
 		id: "starting_level_id",
 		accessor: (cohort: CohortWithRelations) => cohort.starting_level?.id,
 		displayName: "Starting Level",
+		icon: Users,
+		type: "option" as const,
+		options: [], // Will be populated dynamically
+	},
+	{
+		id: "current_level_id",
+		accessor: (cohort: CohortWithRelations) => cohort.current_level?.id,
+		displayName: "Current Level",
 		icon: Users,
 		type: "option" as const,
 		options: [], // Will be populated dynamically
@@ -105,6 +126,13 @@ const cohortColumns = [
 		type: "option" as const,
 		options: [], // Will be populated dynamically
 	},
+	{
+		id: "start_date",
+		accessor: (cohort: CohortWithRelations) => cohort.start_date,
+		displayName: "Start Date",
+		icon: Users,
+		type: "date" as const,
+	},
 ];
 
 export function ClassesPageClient() {
@@ -115,7 +143,7 @@ export function ClassesPageClient() {
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
 	const { data: teachersData } = useQuery(teachersQueries.list());
 
-	// URL state management for pagination
+	// URL state management for pagination and search
 	const [pageState, setPageState] = useQueryState("page", {
 		parse: (value) => Number.parseInt(value) || 1,
 		serialize: (value) => value.toString(),
@@ -123,17 +151,35 @@ export function ClassesPageClient() {
 	});
 	const page = pageState ?? 1;
 
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
 	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
 		const columns = [...cohortColumns];
 
-		// Update language level options
-		const levelColumnIndex = columns.findIndex(
+		// Update starting level options
+		const startingLevelColumnIndex = columns.findIndex(
 			(col) => col.id === "starting_level_id",
 		);
-		if (levelColumnIndex !== -1 && languageLevels) {
-			columns[levelColumnIndex] = {
-				...columns[levelColumnIndex],
+		if (startingLevelColumnIndex !== -1 && languageLevels) {
+			columns[startingLevelColumnIndex] = {
+				...columns[startingLevelColumnIndex],
+				options: languageLevels.map((level: LanguageLevel) => ({
+					label: level.display_name || level.code?.toUpperCase() || "Unknown",
+					value: level.id,
+				})),
+			};
+		}
+
+		// Update current level options
+		const currentLevelColumnIndex = columns.findIndex(
+			(col) => col.id === "current_level_id",
+		);
+		if (currentLevelColumnIndex !== -1 && languageLevels) {
+			columns[currentLevelColumnIndex] = {
+				...columns[currentLevelColumnIndex],
 				options: languageLevels.map((level: LanguageLevel) => ({
 					label: level.display_name || level.code?.toUpperCase() || "Unknown",
 					value: level.id,
@@ -176,6 +222,17 @@ export function ClassesPageClient() {
 				if (filter.type === "option") {
 					params[filter.columnId] = filter.values;
 					console.log(`📌 Filter ${filter.columnId}:`, filter.values);
+				} else if (filter.type === "date") {
+					// Date filter can be single date or date range
+					if (filter.values.length === 1) {
+						// Single date - treat as "from" date
+						params[`${filter.columnId}_from`] = (filter.values[0] as Date).toISOString();
+					} else if (filter.values.length === 2) {
+						// Date range
+						params[`${filter.columnId}_from`] = (filter.values[0] as Date).toISOString();
+						params[`${filter.columnId}_to`] = (filter.values[1] as Date).toISOString();
+					}
+					console.log(`📌 Date Filter ${filter.columnId}:`, filter.values);
 				}
 			}
 		});
@@ -184,6 +241,11 @@ export function ClassesPageClient() {
 		return params;
 	}, [filters]);
 
+	// Reset to page 1 when filters change
+	useEffect(() => {
+		setPageState(1);
+	}, [filterParams, setPageState]);
+
 	// Build query filters - pass arrays for multi-select
 	const queryFilters = useMemo(() => {
 		const query: any = {
@@ -191,9 +253,17 @@ export function ClassesPageClient() {
 			limit: 20,
 		};
 
+		// Add search query
+		if (searchQuery && searchQuery.length > 0) {
+			query.search = searchQuery;
+		}
+
 		// Only add filters if they have values
 		if (filterParams.format && filterParams.format.length > 0) {
 			query.format = filterParams.format as CohortFormat[];
+		}
+		if (filterParams.location && filterParams.location.length > 0) {
+			query.location = filterParams.location as string[];
 		}
 		if (filterParams.cohort_status && filterParams.cohort_status.length > 0) {
 			query.cohort_status = filterParams.cohort_status as CohortStatus[];
@@ -204,21 +274,33 @@ export function ClassesPageClient() {
 		) {
 			query.starting_level_id = filterParams.starting_level_id as string[];
 		}
+		if (
+			filterParams.current_level_id &&
+			filterParams.current_level_id.length > 0
+		) {
+			query.current_level_id = filterParams.current_level_id as string[];
+		}
 		if (filterParams.room_type && filterParams.room_type.length > 0) {
 			query.room_type = filterParams.room_type as RoomType[];
 		}
 		if (filterParams.teacher_ids && filterParams.teacher_ids.length > 0) {
 			query.teacher_ids = filterParams.teacher_ids as string[];
 		}
+		if (filterParams.start_date_from) {
+			query.start_date_from = filterParams.start_date_from;
+		}
+		if (filterParams.start_date_to) {
+			query.start_date_to = filterParams.start_date_to;
+		}
 
 		console.log("🎯 Final queryFilters:", query);
 		return query;
-	}, [filterParams, page]);
+	}, [filterParams, page, searchQuery]);
 
 	// Fetch cohorts data
 	console.log("🔍 Query filters being sent:", queryFilters);
-	const { data, isLoading, error } = useCohorts(queryFilters);
-	console.log("📊 Cohorts query result:", { data, isLoading, error });
+	const { data, isLoading, isFetching, isPlaceholderData, error } = useCohorts(queryFilters);
+	console.log("📊 Cohorts query result:", { data, isLoading, isFetching, isPlaceholderData, error });
 
 	const handlePageChange = (newPage: number) => {
 		setPageState(newPage);
@@ -231,6 +313,21 @@ export function ClassesPageClient() {
 			<div className="rounded-md border">
 				{/* Combined header with filters and add button */}
 				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
+					{/* Search input */}
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+						<Input
+							type="text"
+							placeholder="Search by nickname..."
+							value={searchQuery || ""}
+							onChange={(e) => {
+								setSearchQuery(e.target.value || null);
+								setPageState(1); // Reset to first page on search
+							}}
+							className="h-9 pl-9"
+						/>
+					</div>
+
 					{/* Filters and action button */}
 					<div className="flex items-center gap-3">
 						<div className="flex-1">
@@ -258,7 +355,7 @@ export function ClassesPageClient() {
 				{/* Cohorts Table content */}
 				<CohortsTable
 					cohorts={data?.data || []}
-					isLoading={isLoading}
+					isLoading={isLoading && !isPlaceholderData}
 					hideWrapper={true}
 				/>
 			</div>
