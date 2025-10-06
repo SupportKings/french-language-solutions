@@ -221,42 +221,42 @@ export function CohortDetailPageClient({
 	}, []);
 
 	// Fetch enrollment data
-	useEffect(() => {
-		async function fetchEnrollmentData() {
-			if (!cohortId) return;
+	const fetchEnrollmentData = async () => {
+		if (!cohortId) return;
 
-			setLoadingEnrollments(true);
-			try {
-				const response = await fetch(
-					`/api/enrollments?cohortId=${cohortId}&limit=1000`,
-				);
-				if (response.ok) {
-					const result = await response.json();
-					const enrollments = result.enrollments || [];
+		setLoadingEnrollments(true);
+		try {
+			const response = await fetch(
+				`/api/enrollments?cohortId=${cohortId}&limit=1000`,
+			);
+			if (response.ok) {
+				const result = await response.json();
+				const enrollments = result.enrollments || [];
 
-					const paid = enrollments.filter(
-						(e: any) => e.status === "paid",
-					).length;
-					const welcomePackageSent = enrollments.filter(
-						(e: any) => e.status === "welcome_package_sent",
-					).length;
-					const total = paid + welcomePackageSent;
-					const maxStudents = cohort?.max_students || 10;
+				const paid = enrollments.filter(
+					(e: any) => e.status === "paid",
+				).length;
+				const welcomePackageSent = enrollments.filter(
+					(e: any) => e.status === "welcome_package_sent",
+				).length;
+				const total = paid + welcomePackageSent;
+				const maxStudents = cohort?.max_students || 10;
 
-					setEnrollmentData({
-						paid,
-						welcomePackageSent,
-						total,
-						maxStudents,
-					});
-				}
-			} catch (error) {
-				console.error("Error fetching enrollment data:", error);
-			} finally {
-				setLoadingEnrollments(false);
+				setEnrollmentData({
+					paid,
+					welcomePackageSent,
+					total,
+					maxStudents,
+				});
 			}
+		} catch (error) {
+			console.error("Error fetching enrollment data:", error);
+		} finally {
+			setLoadingEnrollments(false);
 		}
+	};
 
+	useEffect(() => {
 		// Only fetch if cohort data is available
 		if (cohort) {
 			fetchEnrollmentData();
@@ -1304,6 +1304,7 @@ export function CohortDetailPageClient({
 								cohort?.starting_level_id,
 								languageLevels,
 							)}
+							onEnrollmentUpdate={fetchEnrollmentData}
 						/>
 					</TabsContent>
 

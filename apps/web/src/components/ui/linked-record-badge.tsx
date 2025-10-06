@@ -26,7 +26,7 @@ export function LinkedRecordBadge({
 	return (
 		<Link
 			href={href}
-			className="inline-flex max-w-full items-center"
+			className="inline-flex w-fit max-w-full items-center"
 			onClick={(e) => {
 				e.stopPropagation();
 				onClick?.(e);

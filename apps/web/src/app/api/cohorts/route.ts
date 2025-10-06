@@ -174,26 +174,26 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Multi-value filters (only apply if we fetched all data and have multiple values)
-		if (cohort_status.length > 1) {
+		// Multi-value filters - apply when we have any values (using AND logic)
+		if (cohort_status.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				cohort_status.includes(cohort.cohort_status),
 			);
 		}
 
-		if (starting_level_id.length > 1) {
+		if (starting_level_id.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				starting_level_id.includes(cohort.starting_level_id),
 			);
 		}
 
-		if (current_level_id.length > 1) {
+		if (current_level_id.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				current_level_id.includes(cohort.current_level_id),
 			);
 		}
 
-		if (room_type.length > 1) {
+		if (room_type.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				room_type.includes(cohort.room_type),
 			);

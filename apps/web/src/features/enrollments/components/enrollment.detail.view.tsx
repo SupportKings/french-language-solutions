@@ -188,10 +188,16 @@ export default function EnrollmentDetailView({
 
 			if (result?.data?.success) {
 				toast.success("Changes saved successfully");
-				// Invalidate queries to refresh data
-				await queryClient.invalidateQueries({
-					queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
-				});
+				// Invalidate all enrollment-related queries to refresh data everywhere
+				await Promise.all([
+					queryClient.invalidateQueries({
+						queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+					}),
+					// Invalidate all enrollment list queries (EnrollmentsTable, CohortEnrollments, etc.)
+					queryClient.invalidateQueries({
+						queryKey: ["enrollments"],
+					}),
+				]);
 			} else {
 				toast.error("Failed to save changes");
 				throw new Error("Update failed");

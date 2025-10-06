@@ -107,7 +107,16 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		// 4. Build main query with server-side filtering
+		// 4. Determine if we need in-memory filtering
+		const needsInMemoryFiltering =
+			enrollmentStatus.length > 0 ||
+			desired_starting_language_level_id.length > 1 ||
+			initial_channel.length > 1 ||
+			communication_channel.length > 0 ||
+			dateFrom ||
+			dateTo;
+
+		// 5. Build main query with server-side filtering
 		let query = supabase
 			.from("students")
 			.select(
@@ -136,19 +145,19 @@ export async function GET(request: NextRequest) {
 			query = query.in("id", studentIds);
 		}
 
-		// Apply other filters at database level
+		// Apply other filters at database level (single values only, when no in-memory filtering needed)
 		if (search) {
 			query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
 		}
 
-		if (desired_starting_language_level_id.length === 1) {
+		if (desired_starting_language_level_id.length === 1 && !needsInMemoryFiltering) {
 			query = query.eq(
 				"desired_starting_language_level_id",
 				desired_starting_language_level_id[0],
 			);
 		}
 
-		if (initial_channel.length === 1) {
+		if (initial_channel.length === 1 && !needsInMemoryFiltering) {
 			query = query.eq("initial_channel", initial_channel[0]);
 		}
 
@@ -170,10 +179,13 @@ export async function GET(request: NextRequest) {
 			query = query.eq("is_under_16", is_under_16 === "true");
 		}
 
-		// Apply sorting and pagination at database level
-		query = query
-			.order(sortBy, { ascending: sortOrder === "asc" })
-			.range(offset, offset + limit - 1);
+		// Apply sorting
+		query = query.order(sortBy, { ascending: sortOrder === "asc" });
+
+		// Only apply pagination at DB level if we don't need in-memory filtering
+		if (!needsInMemoryFiltering) {
+			query = query.range(offset, offset + limit - 1);
+		}
 
 		const { data, error, count } = await query;
 
@@ -200,18 +212,18 @@ export async function GET(request: NextRequest) {
 			};
 		});
 
-		// 6. Apply client-side filters that can't be done at DB level
+		// 6. Apply in-memory filters (when needed)
 		let filteredData = processedData;
 
-		// Enrollment status filter (multiple values - in-memory only)
+		// Enrollment status filter - apply when we have any values (using AND logic)
 		if (enrollmentStatus.length > 0) {
 			filteredData = filteredData.filter((student) =>
 				enrollmentStatus.includes(student.enrollment_status),
 			);
 		}
 
-		// Language level filter (multiple values - in-memory only)
-		if (desired_starting_language_level_id.length > 1) {
+		// Language level filter - apply when we have any values (using AND logic)
+		if (desired_starting_language_level_id.length > 0) {
 			filteredData = filteredData.filter((student) =>
 				desired_starting_language_level_id.includes(
 					student.desired_starting_language_level_id,
@@ -219,14 +231,14 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Initial channel filter (multiple values - in-memory only)
-		if (initial_channel.length > 1) {
+		// Initial channel filter - apply when we have any values (using AND logic)
+		if (initial_channel.length > 0) {
 			filteredData = filteredData.filter((student) =>
 				initial_channel.includes(student.initial_channel),
 			);
 		}
 
-		// Communication channel filter (multiple values - in-memory only)
+		// Communication channel filter - apply when we have any values (using AND logic)
 		if (communication_channel.length > 0) {
 			filteredData = filteredData.filter((student) =>
 				communication_channel.includes(student.communication_channel),
@@ -252,8 +264,8 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		// If we applied any in-memory filters, we need to re-paginate
-		if (filteredData.length !== processedData.length) {
+		// 7. Paginate in-memory if needed
+		if (needsInMemoryFiltering) {
 			const startIndex = offset;
 			const endIndex = offset + limit;
 			const paginatedData = filteredData.slice(startIndex, endIndex);

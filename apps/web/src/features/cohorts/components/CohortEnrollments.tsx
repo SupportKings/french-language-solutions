@@ -25,6 +25,7 @@ import {
 
 import { EnrollmentDetailsModal } from "@/features/enrollments/components/EnrollmentDetailsModal";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -39,16 +40,17 @@ interface CohortEnrollmentsProps {
 	cohortId: string;
 	cohortName?: string;
 	cohortLevel?: string;
+	onEnrollmentUpdate?: () => void;
 }
 
 export function CohortEnrollments({
 	cohortId,
 	cohortName = "Cohort",
 	cohortLevel = "",
+	onEnrollmentUpdate,
 }: CohortEnrollmentsProps) {
 	const router = useRouter();
-	const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
-	const [loadingStudents, setLoadingStudents] = useState(false);
+	const queryClient = useQueryClient();
 	const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -58,29 +60,23 @@ export function CohortEnrollments({
 	const [studentSearch, setStudentSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string>("welcome_package_sent");
 
-	// Fetch enrolled students
-	const fetchEnrolledStudents = async () => {
-		if (!cohortId) return;
-
-		setLoadingStudents(true);
-		try {
+	// Fetch enrolled students using React Query
+	const { data, isLoading: loadingStudents } = useQuery({
+		queryKey: ["enrollments", "cohort", cohortId],
+		queryFn: async () => {
 			const response = await fetch(
 				`/api/enrollments?cohortId=${cohortId}&limit=100`,
 			);
-			if (response.ok) {
-				const result = await response.json();
-				setEnrolledStudents(result.enrollments || []);
+			if (!response.ok) {
+				throw new Error("Failed to fetch enrollments");
 			}
-		} catch (error) {
-			console.error("Error fetching enrolled students:", error);
-		} finally {
-			setLoadingStudents(false);
-		}
-	};
+			const result = await response.json();
+			return result.enrollments || [];
+		},
+		enabled: !!cohortId,
+	});
 
-	useEffect(() => {
-		fetchEnrolledStudents();
-	}, [cohortId]);
+	const enrolledStudents = data || [];
 
 	// Navigate to create enrollment
 	const navigateToCreateEnrollment = () => {
@@ -103,7 +99,14 @@ export function CohortEnrollments({
 	};
 
 	const handleEnrollmentUpdate = () => {
-		fetchEnrolledStudents();
+		// Invalidate the cohort enrollments query to refetch
+		queryClient.invalidateQueries({
+			queryKey: ["enrollments", "cohort", cohortId],
+		});
+		// Also refresh the parent's enrollment progress data
+		if (onEnrollmentUpdate) {
+			onEnrollmentUpdate();
+		}
 	};
 
 	const studentCount = enrolledStudents.length;
@@ -267,7 +270,7 @@ export function CohortEnrollments({
 											</TableCell>
 										</TableRow>
 									) : (
-										paginatedEnrollments.map((enrollment) => {
+										paginatedEnrollments.map((enrollment: any) => {
 											const enrollmentDate = enrollment.created_at
 												? new Date(enrollment.created_at)
 												: null;
