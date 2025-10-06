@@ -186,6 +186,7 @@ export function CohortsTable({
 				<TableRow>
 					<TableHead className="w-[200px]">Cohort</TableHead>
 					<TableHead>Format</TableHead>
+					<TableHead>Location</TableHead>
 					<TableHead>Students</TableHead>
 					<TableHead>Level Progress</TableHead>
 					<TableHead>Weekly Sessions</TableHead>
@@ -201,6 +202,9 @@ export function CohortsTable({
 						<TableRow key={i}>
 							<TableCell>
 								<Skeleton className="h-4 w-40" />
+							</TableCell>
+							<TableCell>
+								<Skeleton className="h-4 w-20" />
 							</TableCell>
 							<TableCell>
 								<Skeleton className="h-4 w-20" />
@@ -228,7 +232,7 @@ export function CohortsTable({
 				) : cohortsWithStats.length === 0 ? (
 					// Empty state
 					<TableRow>
-						<TableCell colSpan={8} className="py-12 text-center">
+						<TableCell colSpan={9} className="py-12 text-center">
 							<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
 							<h3 className="mb-2 font-semibold text-lg">No cohorts found</h3>
 							<p className="mb-4 text-muted-foreground">
@@ -308,14 +312,20 @@ export function CohortsTable({
 									</div>
 								</TableCell>
 								<TableCell>
-									<div className="flex h-12 flex-col justify-center gap-1">
-										{cohort.products?.format && (
+									<div className="flex h-12 items-center">
+										{cohort.products?.format ? (
 											<Badge variant="outline" className="w-fit text-xs">
 												{cohort.products.format.charAt(0).toUpperCase() +
 													cohort.products.format.slice(1)}
 											</Badge>
+										) : (
+											<span className="text-muted-foreground text-sm">—</span>
 										)}
-										{cohort.products?.location && (
+									</div>
+								</TableCell>
+								<TableCell>
+									<div className="flex h-12 items-center">
+										{cohort.products?.location ? (
 											<Badge variant="outline" className="w-fit text-xs">
 												{cohort.products.location === "in_person"
 													? "In-Person"
@@ -324,9 +334,8 @@ export function CohortsTable({
 														: cohort.products.location.charAt(0).toUpperCase() +
 															cohort.products.location.slice(1)}
 											</Badge>
-										)}
-										{!cohort.products?.format && !cohort.products?.location && (
-											<span className="text-muted-foreground text-sm">N/A</span>
+										) : (
+											<span className="text-muted-foreground text-sm">—</span>
 										)}
 									</div>
 								</TableCell>
