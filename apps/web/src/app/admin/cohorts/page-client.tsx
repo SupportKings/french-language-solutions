@@ -128,7 +128,8 @@ const cohortColumns = [
 	},
 	{
 		id: "start_date",
-		accessor: (cohort: CohortWithRelations) => cohort.start_date,
+		accessor: (cohort: CohortWithRelations) =>
+			cohort.start_date ? new Date(cohort.start_date) : undefined,
 		displayName: "Start Date",
 		icon: Users,
 		type: "date" as const,
@@ -170,7 +171,7 @@ export function ClassesPageClient() {
 					label: level.display_name || level.code?.toUpperCase() || "Unknown",
 					value: level.id,
 				})),
-			};
+			} as any;
 		}
 
 		// Update current level options
@@ -184,7 +185,7 @@ export function ClassesPageClient() {
 					label: level.display_name || level.code?.toUpperCase() || "Unknown",
 					value: level.id,
 				})),
-			};
+			} as any;
 		}
 
 		// Update teacher options
@@ -198,7 +199,7 @@ export function ClassesPageClient() {
 					label: `${teacher.first_name} ${teacher.last_name}`,
 					value: teacher.id,
 				})),
-			};
+			} as any;
 		}
 
 		return columns;
