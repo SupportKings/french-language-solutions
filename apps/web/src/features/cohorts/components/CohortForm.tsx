@@ -226,6 +226,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 				airtable_record_id: data.airtable_record_id || null,
 				product_id: data.product_id || null,
 				starting_level_id: data.starting_level_id || null,
+				room_type: null,
 			};
 
 			// Use mutation hooks for better cache management
