@@ -67,7 +67,7 @@ interface AttendanceRecord {
 	cohortId: string;
 	classId: string | null;
 	attendanceDate: string | null;
-	status: "attended" | "not_attended" | "unset";
+	status: "attended" | "attended_late" | "not_attended" | "unset";
 	notes: string | null;
 	homeworkCompleted: boolean;
 	markedBy: string | null;
@@ -98,6 +98,13 @@ const statusConfig = {
 		bgColor: "bg-green-50 dark:bg-green-950/20",
 		textColor: "text-green-600 dark:text-green-400",
 	},
+	attended_late: {
+		label: "Present (Late Arrival)",
+		icon: Clock,
+		color: "warning",
+		bgColor: "bg-amber-50 dark:bg-amber-950/20",
+		textColor: "text-amber-600 dark:text-amber-400",
+	},
 	not_attended: {
 		label: "Absent",
 		icon: XCircle,
@@ -126,7 +133,7 @@ export function CohortAttendance({
 		status?: string;
 	} | null>(null);
 	const [filter, setFilter] = useState<
-		"all" | "attended" | "not_attended" | "unset"
+		"all" | "attended" | "attended_late" | "not_attended" | "unset"
 	>("all");
 	const [notesDialog, setNotesDialog] = useState<{
 		open: boolean;
@@ -621,6 +628,7 @@ export function CohortAttendance({
 							<SelectContent>
 								<SelectItem value="all">All Statuses</SelectItem>
 								<SelectItem value="attended">Present Only</SelectItem>
+								<SelectItem value="attended_late">Late Arrival Only</SelectItem>
 								<SelectItem value="not_attended">Absent Only</SelectItem>
 								<SelectItem value="unset">Not Marked</SelectItem>
 							</SelectContent>
@@ -931,6 +939,12 @@ export function CohortAttendance({
 																			<div className="flex items-center gap-2">
 																				<CheckCircle className="h-3.5 w-3.5 text-green-600" />
 																				Present
+																			</div>
+																		</SelectItem>
+																		<SelectItem value="attended_late">
+																			<div className="flex items-center gap-2">
+																				<Clock className="h-3.5 w-3.5 text-amber-600" />
+																				Present (Late Arrival)
 																			</div>
 																		</SelectItem>
 																		<SelectItem value="not_attended">
