@@ -71,14 +71,6 @@ const statusOptions = [
 	{ value: "class_ended", label: "Class Ended" },
 ];
 
-// Room type options
-const roomTypeOptions = [
-	{ value: "for_one_to_one", label: "One-to-One" },
-	{ value: "medium", label: "Medium" },
-	{ value: "medium_plus", label: "Medium Plus" },
-	{ value: "large", label: "Large" },
-];
-
 // Status badge variant mapping
 const getStatusVariant = (status: CohortStatus) => {
 	switch (status) {
@@ -116,15 +108,6 @@ const formatLevel = (
 // Format status for display
 const formatStatus = (status: CohortStatus) => {
 	return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-};
-
-// Format room type for display
-const formatRoomType = (roomType: string | null) => {
-	if (!roomType) return "Not set";
-	return roomType
-		.replace("for_one_to_one", "One-to-One")
-		.replace(/_/g, " ")
-		.replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 // Format time to HH:MM
@@ -297,9 +280,6 @@ export function CohortDetailPageClient({
 			}
 			if (editedCohort.current_level_id !== cohort.current_level_id) {
 				changes.current_level_id = editedCohort.current_level_id;
-			}
-			if (editedCohort.room_type !== cohort.room_type) {
-				changes.room_type = editedCohort.room_type;
 			}
 			if (editedCohort.product_id !== cohort.product_id) {
 				changes.product_id = editedCohort.product_id;
@@ -1025,32 +1005,6 @@ export function CohortDetailPageClient({
 														languageLevels,
 													)}
 												</Badge>
-											)}
-										</div>
-									</div>
-
-									<div className="flex items-start gap-3">
-										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Room Type:
-											</p>
-											{editing ? (
-												<InlineEditField
-													value={editedCohort?.room_type || ""}
-													onSave={(value) =>
-														updateEditedField("room_type", value || null)
-													}
-													editing={editing}
-													type="select"
-													options={roomTypeOptions}
-												/>
-											) : cohort.room_type ? (
-												<Badge variant="outline" className="h-5 text-xs">
-													{formatRoomType(cohort.room_type)}
-												</Badge>
-											) : (
-												<span className="font-medium text-sm">—</span>
 											)}
 										</div>
 									</div>

@@ -98,19 +98,6 @@ const cohortColumns = [
 		options: [], // Will be populated dynamically
 	},
 	{
-		id: "room_type",
-		accessor: (cohort: CohortWithRelations) => cohort.room_type,
-		displayName: "Room Type",
-		icon: Users,
-		type: "option" as const,
-		options: [
-			{ label: "One-to-One", value: "for_one_to_one" },
-			{ label: "Medium", value: "medium" },
-			{ label: "Medium+", value: "medium_plus" },
-			{ label: "Large", value: "large" },
-		],
-	},
-	{
 		id: "teacher_ids",
 		accessor: (cohort: CohortWithRelations) => {
 			// Extract unique teacher IDs from weekly sessions - return first teacher for display
@@ -280,9 +267,6 @@ export function ClassesPageClient() {
 			filterParams.current_level_id.length > 0
 		) {
 			query.current_level_id = filterParams.current_level_id as string[];
-		}
-		if (filterParams.room_type && filterParams.room_type.length > 0) {
-			query.room_type = filterParams.room_type as RoomType[];
 		}
 		if (filterParams.teacher_ids && filterParams.teacher_ids.length > 0) {
 			query.teacher_ids = filterParams.teacher_ids as string[];
