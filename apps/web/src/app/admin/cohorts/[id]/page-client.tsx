@@ -40,6 +40,7 @@ import {
 	useUpdateCohort,
 } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
+import { formatDate } from "@/lib/date-utils";
 
 import { format } from "date-fns";
 import {
@@ -1376,7 +1377,7 @@ export function CohortDetailPageClient({
 							<li>
 								• Start date:{" "}
 								{cohort.start_date
-									? new Date(cohort.start_date).toLocaleDateString()
+									? formatDate(cohort.start_date, "PPP")
 									: "Not set"}
 							</li>
 							<li>• Max students: {cohort.max_students || 10}</li>

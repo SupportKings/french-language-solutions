@@ -22,6 +22,7 @@ import { languageLevelQueries } from "@/features/language-levels/queries/languag
 import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
 import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
+import { parseDateString } from "@/lib/date-utils";
 
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Users } from "lucide-react";
@@ -116,7 +117,7 @@ const cohortColumns = [
 	{
 		id: "start_date",
 		accessor: (cohort: CohortWithRelations) =>
-			cohort.start_date ? new Date(cohort.start_date) : undefined,
+			cohort.start_date ? parseDateString(cohort.start_date) : undefined,
 		displayName: "Start Date",
 		icon: Users,
 		type: "date" as const,

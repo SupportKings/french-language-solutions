@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
+import { parseDateString } from "@/lib/date-utils";
 import type { Database } from "@/utils/supabase/database.types";
 
 // GET /api/cohorts - List cohorts with pagination and filtering
@@ -212,7 +213,7 @@ export async function GET(request: NextRequest) {
 		if (start_date_from || start_date_to) {
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				if (!cohort.start_date) return false;
-				const cohortDate = new Date(cohort.start_date);
+				const cohortDate = parseDateString(cohort.start_date);
 
 				if (start_date_from && start_date_to) {
 					const fromDate = new Date(start_date_from);

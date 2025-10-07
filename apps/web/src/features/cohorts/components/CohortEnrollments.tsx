@@ -58,7 +58,7 @@ export function CohortEnrollments({
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
 	const enrollmentsPerPage = 10;
 	const [studentSearch, setStudentSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("welcome_package_sent");
+	const [statusFilter, setStatusFilter] = useState<string>("all");
 
 	// Fetch enrolled students using React Query
 	const { data, isLoading: loadingStudents } = useQuery({

@@ -37,6 +37,7 @@ import {
 	teachersQueries,
 	useTeachers,
 } from "@/features/teachers/queries/teachers.queries";
+import { parseDateString } from "@/lib/date-utils";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -180,7 +181,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			starting_level_id: cohort?.starting_level_id || "",
 			current_level_id: cohort?.current_level_id || "",
 			max_students: cohort?.max_students || 20,
-			start_date: cohort?.start_date ? new Date(cohort.start_date) : undefined,
+			start_date: cohort?.start_date ? parseDateString(cohort.start_date) : undefined,
 			cohort_status: cohort?.cohort_status ?? "enrollment_open",
 			product_id: cohort?.product_id || "",
 			google_drive_folder_id: cohort?.google_drive_folder_id || "",
