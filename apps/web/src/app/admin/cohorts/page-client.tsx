@@ -115,6 +115,13 @@ const cohortColumns = [
 		options: [], // Will be populated dynamically
 	},
 	{
+		id: "student_search",
+		accessor: () => undefined, // Server-side only, not used for client filtering
+		displayName: "Student",
+		icon: Users,
+		type: "text" as const,
+	},
+	{
 		id: "start_date",
 		accessor: (cohort: CohortWithRelations) =>
 			cohort.start_date ? parseDateString(cohort.start_date) : undefined,
@@ -211,6 +218,10 @@ export function ClassesPageClient() {
 				if (filter.type === "option") {
 					params[filter.columnId] = filter.values;
 					console.log(`📌 Filter ${filter.columnId}:`, filter.values);
+				} else if (filter.type === "text") {
+					// Text filter - use first value as search string
+					params[filter.columnId] = filter.values[0] as string;
+					console.log(`🔍 Text Filter ${filter.columnId}:`, filter.values[0]);
 				} else if (filter.type === "date") {
 					// Date filter can be single date or date range
 					if (filter.values.length === 1) {
@@ -245,6 +256,11 @@ export function ClassesPageClient() {
 		// Add search query
 		if (searchQuery && searchQuery.length > 0) {
 			query.search = searchQuery;
+		}
+
+		// Add student search filter
+		if (filterParams.student_search && filterParams.student_search.length > 0) {
+			query.student_search = filterParams.student_search;
 		}
 
 		// Only add filters if they have values

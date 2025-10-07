@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
+		const student_search = searchParams.get("student_search") || "";
 		const format = searchParams.getAll("format");
 		const location = searchParams.getAll("location");
 		const cohort_status = searchParams.getAll("cohort_status");
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
 		// 3. Determine if we need to fetch all records (for in-memory filtering)
 		const needsInMemoryFiltering =
 			search.length > 0 ||
+			student_search.length > 0 ||
 			format.length > 0 ||
 			location.length > 0 ||
 			cohort_status.length > 1 ||
@@ -72,41 +74,66 @@ export async function GET(request: NextRequest) {
 			start_date_to;
 
 		// 4. Build query with server-side filtering
+		// Use the view when student search is needed, otherwise use regular table for better performance
+		const useView = student_search.length > 0;
+		const tableName = useView ? "cohorts_with_students" : "cohorts";
+
 		let query = supabase
-			.from("cohorts")
+			.from(tableName as any)
 			.select(
-				`
-				*,
-				products (
-					id,
-					format,
-					location,
-					display_name
-				),
-				starting_level:language_levels!starting_level_id (
-					id,
-					code,
-					display_name,
-					level_group
-				),
-				current_level:language_levels!current_level_id (
-					id,
-					code,
-					display_name,
-					level_group
-				),
-				weekly_sessions (
-					id,
-					day_of_week,
-					start_time,
-					end_time,
-					teacher:teachers (
+				useView
+					? `
 						id,
-						first_name,
-						last_name
-					)
-				)
-			`,
+						nickname,
+						start_date,
+						cohort_status,
+						max_students,
+						current_level_id,
+						starting_level_id,
+						product_id,
+						room_type,
+						setup_finalized,
+						google_drive_folder_id,
+						airtable_record_id,
+						airtable_created_at,
+						created_at,
+						updated_at,
+						student_names,
+						student_emails,
+						student_ids
+					`
+					: `
+						*,
+						products (
+							id,
+							format,
+							location,
+							display_name
+						),
+						starting_level:language_levels!starting_level_id (
+							id,
+							code,
+							display_name,
+							level_group
+						),
+						current_level:language_levels!current_level_id (
+							id,
+							code,
+							display_name,
+							level_group
+						),
+						weekly_sessions (
+							id,
+							day_of_week,
+							start_time,
+							end_time,
+							teacher:teachers (
+								id,
+								first_name,
+								last_name
+							)
+						)
+					`,
 				{ count: "exact" },
 			);
 
@@ -159,6 +186,19 @@ export async function GET(request: NextRequest) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				cohort.nickname?.toLowerCase().includes(searchLower),
 			);
+		}
+
+		// Student search filter (student names or emails)
+		if (student_search.length > 0) {
+			const searchLower = student_search.toLowerCase();
+			filteredCohorts = filteredCohorts.filter((cohort: any) => {
+				const studentNames = cohort.student_names?.toLowerCase() || "";
+				const studentEmails = cohort.student_emails?.toLowerCase() || "";
+				return (
+					studentNames.includes(searchLower) ||
+					studentEmails.includes(searchLower)
+				);
+			});
 		}
 
 		// Format filter (any format value)
@@ -230,7 +270,77 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		// 6. Paginate in-memory if needed
+		// 6. If using view, enrich with related data
+		if (useView && filteredCohorts.length > 0) {
+			const cohortIds = filteredCohorts.map((c: any) => c.id);
+
+			// Fetch related data in parallel
+			const [productsResult, levelsResult, sessionsResult] = await Promise.all([
+				supabase
+					.from("products")
+					.select("id, format, location, display_name")
+					.in("id", filteredCohorts.map((c: any) => c.product_id).filter(Boolean)),
+				supabase
+					.from("language_levels")
+					.select("id, code, display_name, level_group")
+					.in(
+						"id",
+						[
+							...filteredCohorts.map((c: any) => c.starting_level_id),
+							...filteredCohorts.map((c: any) => c.current_level_id),
+						].filter(Boolean),
+					),
+				supabase
+					.from("weekly_sessions")
+					.select(
+						`
+						id,
+						cohort_id,
+						day_of_week,
+						start_time,
+						end_time,
+						teacher:teachers (
+							id,
+							first_name,
+							last_name
+						)
+					`,
+					)
+					.in("cohort_id", cohortIds),
+			]);
+
+			// Create lookup maps
+			const productsMap = new Map(
+				productsResult.data?.map((p) => [p.id, p]) || [],
+			);
+			const levelsMap = new Map(
+				levelsResult.data?.map((l) => [l.id, l]) || [],
+			);
+			const sessionsMap = new Map<string, any[]>();
+			sessionsResult.data?.forEach((s: any) => {
+				if (!sessionsMap.has(s.cohort_id)) {
+					sessionsMap.set(s.cohort_id, []);
+				}
+				sessionsMap.get(s.cohort_id)?.push(s);
+			});
+
+			// Enrich cohorts with related data
+			filteredCohorts = filteredCohorts.map((cohort: any) => ({
+				...cohort,
+				products: cohort.product_id
+					? productsMap.get(cohort.product_id)
+					: null,
+				starting_level: cohort.starting_level_id
+					? levelsMap.get(cohort.starting_level_id)
+					: null,
+				current_level: cohort.current_level_id
+					? levelsMap.get(cohort.current_level_id)
+					: null,
+				weekly_sessions: sessionsMap.get(cohort.id) || [],
+			}));
+		}
+
+		// 7. Paginate in-memory if needed
 		if (needsInMemoryFiltering) {
 			const startIndex = offset;
 			const endIndex = offset + limit;
