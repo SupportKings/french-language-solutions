@@ -642,7 +642,7 @@ export class FollowUpService {
 	}
 
 	/**
-	 * Check recent engagements (touchpoints and assessments) and stop follow-ups for those students
+	 * Check recent engagements (touchpoints, assessments, and enrollments) and stop follow-ups for those students
 	 */
 	async checkRecentEngagementsToStop(hoursBack = 1) {
 		try {
@@ -684,12 +684,30 @@ export class FollowUpService {
 				};
 			}
 
-			// Combine student IDs from both touchpoints and assessments
+			// Find all enrollments created after the cutoff time
+			const { data: recentEnrollments, error: enrollmentError } = await supabase
+				.from("enrollments")
+				.select("student_id, created_at, status")
+				.gte("created_at", cutoffTimeISO)
+				.order("created_at", { ascending: false });
+
+			if (enrollmentError) {
+				console.error("Error fetching recent enrollments:", enrollmentError);
+				return {
+					success: false,
+					error: "Failed to fetch recent enrollments",
+					details: enrollmentError,
+				};
+			}
+
+			// Combine student IDs from touchpoints, assessments, and enrollments
 			const touchpointStudentIds =
 				recentTouchpoints?.map((tp: { student_id: string }) => tp.student_id) || [];
 			const assessmentStudentIds =
 				recentAssessments?.map((a: { student_id: string }) => a.student_id) || [];
-			const allStudentIds = [...touchpointStudentIds, ...assessmentStudentIds];
+			const enrollmentStudentIds =
+				recentEnrollments?.map((e: { student_id: string }) => e.student_id) || [];
+			const allStudentIds = [...touchpointStudentIds, ...assessmentStudentIds, ...enrollmentStudentIds];
 			const uniqueStudentIds = [...new Set(allStudentIds)];
 
 			if (uniqueStudentIds.length === 0) {
@@ -698,6 +716,7 @@ export class FollowUpService {
 					message: `No engagements found in the last ${hoursBack} hour(s)`,
 					touchpointsFound: 0,
 					assessmentsFound: 0,
+					enrollmentsFound: 0,
 					studentsProcessed: 0,
 					followUpsStopped: 0,
 					timestamp: new Date().toISOString(),
@@ -705,9 +724,11 @@ export class FollowUpService {
 			}
 
 			console.log(
-				`Found ${recentTouchpoints?.length || 0} touchpoints and ${
+				`Found ${recentTouchpoints?.length || 0} touchpoints, ${
 					recentAssessments?.length || 0
-				} assessments for ${uniqueStudentIds.length} unique students`,
+				} assessments, and ${
+					recentEnrollments?.length || 0
+				} enrollments for ${uniqueStudentIds.length} unique students`,
 			);
 
 			// Process each student using the existing stopAllFollowUps function
@@ -722,6 +743,8 @@ export class FollowUpService {
 					recentTouchpoints?.filter((tp: { student_id: string }) => tp.student_id === studentId) || [];
 				const studentAssessments =
 					recentAssessments?.filter((a: { student_id: string }) => a.student_id === studentId) || [];
+				const studentEnrollments =
+					recentEnrollments?.filter((e: { student_id: string }) => e.student_id === studentId) || [];
 
 				results.push({
 					studentId,
@@ -734,6 +757,9 @@ export class FollowUpService {
 						assessmentsCount: studentAssessments.length,
 						latestAssessment: studentAssessments[0]?.created_at,
 						assessmentScheduledFor: studentAssessments[0]?.scheduled_for,
+						enrollmentsCount: studentEnrollments.length,
+						latestEnrollment: studentEnrollments[0]?.created_at,
+						enrollmentStatus: studentEnrollments[0]?.status,
 					},
 					stopResult: {
 						success: stopResult.success,
@@ -755,6 +781,7 @@ export class FollowUpService {
 					cutoffTime: cutoffTimeISO,
 					touchpointsFound: recentTouchpoints?.length || 0,
 					assessmentsFound: recentAssessments?.length || 0,
+					enrollmentsFound: recentEnrollments?.length || 0,
 					studentsProcessed: uniqueStudentIds.length,
 					followUpsStopped: totalFollowUpsStopped,
 				},
@@ -775,7 +802,7 @@ export class FollowUpService {
 	 * Find students that need automated follow-ups based on criteria:
 	 * 1. Student is not a full beginner
 	 * 2. Student record created within last 24 hours
-	 * 3. No touchpoint mentioning "assessment" in last 24 hours
+	 * 3. No assessment scheduled for a future date (scheduled_for > today)
 	 *
 	 * Then trigger the follow-up flow for these students
 	 */
@@ -813,29 +840,29 @@ export class FollowUpService {
 				};
 			}
 
-			// For each student, check if they have any touchpoint mentioning assessment in last 24 hours
+			// For each student, check if they have any future scheduled assessments
 			const studentsNeedingFollowUp = [];
+			const today = new Date().toISOString();
 
 			for (const student of recentStudents) {
-				// Check for recent touchpoints that indicate assessment activity
-				const { data: touchpoints, error: touchpointError } = await supabase
-					.from("touchpoints")
-					.select("id, message")
+				// Check if student has any assessment scheduled for a future date
+				const { data: futureAssessments, error: assessmentError } = await supabase
+					.from("student_assessments")
+					.select("id, scheduled_for")
 					.eq("student_id", student.id)
-					.gte("created_at", twentyFourHoursAgoISO)
-					.ilike("message", "%assessment%")
+					.gt("scheduled_for", today)
 					.limit(1);
 
-				if (touchpointError) {
+				if (assessmentError) {
 					console.error(
-						`Error checking touchpoints for student ${student.id}:`,
-						touchpointError,
+						`Error checking assessments for student ${student.id}:`,
+						assessmentError,
 					);
 					continue;
 				}
 
-				// If no recent assessment-related touchpoint, add to follow-up list
-				if (!touchpoints || touchpoints.length === 0) {
+				// If no future assessments scheduled, add to follow-up list
+				if (!futureAssessments || futureAssessments.length === 0) {
 					studentsNeedingFollowUp.push(student);
 				}
 			}
@@ -844,7 +871,7 @@ export class FollowUpService {
 				return {
 					success: true,
 					message:
-						"No students need follow-ups (all have recent assessment-related touchpoints)",
+						"No students need follow-ups (all have future assessments scheduled)",
 					processed: 0,
 					studentsChecked: recentStudents.length,
 					timestamp: new Date().toISOString(),
