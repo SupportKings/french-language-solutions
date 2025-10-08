@@ -49,11 +49,13 @@ export const createTeacherUser = actionClient
 			}
 
 			// Get teacher details
+			const headersList = await headers();
 			const teacherResponse = await fetch(
 				`${process.env.NEXT_PUBLIC_APP_URL}/api/teachers/${parsedInput.teacherId}`,
 				{
 					headers: {
 						"Content-Type": "application/json",
+						Cookie: headersList.get("cookie") || "",
 					},
 				},
 			);
@@ -120,6 +122,7 @@ export const createTeacherUser = actionClient
 					method: "PATCH",
 					headers: {
 						"Content-Type": "application/json",
+						Cookie: headersList.get("cookie") || "",
 					},
 					body: JSON.stringify({
 						user_id: newUser.id,

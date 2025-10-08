@@ -151,11 +151,10 @@ export function ClassesPageClient() {
 		defaultValue: "",
 	});
 
-	const [todaySessions, setTodaySessions] = useQueryState("today_sessions", {
-		parse: (value) => value === "true",
-		serialize: (value) => value ? "true" : null,
-		defaultValue: false,
+	const [todaySessionsState, setTodaySessionsState] = useQueryState("today_sessions", {
+		defaultValue: "",
 	});
+	const todaySessions = todaySessionsState === "true";
 
 	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
@@ -354,7 +353,7 @@ export function ClassesPageClient() {
 
 						<div className="ml-auto flex items-center gap-2">
 							<Button
-								onClick={() => setTodaySessions(!todaySessions)}
+								onClick={() => setTodaySessionsState(todaySessions ? "" : "true")}
 								size="sm"
 								variant={todaySessions ? "default" : "outline"}
 								className="h-9"

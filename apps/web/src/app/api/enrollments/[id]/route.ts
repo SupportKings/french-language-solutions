@@ -100,6 +100,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 					{ status: 404 },
 				);
 			}
+			// Check for permission denied - PGRST301 or 42501
+			if (error.code === "PGRST301" || error.code === "42501") {
+				return NextResponse.json(
+					{ error: "You don't have permission to view this enrollment" },
+					{ status: 403 },
+				);
+			}
 			console.error("Error fetching enrollment:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch enrollment" },

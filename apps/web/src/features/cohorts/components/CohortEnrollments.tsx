@@ -41,6 +41,7 @@ interface CohortEnrollmentsProps {
 	cohortName?: string;
 	cohortLevel?: string;
 	onEnrollmentUpdate?: () => void;
+	canEnrollStudent?: boolean;
 }
 
 export function CohortEnrollments({
@@ -48,6 +49,7 @@ export function CohortEnrollments({
 	cohortName = "Cohort",
 	cohortLevel = "",
 	onEnrollmentUpdate,
+	canEnrollStudent = true,
 }: CohortEnrollmentsProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
@@ -148,14 +150,16 @@ export function CohortEnrollments({
 						</span>
 					)}
 				</h2>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={navigateToCreateEnrollment}
-				>
-					<UserPlus className="mr-2 h-4 w-4" />
-					Enroll Student
-				</Button>
+				{canEnrollStudent && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={navigateToCreateEnrollment}
+					>
+						<UserPlus className="mr-2 h-4 w-4" />
+						Enroll Student
+					</Button>
+				)}
 			</div>
 
 			<div className="space-y-4">

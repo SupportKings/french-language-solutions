@@ -146,9 +146,16 @@ const assessmentColumns = [
 
 interface AssessmentsTableProps {
 	hideTitle?: boolean;
+	permissions?: any;
 }
 
-export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
+export function AssessmentsTable({
+	hideTitle = false,
+	permissions,
+}: AssessmentsTableProps) {
+	// Check permissions
+	const canAddAssessment = permissions?.assessments?.includes("write");
+	const canDeleteAssessment = permissions?.assessments?.includes("write");
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const debouncedSearch = useDebounce(search, 300);
@@ -321,14 +328,16 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 							/>
 						</div>
 
-						<div className="ml-auto">
-							<Link href="/admin/students/assessments/new">
-								<Button size="sm" className="h-9">
-									<Plus className="mr-1.5 h-4 w-4" />
-									New Assessment
-								</Button>
-							</Link>
-						</div>
+						{canAddAssessment && (
+							<div className="ml-auto">
+								<Link href="/admin/students/assessments/new">
+									<Button size="sm" className="h-9">
+										<Plus className="mr-1.5 h-4 w-4" />
+										New Assessment
+									</Button>
+								</Link>
+							</div>
+						)}
 					</div>
 
 					{/* Filter bar */}
@@ -510,13 +519,15 @@ export function AssessmentsTable({ hideTitle = false }: AssessmentsTableProps) {
 														View
 													</DropdownMenuItem>
 												</Link>
-												<DropdownMenuItem
-													onClick={() => handleDelete(assessment.id)}
-													className="text-destructive"
-												>
-													<Trash className="mr-2 h-4 w-4" />
-													Delete
-												</DropdownMenuItem>
+												{canDeleteAssessment && (
+													<DropdownMenuItem
+														onClick={() => handleDelete(assessment.id)}
+														className="text-destructive"
+													>
+														<Trash className="mr-2 h-4 w-4" />
+														Delete
+													</DropdownMenuItem>
+												)}
 											</DropdownMenuContent>
 										</DropdownMenu>
 									</TableCell>

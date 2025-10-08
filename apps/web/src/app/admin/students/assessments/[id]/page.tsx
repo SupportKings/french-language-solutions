@@ -1,7 +1,10 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
+import { getUser } from "@/queries/getUser";
+import { rolesMap } from "@/lib/permissions";
+import { AccessDenied } from "@/components/ui/access-denied";
 
 import AssessmentDetailsClient from "./page-client";
 
@@ -20,25 +23,42 @@ async function getAssessment(id: string) {
 	});
 
 	if (!response.ok) {
-		if (response.status === 404) {
-			return null;
-		}
-		console.error(
-			`Failed to fetch assessment ${id}: ${response.status} ${response.statusText}`,
-		);
-		throw new Error("Failed to fetch assessment");
+		// Return both data and status
+		return { data: null, status: response.status };
 	}
 
-	return response.json();
+	const data = await response.json();
+	return { data, status: 200 };
 }
 
 export default async function AssessmentDetailsPage({ params }: PageProps) {
 	const { id } = await params;
-	const assessment = await getAssessment(id);
+	const session = await getUser();
 
-	if (!assessment) {
+	if (!session) {
+		redirect("/signin");
+	}
+
+	// Get user's role and permissions
+	const userRole = session.user.role || "teacher";
+	const rolePermissions = rolesMap[userRole as keyof typeof rolesMap];
+	const permissions = rolePermissions?.statements || {};
+
+	const result = await getAssessment(id);
+
+	// Handle different error cases
+	if (!result.data) {
+		if (result.status === 403) {
+			return (
+				<AccessDenied
+					message="You don't have permission to view this assessment."
+					backLink="/admin/students/assessments"
+					backLinkText="Back to Assessments List"
+				/>
+			);
+		}
 		notFound();
 	}
 
-	return <AssessmentDetailsClient assessment={assessment} />;
+	return <AssessmentDetailsClient assessment={result.data} permissions={permissions} />;
 }
