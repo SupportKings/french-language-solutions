@@ -41,6 +41,7 @@ interface CohortEnrollmentsProps {
 	cohortName?: string;
 	cohortLevel?: string;
 	onEnrollmentUpdate?: () => void;
+	canEnrollStudent?: boolean;
 }
 
 export function CohortEnrollments({
@@ -48,6 +49,7 @@ export function CohortEnrollments({
 	cohortName = "Cohort",
 	cohortLevel = "",
 	onEnrollmentUpdate,
+	canEnrollStudent = true,
 }: CohortEnrollmentsProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
@@ -58,7 +60,7 @@ export function CohortEnrollments({
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
 	const enrollmentsPerPage = 10;
 	const [studentSearch, setStudentSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("welcome_package_sent");
+	const [statusFilter, setStatusFilter] = useState<string>("all");
 
 	// Fetch enrolled students using React Query
 	const { data, isLoading: loadingStudents } = useQuery({
@@ -148,14 +150,16 @@ export function CohortEnrollments({
 						</span>
 					)}
 				</h2>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={navigateToCreateEnrollment}
-				>
-					<UserPlus className="mr-2 h-4 w-4" />
-					Enroll Student
-				</Button>
+				{canEnrollStudent && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={navigateToCreateEnrollment}
+					>
+						<UserPlus className="mr-2 h-4 w-4" />
+						Enroll Student
+					</Button>
+				)}
 			</div>
 
 			<div className="space-y-4">

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date-utils";
 
 import {
 	FormActions,
@@ -481,7 +482,7 @@ export function EnrollmentFormNew({
 																					cohort.current_level?.code?.toUpperCase() ||
 																					"N/A"}
 																				{cohort.start_date &&
-																					` • Starts ${new Date(cohort.start_date).toLocaleDateString()}`}
+																					` • Starts ${formatDate(cohort.start_date, "PP")}`}
 																			</span>
 																		</div>
 																	</div>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date-utils";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -276,7 +277,7 @@ export function EnrollmentForm({
 																(c) => c.id === field.value,
 															);
 															return cohort
-																? `${cohort.products?.format || "N/A"} - ${cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || "N/A"} (${cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : "TBD"})`
+																? `${cohort.products?.format || "N/A"} - ${cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || "N/A"} (${cohort.start_date ? formatDate(cohort.start_date, "PP") : "TBD"})`
 																: "Select cohort...";
 														})()
 													: "Select cohort..."}
@@ -314,7 +315,7 @@ export function EnrollmentForm({
 															</span>
 															<span className="text-muted-foreground text-xs">
 																{cohort.start_date
-																	? `Starts ${new Date(cohort.start_date).toLocaleDateString()}`
+																	? `Starts ${formatDate(cohort.start_date, "PP")}`
 																	: "Start date TBD"}
 																{cohort.cohort_status &&
 																	` • ${cohort.cohort_status.replace("_", " ")}`}

@@ -74,7 +74,9 @@ export const cohortsApi = {
 	async getById(id: string): Promise<Cohort> {
 		const response = await fetch(`${BASE_URL}/${id}`);
 		if (!response.ok) {
-			throw new Error(`Failed to fetch cohort: ${response.statusText}`);
+			const error: any = new Error(`Failed to fetch cohort: ${response.statusText}`);
+			error.status = response.status;
+			throw error;
 		}
 		return response.json();
 	},
@@ -83,9 +85,11 @@ export const cohortsApi = {
 	async getWithSessions(id: string): Promise<CohortWithSessions> {
 		const response = await fetch(`${BASE_URL}/${id}/sessions`);
 		if (!response.ok) {
-			throw new Error(
+			const error: any = new Error(
 				`Failed to fetch cohort with sessions: ${response.statusText}`,
 			);
+			error.status = response.status;
+			throw error;
 		}
 		return response.json();
 	},

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
+import { parseDateString } from "@/lib/date-utils";
 import type { Database } from "@/utils/supabase/database.types";
 
 // GET /api/cohorts - List cohorts with pagination and filtering
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
+		const student_search = searchParams.get("student_search") || "";
 		const format = searchParams.getAll("format");
 		const location = searchParams.getAll("location");
 		const cohort_status = searchParams.getAll("cohort_status");
@@ -27,6 +29,7 @@ export async function GET(request: NextRequest) {
 		const teacher_ids = searchParams.getAll("teacher_ids");
 		const start_date_from = searchParams.get("start_date_from");
 		const start_date_to = searchParams.get("start_date_to");
+		const today_sessions = searchParams.get("today_sessions") === "true";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -60,6 +63,7 @@ export async function GET(request: NextRequest) {
 		// 3. Determine if we need to fetch all records (for in-memory filtering)
 		const needsInMemoryFiltering =
 			search.length > 0 ||
+			student_search.length > 0 ||
 			format.length > 0 ||
 			location.length > 0 ||
 			cohort_status.length > 1 ||
@@ -68,44 +72,70 @@ export async function GET(request: NextRequest) {
 			room_type.length > 1 ||
 			teacher_ids.length > 0 ||
 			start_date_from ||
-			start_date_to;
+			start_date_to ||
+			today_sessions;
 
 		// 4. Build query with server-side filtering
+		// Use the view when student search is needed, otherwise use regular table for better performance
+		const useView = student_search.length > 0;
+		const tableName = useView ? "cohorts_with_students" : "cohorts";
+
 		let query = supabase
-			.from("cohorts")
+			.from(tableName as any)
 			.select(
-				`
-				*,
-				products (
-					id,
-					format,
-					location,
-					display_name
-				),
-				starting_level:language_levels!starting_level_id (
-					id,
-					code,
-					display_name,
-					level_group
-				),
-				current_level:language_levels!current_level_id (
-					id,
-					code,
-					display_name,
-					level_group
-				),
-				weekly_sessions (
-					id,
-					day_of_week,
-					start_time,
-					end_time,
-					teacher:teachers (
+				useView
+					? `
 						id,
-						first_name,
-						last_name
-					)
-				)
-			`,
+						nickname,
+						start_date,
+						cohort_status,
+						max_students,
+						current_level_id,
+						starting_level_id,
+						product_id,
+						room_type,
+						setup_finalized,
+						google_drive_folder_id,
+						airtable_record_id,
+						airtable_created_at,
+						created_at,
+						updated_at,
+						student_names,
+						student_emails,
+						student_ids
+					`
+					: `
+						*,
+						products (
+							id,
+							format,
+							location,
+							display_name
+						),
+						starting_level:language_levels!starting_level_id (
+							id,
+							code,
+							display_name,
+							level_group
+						),
+						current_level:language_levels!current_level_id (
+							id,
+							code,
+							display_name,
+							level_group
+						),
+						weekly_sessions (
+							id,
+							day_of_week,
+							start_time,
+							end_time,
+							teacher:teachers (
+								id,
+								first_name,
+								last_name
+							)
+						)
+					`,
 				{ count: "exact" },
 			);
 
@@ -150,7 +180,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// 5. Apply in-memory filters (only when needed)
-		let filteredCohorts = data || [];
+		let filteredCohorts: any[] = data || [];
 
 		// Search filter (nickname)
 		if (search.length > 0) {
@@ -158,6 +188,19 @@ export async function GET(request: NextRequest) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
 				cohort.nickname?.toLowerCase().includes(searchLower),
 			);
+		}
+
+		// Student search filter (student names or emails)
+		if (student_search.length > 0) {
+			const searchLower = student_search.toLowerCase();
+			filteredCohorts = filteredCohorts.filter((cohort: any) => {
+				const studentNames = cohort.student_names?.toLowerCase() || "";
+				const studentEmails = cohort.student_emails?.toLowerCase() || "";
+				return (
+					studentNames.includes(searchLower) ||
+					studentEmails.includes(searchLower)
+				);
+			});
 		}
 
 		// Format filter (any format value)
@@ -212,7 +255,7 @@ export async function GET(request: NextRequest) {
 		if (start_date_from || start_date_to) {
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				if (!cohort.start_date) return false;
-				const cohortDate = new Date(cohort.start_date);
+				const cohortDate = parseDateString(cohort.start_date);
 
 				if (start_date_from && start_date_to) {
 					const fromDate = new Date(start_date_from);
@@ -229,7 +272,88 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		// 6. Paginate in-memory if needed
+		// Today's sessions filter
+		if (today_sessions) {
+			const now = new Date();
+			const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as Database["public"]["Enums"]["day_of_week"];
+
+			filteredCohorts = filteredCohorts.filter((cohort) => {
+				const sessions = cohort.weekly_sessions || [];
+				return sessions.some((session: any) => session.day_of_week === dayOfWeek);
+			});
+		}
+
+		// 6. If using view, enrich with related data
+		if (useView && filteredCohorts.length > 0) {
+			const cohortIds = filteredCohorts.map((c: any) => c.id);
+
+			// Fetch related data in parallel
+			const [productsResult, levelsResult, sessionsResult] = await Promise.all([
+				supabase
+					.from("products")
+					.select("id, format, location, display_name")
+					.in("id", filteredCohorts.map((c: any) => c.product_id).filter(Boolean)),
+				supabase
+					.from("language_levels")
+					.select("id, code, display_name, level_group")
+					.in(
+						"id",
+						[
+							...filteredCohorts.map((c: any) => c.starting_level_id),
+							...filteredCohorts.map((c: any) => c.current_level_id),
+						].filter(Boolean),
+					),
+				supabase
+					.from("weekly_sessions")
+					.select(
+						`
+						id,
+						cohort_id,
+						day_of_week,
+						start_time,
+						end_time,
+						teacher:teachers (
+							id,
+							first_name,
+							last_name
+						)
+					`,
+					)
+					.in("cohort_id", cohortIds),
+			]);
+
+			// Create lookup maps
+			const productsMap = new Map(
+				productsResult.data?.map((p) => [p.id, p]) || [],
+			);
+			const levelsMap = new Map(
+				levelsResult.data?.map((l) => [l.id, l]) || [],
+			);
+			const sessionsMap = new Map<string, any[]>();
+			sessionsResult.data?.forEach((s: any) => {
+				if (!sessionsMap.has(s.cohort_id)) {
+					sessionsMap.set(s.cohort_id, []);
+				}
+				sessionsMap.get(s.cohort_id)?.push(s);
+			});
+
+			// Enrich cohorts with related data
+			filteredCohorts = filteredCohorts.map((cohort: any) => ({
+				...cohort,
+				products: cohort.product_id
+					? productsMap.get(cohort.product_id)
+					: null,
+				starting_level: cohort.starting_level_id
+					? levelsMap.get(cohort.starting_level_id)
+					: null,
+				current_level: cohort.current_level_id
+					? levelsMap.get(cohort.current_level_id)
+					: null,
+				weekly_sessions: sessionsMap.get(cohort.id) || [],
+			}));
+		}
+
+		// 7. Paginate in-memory if needed
 		if (needsInMemoryFiltering) {
 			const startIndex = offset;
 			const endIndex = offset + limit;

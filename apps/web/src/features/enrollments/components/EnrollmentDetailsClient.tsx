@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date-utils";
 
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
@@ -303,8 +304,8 @@ export function EnrollmentDetailsClient({
 										<p className="text-muted-foreground text-xs">Start Date</p>
 										<p className="font-medium text-sm">
 											{enrollment.cohorts?.start_date
-												? format(
-														new Date(enrollment.cohorts.start_date),
+												? formatDate(
+														enrollment.cohorts.start_date,
 														"MMM d, yyyy",
 													)
 												: "Not scheduled"}

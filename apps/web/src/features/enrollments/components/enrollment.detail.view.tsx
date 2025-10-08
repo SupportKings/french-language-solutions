@@ -41,6 +41,7 @@ type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
 
 interface EnrollmentDetailViewProps {
 	enrollmentId: string;
+	permissions?: any;
 }
 
 // Status configuration
@@ -79,7 +80,10 @@ const formatDate = (dateString: string | null) => {
 
 export default function EnrollmentDetailView({
 	enrollmentId,
+	permissions,
 }: EnrollmentDetailViewProps) {
+	// Check if user can edit students (which includes enrollments)
+	const canEditStudent = permissions?.students?.includes("write");
 	const { data: enrollment, isLoading, error } = useEnrollment(enrollmentId);
 	const queryClient = useQueryClient();
 	const router = useRouter();
@@ -226,7 +230,7 @@ export default function EnrollmentDetailView({
 				<div className="px-6 py-3">
 					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
 						<Link
-							href="/admin/enrollments"
+							href="/admin/students/enrollments"
 							className="transition-colors hover:text-foreground"
 						>
 							Enrollments
@@ -281,6 +285,7 @@ export default function EnrollmentDetailView({
 				{/* Enrollment Information with inline editing */}
 				<EditableSection
 					title="Enrollment Information"
+					canEdit={canEditStudent}
 					onEditStart={() => setEditedEnrollment(currentEnrollment)}
 					onSave={saveAllChanges}
 					onCancel={() => setEditedEnrollment(currentEnrollment)}

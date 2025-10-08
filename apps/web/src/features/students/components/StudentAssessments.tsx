@@ -43,9 +43,13 @@ const resultLabels = {
 
 interface StudentAssessmentsProps {
 	studentId: string;
+	canScheduleAssessment?: boolean;
 }
 
-export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
+export function StudentAssessments({
+	studentId,
+	canScheduleAssessment = true,
+}: StudentAssessmentsProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const queryClient = useQueryClient();
@@ -98,14 +102,16 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 		return (
 			<div className="py-8 text-center">
 				<p className="mb-4 text-muted-foreground">No assessments yet</p>
-				<Link
-					href={`/admin/students/assessments/new?studentId=${studentId}&redirectTo=${encodeURIComponent(currentUrl)}`}
-				>
-					<Button>
-						<Plus className="mr-2 h-4 w-4" />
-						Schedule Assessment
-					</Button>
-				</Link>
+				{canScheduleAssessment && (
+					<Link
+						href={`/admin/students/assessments/new?studentId=${studentId}&redirectTo=${encodeURIComponent(currentUrl)}`}
+					>
+						<Button>
+							<Plus className="mr-2 h-4 w-4" />
+							Schedule Assessment
+						</Button>
+					</Link>
+				)}
 			</div>
 		);
 	}
