@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// 5. Apply in-memory filters (only when needed)
-		let filteredCohorts = data || [];
+		let filteredCohorts: any[] = data || [];
 
 		// Search filter (nickname)
 		if (search.length > 0) {
