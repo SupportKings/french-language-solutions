@@ -25,7 +25,7 @@ import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
 import { parseDateString } from "@/lib/date-utils";
 
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users } from "lucide-react";
+import { CalendarClock, Plus, Search, Users } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { Input } from "@/components/ui/input";
 
@@ -151,6 +151,12 @@ export function ClassesPageClient() {
 		defaultValue: "",
 	});
 
+	const [todaySessions, setTodaySessions] = useQueryState("today_sessions", {
+		parse: (value) => value === "true",
+		serialize: (value) => value ? "true" : null,
+		defaultValue: false,
+	});
+
 	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
 		const columns = [...cohortColumns];
@@ -263,6 +269,11 @@ export function ClassesPageClient() {
 			query.student_search = filterParams.student_search;
 		}
 
+		// Add today sessions filter
+		if (todaySessions) {
+			query.today_sessions = true;
+		}
+
 		// Only add filters if they have values
 		if (filterParams.format && filterParams.format.length > 0) {
 			query.format = filterParams.format as CohortFormat[];
@@ -297,7 +308,7 @@ export function ClassesPageClient() {
 
 		console.log("🎯 Final queryFilters:", query);
 		return query;
-	}, [filterParams, page, searchQuery]);
+	}, [filterParams, page, searchQuery, todaySessions]);
 
 	// Fetch cohorts data
 	console.log("🔍 Query filters being sent:", queryFilters);
@@ -341,7 +352,17 @@ export function ClassesPageClient() {
 							/>
 						</div>
 
-						<div className="ml-auto">
+						<div className="ml-auto flex items-center gap-2">
+							<Button
+								onClick={() => setTodaySessions(!todaySessions)}
+								size="sm"
+								variant={todaySessions ? "default" : "outline"}
+								className="h-9"
+							>
+								<CalendarClock className="mr-1.5 h-4 w-4" />
+								Today's Cohorts
+							</Button>
+
 							<Button
 								onClick={() => router.push("/admin/cohorts/new")}
 								size="sm"

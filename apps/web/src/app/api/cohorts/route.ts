@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
 		const teacher_ids = searchParams.getAll("teacher_ids");
 		const start_date_from = searchParams.get("start_date_from");
 		const start_date_to = searchParams.get("start_date_to");
+		const today_sessions = searchParams.get("today_sessions") === "true";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -71,7 +72,8 @@ export async function GET(request: NextRequest) {
 			room_type.length > 1 ||
 			teacher_ids.length > 0 ||
 			start_date_from ||
-			start_date_to;
+			start_date_to ||
+			today_sessions;
 
 		// 4. Build query with server-side filtering
 		// Use the view when student search is needed, otherwise use regular table for better performance
@@ -267,6 +269,17 @@ export async function GET(request: NextRequest) {
 					return cohortDate <= toDate;
 				}
 				return true;
+			});
+		}
+
+		// Today's sessions filter
+		if (today_sessions) {
+			const now = new Date();
+			const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as Database["public"]["Enums"]["day_of_week"];
+
+			filteredCohorts = filteredCohorts.filter((cohort) => {
+				const sessions = cohort.weekly_sessions || [];
+				return sessions.some((session: any) => session.day_of_week === dayOfWeek);
 			});
 		}
 
