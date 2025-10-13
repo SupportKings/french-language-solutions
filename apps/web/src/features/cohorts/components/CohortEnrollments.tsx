@@ -23,6 +23,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { EnrollmentCreateModal } from "@/features/enrollments/components/EnrollmentCreateModal";
 import { EnrollmentDetailsModal } from "@/features/enrollments/components/EnrollmentDetailsModal";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,6 +56,7 @@ export function CohortEnrollments({
 	const queryClient = useQueryClient();
 	const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
 	// Pagination and filtering state
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
@@ -80,14 +82,9 @@ export function CohortEnrollments({
 
 	const enrolledStudents = data || [];
 
-	// Navigate to create enrollment
-	const navigateToCreateEnrollment = () => {
-		const params = new URLSearchParams({
-			cohortId: cohortId,
-			cohortName: `${cohortName} - ${cohortLevel}`,
-			redirectTo: `/admin/cohorts/${cohortId}`,
-		});
-		router.push(`/admin/students/enrollments/new?${params.toString()}`);
+	// Open create enrollment modal
+	const openCreateEnrollmentModal = () => {
+		setIsCreateModalOpen(true);
 	};
 
 	const handleEnrollmentClick = (enrollment: any) => {
@@ -154,7 +151,7 @@ export function CohortEnrollments({
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={navigateToCreateEnrollment}
+						onClick={openCreateEnrollmentModal}
 					>
 						<UserPlus className="mr-2 h-4 w-4" />
 						Enroll Student
@@ -459,6 +456,15 @@ export function CohortEnrollments({
 					</>
 				)}
 			</div>
+
+			{/* Enrollment Create Modal */}
+			<EnrollmentCreateModal
+				isOpen={isCreateModalOpen}
+				onClose={() => setIsCreateModalOpen(false)}
+				onSuccess={handleEnrollmentUpdate}
+				cohortId={cohortId}
+				cohortName={`${cohortName} - ${cohortLevel}`}
+			/>
 
 			{/* Enrollment Details Modal */}
 			<EnrollmentDetailsModal

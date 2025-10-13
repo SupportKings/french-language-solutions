@@ -139,7 +139,7 @@ export function EnrollmentFormNew({
 		}
 	}, [debouncedStudentSearch, studentPopoverOpen, fetchStudents]);
 
-	// Fetch cohorts with search (search by product name)
+	// Fetch cohorts with search (search by product name or nickname)
 	const fetchCohorts = useCallback(async (searchTerm = "") => {
 		setLoadingCohorts(true);
 		try {
@@ -151,11 +151,16 @@ export function EnrollmentFormNew({
 				const result = await response.json();
 				let cohortsList = result.data || [];
 
-				// Filter cohorts by product display_name if search term is provided
+				// Filter cohorts by product display_name or nickname if search term is provided
 				if (searchTerm) {
 					cohortsList = cohortsList.filter((cohort: any) => {
 						const productName = cohort.products?.display_name || "";
-						return productName.toLowerCase().includes(searchTerm.toLowerCase());
+						const nickname = cohort.nickname || "";
+						const searchLower = searchTerm.toLowerCase();
+						return (
+							productName.toLowerCase().includes(searchLower) ||
+							nickname.toLowerCase().includes(searchLower)
+						);
 					});
 				}
 
@@ -175,6 +180,22 @@ export function EnrollmentFormNew({
 			fetchCohorts(debouncedCohortSearch);
 		}
 	}, [debouncedCohortSearch, cohortPopoverOpen, fetchCohorts]);
+
+	// Fetch pre-selected cohort if cohortId is provided
+	useEffect(() => {
+		if (cohortId && cohorts.length === 0) {
+			fetch(`/api/cohorts/${cohortId}`)
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.cohort) {
+						setCohorts([data.cohort]);
+					}
+				})
+				.catch((error) => {
+					console.error("Error fetching pre-selected cohort:", error);
+				});
+		}
+	}, [cohortId, cohorts.length]);
 
 	async function onSubmit(values: EnrollmentFormValues) {
 		setIsLoading(true);
@@ -390,6 +411,7 @@ export function EnrollmentFormNew({
 									label="Cohort"
 									required
 									error={form.formState.errors.cohort_id?.message}
+									hint={cohortId ? "Pre-selected cohort" : undefined}
 								>
 									<Popover
 										open={cohortPopoverOpen}
@@ -404,12 +426,13 @@ export function EnrollmentFormNew({
 													"h-9 w-full justify-between font-normal",
 													!form.watch("cohort_id") && "text-muted-foreground",
 												)}
-												disabled={loadingCohorts}
+												disabled={!!cohortId || loadingCohorts}
 											>
 												<span className="flex items-center gap-2 truncate">
 													{selectedCohort ? (
 														<>
-															{selectedCohort.products?.display_name ||
+															{selectedCohort.nickname ||
+																selectedCohort.products?.display_name ||
 																(selectedCohort.products?.format
 																	? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Course`
 																	: "Course")}
@@ -418,30 +441,33 @@ export function EnrollmentFormNew({
 														"Select cohort..."
 													)}
 												</span>
-												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+												{!cohortId && (
+													<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+												)}
 											</Button>
 										</PopoverTrigger>
-										<PopoverContent className="w-[400px] p-0">
+										{!cohortId && (
+											<PopoverContent className="w-[400px] p-0">
 											<Command
 												shouldFilter={false}
 												className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground"
 											>
 												<CommandInput
-													placeholder="Search by product name..."
+													placeholder="Search by product name or nickname..."
 													value={cohortSearch}
 													onValueChange={setCohortSearch}
 												/>
 												{!cohortSearch && (
 													<div className="border-b p-2 text-muted-foreground text-sm">
 														<AlertCircle className="mr-1 inline-block h-3 w-3" />
-														Type a product name to search for cohorts
+														Type a product name or nickname to search for cohorts
 													</div>
 												)}
 												<CommandEmpty>
 													{loadingCohorts
 														? "Searching..."
 														: cohortSearch
-															? "No cohorts found with this product name."
+															? "No cohorts found with this product name or nickname."
 															: ""}
 												</CommandEmpty>
 												<CommandGroup className="max-h-64 overflow-auto [&_[cmdk-item]]:cursor-pointer">
@@ -468,7 +494,8 @@ export function EnrollmentFormNew({
 																	<div className="flex flex-1 items-start gap-2">
 																		<div className="flex flex-1 flex-col">
 																			<span className="flex items-center gap-2 font-medium">
-																				{cohort.products?.display_name ||
+																				{cohort.nickname ||
+																					cohort.products?.display_name ||
 																					(cohort.products?.format
 																						? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
 																						: "Course")}
@@ -492,6 +519,7 @@ export function EnrollmentFormNew({
 												</CommandGroup>
 											</Command>
 										</PopoverContent>
+										)}
 									</Popover>
 								</FormField>
 							</FormRow>
@@ -518,7 +546,8 @@ export function EnrollmentFormNew({
 											<Users className="h-4 w-4 text-muted-foreground" />
 											<span className="text-muted-foreground">Cohort:</span>
 											<span className="flex items-center gap-2 font-medium">
-												{selectedCohort.products?.display_name ||
+												{selectedCohort.nickname ||
+													selectedCohort.products?.display_name ||
 													(selectedCohort.products?.format
 														? `${selectedCohort.products.format.charAt(0).toUpperCase() + selectedCohort.products.format.slice(1)} Course`
 														: "Course")}
