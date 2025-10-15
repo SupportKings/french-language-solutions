@@ -250,9 +250,17 @@ export function EnrollmentDetailsClient({
 											? "Group Class"
 											: "Private Class"}{" "}
 										•{" "}
-										{enrollment.cohorts?.starting_level?.display_name ||
-											enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
-											"Level TBD"}
+										{enrollment.cohorts?.nickname ? (
+											<span className="truncate max-w-[200px] inline-block align-bottom" title={enrollment.cohorts.nickname}>
+												{enrollment.cohorts.nickname}
+											</span>
+										) : (
+											<>
+												{enrollment.cohorts?.starting_level?.display_name ||
+													enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
+													"Level TBD"}
+											</>
+										)}
 									</p>
 								</div>
 							</div>

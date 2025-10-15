@@ -362,6 +362,7 @@ export type Database = {
           airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_id: string | null
+          completion_percentage: number | null
           created_at: string
           enrollment_checklist: Json | null
           id: string
@@ -375,6 +376,7 @@ export type Database = {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string | null
+          completion_percentage?: number | null
           created_at?: string
           enrollment_checklist?: Json | null
           id?: string
@@ -388,6 +390,7 @@ export type Database = {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string | null
+          completion_percentage?: number | null
           created_at?: string
           enrollment_checklist?: Json | null
           id?: string

@@ -55,6 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				),
 				cohort:cohorts!enrollments_cohort_id_cohorts_id_fk (
 					id,
+					nickname,
 					cohort_status,
 					start_date,
 					max_students,

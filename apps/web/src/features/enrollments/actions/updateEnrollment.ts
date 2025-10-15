@@ -81,12 +81,53 @@ export const updateEnrollmentAction = actionClient
 
 			// 2. Update enrollment status if provided
 			if (status !== undefined) {
+				// Check if status is changing to determine if we need to reset checklists
+				const { data: currentEnrollment } = await supabase
+					.from("enrollments")
+					.select("status, transition_checklist, offboarding_checklist, enrollment_checklist")
+					.eq("id", id)
+					.single();
+
+				const isStatusChanging = currentEnrollment && currentEnrollment.status !== status;
+
+				// Prepare update data
+				const updateData: any = {
+					status,
+					updated_at: new Date().toISOString(),
+				};
+
+				// Reset appropriate checklist completion when status changes
+				if (isStatusChanging) {
+					// Helper function to reset checklist items
+					const resetChecklist = (checklist: any) => {
+						if (!checklist || typeof checklist !== 'object') return null;
+						const resetChecklist: any = {};
+						for (const [key, item] of Object.entries(checklist)) {
+							if (item && typeof item === 'object') {
+								resetChecklist[key] = {
+									...(item as Record<string, any>),
+									completed: false,
+									completed_at: null,
+									completed_by: null,
+								};
+							}
+						}
+						return resetChecklist;
+					};
+
+					// Reset the appropriate checklist based on new status
+					if (status === "transitioning" && currentEnrollment.transition_checklist) {
+						updateData.transition_checklist = resetChecklist(currentEnrollment.transition_checklist);
+					} else if (status === "offboarding" && currentEnrollment.offboarding_checklist) {
+						updateData.offboarding_checklist = resetChecklist(currentEnrollment.offboarding_checklist);
+					} else if (status !== "transitioning" && status !== "offboarding" && currentEnrollment.enrollment_checklist) {
+						updateData.enrollment_checklist = resetChecklist(currentEnrollment.enrollment_checklist);
+					}
+				}
+
 				const { error: updateError } = await supabase
 					.from("enrollments")
-					.update({
-						status,
-						updated_at: new Date().toISOString(),
-					})
+					.update(updateData)
 					.eq("id", id);
 
 				if (updateError) {

@@ -387,11 +387,13 @@ export default function EnrollmentDetailView({
 												<LinkedRecordBadge
 													href={`/admin/cohorts/${currentEnrollment.cohort.id}`}
 													label={
+														currentEnrollment.cohort.nickname ||
 														currentEnrollment.cohort.product?.display_name ||
 														"View Cohort"
 													}
 													icon={School}
 													className="text-xs"
+													title={currentEnrollment.cohort.nickname || undefined}
 												/>
 											) : (
 												<span className="text-muted-foreground text-sm">

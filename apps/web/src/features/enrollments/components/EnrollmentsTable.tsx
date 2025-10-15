@@ -384,31 +384,39 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									</TableCell>
 									<TableCell>
 										<div className="space-y-1">
-											{/* Product Name with Level Progression */}
+											{/* Cohort Name - show nickname if available, otherwise product + level */}
 											<div className="font-medium">
-												{enrollment.cohorts?.products?.display_name || "N/A"}
-												{enrollment.cohorts?.starting_level?.code ? (
-													<span className="font-normal text-muted-foreground">
-														{" "}
-														(
-														{enrollment.cohorts.starting_level.code.toUpperCase()}
-														{enrollment.cohorts?.current_level?.code !==
-															enrollment.cohorts?.starting_level?.code && (
-															<>
-																{" "}
-																→{" "}
-																{enrollment.cohorts.current_level?.code?.toUpperCase()}
-															</>
-														)}
-														)
+												{enrollment.cohorts?.nickname ? (
+													<span className="truncate max-w-[250px] inline-block align-bottom" title={enrollment.cohorts.nickname}>
+														{enrollment.cohorts.nickname}
 													</span>
 												) : (
-													enrollment.cohorts?.products?.display_name && (
-														<span className="font-normal text-muted-foreground">
-															{" "}
-															(N/A)
-														</span>
-													)
+													<>
+														{enrollment.cohorts?.products?.display_name || "N/A"}
+														{enrollment.cohorts?.starting_level?.code ? (
+															<span className="font-normal text-muted-foreground">
+																{" "}
+																(
+																{enrollment.cohorts.starting_level.code.toUpperCase()}
+																{enrollment.cohorts?.current_level?.code !==
+																	enrollment.cohorts?.starting_level?.code && (
+																	<>
+																		{" "}
+																		→{" "}
+																		{enrollment.cohorts.current_level?.code?.toUpperCase()}
+																	</>
+																)}
+																)
+															</span>
+														) : (
+															enrollment.cohorts?.products?.display_name && (
+																<span className="font-normal text-muted-foreground">
+																	{" "}
+																	(N/A)
+																</span>
+															)
+														)}
+													</>
 												)}
 											</div>
 

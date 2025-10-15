@@ -431,7 +431,7 @@ export function ChecklistSection({
 											<div className="flex items-center gap-1 text-muted-foreground text-[10px]">
 												<User className="h-2.5 w-2.5" />
 												<span>
-													{format(new Date(item.completed_at), "MMM d, yyyy")}
+													{format(new Date(item.completed_at), "MMM d, yyyy 'at' h:mm a")}
 												</span>
 											</div>
 										)}

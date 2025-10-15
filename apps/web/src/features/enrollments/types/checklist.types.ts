@@ -267,7 +267,6 @@ export const getDefaultOffboardingChecklist = (): OffboardingChecklist => ({
 		completed_at: null,
 		completed_by: null,
 		required: true,
-		note: "Reminder to adjust final payment",
 	},
 	final_payment_adjusted: {
 		completed: false,
@@ -286,21 +285,18 @@ export const getDefaultOffboardingChecklist = (): OffboardingChecklist => ({
 		completed_at: null,
 		completed_by: null,
 		required: true,
-		note: "Client removed from class links title",
 	},
 	removal_reminder_set: {
 		completed: false,
 		completed_at: null,
 		completed_by: null,
 		required: true,
-		note: "Reminder set to remove from: WhatsApp group, group sheet, clients actifs sheet, FLS Team tag, Google Drive",
 	},
 	removed_from_system: {
 		completed: false,
 		completed_at: null,
 		completed_by: null,
 		required: true,
-		note: "Remove from system and complete checklist",
 	},
 	review_requested: {
 		completed: false,
@@ -386,14 +382,14 @@ export const OFFBOARDING_CHECKLIST_LABELS: Record<
 	keyof OffboardingChecklist,
 	string
 > = {
-	time_slot_freed: "Time slot freed?",
-	reminder_adjust_final_payment: "Reminder to adjust final payment",
-	final_payment_adjusted: "Final payment adjusted",
-	teacher_notified: "Teacher notified?",
-	class_links_title_corrected: "Client removed from class links title correct?",
+	time_slot_freed: "Time slot freed in calendar",
+	reminder_adjust_final_payment: "Set reminder to adjust final payment",
+	final_payment_adjusted: "Final payment adjusted in system",
+	teacher_notified: "Teacher notified about student leaving",
+	class_links_title_corrected: "Student removed from future class links titles",
 	removal_reminder_set:
-		"Reminder set to remove them from WhatsApp group + group sheet + clients actifs sheet after final class + FLS Team tag + Google Drive",
-	removed_from_system: "Remove from System + checklist",
-	review_requested: "Asked client for review? (Optional)",
-	review_received: "Did the client leave a review? (Optional)",
+		"Set reminder to remove from WhatsApp, group sheet, clients actifs sheet, FLS Team tag, and Google Drive after final class",
+	removed_from_system: "Student removed from all systems (WhatsApp, sheets, tags, Drive)",
+	review_requested: "Review requested from student (Optional)",
+	review_received: "Review received from student (Optional)",
 };
