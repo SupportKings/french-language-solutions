@@ -63,6 +63,8 @@ const ENROLLMENT_STATUS_LABELS = {
 	payment_abandoned: "Payment Abandoned",
 	paid: "Paid",
 	welcome_package_sent: "Welcome Package Sent",
+	transitioning: "Transitioning",
+	offboarding: "Offboarding",
 };
 
 const ENROLLMENT_STATUS_COLORS = {
@@ -75,6 +77,8 @@ const ENROLLMENT_STATUS_COLORS = {
 	payment_abandoned: "destructive",
 	paid: "success",
 	welcome_package_sent: "success",
+	transitioning: "warning",
+	offboarding: "warning",
 };
 
 // Define column configurations for data-table-filter

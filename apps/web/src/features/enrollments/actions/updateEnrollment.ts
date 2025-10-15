@@ -23,6 +23,8 @@ const enrollmentUpdateSchema = z
 				"payment_abandoned",
 				"paid",
 				"welcome_package_sent",
+				"transitioning",
+				"offboarding",
 			])
 			.optional(),
 		studentId: z.string().uuid("Invalid student id").optional(),

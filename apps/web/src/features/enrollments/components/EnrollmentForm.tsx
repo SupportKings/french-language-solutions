@@ -56,6 +56,8 @@ const enrollmentFormSchema = z.object({
 		"payment_abandoned",
 		"paid",
 		"welcome_package_sent",
+		"transitioning",
+		"offboarding",
 	]),
 });
 
@@ -368,6 +370,8 @@ export function EnrollmentForm({
 										<SelectItem value="welcome_package_sent">
 											Welcome Package Sent
 										</SelectItem>
+										<SelectItem value="transitioning">Transitioning</SelectItem>
+										<SelectItem value="offboarding">Offboarding</SelectItem>
 										<SelectItem value="declined_contract">
 											Declined Contract
 										</SelectItem>

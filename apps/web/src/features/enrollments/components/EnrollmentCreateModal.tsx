@@ -52,6 +52,8 @@ const statusOptions = [
 	{ label: "Contract Signed", value: "contract_signed" },
 	{ label: "Paid", value: "paid" },
 	{ label: "Welcome Package Sent", value: "welcome_package_sent" },
+	{ label: "Transitioning", value: "transitioning" },
+	{ label: "Offboarding", value: "offboarding" },
 	{ label: "Contract Abandoned", value: "contract_abandoned" },
 	{ label: "Payment Abandoned", value: "payment_abandoned" },
 	{ label: "Declined Contract", value: "declined_contract" },

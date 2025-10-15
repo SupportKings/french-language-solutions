@@ -126,6 +126,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_records_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_records_marked_by_teachers_id_fk"
             columns: ["marked_by"]
             isOneToOne: false
@@ -259,6 +266,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "classes_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "classes_teacher_id_teachers_id_fk"
             columns: ["teacher_id"]
             isOneToOne: false
@@ -349,9 +363,12 @@ export type Database = {
           airtable_record_id: string | null
           cohort_id: string | null
           created_at: string
+          enrollment_checklist: Json | null
           id: string
+          offboarding_checklist: Json | null
           status: Database["public"]["Enums"]["enrollment_status"]
           student_id: string
+          transition_checklist: Json | null
           updated_at: string
         }
         Insert: {
@@ -359,9 +376,12 @@ export type Database = {
           airtable_record_id?: string | null
           cohort_id?: string | null
           created_at?: string
+          enrollment_checklist?: Json | null
           id?: string
+          offboarding_checklist?: Json | null
           status?: Database["public"]["Enums"]["enrollment_status"]
           student_id: string
+          transition_checklist?: Json | null
           updated_at?: string
         }
         Update: {
@@ -369,9 +389,12 @@ export type Database = {
           airtable_record_id?: string | null
           cohort_id?: string | null
           created_at?: string
+          enrollment_checklist?: Json | null
           id?: string
+          offboarding_checklist?: Json | null
           status?: Database["public"]["Enums"]["enrollment_status"]
           student_id?: string
+          transition_checklist?: Json | null
           updated_at?: string
         }
         Relationships: [
@@ -380,6 +403,13 @@ export type Database = {
             columns: ["cohort_id"]
             isOneToOne: false
             referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
             referencedColumns: ["id"]
           },
           {
@@ -1078,40 +1108,40 @@ export type Database = {
         Row: {
           airtable_created_at: string | null
           airtable_record_id: string | null
-          cohort_id: string
+          cohort_id: string | null
           created_at: string
-          day_of_week: Database["public"]["Enums"]["day_of_week"]
-          end_time: string
+          day_of_week: Database["public"]["Enums"]["day_of_week"] | null
+          end_time: string | null
           google_calendar_event_id: string | null
           id: string
-          start_time: string
-          teacher_id: string
+          start_time: string | null
+          teacher_id: string | null
           updated_at: string
         }
         Insert: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
-          cohort_id: string
+          cohort_id?: string | null
           created_at?: string
-          day_of_week: Database["public"]["Enums"]["day_of_week"]
-          end_time: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
+          end_time?: string | null
           google_calendar_event_id?: string | null
           id?: string
-          start_time: string
-          teacher_id: string
+          start_time?: string | null
+          teacher_id?: string | null
           updated_at?: string
         }
         Update: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
-          cohort_id?: string
+          cohort_id?: string | null
           created_at?: string
-          day_of_week?: Database["public"]["Enums"]["day_of_week"]
-          end_time?: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
+          end_time?: string | null
           google_calendar_event_id?: string | null
           id?: string
-          start_time?: string
-          teacher_id?: string
+          start_time?: string | null
+          teacher_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1120,6 +1150,13 @@ export type Database = {
             columns: ["cohort_id"]
             isOneToOne: false
             referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_sessions_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
             referencedColumns: ["id"]
           },
           {
@@ -1139,12 +1176,12 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           current_step: number | null
+          error_message: string | null
           has_next_message: boolean | null
           id: string | null
           last_message_sent_at: string | null
           messages_sent_count: number | null
           next_message_scheduled_at: string | null
-          next_message_step_index: number | null
           sequence_id: string | null
           started_at: string | null
           status:
@@ -1167,6 +1204,51 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohorts_with_students: {
+        Row: {
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          cohort_status: Database["public"]["Enums"]["cohort_status"] | null
+          created_at: string | null
+          current_level_id: string | null
+          google_drive_folder_id: string | null
+          id: string | null
+          max_students: number | null
+          nickname: string | null
+          product_id: string | null
+          room_type: Database["public"]["Enums"]["room_type"] | null
+          setup_finalized: boolean | null
+          start_date: string | null
+          starting_level_id: string | null
+          student_emails: string | null
+          student_ids: string[] | null
+          student_names: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_current_level_id_language_levels_id_fk"
+            columns: ["current_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_product_id_products_id_fk"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_starting_level_id_language_levels_id_fk"
+            columns: ["starting_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
             referencedColumns: ["id"]
           },
         ]
@@ -1273,6 +1355,8 @@ export type Database = {
         | "payment_abandoned"
         | "paid"
         | "welcome_package_sent"
+        | "transitioning"
+        | "offboarding"
       follow_up_message_status: "active" | "disabled"
       group_class_bonus_terms: "per_student_per_hour" | "per_hour"
       initial_channel:
@@ -1482,6 +1566,8 @@ export const Constants = {
         "payment_abandoned",
         "paid",
         "welcome_package_sent",
+        "transitioning",
+        "offboarding",
       ],
       follow_up_message_status: ["active", "disabled"],
       group_class_bonus_terms: ["per_student_per_hour", "per_hour"],

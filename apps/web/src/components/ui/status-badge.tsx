@@ -43,7 +43,9 @@ export function StatusBadge({
 			statusText.includes("interested") ||
 			statusText.includes("in_progress") ||
 			statusText.includes("signed") ||
-			statusText.includes("scheduled")
+			statusText.includes("scheduled") ||
+			statusText.includes("transitioning") ||
+			statusText.includes("offboarding")
 		) {
 			autoVariant = "warning";
 		} else if (statusText.includes("open") || statusText.includes("filled")) {

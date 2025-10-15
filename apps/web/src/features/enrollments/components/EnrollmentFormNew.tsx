@@ -59,6 +59,8 @@ const enrollmentFormSchema = z.object({
 		"payment_abandoned",
 		"paid",
 		"welcome_package_sent",
+		"transitioning",
+		"offboarding",
 	]),
 });
 
@@ -263,6 +265,8 @@ export function EnrollmentFormNew({
 		{ label: "Payment Abandoned", value: "payment_abandoned" },
 		{ label: "Paid", value: "paid" },
 		{ label: "Welcome Package Sent", value: "welcome_package_sent" },
+		{ label: "Transitioning", value: "transitioning" },
+		{ label: "Offboarding", value: "offboarding" },
 		{ label: "Declined Contract", value: "declined_contract" },
 		{ label: "Dropped Out", value: "dropped_out" },
 	];
@@ -610,6 +614,10 @@ export function EnrollmentFormNew({
 										"Payment has been received for this enrollment."}
 									{form.watch("status") === "welcome_package_sent" &&
 										"Welcome materials have been sent to the student."}
+									{form.watch("status") === "transitioning" &&
+										"Student is transitioning between cohorts or programs."}
+									{form.watch("status") === "offboarding" &&
+										"Student is being offboarded from the program."}
 									{form.watch("status") === "dropped_out" &&
 										"Student has discontinued their enrollment."}
 									{form.watch("status") === "declined_contract" &&

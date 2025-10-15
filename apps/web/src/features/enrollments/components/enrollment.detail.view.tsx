@@ -36,6 +36,16 @@ import { toast } from "sonner";
 import { updateEnrollmentAction } from "../actions/updateEnrollment";
 // Import queries
 import { enrollmentQueries, useEnrollment } from "../queries/useEnrollments";
+// Import checklist component
+import { ChecklistSection } from "./ChecklistSection";
+import {
+	getDefaultEnrollmentChecklist,
+	getDefaultOffboardingChecklist,
+	getDefaultTransitionChecklist,
+	type EnrollmentChecklist,
+	type OffboardingChecklist,
+	type TransitionChecklist,
+} from "../types/checklist.types";
 
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
 
@@ -55,6 +65,8 @@ const ENROLLMENT_STATUS_LABELS: Record<EnrollmentStatus, string> = {
 	payment_abandoned: "Payment Abandoned",
 	paid: "Paid",
 	welcome_package_sent: "Welcome Package Sent",
+	transitioning: "Transitioning",
+	offboarding: "Offboarding",
 };
 
 const ENROLLMENT_STATUS_COLORS: Record<EnrollmentStatus, string> = {
@@ -67,6 +79,8 @@ const ENROLLMENT_STATUS_COLORS: Record<EnrollmentStatus, string> = {
 	payment_abandoned: "destructive",
 	paid: "success",
 	welcome_package_sent: "success",
+	transitioning: "warning",
+	offboarding: "warning",
 };
 
 const formatDate = (dateString: string | null) => {
@@ -391,6 +405,59 @@ export default function EnrollmentDetailView({
 						</div>
 					)}
 				</EditableSection>
+
+				{/* Checklist Section - show based on status */}
+				{currentEnrollment.status === "transitioning" && (
+					<ChecklistSection
+						type="transition"
+						checklist={
+							currentEnrollment.transition_checklist ||
+							getDefaultTransitionChecklist()
+						}
+						enrollmentId={enrollmentId}
+						onUpdate={() => {
+							queryClient.invalidateQueries({
+								queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+							});
+						}}
+						canEdit={canEditStudent}
+					/>
+				)}
+
+				{currentEnrollment.status === "offboarding" && (
+					<ChecklistSection
+						type="offboarding"
+						checklist={
+							currentEnrollment.offboarding_checklist ||
+							getDefaultOffboardingChecklist()
+						}
+						enrollmentId={enrollmentId}
+						onUpdate={() => {
+							queryClient.invalidateQueries({
+								queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+							});
+						}}
+						canEdit={canEditStudent}
+					/>
+				)}
+
+				{currentEnrollment.status !== "transitioning" &&
+					currentEnrollment.status !== "offboarding" && (
+						<ChecklistSection
+							type="enrollment"
+							checklist={
+								currentEnrollment.enrollment_checklist ||
+								getDefaultEnrollmentChecklist()
+							}
+							enrollmentId={enrollmentId}
+							onUpdate={() => {
+								queryClient.invalidateQueries({
+									queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+								});
+							}}
+							canEdit={canEditStudent}
+						/>
+					)}
 			</div>
 		</div>
 	);

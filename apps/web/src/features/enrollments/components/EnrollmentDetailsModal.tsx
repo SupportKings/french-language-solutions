@@ -59,6 +59,16 @@ const statusOptions = [
 		color: "bg-blue-500/10 text-blue-700 border-blue-200",
 	},
 	{
+		value: "transitioning",
+		label: "Transitioning",
+		color: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
+	},
+	{
+		value: "offboarding",
+		label: "Offboarding",
+		color: "bg-orange-500/10 text-orange-700 border-orange-200",
+	},
+	{
 		value: "payment_abandoned",
 		label: "Payment Abandoned",
 		color: "bg-orange-500/10 text-orange-700 border-orange-200",

@@ -68,6 +68,8 @@ export const enrollmentStatusEnum = pgEnum("enrollment_status", [
 	"payment_abandoned",
 	"paid",
 	"welcome_package_sent",
+	"transitioning",
+	"offboarding",
 ]);
 
 // Assessment result status

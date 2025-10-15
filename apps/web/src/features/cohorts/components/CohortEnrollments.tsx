@@ -237,6 +237,8 @@ export function CohortEnrollments({
 									<SelectItem value="welcome_package_sent">
 										Welcome Package Sent
 									</SelectItem>
+									<SelectItem value="transitioning">Transitioning</SelectItem>
+									<SelectItem value="offboarding">Offboarding</SelectItem>
 									<SelectItem value="payment_abandoned">
 										Payment Abandoned
 									</SelectItem>
