@@ -23,6 +23,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { EnrollmentCreateModal } from "@/features/enrollments/components/EnrollmentCreateModal";
 import { EnrollmentDetailsModal } from "@/features/enrollments/components/EnrollmentDetailsModal";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ interface CohortEnrollmentsProps {
 	cohortName?: string;
 	cohortLevel?: string;
 	onEnrollmentUpdate?: () => void;
+	canEnrollStudent?: boolean;
 }
 
 export function CohortEnrollments({
@@ -48,17 +50,19 @@ export function CohortEnrollments({
 	cohortName = "Cohort",
 	cohortLevel = "",
 	onEnrollmentUpdate,
+	canEnrollStudent = true,
 }: CohortEnrollmentsProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
 	// Pagination and filtering state
 	const [enrollmentPage, setEnrollmentPage] = useState(1);
 	const enrollmentsPerPage = 10;
 	const [studentSearch, setStudentSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("welcome_package_sent");
+	const [statusFilter, setStatusFilter] = useState<string>("all");
 
 	// Fetch enrolled students using React Query
 	const { data, isLoading: loadingStudents } = useQuery({
@@ -78,14 +82,9 @@ export function CohortEnrollments({
 
 	const enrolledStudents = data || [];
 
-	// Navigate to create enrollment
-	const navigateToCreateEnrollment = () => {
-		const params = new URLSearchParams({
-			cohortId: cohortId,
-			cohortName: `${cohortName} - ${cohortLevel}`,
-			redirectTo: `/admin/cohorts/${cohortId}`,
-		});
-		router.push(`/admin/students/enrollments/new?${params.toString()}`);
+	// Open create enrollment modal
+	const openCreateEnrollmentModal = () => {
+		setIsCreateModalOpen(true);
 	};
 
 	const handleEnrollmentClick = (enrollment: any) => {
@@ -148,14 +147,16 @@ export function CohortEnrollments({
 						</span>
 					)}
 				</h2>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={navigateToCreateEnrollment}
-				>
-					<UserPlus className="mr-2 h-4 w-4" />
-					Enroll Student
-				</Button>
+				{canEnrollStudent && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={openCreateEnrollmentModal}
+					>
+						<UserPlus className="mr-2 h-4 w-4" />
+						Enroll Student
+					</Button>
+				)}
 			</div>
 
 			<div className="space-y-4">
@@ -236,6 +237,8 @@ export function CohortEnrollments({
 									<SelectItem value="welcome_package_sent">
 										Welcome Package Sent
 									</SelectItem>
+									<SelectItem value="transitioning">Transitioning</SelectItem>
+									<SelectItem value="offboarding">Offboarding</SelectItem>
 									<SelectItem value="payment_abandoned">
 										Payment Abandoned
 									</SelectItem>
@@ -455,6 +458,15 @@ export function CohortEnrollments({
 					</>
 				)}
 			</div>
+
+			{/* Enrollment Create Modal */}
+			<EnrollmentCreateModal
+				isOpen={isCreateModalOpen}
+				onClose={() => setIsCreateModalOpen(false)}
+				onSuccess={handleEnrollmentUpdate}
+				cohortId={cohortId}
+				cohortName={`${cohortName} - ${cohortLevel}`}
+			/>
 
 			{/* Enrollment Details Modal */}
 			<EnrollmentDetailsModal

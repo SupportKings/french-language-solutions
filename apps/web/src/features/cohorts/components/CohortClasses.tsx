@@ -15,6 +15,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -41,12 +48,11 @@ import {
 	ChevronRight,
 	Clock,
 	Edit2,
-	MapPin,
+	FileText,
 	MoreVertical,
 	Plus,
 	Trash2,
 	Users,
-	Video,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -71,6 +77,11 @@ export function CohortClasses({
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [classToDelete, setClassToDelete] = useState<any>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+	const [selectedNotes, setSelectedNotes] = useState<{
+		date: string;
+		notes: string;
+	} | null>(null);
 
 	// Pagination state
 	const [currentPage, setCurrentPage] = useState(1);
@@ -288,7 +299,7 @@ export function CohortClasses({
 											<TableHead className="w-[150px]">Teacher</TableHead>
 											<TableHead className="w-[100px]">Status</TableHead>
 											<TableHead className="w-[120px]">Attendance</TableHead>
-											<TableHead className="w-[150px]">Resources</TableHead>
+											<TableHead className="w-[200px]">Internal Notes</TableHead>
 											<TableHead className="w-[80px] text-right">
 												Actions
 											</TableHead>
@@ -423,29 +434,36 @@ export function CohortClasses({
 														)}
 													</TableCell>
 
-													{/* Resources */}
-													<TableCell>
-														<div className="flex items-center gap-2">
-															{classItem.meeting_link && (
-																<a
-																	href={classItem.meeting_link}
-																	target="_blank"
-																	rel="noopener noreferrer"
-																	onClick={(e) => e.stopPropagation()}
-																	className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-primary text-xs transition-colors hover:bg-muted"
-																>
-																	<Video className="h-3 w-3" />
-																	<span>Meet</span>
-																</a>
-															)}
-
-															{cohortFormat === "in-person" && cohortRoom && (
-																<div className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-muted-foreground text-xs">
-																	<MapPin className="h-3 w-3" />
-																	<span>{cohortRoom}</span>
-																</div>
-															)}
-														</div>
+													{/* Internal Notes */}
+													<TableCell
+														onClick={(e) => {
+															e.stopPropagation();
+															if (classItem.notes && classItem.notes.trim()) {
+																setSelectedNotes({
+																	date: format(classDate, "EEEE, MMM d, yyyy"),
+																	notes: classItem.notes,
+																});
+																setNotesDialogOpen(true);
+															}
+														}}
+													>
+														{classItem.notes && classItem.notes.trim() ? (
+															<button
+																type="button"
+																className="flex w-full items-center gap-2 text-left transition-colors hover:text-primary"
+															>
+																<FileText className="h-3.5 w-3.5 flex-shrink-0" />
+																<p className="truncate text-sm">
+																	{classItem.notes.length > 50
+																		? `${classItem.notes.substring(0, 50)}...`
+																		: classItem.notes}
+																</p>
+															</button>
+														) : (
+															<span className="text-muted-foreground text-sm">
+																—
+															</span>
+														)}
 													</TableCell>
 
 													{/* Actions */}
@@ -698,6 +716,28 @@ export function CohortClasses({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Internal Notes Dialog */}
+			<Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+				<DialogContent className="sm:max-w-[600px]">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<FileText className="h-5 w-5 text-primary" />
+							Internal Notes
+						</DialogTitle>
+						{selectedNotes && (
+							<DialogDescription>{selectedNotes.date}</DialogDescription>
+						)}
+					</DialogHeader>
+					{selectedNotes && (
+						<div className="rounded-lg border bg-muted/30 p-4">
+							<p className="whitespace-pre-wrap text-sm leading-relaxed">
+								{selectedNotes.notes}
+							</p>
+						</div>
+					)}
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 }

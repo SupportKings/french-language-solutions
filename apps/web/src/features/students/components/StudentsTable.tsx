@@ -63,6 +63,8 @@ const ENROLLMENT_STATUS_LABELS = {
 	payment_abandoned: "Payment Abandoned",
 	paid: "Paid",
 	welcome_package_sent: "Welcome Package Sent",
+	transitioning: "Transitioning",
+	offboarding: "Offboarding",
 };
 
 const ENROLLMENT_STATUS_COLORS = {
@@ -75,6 +77,8 @@ const ENROLLMENT_STATUS_COLORS = {
 	payment_abandoned: "destructive",
 	paid: "success",
 	welcome_package_sent: "success",
+	transitioning: "warning",
+	offboarding: "warning",
 };
 
 // Define column configurations for data-table-filter
@@ -170,9 +174,16 @@ const studentColumns = [
 
 interface StudentsTableProps {
 	hideTitle?: boolean;
+	permissions?: any;
 }
 
-export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
+export function StudentsTable({
+	hideTitle = false,
+	permissions,
+}: StudentsTableProps) {
+	// Check permissions
+	const canAddStudent = permissions?.students?.includes("write");
+	const canDeleteStudent = permissions?.students?.includes("write");
 	const router = useRouter();
 
 	// Fetch language levels for filter options
@@ -350,12 +361,14 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 						</div>
 
 						<div className="ml-auto">
-							<Link href="/admin/students/new">
-								<Button size="sm" className="h-9">
-									<Plus className="mr-1.5 h-4 w-4" />
-									Add Student
-								</Button>
-							</Link>
+							{canAddStudent && (
+								<Link href="/admin/students/new">
+									<Button size="sm" className="h-9">
+										<Plus className="mr-1.5 h-4 w-4" />
+										Add Student
+									</Button>
+								</Link>
+							)}
 						</div>
 					</div>
 
@@ -487,16 +500,18 @@ export function StudentsTable({ hideTitle = false }: StudentsTableProps) {
 														View
 													</DropdownMenuItem>
 												</Link>
-												<DropdownMenuItem
-													onClick={(e) => {
-														e.stopPropagation();
-														setStudentToDelete(student.id);
-													}}
-													className="text-destructive"
-												>
-													<Trash className="mr-2 h-4 w-4" />
-													Delete
-												</DropdownMenuItem>
+												{canDeleteStudent && (
+													<DropdownMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															setStudentToDelete(student.id);
+														}}
+														className="text-destructive"
+													>
+														<Trash className="mr-2 h-4 w-4" />
+														Delete
+													</DropdownMenuItem>
+												)}
 											</DropdownMenuContent>
 										</DropdownMenu>
 									</TableCell>

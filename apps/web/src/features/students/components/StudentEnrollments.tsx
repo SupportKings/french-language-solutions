@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/lib/date-utils";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -168,8 +169,8 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 															<Calendar className="h-3 w-3" />
 															<span>
 																Starts{" "}
-																{format(
-																	new Date(enrollment.cohorts.start_date),
+																{formatDate(
+																	enrollment.cohorts.start_date,
 																	"MMM d, yyyy",
 																)}
 															</span>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date-utils";
 
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
@@ -73,6 +74,8 @@ const statusColors = {
 	payment_abandoned: "destructive",
 	paid: "success",
 	welcome_package_sent: "success",
+	transitioning: "warning",
+	offboarding: "warning",
 };
 
 const statusLabels = {
@@ -85,6 +88,8 @@ const statusLabels = {
 	payment_abandoned: "Payment Abandoned",
 	paid: "Paid",
 	welcome_package_sent: "Welcome Package Sent",
+	transitioning: "Transitioning",
+	offboarding: "Offboarding",
 };
 
 const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
@@ -245,9 +250,17 @@ export function EnrollmentDetailsClient({
 											? "Group Class"
 											: "Private Class"}{" "}
 										•{" "}
-										{enrollment.cohorts?.starting_level?.display_name ||
-											enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
-											"Level TBD"}
+										{enrollment.cohorts?.nickname ? (
+											<span className="truncate max-w-[200px] inline-block align-bottom" title={enrollment.cohorts.nickname}>
+												{enrollment.cohorts.nickname}
+											</span>
+										) : (
+											<>
+												{enrollment.cohorts?.starting_level?.display_name ||
+													enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
+													"Level TBD"}
+											</>
+										)}
 									</p>
 								</div>
 							</div>
@@ -303,8 +316,8 @@ export function EnrollmentDetailsClient({
 										<p className="text-muted-foreground text-xs">Start Date</p>
 										<p className="font-medium text-sm">
 											{enrollment.cohorts?.start_date
-												? format(
-														new Date(enrollment.cohorts.start_date),
+												? formatDate(
+														enrollment.cohorts.start_date,
 														"MMM d, yyyy",
 													)
 												: "Not scheduled"}

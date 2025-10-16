@@ -38,9 +38,10 @@ export async function GET(request: NextRequest) {
 				*,
 				students!inner(id, full_name, email),
 				${cohortJoin}(
-					id, 
-					starting_level_id, 
-					current_level_id, 
+					id,
+					nickname,
+					starting_level_id,
+					current_level_id,
 					start_date,
 					room_type,
 					product_id,

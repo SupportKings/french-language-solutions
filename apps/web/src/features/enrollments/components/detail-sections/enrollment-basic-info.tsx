@@ -71,6 +71,8 @@ export function EnrollmentBasicInfo({
 		"payment_abandoned",
 		"paid",
 		"welcome_package_sent",
+		"transitioning",
+		"offboarding",
 	];
 
 	const getStatusLabel = (status: EnrollmentStatus) => {

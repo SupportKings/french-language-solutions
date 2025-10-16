@@ -18,6 +18,7 @@ interface EditableSectionProps {
 	onEditStart?: () => void;
 	className?: string;
 	cardClassName?: string;
+	canEdit?: boolean; // If false, hides the Edit button
 }
 
 export function EditableSection({
@@ -28,6 +29,7 @@ export function EditableSection({
 	onEditStart,
 	className,
 	cardClassName,
+	canEdit = true,
 }: EditableSectionProps) {
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -89,20 +91,22 @@ export function EditableSection({
 								</Button>
 							</>
 						) : (
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => {
-									if (onEditStart) {
-										onEditStart();
-									}
-									setEditing(true);
-								}}
-								className="h-8"
-							>
-								<Edit className="mr-1 h-3.5 w-3.5" />
-								Edit
-							</Button>
+							canEdit && (
+								<Button
+									size="sm"
+									variant="ghost"
+									onClick={() => {
+										if (onEditStart) {
+											onEditStart();
+										}
+										setEditing(true);
+									}}
+									className="h-8"
+								>
+									<Edit className="mr-1 h-3.5 w-3.5" />
+									Edit
+								</Button>
+							)
 						)}
 					</div>
 				</div>

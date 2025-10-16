@@ -16,15 +16,15 @@ import type {
 	Cohort,
 	CohortFormat,
 	CohortStatus,
-	RoomType,
 } from "@/features/cohorts/schemas/cohort.schema";
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
 import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
+import { parseDateString } from "@/lib/date-utils";
 
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users } from "lucide-react";
+import { CalendarClock, Plus, Search, Users } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { Input } from "@/components/ui/input";
 
@@ -98,19 +98,6 @@ const cohortColumns = [
 		options: [], // Will be populated dynamically
 	},
 	{
-		id: "room_type",
-		accessor: (cohort: CohortWithRelations) => cohort.room_type,
-		displayName: "Room Type",
-		icon: Users,
-		type: "option" as const,
-		options: [
-			{ label: "One-to-One", value: "for_one_to_one" },
-			{ label: "Medium", value: "medium" },
-			{ label: "Medium+", value: "medium_plus" },
-			{ label: "Large", value: "large" },
-		],
-	},
-	{
 		id: "teacher_ids",
 		accessor: (cohort: CohortWithRelations) => {
 			// Extract unique teacher IDs from weekly sessions - return first teacher for display
@@ -129,7 +116,7 @@ const cohortColumns = [
 	{
 		id: "start_date",
 		accessor: (cohort: CohortWithRelations) =>
-			cohort.start_date ? new Date(cohort.start_date) : undefined,
+			cohort.start_date ? parseDateString(cohort.start_date) : undefined,
 		displayName: "Start Date",
 		icon: Users,
 		type: "date" as const,
@@ -155,6 +142,11 @@ export function ClassesPageClient() {
 	const [searchQuery, setSearchQuery] = useQueryState("search", {
 		defaultValue: "",
 	});
+
+	const [todaySessionsState, setTodaySessionsState] = useQueryState("today_sessions", {
+		defaultValue: "",
+	});
+	const todaySessions = todaySessionsState === "true";
 
 	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
@@ -223,6 +215,10 @@ export function ClassesPageClient() {
 				if (filter.type === "option") {
 					params[filter.columnId] = filter.values;
 					console.log(`📌 Filter ${filter.columnId}:`, filter.values);
+				} else if (filter.type === "text") {
+					// Text filter - use first value as search string
+					params[filter.columnId] = filter.values[0] as string;
+					console.log(`🔍 Text Filter ${filter.columnId}:`, filter.values[0]);
 				} else if (filter.type === "date") {
 					// Date filter can be single date or date range
 					if (filter.values.length === 1) {
@@ -259,6 +255,11 @@ export function ClassesPageClient() {
 			query.search = searchQuery;
 		}
 
+		// Add today sessions filter
+		if (todaySessions) {
+			query.today_sessions = true;
+		}
+
 		// Only add filters if they have values
 		if (filterParams.format && filterParams.format.length > 0) {
 			query.format = filterParams.format as CohortFormat[];
@@ -281,9 +282,6 @@ export function ClassesPageClient() {
 		) {
 			query.current_level_id = filterParams.current_level_id as string[];
 		}
-		if (filterParams.room_type && filterParams.room_type.length > 0) {
-			query.room_type = filterParams.room_type as RoomType[];
-		}
 		if (filterParams.teacher_ids && filterParams.teacher_ids.length > 0) {
 			query.teacher_ids = filterParams.teacher_ids as string[];
 		}
@@ -296,7 +294,7 @@ export function ClassesPageClient() {
 
 		console.log("🎯 Final queryFilters:", query);
 		return query;
-	}, [filterParams, page, searchQuery]);
+	}, [filterParams, page, searchQuery, todaySessions]);
 
 	// Fetch cohorts data
 	console.log("🔍 Query filters being sent:", queryFilters);
@@ -340,7 +338,17 @@ export function ClassesPageClient() {
 							/>
 						</div>
 
-						<div className="ml-auto">
+						<div className="ml-auto flex items-center gap-2">
+							<Button
+								onClick={() => setTodaySessionsState(todaySessions ? "" : "true")}
+								size="sm"
+								variant={todaySessions ? "default" : "outline"}
+								className="h-9"
+							>
+								<CalendarClock className="mr-1.5 h-4 w-4" />
+								Today's Cohorts
+							</Button>
+
 							<Button
 								onClick={() => router.push("/admin/cohorts/new")}
 								size="sm"

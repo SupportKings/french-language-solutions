@@ -42,6 +42,7 @@ interface WeeklySessionModalProps {
 	onClose: () => void;
 	cohortId: string;
 	sessionToEdit?: any; // Session data when editing
+	canEdit?: boolean; // Permission to edit/delete sessions
 }
 
 // Days of week
@@ -60,6 +61,7 @@ export function WeeklySessionModal({
 	onClose,
 	cohortId,
 	sessionToEdit,
+	canEdit = true,
 }: WeeklySessionModalProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
