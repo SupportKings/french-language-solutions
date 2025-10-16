@@ -16,7 +16,6 @@ import type {
 	Cohort,
 	CohortFormat,
 	CohortStatus,
-	RoomType,
 } from "@/features/cohorts/schemas/cohort.schema";
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
@@ -113,13 +112,6 @@ const cohortColumns = [
 		icon: Users,
 		type: "option" as const,
 		options: [], // Will be populated dynamically
-	},
-	{
-		id: "student_search",
-		accessor: () => undefined, // Server-side only, not used for client filtering
-		displayName: "Student",
-		icon: Users,
-		type: "text" as const,
 	},
 	{
 		id: "start_date",
@@ -261,11 +253,6 @@ export function ClassesPageClient() {
 		// Add search query
 		if (searchQuery && searchQuery.length > 0) {
 			query.search = searchQuery;
-		}
-
-		// Add student search filter
-		if (filterParams.student_search && filterParams.student_search.length > 0) {
-			query.student_search = filterParams.student_search;
 		}
 
 		// Add today sessions filter

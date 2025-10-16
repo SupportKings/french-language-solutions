@@ -300,9 +300,9 @@ export function ClassDetailsModal({
 						)}
 					</div>
 
-					{/* Notes */}
+					{/* Internal Notes */}
 					<div className="space-y-2">
-						<Label>Notes</Label>
+						<Label>Internal Notes</Label>
 						{editing ? (
 							<Textarea
 								value={formData.notes || ""}
@@ -310,13 +310,13 @@ export function ClassDetailsModal({
 									setFormData({ ...formData, notes: e.target.value })
 								}
 								onBlur={() => updateField("notes", formData.notes)}
-								placeholder="Add class notes..."
+								placeholder="Add internal notes..."
 								rows={3}
 							/>
 						) : classItem.notes ? (
 							<p className="text-muted-foreground text-sm">{classItem.notes}</p>
 						) : (
-							<span className="text-muted-foreground text-sm">No notes</span>
+							<span className="text-muted-foreground text-sm">No internal notes</span>
 						)}
 					</div>
 
