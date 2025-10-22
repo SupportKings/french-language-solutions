@@ -18,6 +18,10 @@
 		{
 			"path": "/api/follow-ups/check-recent-engagements-to-stop",
 			"schedule": "0 */4 * * *"
+		},
+		{
+			"path": "/api/follow-ups/find-and-trigger-students",
+			"schedule": "0 8 * * *"
 		}
 	]
 }

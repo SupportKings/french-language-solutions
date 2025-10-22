@@ -4,7 +4,7 @@ import { getWebhookUrl } from "../../lib/webhooks";
 export class FollowUpService {
 	/**
 	 * Check if student meets enrollment conditions for follow-up
-	 * Condition 1: Student has enrollment record but NOT with statuses: paid, welcome_package_sent, dropped_out, declined_contract
+	 * Condition 1: Student has enrollment record but NOT with statuses: paid, welcome_package_sent, dropped_out, transitioning, offboarding
 	 */
 	async checkEnrollmentConditions(studentId: string): Promise<boolean> {
 		// Check if student has any enrollment records
@@ -28,7 +28,8 @@ export class FollowUpService {
 			"paid",
 			"welcome_package_sent",
 			"dropped_out",
-			"declined_contract",
+			"transitioning",
+			"offboarding"
 		];
 		const hasRestrictedStatus = allEnrollments.some((enrollment: { id: string; status: string }) =>
 			restrictedStatuses.includes(enrollment.status),
@@ -800,11 +801,13 @@ export class FollowUpService {
 
 	/**
 	 * Find students that need automated follow-ups based on criteria:
-	 * 1. Student is not a full beginner
-	 * 2. Student record created within last 24 hours
-	 * 3. No assessment scheduled for a future date (scheduled_for > today)
+	 * 1. Student record created within last 24 hours (both beginners and non-beginners)
+	 * 2. No assessment scheduled for a future date (scheduled_for > today)
+	 * 3. No enrollment with restricted statuses (paid, welcome_package_sent, dropped_out, transitioning, offboarding)
 	 *
-	 * Then trigger the follow-up flow for these students
+	 * Follow-up sequences assigned based on student type:
+	 * - Beginners (is_full_beginner = true): "no_purchase_beginner" sequence
+	 * - Non-beginners (is_full_beginner = false): "no_purchase" sequence
 	 */
 	async findAndTriggerStudentFollowUps() {
 		try {
@@ -813,14 +816,13 @@ export class FollowUpService {
 			twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 			const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
 
-			// Find students created in last 24 hours who are not full beginners
+			// Find all students created in last 24 hours (both beginners and non-beginners)
 			const { data: recentStudents, error: studentError } = await supabase
 				.from("students")
 				.select(
 					"id, first_name, last_name, email, mobile_phone_number, is_full_beginner, created_at",
 				)
-				.gte("created_at", twentyFourHoursAgoISO)
-				.eq("is_full_beginner", false); // Not full beginner
+				.gte("created_at", twentyFourHoursAgoISO);
 
 			if (studentError) {
 				console.error("Error fetching recent students:", studentError);
@@ -840,7 +842,7 @@ export class FollowUpService {
 				};
 			}
 
-			// For each student, check if they have any future scheduled assessments
+			// For each student, check if they have any future scheduled assessments or successful enrollments
 			const studentsNeedingFollowUp = [];
 			const today = new Date().toISOString();
 
@@ -861,10 +863,35 @@ export class FollowUpService {
 					continue;
 				}
 
-				// If no future assessments scheduled, add to follow-up list
-				if (!futureAssessments || futureAssessments.length === 0) {
-					studentsNeedingFollowUp.push(student);
+				// If student has future assessments scheduled, skip
+				if (futureAssessments && futureAssessments.length > 0) {
+					continue;
 				}
+
+				// Check if student has enrollment with restricted statuses (same as checkEnrollmentConditions)
+				const restrictedStatuses = ["paid", "welcome_package_sent", "dropped_out", "transitioning", "offboarding"];
+				const { data: restrictedEnrollments, error: enrollmentError } = await supabase
+					.from("enrollments")
+					.select("id, status")
+					.eq("student_id", student.id)
+					.in("status", restrictedStatuses as any)
+					.limit(1);
+
+				if (enrollmentError) {
+					console.error(
+						`Error checking enrollments for student ${student.id}:`,
+						enrollmentError,
+					);
+					continue;
+				}
+
+				// If student has enrollment with restricted status, skip
+				if (restrictedEnrollments && restrictedEnrollments.length > 0) {
+					continue;
+				}
+
+				// Student needs follow-up: no future assessments AND no successful enrollments
+				studentsNeedingFollowUp.push(student);
 			}
 
 			if (studentsNeedingFollowUp.length === 0) {
@@ -883,12 +910,19 @@ export class FollowUpService {
 
 			for (const student of studentsNeedingFollowUp) {
 				try {
+					// Determine sequence based on student type
+					const sequenceBackendName = student.is_full_beginner
+						? "no_purchase_beginner"
+						: "no_purchase";
+
 					// Use the existing setFollowUp method to create follow-up
-					const followUpResult = await this.setFollowUp(student.id, "default");
+					const followUpResult = await this.setFollowUp(student.id, sequenceBackendName);
 
 					results.push({
 						studentId: student.id,
 						studentName: `${student.first_name} ${student.last_name}`,
+						isBeginner: student.is_full_beginner,
+						sequenceUsed: sequenceBackendName,
 						success: followUpResult.success,
 						followUpId: followUpResult.data?.follow_up_id,
 						error: followUpResult.error,
@@ -900,6 +934,7 @@ export class FollowUpService {
 					results.push({
 						studentId: student.id,
 						studentName: `${student.first_name} ${student.last_name}`,
+						isBeginner: student.is_full_beginner,
 						success: false,
 						error: errorMessage,
 					});
