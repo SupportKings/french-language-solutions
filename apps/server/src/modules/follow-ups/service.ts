@@ -21,11 +21,7 @@ export class FollowUpService {
       return false;
     }
 
-    // No enrollments at all - meets condition (student can get follow-up)
-    if (
-      sequenceBackendName !== "no_purchase_backend" &&
-      (!allEnrollments || allEnrollments.length === 0)
-    ) {
+    if (!allEnrollments || allEnrollments.length === 0) {
       return true;
     }
 
