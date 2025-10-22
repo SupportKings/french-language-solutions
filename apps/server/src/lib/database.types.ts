@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
@@ -34,7 +34,7 @@ export type Database = {
           accessToken?: string | null
           accessTokenExpiresAt?: string | null
           accountId: string
-          createdAt?: string
+          createdAt: string
           id: string
           idToken?: string | null
           password?: string | null
@@ -42,7 +42,7 @@ export type Database = {
           refreshToken?: string | null
           refreshTokenExpiresAt?: string | null
           scope?: string | null
-          updatedAt?: string
+          updatedAt: string
           userId: string
         }
         Update: {
@@ -70,1557 +70,390 @@ export type Database = {
           },
         ]
       }
-      athlete_applications: {
+      attendance_records: {
         Row: {
-          athlete_id: string | null
-          commitment_date: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          last_interaction_at: string | null
-          offer_date: string | null
-          offer_notes: string | null
-          origin_campaign_id: string | null
-          origin_lead_list_id: string | null
-          origin_lead_list_priority: number | null
-          program_id: string | null
-          scholarship_amount_per_year: number | null
-          scholarship_percent: number | null
-          stage: Database["public"]["Enums"]["application_stage_enum"] | null
-          start_date: string | null
-          university_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          athlete_id?: string | null
-          commitment_date?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          last_interaction_at?: string | null
-          offer_date?: string | null
-          offer_notes?: string | null
-          origin_campaign_id?: string | null
-          origin_lead_list_id?: string | null
-          origin_lead_list_priority?: number | null
-          program_id?: string | null
-          scholarship_amount_per_year?: number | null
-          scholarship_percent?: number | null
-          stage?: Database["public"]["Enums"]["application_stage_enum"] | null
-          start_date?: string | null
-          university_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          athlete_id?: string | null
-          commitment_date?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          last_interaction_at?: string | null
-          offer_date?: string | null
-          offer_notes?: string | null
-          origin_campaign_id?: string | null
-          origin_lead_list_id?: string | null
-          origin_lead_list_priority?: number | null
-          program_id?: string | null
-          scholarship_amount_per_year?: number | null
-          scholarship_percent?: number | null
-          stage?: Database["public"]["Enums"]["application_stage_enum"] | null
-          start_date?: string | null
-          university_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "athlete_applications_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_applications_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_applications_origin_campaign_id_fkey"
-            columns: ["origin_campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_applications_origin_lead_list_id_fkey"
-            columns: ["origin_lead_list_id"]
-            isOneToOne: false
-            referencedRelation: "school_lead_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_applications_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_applications_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      athlete_results: {
-        Row: {
-          altitude: boolean | null
-          athlete_id: string | null
-          date_recorded: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          event_id: string | null
-          hand_timed: boolean | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          location: string | null
-          organized_event: boolean | null
-          performance_mark: number | null
-          wind: number | null
-        }
-        Insert: {
-          altitude?: boolean | null
-          athlete_id?: string | null
-          date_recorded?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          event_id?: string | null
-          hand_timed?: boolean | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          location?: string | null
-          organized_event?: boolean | null
-          performance_mark?: number | null
-          wind?: number | null
-        }
-        Update: {
-          altitude?: boolean | null
-          athlete_id?: string | null
-          date_recorded?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          event_id?: string | null
-          hand_timed?: boolean | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          location?: string | null
-          organized_event?: boolean | null
-          performance_mark?: number | null
-          wind?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "athlete_results_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_results_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athlete_results_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      athletes: {
-        Row: {
-          act_score: number | null
-          athlete_net_url: string | null
-          city: string | null
-          contact_email: string | null
-          contract_date: string | null
-          country: string | null
-          date_of_birth: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          discord_channel_id: string | null
-          discord_channel_url: string | null
-          discord_username: string | null
-          full_name: string
-          gender: Database["public"]["Enums"]["athlete_gender_enum"] | null
-          go_live_date: string | null
-          google_drive_folder_url: string | null
-          gpa: number | null
-          graduation_year: number | null
-          high_school: string | null
-          id: string
-          initial_cash_collected_usd: number | null
-          initial_contract_amount_usd: number | null
-          initial_payment_type:
-            | Database["public"]["Enums"]["payment_type_enum"]
-            | null
-          instagram_handle: string | null
-          internal_notes: string | null
-          is_deleted: boolean | null
-          last_sales_call_at: string | null
-          lead_source: string | null
-          milesplit_url: string | null
-          onboarding_form_data: Json | null
-          phone: string | null
-          sales_call_note: string | null
-          sales_call_recording_url: string | null
-          sales_closer_id: string | null
-          sales_setter_id: string | null
-          sat_score: number | null
-          sending_email_id: string | null
-          state: string | null
-          student_type: Database["public"]["Enums"]["student_type_enum"] | null
-          year_entering_university: number | null
-        }
-        Insert: {
-          act_score?: number | null
-          athlete_net_url?: string | null
-          city?: string | null
-          contact_email?: string | null
-          contract_date?: string | null
-          country?: string | null
-          date_of_birth?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          discord_channel_id?: string | null
-          discord_channel_url?: string | null
-          discord_username?: string | null
-          full_name: string
-          gender?: Database["public"]["Enums"]["athlete_gender_enum"] | null
-          go_live_date?: string | null
-          google_drive_folder_url?: string | null
-          gpa?: number | null
-          graduation_year?: number | null
-          high_school?: string | null
-          id?: string
-          initial_cash_collected_usd?: number | null
-          initial_contract_amount_usd?: number | null
-          initial_payment_type?:
-            | Database["public"]["Enums"]["payment_type_enum"]
-            | null
-          instagram_handle?: string | null
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          last_sales_call_at?: string | null
-          lead_source?: string | null
-          milesplit_url?: string | null
-          onboarding_form_data?: Json | null
-          phone?: string | null
-          sales_call_note?: string | null
-          sales_call_recording_url?: string | null
-          sales_closer_id?: string | null
-          sales_setter_id?: string | null
-          sat_score?: number | null
-          sending_email_id?: string | null
-          state?: string | null
-          student_type?: Database["public"]["Enums"]["student_type_enum"] | null
-          year_entering_university?: number | null
-        }
-        Update: {
-          act_score?: number | null
-          athlete_net_url?: string | null
-          city?: string | null
-          contact_email?: string | null
-          contract_date?: string | null
-          country?: string | null
-          date_of_birth?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          discord_channel_id?: string | null
-          discord_channel_url?: string | null
-          discord_username?: string | null
-          full_name?: string
-          gender?: Database["public"]["Enums"]["athlete_gender_enum"] | null
-          go_live_date?: string | null
-          google_drive_folder_url?: string | null
-          gpa?: number | null
-          graduation_year?: number | null
-          high_school?: string | null
-          id?: string
-          initial_cash_collected_usd?: number | null
-          initial_contract_amount_usd?: number | null
-          initial_payment_type?:
-            | Database["public"]["Enums"]["payment_type_enum"]
-            | null
-          instagram_handle?: string | null
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          last_sales_call_at?: string | null
-          lead_source?: string | null
-          milesplit_url?: string | null
-          onboarding_form_data?: Json | null
-          phone?: string | null
-          sales_call_note?: string | null
-          sales_call_recording_url?: string | null
-          sales_closer_id?: string | null
-          sales_setter_id?: string | null
-          sat_score?: number | null
-          sending_email_id?: string | null
-          state?: string | null
-          student_type?: Database["public"]["Enums"]["student_type_enum"] | null
-          year_entering_university?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "athletes_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athletes_sales_closer_id_fkey"
-            columns: ["sales_closer_id"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athletes_sales_setter_id_fkey"
-            columns: ["sales_setter_id"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "athletes_sending_email_id_fkey"
-            columns: ["sending_email_id"]
-            isOneToOne: false
-            referencedRelation: "email_sending_accounts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      audit_log: {
-        Row: {
-          action_details: Json | null
-          id: string
-          record_id: string | null
-          table_name: string | null
-          timestamp: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action_details?: Json | null
-          id: string
-          record_id?: string | null
-          table_name?: string | null
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action_details?: Json | null
-          id?: string
-          record_id?: string | null
-          table_name?: string | null
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ball_knowledge: {
-        Row: {
-          about_coach_id: string | null
-          about_program_id: string | null
-          about_university_id: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          from_athlete_id: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          note: string
-          review_after: string | null
-          source_type: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          about_coach_id?: string | null
-          about_program_id?: string | null
-          about_university_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          from_athlete_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          note: string
-          review_after?: string | null
-          source_type?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          about_coach_id?: string | null
-          about_program_id?: string | null
-          about_university_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          from_athlete_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          note?: string
-          review_after?: string | null
-          source_type?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ball_knowledge_about_coach_id_fkey"
-            columns: ["about_coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ball_knowledge_about_program_id_fkey"
-            columns: ["about_program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ball_knowledge_about_university_id_fkey"
-            columns: ["about_university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ball_knowledge_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ball_knowledge_from_athlete_id_fkey"
-            columns: ["from_athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      billing_status: {
-        Row: {
+          class_id: string | null
+          cohort_id: string
           created_at: string
-          error_time_hours: number | null
+          homework_completed: boolean | null
           id: string
-          status_name: string
-          updated_at: string
-          warning_time_hours: number | null
-        }
-        Insert: {
-          created_at?: string
-          error_time_hours?: number | null
-          id?: string
-          status_name: string
-          updated_at?: string
-          warning_time_hours?: number | null
-        }
-        Update: {
-          created_at?: string
-          error_time_hours?: number | null
-          id?: string
-          status_name?: string
-          updated_at?: string
-          warning_time_hours?: number | null
-        }
-        Relationships: []
-      }
-      campaign_leads: {
-        Row: {
-          application_id: string | null
-          campaign_id: string | null
-          coach_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          first_reply_at: string | null
-          id: string
-          include_reason: string | null
-          included_at: string | null
-          internal_notes: string | null
-          is_deleted: boolean | null
-          program_id: string | null
-          source_lead_list_id: string | null
-          status:
-            | Database["public"]["Enums"]["campaign_lead_status_enum"]
-            | null
-          university_id: string | null
-          university_job_id: string | null
-        }
-        Insert: {
-          application_id?: string | null
-          campaign_id?: string | null
-          coach_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          first_reply_at?: string | null
-          id?: string
-          include_reason?: string | null
-          included_at?: string | null
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          program_id?: string | null
-          source_lead_list_id?: string | null
-          status?:
-            | Database["public"]["Enums"]["campaign_lead_status_enum"]
-            | null
-          university_id?: string | null
-          university_job_id?: string | null
-        }
-        Update: {
-          application_id?: string | null
-          campaign_id?: string | null
-          coach_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          first_reply_at?: string | null
-          id?: string
-          include_reason?: string | null
-          included_at?: string | null
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          program_id?: string | null
-          source_lead_list_id?: string | null
-          status?:
-            | Database["public"]["Enums"]["campaign_lead_status_enum"]
-            | null
-          university_id?: string | null
-          university_job_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "campaign_leads_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "athlete_applications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_source_lead_list_id_fkey"
-            columns: ["source_lead_list_id"]
-            isOneToOne: false
-            referencedRelation: "school_lead_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_leads_university_job_id_fkey"
-            columns: ["university_job_id"]
-            isOneToOne: false
-            referencedRelation: "university_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      campaigns: {
-        Row: {
-          athlete_id: string | null
-          daily_send_cap: number | null
-          deleted_at: string | null
-          deleted_by: string | null
-          end_date: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          leads_loaded: number | null
-          leads_remaining: number | null
-          leads_total: number | null
-          name: string | null
-          primary_lead_list_id: string | null
-          seed_campaign_id: string | null
-          sending_tool_campaign_url: string | null
-          start_date: string | null
-          status: Database["public"]["Enums"]["campaign_status_enum"] | null
-          type: Database["public"]["Enums"]["campaign_type_enum"] | null
-        }
-        Insert: {
-          athlete_id?: string | null
-          daily_send_cap?: number | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          leads_loaded?: number | null
-          leads_remaining?: number | null
-          leads_total?: number | null
-          name?: string | null
-          primary_lead_list_id?: string | null
-          seed_campaign_id?: string | null
-          sending_tool_campaign_url?: string | null
-          start_date?: string | null
-          status?: Database["public"]["Enums"]["campaign_status_enum"] | null
-          type?: Database["public"]["Enums"]["campaign_type_enum"] | null
-        }
-        Update: {
-          athlete_id?: string | null
-          daily_send_cap?: number | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          leads_loaded?: number | null
-          leads_remaining?: number | null
-          leads_total?: number | null
-          name?: string | null
-          primary_lead_list_id?: string | null
-          seed_campaign_id?: string | null
-          sending_tool_campaign_url?: string | null
-          start_date?: string | null
-          status?: Database["public"]["Enums"]["campaign_status_enum"] | null
-          type?: Database["public"]["Enums"]["campaign_type_enum"] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "campaigns_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaigns_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaigns_primary_lead_list_id_fkey"
-            columns: ["primary_lead_list_id"]
-            isOneToOne: false
-            referencedRelation: "school_lead_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaigns_seed_campaign_id_fkey"
-            columns: ["seed_campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      checklist_definition_items: {
-        Row: {
-          checklist_definition_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          description: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          required: boolean | null
-          sort_order: number | null
-          title: string | null
-        }
-        Insert: {
-          checklist_definition_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          description?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          required?: boolean | null
-          sort_order?: number | null
-          title?: string | null
-        }
-        Update: {
-          checklist_definition_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          description?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          required?: boolean | null
-          sort_order?: number | null
-          title?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "checklist_definition_items_checklist_definition_id_fkey"
-            columns: ["checklist_definition_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_definitions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklist_definition_items_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      checklist_definitions: {
-        Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          name: string | null
-          type: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          type?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "checklist_definitions_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      checklist_items: {
-        Row: {
-          blocked_reason: string | null
-          checklist_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          description: string | null
-          done_at: string | null
-          done_by_team_member_id: string | null
-          id: string
-          internal_notes: string | null
-          is_applicable: boolean | null
-          is_deleted: boolean | null
-          is_done: boolean | null
-          required: boolean | null
-          sort_order: number | null
-          template_item_id: string | null
-          title: string | null
-        }
-        Insert: {
-          blocked_reason?: string | null
-          checklist_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          description?: string | null
-          done_at?: string | null
-          done_by_team_member_id?: string | null
-          id: string
-          internal_notes?: string | null
-          is_applicable?: boolean | null
-          is_deleted?: boolean | null
-          is_done?: boolean | null
-          required?: boolean | null
-          sort_order?: number | null
-          template_item_id?: string | null
-          title?: string | null
-        }
-        Update: {
-          blocked_reason?: string | null
-          checklist_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          description?: string | null
-          done_at?: string | null
-          done_by_team_member_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_applicable?: boolean | null
-          is_deleted?: boolean | null
-          is_done?: boolean | null
-          required?: boolean | null
-          sort_order?: number | null
-          template_item_id?: string | null
-          title?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "checklist_items_checklist_id_fkey"
-            columns: ["checklist_id"]
-            isOneToOne: false
-            referencedRelation: "checklists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklist_items_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklist_items_done_by_team_member_id_fkey"
-            columns: ["done_by_team_member_id"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklist_items_template_item_id_fkey"
-            columns: ["template_item_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_definition_items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      checklists: {
-        Row: {
-          athlete_id: string | null
-          checklist_definition_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-        }
-        Insert: {
-          athlete_id?: string | null
-          checklist_definition_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-        }
-        Update: {
-          athlete_id?: string | null
-          checklist_definition_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "checklists_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklists_checklist_definition_id_fkey"
-            columns: ["checklist_definition_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_definitions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklists_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clients: {
-        Row: {
-          billing_status_id: string | null
-          client_name: string
-          created_at: string
-          email: string
-          first_name: string
-          id: string
-          last_name: string
-          onboarding_status_id: string | null
+          marked_at: string | null
+          marked_by: string | null
+          notes: string | null
+          status: string
+          student_id: string
           updated_at: string
         }
         Insert: {
-          billing_status_id?: string | null
-          client_name: string
+          class_id?: string | null
+          cohort_id: string
           created_at?: string
-          email: string
-          first_name: string
+          homework_completed?: boolean | null
           id?: string
-          last_name: string
-          onboarding_status_id?: string | null
+          marked_at?: string | null
+          marked_by?: string | null
+          notes?: string | null
+          status?: string
+          student_id: string
           updated_at?: string
         }
         Update: {
-          billing_status_id?: string | null
-          client_name?: string
+          class_id?: string | null
+          cohort_id?: string
           created_at?: string
-          email?: string
-          first_name?: string
+          homework_completed?: boolean | null
           id?: string
-          last_name?: string
-          onboarding_status_id?: string | null
+          marked_at?: string | null
+          marked_by?: string | null
+          notes?: string | null
+          status?: string
+          student_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "clients_billing_status_id_fkey"
-            columns: ["billing_status_id"]
+            foreignKeyName: "attendance_records_class_id_classes_id_fk"
+            columns: ["class_id"]
             isOneToOne: false
-            referencedRelation: "billing_status"
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "clients_onboarding_status_id_fkey"
-            columns: ["onboarding_status_id"]
+            foreignKeyName: "attendance_records_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
             isOneToOne: false
-            referencedRelation: "onboarding_status"
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_marked_by_teachers_id_fk"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
       }
-      coach_responsibilities: {
+      automated_follow_ups: {
         Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          event_group: Database["public"]["Enums"]["event_group_enum"] | null
-          event_id: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          university_job_id: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          event_group?: Database["public"]["Enums"]["event_group_enum"] | null
-          event_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          university_job_id?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          event_group?: Database["public"]["Enums"]["event_group_enum"] | null
-          event_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          university_job_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coach_responsibilities_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_responsibilities_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_responsibilities_university_job_id_fkey"
-            columns: ["university_job_id"]
-            isOneToOne: false
-            referencedRelation: "university_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coaches: {
-        Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          instagram_profile: string | null
-          internal_notes: string | null
-          is_deleted: boolean | null
-          linkedin_profile: string | null
-          phone: string | null
-          primary_specialty:
-            | Database["public"]["Enums"]["event_group_enum"]
-            | null
-          twitter_profile: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          instagram_profile?: string | null
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          linkedin_profile?: string | null
-          phone?: string | null
-          primary_specialty?:
-            | Database["public"]["Enums"]["event_group_enum"]
-            | null
-          twitter_profile?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          instagram_profile?: string | null
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          linkedin_profile?: string | null
-          phone?: string | null
-          primary_specialty?:
-            | Database["public"]["Enums"]["event_group_enum"]
-            | null
-          twitter_profile?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coaches_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conferences: {
-        Row: {
-          governing_body_id: string
-          id: string
-          is_active: boolean
-          name: string
-          notes: string | null
-        }
-        Insert: {
-          governing_body_id: string
-          id?: string
-          is_active?: boolean
-          name: string
-          notes?: string | null
-        }
-        Update: {
-          governing_body_id?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          notes?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conferences_governing_body_id_fkey"
-            columns: ["governing_body_id"]
-            isOneToOne: false
-            referencedRelation: "governing_bodies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contact_athletes: {
-        Row: {
-          athlete_id: string | null
-          contact_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          end_date: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          is_primary: boolean | null
-          relationship: string | null
-          start_date: string | null
-        }
-        Insert: {
-          athlete_id?: string | null
-          contact_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          is_primary?: boolean | null
-          relationship?: string | null
-          start_date?: string | null
-        }
-        Update: {
-          athlete_id?: string | null
-          contact_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          is_primary?: boolean | null
-          relationship?: string | null
-          start_date?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contact_athletes_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contact_athletes_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contact_athletes_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contacts: {
-        Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          phone: string | null
-          preferred_contact_method: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          phone?: string | null
-          preferred_contact_method?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          phone?: string | null
-          preferred_contact_method?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contacts_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      divisions: {
-        Row: {
-          governing_body_id: string
-          id: string
-          is_active: boolean
-          level: string
-          name: string
-          notes: string | null
-        }
-        Insert: {
-          governing_body_id: string
-          id?: string
-          is_active?: boolean
-          level: string
-          name: string
-          notes?: string | null
-        }
-        Update: {
-          governing_body_id?: string
-          id?: string
-          is_active?: boolean
-          level?: string
-          name?: string
-          notes?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "divisions_governing_body_id_fkey"
-            columns: ["governing_body_id"]
-            isOneToOne: false
-            referencedRelation: "governing_bodies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      domains: {
-        Row: {
-          athlete_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          domain_url: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          status_option_id: number | null
-        }
-        Insert: {
-          athlete_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          domain_url?: string | null
-          id: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          status_option_id?: number | null
-        }
-        Update: {
-          athlete_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          domain_url?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          status_option_id?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "domains_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domains_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domains_status_option_id_fkey"
-            columns: ["status_option_id"]
-            isOneToOne: false
-            referencedRelation: "status_options"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      email_sending_accounts: {
-        Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          domain_id: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          name: string | null
-          status_option_id: number | null
-          username: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          domain_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          status_option_id?: number | null
-          username?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          domain_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          status_option_id?: number | null
-          username?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_sending_accounts_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "email_sending_accounts_domain_id_fkey"
-            columns: ["domain_id"]
-            isOneToOne: false
-            referencedRelation: "domains"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "email_sending_accounts_status_option_id_fkey"
-            columns: ["status_option_id"]
-            isOneToOne: false
-            referencedRelation: "status_options"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      entity_status_values: {
-        Row: {
-          entity_id: number
-          entity_type: string
-          id: number
-          set_at: string | null
-          set_by: number | null
-          status_category_id: number | null
-          status_option_id: number | null
-        }
-        Insert: {
-          entity_id: number
-          entity_type: string
-          id?: number
-          set_at?: string | null
-          set_by?: number | null
-          status_category_id?: number | null
-          status_option_id?: number | null
-        }
-        Update: {
-          entity_id?: number
-          entity_type?: string
-          id?: number
-          set_at?: string | null
-          set_by?: number | null
-          status_category_id?: number | null
-          status_option_id?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entity_status_values_status_category_id_fkey"
-            columns: ["status_category_id"]
-            isOneToOne: false
-            referencedRelation: "status_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "entity_status_values_status_option_id_fkey"
-            columns: ["status_option_id"]
-            isOneToOne: false
-            referencedRelation: "status_options"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      entity_types: {
-        Row: {
-          created_at: string | null
-          display_name: string | null
-          id: number
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: string | null
-          id?: number
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: string | null
-          id?: number
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      events: {
-        Row: {
-          code: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          event_group: Database["public"]["Enums"]["event_group_enum"] | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          name: string | null
-          units: Database["public"]["Enums"]["event_unit_enum"] | null
-        }
-        Insert: {
-          code?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          event_group?: Database["public"]["Enums"]["event_group_enum"] | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          units?: Database["public"]["Enums"]["event_unit_enum"] | null
-        }
-        Update: {
-          code?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          event_group?: Database["public"]["Enums"]["event_group_enum"] | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          units?: Database["public"]["Enums"]["event_unit_enum"] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      governing_bodies: {
-        Row: {
-          id: string
-          name: string
-          notes: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          notes?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          notes?: string | null
-        }
-        Relationships: []
-      }
-      onboarding_status: {
-        Row: {
+          airtable_record_id: string | null
+          completed_at: string | null
           created_at: string
-          error_time_hours: number | null
+          current_step: number
+          error_message: string | null
           id: string
-          status_name: string
+          last_message_sent_at: string | null
+          sequence_id: string | null
+          started_at: string
+          status: Database["public"]["Enums"]["automated_follow_up_status"]
+          student_id: string | null
           updated_at: string
-          warning_time_hours: number | null
         }
         Insert: {
+          airtable_record_id?: string | null
+          completed_at?: string | null
           created_at?: string
-          error_time_hours?: number | null
+          current_step?: number
+          error_message?: string | null
           id?: string
-          status_name: string
+          last_message_sent_at?: string | null
+          sequence_id?: string | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["automated_follow_up_status"]
+          student_id?: string | null
           updated_at?: string
-          warning_time_hours?: number | null
         }
         Update: {
+          airtable_record_id?: string | null
+          completed_at?: string | null
           created_at?: string
-          error_time_hours?: number | null
+          current_step?: number
+          error_message?: string | null
           id?: string
-          status_name?: string
+          last_message_sent_at?: string | null
+          sequence_id?: string | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["automated_follow_up_status"]
+          student_id?: string | null
           updated_at?: string
-          warning_time_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_follow_ups_sequence_id_template_follow_up_sequences_i"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "template_follow_up_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_follow_ups_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          airtable_record_id: string | null
+          cohort_id: string
+          created_at: string
+          deleted_at: string | null
+          end_time: string
+          google_calendar_event_id: string | null
+          google_drive_folder_id: string | null
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["class_status"]
+          teacher_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          airtable_record_id?: string | null
+          cohort_id: string
+          created_at?: string
+          deleted_at?: string | null
+          end_time: string
+          google_calendar_event_id?: string | null
+          google_drive_folder_id?: string | null
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["class_status"]
+          teacher_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          airtable_record_id?: string | null
+          cohort_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          end_time?: string
+          google_calendar_event_id?: string | null
+          google_drive_folder_id?: string | null
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["class_status"]
+          teacher_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_teacher_id_teachers_id_fk"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohorts: {
+        Row: {
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          cohort_status: Database["public"]["Enums"]["cohort_status"]
+          created_at: string | null
+          current_level_id: string | null
+          google_drive_folder_id: string | null
+          id: string
+          max_students: number | null
+          nickname: string | null
+          product_id: string | null
+          room_type: Database["public"]["Enums"]["room_type"] | null
+          setup_finalized: boolean | null
+          start_date: string | null
+          starting_level_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          cohort_status?: Database["public"]["Enums"]["cohort_status"]
+          created_at?: string | null
+          current_level_id?: string | null
+          google_drive_folder_id?: string | null
+          id?: string
+          max_students?: number | null
+          nickname?: string | null
+          product_id?: string | null
+          room_type?: Database["public"]["Enums"]["room_type"] | null
+          setup_finalized?: boolean | null
+          start_date?: string | null
+          starting_level_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          cohort_status?: Database["public"]["Enums"]["cohort_status"]
+          created_at?: string | null
+          current_level_id?: string | null
+          google_drive_folder_id?: string | null
+          id?: string
+          max_students?: number | null
+          nickname?: string | null
+          product_id?: string | null
+          room_type?: Database["public"]["Enums"]["room_type"] | null
+          setup_finalized?: boolean | null
+          start_date?: string | null
+          starting_level_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_current_level_id_language_levels_id_fk"
+            columns: ["current_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_product_id_products_id_fk"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_starting_level_id_language_levels_id_fk"
+            columns: ["starting_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enrollments: {
+        Row: {
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          cohort_id: string | null
+          completion_percentage: number | null
+          created_at: string
+          enrollment_checklist: Json | null
+          id: string
+          offboarding_checklist: Json | null
+          status: Database["public"]["Enums"]["enrollment_status"]
+          student_id: string
+          transition_checklist: Json | null
+          updated_at: string
+        }
+        Insert: {
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          cohort_id?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          enrollment_checklist?: Json | null
+          id?: string
+          offboarding_checklist?: Json | null
+          status?: Database["public"]["Enums"]["enrollment_status"]
+          student_id: string
+          transition_checklist?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          cohort_id?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          enrollment_checklist?: Json | null
+          id?: string
+          offboarding_checklist?: Json | null
+          status?: Database["public"]["Enums"]["enrollment_status"]
+          student_id?: string
+          transition_checklist?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      language_levels: {
+        Row: {
+          airtable_record_id: string | null
+          code: string
+          created_at: string
+          display_name: string
+          id: string
+          level_group: string
+          level_number: number | null
+          updated_at: string
+        }
+        Insert: {
+          airtable_record_id?: string | null
+          code: string
+          created_at?: string
+          display_name: string
+          id?: string
+          level_group: string
+          level_number?: number | null
+          updated_at?: string
+        }
+        Update: {
+          airtable_record_id?: string | null
+          code?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          level_group?: string
+          level_number?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1674,416 +507,41 @@ export type Database = {
           },
         ]
       }
-      program_events: {
+      products: {
         Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          end_date: string | null
-          event_id: string | null
-          id: string
-          internal_notes: string | null
-          is_active: boolean | null
-          is_deleted: boolean | null
-          program_id: string | null
-          start_date: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          event_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_active?: boolean | null
-          is_deleted?: boolean | null
-          program_id?: string | null
-          start_date?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          event_id?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_active?: boolean | null
-          is_deleted?: boolean | null
-          program_id?: string | null
-          start_date?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "program_events_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "program_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "program_events_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      programs: {
-        Row: {
-          deleted_at: string | null
-          deleted_by: string | null
-          gender: Database["public"]["Enums"]["program_gender_enum"] | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          team_instagram: string | null
-          team_twitter: string | null
-          team_url: string | null
-          university_id: string | null
-        }
-        Insert: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          gender?: Database["public"]["Enums"]["program_gender_enum"] | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          team_instagram?: string | null
-          team_twitter?: string | null
-          team_url?: string | null
-          university_id?: string | null
-        }
-        Update: {
-          deleted_at?: string | null
-          deleted_by?: string | null
-          gender?: Database["public"]["Enums"]["program_gender_enum"] | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          team_instagram?: string | null
-          team_twitter?: string | null
-          team_url?: string | null
-          university_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "programs_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "programs_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      replies: {
-        Row: {
-          application_id: string | null
-          athlete_id: string | null
-          campaign_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          occurred_at: string | null
-          summary: string | null
-          type: Database["public"]["Enums"]["reply_type_enum"] | null
-          university_job_id: string | null
-        }
-        Insert: {
-          application_id?: string | null
-          athlete_id?: string | null
-          campaign_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          occurred_at?: string | null
-          summary?: string | null
-          type?: Database["public"]["Enums"]["reply_type_enum"] | null
-          university_job_id?: string | null
-        }
-        Update: {
-          application_id?: string | null
-          athlete_id?: string | null
-          campaign_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          occurred_at?: string | null
-          summary?: string | null
-          type?: Database["public"]["Enums"]["reply_type_enum"] | null
-          university_job_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "replies_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "athlete_applications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "replies_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "replies_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "replies_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "replies_university_job_id_fkey"
-            columns: ["university_job_id"]
-            isOneToOne: false
-            referencedRelation: "university_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      roles: {
-        Row: {
+          airtable_record_id: string | null
           created_at: string
+          display_name: string
+          format: Database["public"]["Enums"]["product_format"]
           id: string
-          role_name: string
+          location: Database["public"]["Enums"]["product_location"]
+          pandadoc_contract_template_id: string | null
+          signup_link_for_self_checkout: string | null
           updated_at: string
         }
         Insert: {
+          airtable_record_id?: string | null
           created_at?: string
+          display_name: string
+          format: Database["public"]["Enums"]["product_format"]
           id?: string
-          role_name: string
+          location: Database["public"]["Enums"]["product_location"]
+          pandadoc_contract_template_id?: string | null
+          signup_link_for_self_checkout?: string | null
           updated_at?: string
         }
         Update: {
+          airtable_record_id?: string | null
           created_at?: string
+          display_name?: string
+          format?: Database["public"]["Enums"]["product_format"]
           id?: string
-          role_name?: string
+          location?: Database["public"]["Enums"]["product_location"]
+          pandadoc_contract_template_id?: string | null
+          signup_link_for_self_checkout?: string | null
           updated_at?: string
         }
         Relationships: []
-      }
-      school_lead_list_entries: {
-        Row: {
-          added_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          priority: string | null
-          program_id: string | null
-          school_lead_list_id: string | null
-          status: string | null
-          university_id: string | null
-        }
-        Insert: {
-          added_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          priority?: string | null
-          program_id?: string | null
-          school_lead_list_id?: string | null
-          status?: string | null
-          university_id?: string | null
-        }
-        Update: {
-          added_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          priority?: string | null
-          program_id?: string | null
-          school_lead_list_id?: string | null
-          status?: string | null
-          university_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "school_lead_list_entries_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_lead_list_entries_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_lead_list_entries_school_lead_list_id_fkey"
-            columns: ["school_lead_list_id"]
-            isOneToOne: false
-            referencedRelation: "school_lead_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_lead_list_entries_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      school_lead_lists: {
-        Row: {
-          athlete_id: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          name: string | null
-          priority: number | null
-          season_label: string | null
-          type: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          athlete_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          priority?: number | null
-          season_label?: string | null
-          type?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          athlete_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          name?: string | null
-          priority?: number | null
-          season_label?: string | null
-          type?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "school_lead_lists_athlete_id_fkey"
-            columns: ["athlete_id"]
-            isOneToOne: false
-            referencedRelation: "athletes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_lead_lists_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sending_tool_lead_lists: {
-        Row: {
-          campaign_id: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          file_url: string | null
-          format: string | null
-          generated_at: string | null
-          generated_by: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          row_count: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          campaign_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          file_url?: string | null
-          format?: string | null
-          generated_at?: string | null
-          generated_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          row_count?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          campaign_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          file_url?: string | null
-          format?: string | null
-          generated_at?: string | null
-          generated_by?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          row_count?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sending_tool_lead_lists_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sending_tool_lead_lists_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       session: {
         Row: {
@@ -2098,13 +556,13 @@ export type Database = {
           userId: string
         }
         Insert: {
-          createdAt?: string
+          createdAt: string
           expiresAt: string
           id: string
           impersonatedBy?: string | null
           ipAddress?: string | null
           token: string
-          updatedAt?: string
+          updatedAt: string
           userAgent?: string | null
           userId: string
         }
@@ -2129,214 +587,297 @@ export type Database = {
           },
         ]
       }
-      status_categories: {
+      student_assessments: {
         Row: {
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          calendar_event_url: string | null
           created_at: string | null
-          display_name: string | null
-          entity_type_id: number | null
-          id: number
-          is_required: boolean | null
-          name: string
-          sort_order: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: string | null
-          entity_type_id?: number | null
-          id?: number
-          is_required?: boolean | null
-          name: string
-          sort_order?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: string | null
-          entity_type_id?: number | null
-          id?: number
-          is_required?: boolean | null
-          name?: string
-          sort_order?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "status_categories_entity_type_id_fkey"
-            columns: ["entity_type_id"]
-            isOneToOne: false
-            referencedRelation: "entity_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      status_change_log: {
-        Row: {
-          changed_at: string | null
-          changed_by: number | null
-          entity_id: number
-          entity_type: string
-          id: number
-          new_status_option_id: number | null
+          id: string
+          interview_held_by: string | null
+          is_paid: boolean
+          level_checked_by: string | null
+          level_id: string | null
+          meeting_recording_url: string | null
           notes: string | null
-          old_status_option_id: number | null
-          status_category_id: number | null
+          result: Database["public"]["Enums"]["assessment_result"]
+          scheduled_for: string | null
+          student_id: string
+          updated_at: string
         }
         Insert: {
-          changed_at?: string | null
-          changed_by?: number | null
-          entity_id: number
-          entity_type: string
-          id?: number
-          new_status_option_id?: number | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          calendar_event_url?: string | null
+          created_at?: string | null
+          id?: string
+          interview_held_by?: string | null
+          is_paid?: boolean
+          level_checked_by?: string | null
+          level_id?: string | null
+          meeting_recording_url?: string | null
           notes?: string | null
-          old_status_option_id?: number | null
-          status_category_id?: number | null
+          result?: Database["public"]["Enums"]["assessment_result"]
+          scheduled_for?: string | null
+          student_id: string
+          updated_at?: string
         }
         Update: {
-          changed_at?: string | null
-          changed_by?: number | null
-          entity_id?: number
-          entity_type?: string
-          id?: number
-          new_status_option_id?: number | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          calendar_event_url?: string | null
+          created_at?: string | null
+          id?: string
+          interview_held_by?: string | null
+          is_paid?: boolean
+          level_checked_by?: string | null
+          level_id?: string | null
+          meeting_recording_url?: string | null
           notes?: string | null
-          old_status_option_id?: number | null
-          status_category_id?: number | null
+          result?: Database["public"]["Enums"]["assessment_result"]
+          scheduled_for?: string | null
+          student_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "status_change_log_new_status_option_id_fkey"
-            columns: ["new_status_option_id"]
+            foreignKeyName: "student_assessments_interview_held_by_teachers_id_fk"
+            columns: ["interview_held_by"]
             isOneToOne: false
-            referencedRelation: "status_options"
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "status_change_log_old_status_option_id_fkey"
-            columns: ["old_status_option_id"]
+            foreignKeyName: "student_assessments_level_checked_by_teachers_id_fk"
+            columns: ["level_checked_by"]
             isOneToOne: false
-            referencedRelation: "status_options"
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "status_change_log_status_category_id_fkey"
-            columns: ["status_category_id"]
+            foreignKeyName: "student_assessments_level_id_language_levels_id_fk"
+            columns: ["level_id"]
             isOneToOne: false
-            referencedRelation: "status_categories"
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_assessments_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
       }
-      status_options: {
+      students: {
         Row: {
-          color: string | null
-          created_at: string | null
-          digit: number | null
-          display_name: string | null
-          id: number
-          is_active: boolean | null
-          is_default: boolean | null
-          name: string
-          sort_order: number | null
-          status_category_id: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string | null
-          digit?: number | null
-          display_name?: string | null
-          id?: number
-          is_active?: boolean | null
-          is_default?: boolean | null
-          name: string
-          sort_order?: number | null
-          status_category_id?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          color?: string | null
-          created_at?: string | null
-          digit?: number | null
-          display_name?: string | null
-          id?: number
-          is_active?: boolean | null
-          is_default?: boolean | null
-          name?: string
-          sort_order?: number | null
-          status_category_id?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "status_options_status_category_id_fkey"
-            columns: ["status_category_id"]
-            isOneToOne: false
-            referencedRelation: "status_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      team_members: {
-        Row: {
+          added_to_email_newsletter: boolean | null
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          city: string | null
+          communication_channel: Database["public"]["Enums"]["communication_channel"]
+          convertkit_id: string | null
           created_at: string
           deleted_at: string | null
-          deleted_by: string | null
+          desired_starting_language_level_id: string | null
           email: string | null
           first_name: string | null
+          full_name: string | null
+          heard_from: string | null
           id: string
-          internal_notes: string | null
-          is_active: boolean | null
-          is_deleted: boolean | null
-          job_title: string | null
+          initial_channel: Database["public"]["Enums"]["initial_channel"] | null
+          is_full_beginner: boolean | null
+          is_under_16: boolean | null
           last_name: string | null
-          timezone: string | null
+          mobile_phone_number: string | null
+          openphone_contact_id: string | null
+          purpose_to_learn: string | null
+          respondent_id: string | null
+          stripe_customer_id: string | null
+          subjective_deadline_for_student: string | null
+          tally_form_submission_id: string | null
+          updated_at: string
+          user_id: string | null
+          website_quiz_submission_date: string | null
+        }
+        Insert: {
+          added_to_email_newsletter?: boolean | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          city?: string | null
+          communication_channel?: Database["public"]["Enums"]["communication_channel"]
+          convertkit_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          desired_starting_language_level_id?: string | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          heard_from?: string | null
+          id?: string
+          initial_channel?:
+            | Database["public"]["Enums"]["initial_channel"]
+            | null
+          is_full_beginner?: boolean | null
+          is_under_16?: boolean | null
+          last_name?: string | null
+          mobile_phone_number?: string | null
+          openphone_contact_id?: string | null
+          purpose_to_learn?: string | null
+          respondent_id?: string | null
+          stripe_customer_id?: string | null
+          subjective_deadline_for_student?: string | null
+          tally_form_submission_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website_quiz_submission_date?: string | null
+        }
+        Update: {
+          added_to_email_newsletter?: boolean | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          city?: string | null
+          communication_channel?: Database["public"]["Enums"]["communication_channel"]
+          convertkit_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          desired_starting_language_level_id?: string | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          heard_from?: string | null
+          id?: string
+          initial_channel?:
+            | Database["public"]["Enums"]["initial_channel"]
+            | null
+          is_full_beginner?: boolean | null
+          is_under_16?: boolean | null
+          last_name?: string | null
+          mobile_phone_number?: string | null
+          openphone_contact_id?: string | null
+          purpose_to_learn?: string | null
+          respondent_id?: string | null
+          stripe_customer_id?: string | null
+          subjective_deadline_for_student?: string | null
+          tally_form_submission_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website_quiz_submission_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_desired_starting_language_level_id_language_levels_id_"
+            columns: ["desired_starting_language_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teachers: {
+        Row: {
+          admin_notes: string | null
+          airtable_record_id: string | null
+          available_for_booking: boolean | null
+          available_for_in_person_classes: boolean | null
+          available_for_online_classes: boolean | null
+          contract_type: Database["public"]["Enums"]["contract_type"] | null
+          created_at: string
+          days_available_in_person:
+            | Database["public"]["Enums"]["day_of_week"][]
+            | null
+          days_available_online:
+            | Database["public"]["Enums"]["day_of_week"][]
+            | null
+          email: string | null
+          first_name: string
+          google_calendar_id: string | null
+          group_class_bonus_terms:
+            | Database["public"]["Enums"]["group_class_bonus_terms"]
+            | null
+          id: string
+          last_name: string
+          max_students_in_person: number | null
+          max_students_online: number | null
+          maximum_hours_per_day: number | null
+          maximum_hours_per_week: number | null
+          mobile_phone_number: string | null
+          onboarding_status: Database["public"]["Enums"]["onboarding_status"]
+          qualified_for_under_16: boolean | null
+          role: Database["public"]["Enums"]["team_roles"][] | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          airtable_record_id?: string | null
+          available_for_booking?: boolean | null
+          available_for_in_person_classes?: boolean | null
+          available_for_online_classes?: boolean | null
+          contract_type?: Database["public"]["Enums"]["contract_type"] | null
           created_at?: string
-          deleted_at?: string | null
-          deleted_by?: string | null
+          days_available_in_person?:
+            | Database["public"]["Enums"]["day_of_week"][]
+            | null
+          days_available_online?:
+            | Database["public"]["Enums"]["day_of_week"][]
+            | null
           email?: string | null
-          first_name?: string | null
+          first_name: string
+          google_calendar_id?: string | null
+          group_class_bonus_terms?:
+            | Database["public"]["Enums"]["group_class_bonus_terms"]
+            | null
           id?: string
-          internal_notes?: string | null
-          is_active?: boolean | null
-          is_deleted?: boolean | null
-          job_title?: string | null
-          last_name?: string | null
-          timezone?: string | null
+          last_name: string
+          max_students_in_person?: number | null
+          max_students_online?: number | null
+          maximum_hours_per_day?: number | null
+          maximum_hours_per_week?: number | null
+          mobile_phone_number?: string | null
+          onboarding_status?: Database["public"]["Enums"]["onboarding_status"]
+          qualified_for_under_16?: boolean | null
+          role?: Database["public"]["Enums"]["team_roles"][] | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          airtable_record_id?: string | null
+          available_for_booking?: boolean | null
+          available_for_in_person_classes?: boolean | null
+          available_for_online_classes?: boolean | null
+          contract_type?: Database["public"]["Enums"]["contract_type"] | null
           created_at?: string
-          deleted_at?: string | null
-          deleted_by?: string | null
+          days_available_in_person?:
+            | Database["public"]["Enums"]["day_of_week"][]
+            | null
+          days_available_online?:
+            | Database["public"]["Enums"]["day_of_week"][]
+            | null
           email?: string | null
-          first_name?: string | null
+          first_name?: string
+          google_calendar_id?: string | null
+          group_class_bonus_terms?:
+            | Database["public"]["Enums"]["group_class_bonus_terms"]
+            | null
           id?: string
-          internal_notes?: string | null
-          is_active?: boolean | null
-          is_deleted?: boolean | null
-          job_title?: string | null
-          last_name?: string | null
-          timezone?: string | null
+          last_name?: string
+          max_students_in_person?: number | null
+          max_students_online?: number | null
+          maximum_hours_per_day?: number | null
+          maximum_hours_per_week?: number | null
+          mobile_phone_number?: string | null
+          onboarding_status?: Database["public"]["Enums"]["onboarding_status"]
+          qualified_for_under_16?: boolean | null
+          role?: Database["public"]["Enums"]["team_roles"][] | null
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "internal_team_deleted_by_fkey"
-            columns: ["deleted_by"]
-            isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "internal_team_user_id_fkey"
+            foreignKeyName: "teachers_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
@@ -2344,288 +885,149 @@ export type Database = {
           },
         ]
       }
-      universities: {
+      template_follow_up_messages: {
         Row: {
-          acceptance_rate_pct: number | null
-          act_composite_25th: number | null
-          act_composite_75th: number | null
-          average_gpa: number | null
-          city: string | null
-          conference_raw: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          division_raw: string | null
-          email_blocked: boolean | null
+          airtable_record_id: string | null
+          created_at: string
           id: string
-          institution_flags_raw: string | null
-          internal_notes: string | null
-          ipeds_nces_id: string | null
-          is_active: boolean | null
-          is_deleted: boolean | null
-          majors_offered_url: string | null
-          name: string | null
-          notes: string | null
-          region: string | null
-          religious_affiliation: string | null
-          sat_ebrw_25th: number | null
-          sat_ebrw_75th: number | null
-          sat_math_25th: number | null
-          sat_math_75th: number | null
-          size_of_city: string | null
-          state: string | null
-          total_yearly_cost: number | null
-          type_public_private: string | null
-          undergraduate_enrollment: number | null
-          us_news_ranking_liberal_arts_2018: number | null
-          us_news_ranking_national_2018: number | null
+          message_content: string
+          sequence_id: string
+          status: Database["public"]["Enums"]["follow_up_message_status"]
+          step_index: number
+          time_delay_hours: number
+          updated_at: string
         }
         Insert: {
-          acceptance_rate_pct?: number | null
-          act_composite_25th?: number | null
-          act_composite_75th?: number | null
-          average_gpa?: number | null
-          city?: string | null
-          conference_raw?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          division_raw?: string | null
-          email_blocked?: boolean | null
+          airtable_record_id?: string | null
+          created_at?: string
           id?: string
-          institution_flags_raw?: string | null
-          internal_notes?: string | null
-          ipeds_nces_id?: string | null
-          is_active?: boolean | null
-          is_deleted?: boolean | null
-          majors_offered_url?: string | null
-          name?: string | null
-          notes?: string | null
-          region?: string | null
-          religious_affiliation?: string | null
-          sat_ebrw_25th?: number | null
-          sat_ebrw_75th?: number | null
-          sat_math_25th?: number | null
-          sat_math_75th?: number | null
-          size_of_city?: string | null
-          state?: string | null
-          total_yearly_cost?: number | null
-          type_public_private?: string | null
-          undergraduate_enrollment?: number | null
-          us_news_ranking_liberal_arts_2018?: number | null
-          us_news_ranking_national_2018?: number | null
+          message_content: string
+          sequence_id: string
+          status?: Database["public"]["Enums"]["follow_up_message_status"]
+          step_index: number
+          time_delay_hours: number
+          updated_at?: string
         }
         Update: {
-          acceptance_rate_pct?: number | null
-          act_composite_25th?: number | null
-          act_composite_75th?: number | null
-          average_gpa?: number | null
-          city?: string | null
-          conference_raw?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          division_raw?: string | null
-          email_blocked?: boolean | null
+          airtable_record_id?: string | null
+          created_at?: string
           id?: string
-          institution_flags_raw?: string | null
-          internal_notes?: string | null
-          ipeds_nces_id?: string | null
-          is_active?: boolean | null
-          is_deleted?: boolean | null
-          majors_offered_url?: string | null
-          name?: string | null
-          notes?: string | null
-          region?: string | null
-          religious_affiliation?: string | null
-          sat_ebrw_25th?: number | null
-          sat_ebrw_75th?: number | null
-          sat_math_25th?: number | null
-          sat_math_75th?: number | null
-          size_of_city?: string | null
-          state?: string | null
-          total_yearly_cost?: number | null
-          type_public_private?: string | null
-          undergraduate_enrollment?: number | null
-          us_news_ranking_liberal_arts_2018?: number | null
-          us_news_ranking_national_2018?: number | null
+          message_content?: string
+          sequence_id?: string
+          status?: Database["public"]["Enums"]["follow_up_message_status"]
+          step_index?: number
+          time_delay_hours?: number
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "universities_deleted_by_fkey"
-            columns: ["deleted_by"]
+            foreignKeyName: "template_follow_up_messages_sequence_id_template_follow_up_sequ"
+            columns: ["sequence_id"]
             isOneToOne: false
-            referencedRelation: "team_members"
+            referencedRelation: "template_follow_up_sequences"
             referencedColumns: ["id"]
           },
         ]
       }
-      university_conferences: {
+      template_follow_up_sequences: {
         Row: {
-          conference_id: string | null
-          end_date: string | null
+          airtable_record_id: string | null
+          backend_name: string | null
+          created_at: string
+          display_name: string
           id: string
-          notes: string | null
-          start_date: string
-          university_id: string
+          subject: string
+          updated_at: string
         }
         Insert: {
-          conference_id?: string | null
-          end_date?: string | null
+          airtable_record_id?: string | null
+          backend_name?: string | null
+          created_at?: string
+          display_name: string
           id?: string
-          notes?: string | null
-          start_date: string
-          university_id: string
+          subject: string
+          updated_at?: string
         }
         Update: {
-          conference_id?: string | null
-          end_date?: string | null
+          airtable_record_id?: string | null
+          backend_name?: string | null
+          created_at?: string
+          display_name?: string
           id?: string
-          notes?: string | null
-          start_date?: string
-          university_id?: string
+          subject?: string
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "university_conferences_conference_id_fkey"
-            columns: ["conference_id"]
-            isOneToOne: false
-            referencedRelation: "conferences"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "university_conferences_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      university_divisions: {
+      touchpoints: {
         Row: {
-          division_id: string
-          end_date: string | null
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          automated_follow_up_id: string | null
+          channel: Database["public"]["Enums"]["touchpoint_channel"]
+          created_at: string
+          external_id: string | null
+          external_metadata: string | null
           id: string
-          notes: string | null
-          start_date: string
-          university_id: string
+          message: string | null
+          occurred_at: string
+          source: Database["public"]["Enums"]["touchpoint_source"]
+          student_id: string
+          type: Database["public"]["Enums"]["touchpoint_type"]
+          updated_at: string
         }
         Insert: {
-          division_id: string
-          end_date?: string | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          automated_follow_up_id?: string | null
+          channel: Database["public"]["Enums"]["touchpoint_channel"]
+          created_at?: string
+          external_id?: string | null
+          external_metadata?: string | null
           id?: string
-          notes?: string | null
-          start_date: string
-          university_id: string
+          message?: string | null
+          occurred_at?: string
+          source?: Database["public"]["Enums"]["touchpoint_source"]
+          student_id: string
+          type: Database["public"]["Enums"]["touchpoint_type"]
+          updated_at?: string
         }
         Update: {
-          division_id?: string
-          end_date?: string | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          automated_follow_up_id?: string | null
+          channel?: Database["public"]["Enums"]["touchpoint_channel"]
+          created_at?: string
+          external_id?: string | null
+          external_metadata?: string | null
           id?: string
-          notes?: string | null
-          start_date?: string
-          university_id?: string
+          message?: string | null
+          occurred_at?: string
+          source?: Database["public"]["Enums"]["touchpoint_source"]
+          student_id?: string
+          type?: Database["public"]["Enums"]["touchpoint_type"]
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "university_divisions_division_id_fkey"
-            columns: ["division_id"]
+            foreignKeyName: "touchpoints_automated_follow_up_id_automated_follow_ups_id_fk"
+            columns: ["automated_follow_up_id"]
             isOneToOne: false
-            referencedRelation: "divisions"
+            referencedRelation: "automated_follow_ups"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "university_divisions_university_id_fkey"
-            columns: ["university_id"]
+            foreignKeyName: "touchpoints_automated_follow_up_id_automated_follow_ups_id_fk"
+            columns: ["automated_follow_up_id"]
             isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      university_jobs: {
-        Row: {
-          coach_id: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          end_date: string | null
-          id: string
-          internal_notes: string | null
-          is_deleted: boolean | null
-          job_title: string | null
-          program_id: string | null
-          program_scope:
-            | Database["public"]["Enums"]["program_scope_enum"]
-            | null
-          start_date: string | null
-          university_id: string | null
-          work_email: string | null
-          work_phone: string | null
-        }
-        Insert: {
-          coach_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          job_title?: string | null
-          program_id?: string | null
-          program_scope?:
-            | Database["public"]["Enums"]["program_scope_enum"]
-            | null
-          start_date?: string | null
-          university_id?: string | null
-          work_email?: string | null
-          work_phone?: string | null
-        }
-        Update: {
-          coach_id?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          end_date?: string | null
-          id?: string
-          internal_notes?: string | null
-          is_deleted?: boolean | null
-          job_title?: string | null
-          program_id?: string | null
-          program_scope?:
-            | Database["public"]["Enums"]["program_scope_enum"]
-            | null
-          start_date?: string | null
-          university_id?: string | null
-          work_email?: string | null
-          work_phone?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "university_jobs_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
+            referencedRelation: "automated_follow_ups_with_schedule"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "university_jobs_deleted_by_fkey"
-            columns: ["deleted_by"]
+            foreignKeyName: "touchpoints_student_id_students_id_fk"
+            columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "university_jobs_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "university_jobs_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -2635,6 +1037,8 @@ export type Database = {
           banExpires: string | null
           banned: boolean | null
           banReason: string | null
+          bio: string | null
+          calendar_link: string | null
           createdAt: string
           email: string
           emailVerified: boolean
@@ -2648,6 +1052,8 @@ export type Database = {
           banExpires?: string | null
           banned?: boolean | null
           banReason?: string | null
+          bio?: string | null
+          calendar_link?: string | null
           createdAt?: string
           email: string
           emailVerified: boolean
@@ -2661,6 +1067,8 @@ export type Database = {
           banExpires?: string | null
           banned?: boolean | null
           banReason?: string | null
+          bio?: string | null
+          calendar_link?: string | null
           createdAt?: string
           email?: string
           emailVerified?: boolean
@@ -2674,223 +1082,409 @@ export type Database = {
       }
       verification: {
         Row: {
-          createdAt: string
+          createdAt: string | null
           expiresAt: string
           id: string
           identifier: string
-          updatedAt: string
+          updatedAt: string | null
           value: string
         }
         Insert: {
-          createdAt?: string
+          createdAt?: string | null
           expiresAt: string
           id: string
           identifier: string
-          updatedAt?: string
+          updatedAt?: string | null
           value: string
         }
         Update: {
-          createdAt?: string
+          createdAt?: string | null
           expiresAt?: string
           id?: string
           identifier?: string
-          updatedAt?: string
+          updatedAt?: string | null
           value?: string
         }
         Relationships: []
       }
-      world_record_logs: {
+      weekly_sessions: {
         Row: {
-          created_at: string | null
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          cohort_id: string | null
+          created_at: string
+          day_of_week: Database["public"]["Enums"]["day_of_week"] | null
+          end_time: string | null
+          google_calendar_event_id: string | null
           id: string
-          record_value: number | null
-          user_id: string | null
-          world_record_type_id: string | null
+          start_time: string | null
+          teacher_id: string | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          id: string
-          record_value?: number | null
-          user_id?: string | null
-          world_record_type_id?: string | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          cohort_id?: string | null
+          created_at?: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
+          end_time?: string | null
+          google_calendar_event_id?: string | null
+          id?: string
+          start_time?: string | null
+          teacher_id?: string | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          airtable_created_at?: string | null
+          airtable_record_id?: string | null
+          cohort_id?: string | null
+          created_at?: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
+          end_time?: string | null
+          google_calendar_event_id?: string | null
           id?: string
-          record_value?: number | null
-          user_id?: string | null
-          world_record_type_id?: string | null
+          start_time?: string | null
+          teacher_id?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "world_record_logs_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "weekly_sessions_cohort_id_fkey"
+            columns: ["cohort_id"]
             isOneToOne: false
-            referencedRelation: "user"
+            referencedRelation: "cohorts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "world_record_logs_world_record_type_id_fkey"
-            columns: ["world_record_type_id"]
+            foreignKeyName: "weekly_sessions_cohort_id_fkey"
+            columns: ["cohort_id"]
             isOneToOne: false
-            referencedRelation: "world_record_types"
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_sessions_teacher_id_teachers_id_fk"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
         ]
       }
-      world_record_types: {
-        Row: {
-          best_direction: string | null
-          id: string
-          internal_notes: string | null
-          name: string | null
-          record_sql: string | null
-        }
-        Insert: {
-          best_direction?: string | null
-          id: string
-          internal_notes?: string | null
-          name?: string | null
-          record_sql?: string | null
-        }
-        Update: {
-          best_direction?: string | null
-          id?: string
-          internal_notes?: string | null
-          name?: string | null
-          record_sql?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
-      [_ in never]: never
+      automated_follow_ups_with_schedule: {
+        Row: {
+          airtable_record_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          current_step: number | null
+          error_message: string | null
+          has_next_message: boolean | null
+          id: string | null
+          last_message_sent_at: string | null
+          messages_sent_count: number | null
+          next_message_scheduled_at: string | null
+          sequence_id: string | null
+          started_at: string | null
+          status:
+            | Database["public"]["Enums"]["automated_follow_up_status"]
+            | null
+          student_id: string | null
+          total_messages_in_sequence: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_follow_ups_sequence_id_template_follow_up_sequences_i"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "template_follow_up_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automated_follow_ups_student_id_students_id_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohorts_with_students: {
+        Row: {
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          cohort_status: Database["public"]["Enums"]["cohort_status"] | null
+          created_at: string | null
+          current_level_id: string | null
+          google_drive_folder_id: string | null
+          id: string | null
+          max_students: number | null
+          nickname: string | null
+          product_id: string | null
+          room_type: Database["public"]["Enums"]["room_type"] | null
+          setup_finalized: boolean | null
+          start_date: string | null
+          starting_level_id: string | null
+          student_emails: string | null
+          student_ids: string[] | null
+          student_names: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_current_level_id_language_levels_id_fk"
+            columns: ["current_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_product_id_products_id_fk"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_starting_level_id_language_levels_id_fk"
+            columns: ["starting_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      get_ball_knowledge_for_coach: {
-        Args: {
-          p_coach_id: string
-          p_page?: number
-          p_page_size?: number
-          p_search?: string
-          p_sort_column?: string
-          p_sort_direction?: string
+      bytea_to_text: { Args: { data: string }; Returns: string }
+      http: {
+        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "http_request"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
         }
+      }
+      http_delete:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_get:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_head: {
+        Args: { uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_header: {
+        Args: { field: string; value: string }
+        Returns: Database["public"]["CompositeTypes"]["http_header"]
+        SetofOptions: {
+          from: "*"
+          to: "http_header"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_list_curlopt: {
+        Args: never
         Returns: {
-          about_coach_id: string
-          about_coach_name: string
-          about_program_gender: string
-          about_program_id: string
-          about_university_id: string
-          about_university_name: string
-          created_at: string
-          from_athlete_id: string
-          id: string
-          internal_notes: string
-          note: string
-          relation_type: string
-          review_after: string
-          source_type: string
-          total_count: number
-          updated_at: string
+          curlopt: string
+          value: string
         }[]
       }
-      get_ball_knowledge_for_program: {
-        Args: {
-          p_page?: number
-          p_page_size?: number
-          p_program_id: string
-          p_search?: string
-          p_sort_column?: string
-          p_sort_direction?: string
+      http_patch: {
+        Args: { content: string; content_type: string; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
         }
-        Returns: {
-          about_coach_id: string
-          about_coach_name: string
-          about_program_gender: string
-          about_program_id: string
-          about_university_id: string
-          about_university_name: string
-          created_at: string
-          from_athlete_id: string
-          id: string
-          internal_notes: string
-          note: string
-          relation_type: string
-          review_after: string
-          source_type: string
-          total_count: number
-          updated_at: string
-        }[]
       }
-      get_ball_knowledge_for_university: {
-        Args: {
-          p_page?: number
-          p_page_size?: number
-          p_search?: string
-          p_sort_column?: string
-          p_sort_direction?: string
-          p_university_id: string
+      http_post:
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_put: {
+        Args: { content: string; content_type: string; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
         }
-        Returns: {
-          about_coach_id: string
-          about_coach_name: string
-          about_program_gender: string
-          about_program_id: string
-          about_university_id: string
-          about_university_name: string
-          created_at: string
-          from_athlete_id: string
-          id: string
-          internal_notes: string
-          note: string
-          relation_type: string
-          review_after: string
-          source_type: string
-          total_count: number
-          updated_at: string
-        }[]
       }
+      http_reset_curlopt: { Args: never; Returns: boolean }
+      http_set_curlopt: {
+        Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
+      text_to_bytea: { Args: { data: string }; Returns: string }
+      urlencode:
+        | { Args: { data: Json }; Returns: string }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
     }
     Enums: {
-      application_stage_enum:
-        | "intro"
+      assessment_result:
+        | "requested"
+        | "scheduled"
+        | "session_held"
+        | "level_determined"
+      automated_follow_up_status:
+        | "activated"
         | "ongoing"
-        | "visit"
-        | "offer"
-        | "committed"
-        | "dropped"
-      athlete_gender_enum: "male" | "female"
-      campaign_lead_status_enum: "pending" | "replied" | "suppressed"
-      campaign_status_enum:
-        | "draft"
-        | "active"
-        | "paused"
+        | "answer_received"
+        | "disabled"
         | "completed"
-        | "exhausted"
-      campaign_type_enum: "top" | "second_pass" | "third_pass" | "personal_best"
-      event_group_enum:
-        | "sprints"
-        | "hurdles"
-        | "distance"
-        | "jumps"
-        | "throws"
-        | "relays"
-        | "combined"
-      event_unit_enum: "seconds" | "meters" | "points"
-      payment_type_enum: "paid_in_full" | "installments" | "deposit" | "other"
-      program_gender_enum: "men" | "women"
-      program_scope_enum: "men" | "women" | "both" | "n/a"
-      reply_type_enum: "call" | "text" | "email" | "instagram"
-      student_type_enum:
-        | "high_school"
-        | "transfer"
-        | "international"
-        | "gap_year"
-        | "other"
+        | "failed"
+      class_mode: "online" | "in_person" | "hybrid"
+      class_status: "scheduled" | "in_progress" | "completed" | "cancelled"
+      cohort_status: "enrollment_open" | "enrollment_closed" | "class_ended"
+      communication_channel: "sms_email" | "email" | "sms"
+      contract_type: "full_time" | "freelancer"
+      day_of_week:
+        | "monday"
+        | "tuesday"
+        | "wednesday"
+        | "thursday"
+        | "friday"
+        | "saturday"
+        | "sunday"
+      enrollment_status:
+        | "declined_contract"
+        | "dropped_out"
+        | "interested"
+        | "beginner_form_filled"
+        | "contract_abandoned"
+        | "contract_signed"
+        | "payment_abandoned"
+        | "paid"
+        | "welcome_package_sent"
+        | "transitioning"
+        | "offboarding"
+      follow_up_message_status: "active" | "disabled"
+      group_class_bonus_terms: "per_student_per_hour" | "per_hour"
+      initial_channel:
+        | "form"
+        | "quiz"
+        | "call"
+        | "message"
+        | "email"
+        | "assessment"
+      onboarding_status:
+        | "new"
+        | "training_in_progress"
+        | "onboarded"
+        | "offboarded"
+      product_format: "group" | "private" | "hybrid"
+      product_location: "online" | "in_person" | "hybrid"
+      room_type: "for_one_to_one" | "medium" | "medium_plus" | "large"
+      team_roles: "Teacher" | "Evaluator" | "Marketing/Admin" | "Exec"
+      touchpoint_channel: "sms" | "call" | "whatsapp" | "email"
+      touchpoint_source:
+        | "manual"
+        | "automated"
+        | "openphone"
+        | "gmail"
+        | "whatsapp_business"
+        | "webhook"
+      touchpoint_type: "inbound" | "outbound"
+      user_role: "admin" | "support" | "teacher" | "student"
     }
     CompositeTypes: {
-      [_ in never]: never
+      http_header: {
+        field: string | null
+        value: string | null
+      }
+      http_request: {
+        method: unknown
+        uri: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content_type: string | null
+        content: string | null
+      }
+      http_response: {
+        status: number | null
+        content_type: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content: string | null
+      }
     }
   }
 }
@@ -3015,45 +1609,78 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      application_stage_enum: [
-        "intro",
+      assessment_result: [
+        "requested",
+        "scheduled",
+        "session_held",
+        "level_determined",
+      ],
+      automated_follow_up_status: [
+        "activated",
         "ongoing",
-        "visit",
-        "offer",
-        "committed",
-        "dropped",
-      ],
-      athlete_gender_enum: ["male", "female"],
-      campaign_lead_status_enum: ["pending", "replied", "suppressed"],
-      campaign_status_enum: [
-        "draft",
-        "active",
-        "paused",
+        "answer_received",
+        "disabled",
         "completed",
-        "exhausted",
+        "failed",
       ],
-      campaign_type_enum: ["top", "second_pass", "third_pass", "personal_best"],
-      event_group_enum: [
-        "sprints",
-        "hurdles",
-        "distance",
-        "jumps",
-        "throws",
-        "relays",
-        "combined",
+      class_mode: ["online", "in_person", "hybrid"],
+      class_status: ["scheduled", "in_progress", "completed", "cancelled"],
+      cohort_status: ["enrollment_open", "enrollment_closed", "class_ended"],
+      communication_channel: ["sms_email", "email", "sms"],
+      contract_type: ["full_time", "freelancer"],
+      day_of_week: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
       ],
-      event_unit_enum: ["seconds", "meters", "points"],
-      payment_type_enum: ["paid_in_full", "installments", "deposit", "other"],
-      program_gender_enum: ["men", "women"],
-      program_scope_enum: ["men", "women", "both", "n/a"],
-      reply_type_enum: ["call", "text", "email", "instagram"],
-      student_type_enum: [
-        "high_school",
-        "transfer",
-        "international",
-        "gap_year",
-        "other",
+      enrollment_status: [
+        "declined_contract",
+        "dropped_out",
+        "interested",
+        "beginner_form_filled",
+        "contract_abandoned",
+        "contract_signed",
+        "payment_abandoned",
+        "paid",
+        "welcome_package_sent",
+        "transitioning",
+        "offboarding",
       ],
+      follow_up_message_status: ["active", "disabled"],
+      group_class_bonus_terms: ["per_student_per_hour", "per_hour"],
+      initial_channel: [
+        "form",
+        "quiz",
+        "call",
+        "message",
+        "email",
+        "assessment",
+      ],
+      onboarding_status: [
+        "new",
+        "training_in_progress",
+        "onboarded",
+        "offboarded",
+      ],
+      product_format: ["group", "private", "hybrid"],
+      product_location: ["online", "in_person", "hybrid"],
+      room_type: ["for_one_to_one", "medium", "medium_plus", "large"],
+      team_roles: ["Teacher", "Evaluator", "Marketing/Admin", "Exec"],
+      touchpoint_channel: ["sms", "call", "whatsapp", "email"],
+      touchpoint_source: [
+        "manual",
+        "automated",
+        "openphone",
+        "gmail",
+        "whatsapp_business",
+        "webhook",
+      ],
+      touchpoint_type: ["inbound", "outbound"],
+      user_role: ["admin", "support", "teacher", "student"],
     },
   },
 } as const
