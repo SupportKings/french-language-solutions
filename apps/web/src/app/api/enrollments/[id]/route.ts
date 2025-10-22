@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			.from("enrollments")
 			.select(`
 				*,
-				student:students!enrollments_student_id_students_id_fk (
+				student:students!enrollments_student_id_fkey (
 					id,
 					full_name,
 					first_name,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 					created_at,
 					updated_at
 				),
-				cohort:cohorts!enrollments_cohort_id_cohorts_id_fk (
+				cohort:cohorts!enrollments_cohort_id_fkey (
 					id,
 					nickname,
 					cohort_status,
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 						code,
 						level_group
 					),
-					weekly_sessions:weekly_sessions!weekly_sessions_cohort_id_cohorts_id_fk (
+					weekly_sessions:weekly_sessions!weekly_sessions_cohort_id_fkey (
 						id,
 						day_of_week,
 						start_time,

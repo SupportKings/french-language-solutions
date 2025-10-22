@@ -149,7 +149,7 @@ export class ClassBookingService {
 					student_id,
 					cohort_id,
 					status,
-					cohorts!enrollments_cohort_id_cohorts_id_fk (
+					cohorts!enrollments_cohort_id_fkey (
 						id,
 						products!cohorts_product_id_products_id_fk (
 							id,
@@ -206,8 +206,8 @@ export class ClassBookingService {
 			.from("enrollments")
 			.select(`
 				*,
-				students!enrollments_student_id_students_id_fk (*),
-				cohorts!enrollments_cohort_id_cohorts_id_fk (
+				students!enrollments_student_id_fkey (*),
+				cohorts!enrollments_cohort_id_fkey (
 					*,
 					products!cohorts_product_id_products_id_fk (*)
 				)

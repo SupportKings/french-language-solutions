@@ -68,9 +68,9 @@ export class CohortService {
 					*,
 					teacher:teachers(*)
 				),
-				enrollments!enrollments_cohort_id_cohorts_id_fk(
+				enrollments!enrollments_cohort_id_fkey(
 					*,
-					student:students!enrollments_student_id_students_id_fk(*)
+					student:students!enrollments_student_id_fkey(*)
 				)
 			`)
 			.eq("id", cohortId)
