@@ -881,12 +881,15 @@ export class FollowUpService {
       );
 
       // Find all students created in last 24 hours (both beginners and non-beginners)
+      // Only include students from form submissions (initial_channel = 'form' and has tally_form_submission_id)
       const { data: recentStudents, error: studentError } = await supabase
         .from("students")
         .select(
           "id, first_name, last_name, email, mobile_phone_number, is_full_beginner, created_at"
         )
-        .gte("created_at", twentyFourHoursAgoISO);
+        .gte("created_at", twentyFourHoursAgoISO)
+        .eq("initial_channel", "form")
+        .not("tally_form_submission_id", "is", null);
 
       if (studentError) {
         console.error(
