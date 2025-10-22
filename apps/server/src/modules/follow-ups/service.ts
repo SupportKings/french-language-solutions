@@ -811,10 +811,14 @@ export class FollowUpService {
 	 */
 	async findAndTriggerStudentFollowUps() {
 		try {
+			console.log("[FollowUp] Starting findAndTriggerStudentFollowUps...");
+
 			// Calculate 24 hours ago
 			const twentyFourHoursAgo = new Date();
 			twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 			const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+
+			console.log(`[FollowUp] Looking for students created after: ${twentyFourHoursAgoISO}`);
 
 			// Find all students created in last 24 hours (both beginners and non-beginners)
 			const { data: recentStudents, error: studentError } = await supabase
@@ -825,7 +829,7 @@ export class FollowUpService {
 				.gte("created_at", twentyFourHoursAgoISO);
 
 			if (studentError) {
-				console.error("Error fetching recent students:", studentError);
+				console.error("[FollowUp] Error fetching recent students:", studentError);
 				return {
 					success: false,
 					error: "Failed to fetch recent students",
@@ -833,7 +837,10 @@ export class FollowUpService {
 				};
 			}
 
+			console.log(`[FollowUp] Found ${recentStudents?.length || 0} recent students`);
+
 			if (!recentStudents || recentStudents.length === 0) {
+				console.log("[FollowUp] No students found, exiting.");
 				return {
 					success: true,
 					message: "No students found matching criteria",
@@ -846,6 +853,8 @@ export class FollowUpService {
 			const studentsNeedingFollowUp = [];
 			const today = new Date().toISOString();
 
+			console.log(`[FollowUp] Checking ${recentStudents.length} students for eligibility...`);
+
 			for (const student of recentStudents) {
 				// Check if student has any assessment scheduled for a future date
 				const { data: futureAssessments, error: assessmentError } = await supabase
@@ -857,7 +866,7 @@ export class FollowUpService {
 
 				if (assessmentError) {
 					console.error(
-						`Error checking assessments for student ${student.id}:`,
+						`[FollowUp] Error checking assessments for student ${student.id}:`,
 						assessmentError,
 					);
 					continue;
@@ -865,6 +874,7 @@ export class FollowUpService {
 
 				// If student has future assessments scheduled, skip
 				if (futureAssessments && futureAssessments.length > 0) {
+					console.log(`[FollowUp] Student ${student.id} (${student.first_name} ${student.last_name}) skipped - has future assessment`);
 					continue;
 				}
 
@@ -879,7 +889,7 @@ export class FollowUpService {
 
 				if (enrollmentError) {
 					console.error(
-						`Error checking enrollments for student ${student.id}:`,
+						`[FollowUp] Error checking enrollments for student ${student.id}:`,
 						enrollmentError,
 					);
 					continue;
@@ -887,14 +897,19 @@ export class FollowUpService {
 
 				// If student has enrollment with restricted status, skip
 				if (restrictedEnrollments && restrictedEnrollments.length > 0) {
+					console.log(`[FollowUp] Student ${student.id} (${student.first_name} ${student.last_name}) skipped - has restricted enrollment (${restrictedEnrollments[0].status})`);
 					continue;
 				}
 
 				// Student needs follow-up: no future assessments AND no successful enrollments
+				console.log(`[FollowUp] Student ${student.id} (${student.first_name} ${student.last_name}) qualifies for follow-up (beginner: ${student.is_full_beginner})`);
 				studentsNeedingFollowUp.push(student);
 			}
 
+			console.log(`[FollowUp] ${studentsNeedingFollowUp.length} students need follow-ups`);
+
 			if (studentsNeedingFollowUp.length === 0) {
+				console.log("[FollowUp] No students need follow-ups, exiting.");
 				return {
 					success: true,
 					message:
@@ -907,6 +922,7 @@ export class FollowUpService {
 
 			// Set follow-ups for these students
 			const results = [];
+			console.log(`[FollowUp] Creating follow-ups for ${studentsNeedingFollowUp.length} students...`);
 
 			for (const student of studentsNeedingFollowUp) {
 				try {
@@ -915,8 +931,16 @@ export class FollowUpService {
 						? "no_purchase_beginner"
 						: "no_purchase";
 
+					console.log(`[FollowUp] Attempting to create follow-up for ${student.id} (${student.first_name} ${student.last_name}) with sequence: ${sequenceBackendName}`);
+
 					// Use the existing setFollowUp method to create follow-up
 					const followUpResult = await this.setFollowUp(student.id, sequenceBackendName);
+
+					if (followUpResult.success) {
+						console.log(`[FollowUp] ✓ Successfully created follow-up ${followUpResult.data?.follow_up_id} for student ${student.id}`);
+					} else {
+						console.log(`[FollowUp] ✗ Failed to create follow-up for student ${student.id}: ${followUpResult.error} (${followUpResult.code})`);
+					}
 
 					results.push({
 						studentId: student.id,
@@ -931,6 +955,7 @@ export class FollowUpService {
 				} catch (error) {
 					const errorMessage =
 						error instanceof Error ? error.message : "Unknown error";
+					console.log(`[FollowUp] ✗ Exception creating follow-up for student ${student.id}: ${errorMessage}`);
 					results.push({
 						studentId: student.id,
 						studentName: `${student.first_name} ${student.last_name}`,
@@ -944,6 +969,8 @@ export class FollowUpService {
 			// Summary
 			const successful = results.filter((r) => r.success).length;
 			const failed = results.filter((r) => !r.success).length;
+
+			console.log(`[FollowUp] Completed: ${successful} successful, ${failed} failed`);
 
 			return {
 				success: true,
