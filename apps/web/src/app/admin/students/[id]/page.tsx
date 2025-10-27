@@ -1,7 +1,10 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
+import { getUser } from "@/queries/getUser";
+import { rolesMap } from "@/lib/permissions";
+import { AccessDenied } from "@/components/ui/access-denied";
 
 import { studentsKeys } from "@/features/students/queries/students.queries";
 
@@ -23,10 +26,12 @@ async function getStudent(id: string) {
 	});
 
 	if (!response.ok) {
-		return null;
+		// Return the status code along with null data
+		return { data: null, status: response.status };
 	}
 
-	return response.json();
+	const data = await response.json();
+	return { data, status: 200 };
 }
 
 export default async function StudentDetailPage({
@@ -35,14 +40,39 @@ export default async function StudentDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
+	const session = await getUser();
+
+	if (!session) {
+		redirect("/signin");
+	}
+
+	// Get user's role and permissions
+	const userRole = session.user.role || "teacher";
+	const rolePermissions = rolesMap[userRole as keyof typeof rolesMap];
+	const permissions = rolePermissions?.statements || {};
+
 	const queryClient = new QueryClient();
 
 	// Fetch directly with cookies like the working teachers page
-	const student = await getStudent(id);
+	const result = await getStudent(id);
 
-	if (!student) {
+	// Handle different error cases
+	if (!result.data) {
+		if (result.status === 403) {
+			// User doesn't have permission - show custom error page
+			return (
+				<AccessDenied
+					message="You don't have permission to view this student's details. You can only access students in your assigned cohorts."
+					backLink="/admin/students"
+					backLinkText="Back to Students List"
+				/>
+			);
+		}
+		// Student not found - use default 404
 		notFound();
 	}
+
+	const student = result.data;
 
 	// Prefetch for client-side navigation
 	await queryClient.prefetchQuery({
@@ -60,6 +90,7 @@ export default async function StudentDetailPage({
 				student={student}
 				enrollmentCount={enrollmentCount}
 				assessmentCount={assessmentCount}
+				permissions={permissions}
 			/>
 		</HydrationBoundary>
 	);

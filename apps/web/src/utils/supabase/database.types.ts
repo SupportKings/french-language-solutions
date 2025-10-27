@@ -126,6 +126,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_records_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_records_marked_by_teachers_id_fk"
             columns: ["marked_by"]
             isOneToOne: false
@@ -259,6 +266,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "classes_cohort_id_cohorts_id_fk"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "classes_teacher_id_teachers_id_fk"
             columns: ["teacher_id"]
             isOneToOne: false
@@ -348,42 +362,61 @@ export type Database = {
           airtable_created_at: string | null
           airtable_record_id: string | null
           cohort_id: string | null
+          completion_percentage: number | null
           created_at: string
+          enrollment_checklist: Json | null
           id: string
+          offboarding_checklist: Json | null
           status: Database["public"]["Enums"]["enrollment_status"]
           student_id: string
+          transition_checklist: Json | null
           updated_at: string
         }
         Insert: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string | null
+          completion_percentage?: number | null
           created_at?: string
+          enrollment_checklist?: Json | null
           id?: string
+          offboarding_checklist?: Json | null
           status?: Database["public"]["Enums"]["enrollment_status"]
           student_id: string
+          transition_checklist?: Json | null
           updated_at?: string
         }
         Update: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
           cohort_id?: string | null
+          completion_percentage?: number | null
           created_at?: string
+          enrollment_checklist?: Json | null
           id?: string
+          offboarding_checklist?: Json | null
           status?: Database["public"]["Enums"]["enrollment_status"]
           student_id?: string
+          transition_checklist?: Json | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "enrollments_cohort_id_cohorts_id_fk"
+            foreignKeyName: "enrollments_cohort_id_fkey"
             columns: ["cohort_id"]
             isOneToOne: false
             referencedRelation: "cohorts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "enrollments_student_id_students_id_fk"
+            foreignKeyName: "enrollments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
@@ -1078,48 +1111,55 @@ export type Database = {
         Row: {
           airtable_created_at: string | null
           airtable_record_id: string | null
-          cohort_id: string
+          cohort_id: string | null
           created_at: string
-          day_of_week: Database["public"]["Enums"]["day_of_week"]
-          end_time: string
+          day_of_week: Database["public"]["Enums"]["day_of_week"] | null
+          end_time: string | null
           google_calendar_event_id: string | null
           id: string
-          start_time: string
-          teacher_id: string
+          start_time: string | null
+          teacher_id: string | null
           updated_at: string
         }
         Insert: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
-          cohort_id: string
+          cohort_id?: string | null
           created_at?: string
-          day_of_week: Database["public"]["Enums"]["day_of_week"]
-          end_time: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
+          end_time?: string | null
           google_calendar_event_id?: string | null
           id?: string
-          start_time: string
-          teacher_id: string
+          start_time?: string | null
+          teacher_id?: string | null
           updated_at?: string
         }
         Update: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
-          cohort_id?: string
+          cohort_id?: string | null
           created_at?: string
-          day_of_week?: Database["public"]["Enums"]["day_of_week"]
-          end_time?: string
+          day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
+          end_time?: string | null
           google_calendar_event_id?: string | null
           id?: string
-          start_time?: string
-          teacher_id?: string
+          start_time?: string | null
+          teacher_id?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "weekly_sessions_cohort_id_cohorts_id_fk"
+            foreignKeyName: "weekly_sessions_cohort_id_fkey"
             columns: ["cohort_id"]
             isOneToOne: false
             referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_sessions_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
             referencedColumns: ["id"]
           },
           {
@@ -1139,12 +1179,12 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           current_step: number | null
+          error_message: string | null
           has_next_message: boolean | null
           id: string | null
           last_message_sent_at: string | null
           messages_sent_count: number | null
           next_message_scheduled_at: string | null
-          next_message_step_index: number | null
           sequence_id: string | null
           started_at: string | null
           status:
@@ -1171,36 +1211,128 @@ export type Database = {
           },
         ]
       }
+      cohorts_with_students: {
+        Row: {
+          airtable_created_at: string | null
+          airtable_record_id: string | null
+          cohort_status: Database["public"]["Enums"]["cohort_status"] | null
+          created_at: string | null
+          current_level_id: string | null
+          google_drive_folder_id: string | null
+          id: string | null
+          max_students: number | null
+          nickname: string | null
+          product_id: string | null
+          room_type: Database["public"]["Enums"]["room_type"] | null
+          setup_finalized: boolean | null
+          start_date: string | null
+          starting_level_id: string | null
+          student_emails: string | null
+          student_ids: string[] | null
+          student_names: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_current_level_id_language_levels_id_fk"
+            columns: ["current_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_product_id_products_id_fk"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cohorts_starting_level_id_language_levels_id_fk"
+            columns: ["starting_level_id"]
+            isOneToOne: false
+            referencedRelation: "language_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      bytea_to_text: {
-        Args: { data: string }
-        Returns: string
-      }
+      bytea_to_text: { Args: { data: string }; Returns: string }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "http_request"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      http_delete: {
-        Args:
-          | { content: string; content_type: string; uri: string }
-          | { uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
-      http_get: {
-        Args: { data: Json; uri: string } | { uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+      http_delete:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_get:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       http_head: {
         Args: { uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       http_header: {
         Args: { field: string; value: string }
         Returns: Database["public"]["CompositeTypes"]["http_header"]
+        SetofOptions: {
+          from: "*"
+          to: "http_header"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       http_list_curlopt: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           curlopt: string
           value: string
@@ -1209,33 +1341,64 @@ export type Database = {
       http_patch: {
         Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      http_post: {
-        Args:
-          | { content: string; content_type: string; uri: string }
-          | { data: Json; uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+      http_post:
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       http_put: {
         Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      http_reset_curlopt: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      http_reset_curlopt: { Args: never; Returns: boolean }
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
         Returns: boolean
       }
-      text_to_bytea: {
-        Args: { data: string }
-        Returns: string
-      }
-      urlencode: {
-        Args: { data: Json } | { string: string } | { string: string }
-        Returns: string
-      }
+      text_to_bytea: { Args: { data: string }; Returns: string }
+      urlencode:
+        | { Args: { data: Json }; Returns: string }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
     }
     Enums: {
       assessment_result:
@@ -1273,6 +1436,8 @@ export type Database = {
         | "payment_abandoned"
         | "paid"
         | "welcome_package_sent"
+        | "transitioning"
+        | "offboarding"
       follow_up_message_status: "active" | "disabled"
       group_class_bonus_terms: "per_student_per_hour" | "per_hour"
       initial_channel:
@@ -1308,7 +1473,7 @@ export type Database = {
         value: string | null
       }
       http_request: {
-        method: unknown | null
+        method: unknown
         uri: string | null
         headers: Database["public"]["CompositeTypes"]["http_header"][] | null
         content_type: string | null
@@ -1482,6 +1647,8 @@ export const Constants = {
         "payment_abandoned",
         "paid",
         "welcome_package_sent",
+        "transitioning",
+        "offboarding",
       ],
       follow_up_message_status: ["active", "disabled"],
       group_class_bonus_terms: ["per_student_per_hour", "per_hour"],

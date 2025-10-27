@@ -68,9 +68,9 @@ export class CohortService {
 					*,
 					teacher:teachers(*)
 				),
-				enrollments!enrollments_cohort_id_cohorts_id_fk(
+				enrollments!enrollments_cohort_id_fkey(
 					*,
-					student:students!enrollments_student_id_students_id_fk(*)
+					student:students!enrollments_student_id_fkey(*)
 				)
 			`)
 			.eq("id", cohortId)
@@ -104,6 +104,11 @@ export class CohortService {
 		// Prepare sessions array for Google Calendar
 		const sessions: WeeklySessionForCalendar[] = cohort.weekly_sessions.map(
 			(session) => {
+				// Validate required fields
+				if (!session.day_of_week || !session.start_time || !session.end_time) {
+					throw new Error(`Invalid session data: missing required fields for session ${session.id}`);
+				}
+
 				// Get the first occurrence of this weekday on or after the cohort start date
 				const firstEventDate = this.getNextWeekday(
 					startDate,

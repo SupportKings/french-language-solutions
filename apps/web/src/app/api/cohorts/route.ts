@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
+import { parseDateString } from "@/lib/date-utils";
 import type { Database } from "@/utils/supabase/database.types";
 
 // GET /api/cohorts - List cohorts with pagination and filtering
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
 		const teacher_ids = searchParams.getAll("teacher_ids");
 		const start_date_from = searchParams.get("start_date_from");
 		const start_date_to = searchParams.get("start_date_to");
+		const today_sessions = searchParams.get("today_sessions") === "true";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -68,44 +70,47 @@ export async function GET(request: NextRequest) {
 			room_type.length > 1 ||
 			teacher_ids.length > 0 ||
 			start_date_from ||
-			start_date_to;
+			start_date_to ||
+			today_sessions;
 
 		// 4. Build query with server-side filtering
+		const tableName = "cohorts";
+
 		let query = supabase
-			.from("cohorts")
+			.from(tableName as any)
 			.select(
 				`
-				*,
-				products (
-					id,
-					format,
-					location,
-					display_name
-				),
-				starting_level:language_levels!starting_level_id (
-					id,
-					code,
-					display_name,
-					level_group
-				),
-				current_level:language_levels!current_level_id (
-					id,
-					code,
-					display_name,
-					level_group
-				),
-				weekly_sessions (
-					id,
-					day_of_week,
-					start_time,
-					end_time,
-					teacher:teachers (
+					*,
+					products (
 						id,
-						first_name,
-						last_name
+						format,
+						location,
+						display_name
+					),
+					starting_level:language_levels!starting_level_id (
+						id,
+						code,
+						display_name,
+						level_group
+					),
+					current_level:language_levels!current_level_id (
+						id,
+						code,
+						display_name,
+						level_group
+					),
+					weekly_sessions (
+						id,
+						day_of_week,
+						start_time,
+						end_time,
+						teacher:teachers (
+							id,
+							first_name,
+							last_name
+						)
 					)
-				)
-			`,
+				`,
 				{ count: "exact" },
 			);
 
@@ -150,7 +155,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// 5. Apply in-memory filters (only when needed)
-		let filteredCohorts = data || [];
+		let filteredCohorts: any[] = data || [];
 
 		// Search filter (nickname)
 		if (search.length > 0) {
@@ -212,7 +217,7 @@ export async function GET(request: NextRequest) {
 		if (start_date_from || start_date_to) {
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				if (!cohort.start_date) return false;
-				const cohortDate = new Date(cohort.start_date);
+				const cohortDate = parseDateString(cohort.start_date);
 
 				if (start_date_from && start_date_to) {
 					const fromDate = new Date(start_date_from);
@@ -226,6 +231,17 @@ export async function GET(request: NextRequest) {
 					return cohortDate <= toDate;
 				}
 				return true;
+			});
+		}
+
+		// Today's sessions filter
+		if (today_sessions) {
+			const now = new Date();
+			const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as Database["public"]["Enums"]["day_of_week"];
+
+			filteredCohorts = filteredCohorts.filter((cohort) => {
+				const sessions = cohort.weekly_sessions || [];
+				return sessions.some((session: any) => session.day_of_week === dayOfWeek);
 			});
 		}
 

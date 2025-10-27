@@ -21,7 +21,14 @@ export const statement = {
 	students: ["read", "write", "read_all", "read_assigned"],
 
 	// Cohort Management (new)
-	cohorts: ["read", "write", "read_all", "read_assigned"],
+	cohorts: [
+		"read",
+		"write",
+		"read_all",
+		"read_assigned",
+		"update_current_level",
+		"add_session",
+	],
 
 	// Assessment Management (new)
 	assessments: ["read", "write", "read_all"],
@@ -31,6 +38,9 @@ export const statement = {
 
 	// Enrollment Management (new)
 	enrollments: ["read", "write", "read_all"],
+
+	// Product Management (new)
+	products: ["read", "write"],
 
 	// Client Management
 	clients: [
@@ -117,20 +127,21 @@ export const ac = createAccessControl(statement);
 
 // Teacher role - Restricted access
 // Teachers can ONLY see:
-// - Their assigned students (based on cohorts)
-// - Their assigned cohorts (based on teacher assignment)
-// - All assessments (read and write)
+// - Their assigned students (READ ONLY - cannot edit)
+// - Their assigned cohorts (can only update current_level)
+// - All assessments (READ ONLY - cannot edit)
 export const teacher = ac.newRole({
-	// Students - Only assigned students (filtered by cohort)
-	students: ["read_assigned", "write"],
+	// Students - Only assigned students (READ ONLY)
+	students: ["read_assigned"],
 
-	// Cohorts - Only assigned cohorts (filtered by teacher)
-	cohorts: ["read_assigned", "write"],
+	// Cohorts - Only assigned cohorts (can only update current_level, cannot add sessions or edit other fields)
+	cohorts: ["read_assigned", "update_current_level"],
 
-	// Assessments - All assessments (read and write)
-	assessments: ["read_all", "write"],
+	// Assessments - All assessments (READ ONLY)
+	assessments: ["read_all"],
 
 	// NO access to:
+	// - products (configuration section)
 	// - teachers (teacher management section)
 	// - enrollments (enrollment section)
 	// - system (configuration section)
@@ -145,10 +156,11 @@ export const admin = ac.newRole({
 
 	// Full access to new sections
 	students: ["read_all", "write"],
-	cohorts: ["read_all", "write"],
+	cohorts: ["read_all", "write", "update_current_level", "add_session"],
 	assessments: ["read_all", "write"],
 	teachers: ["read", "read_all", "write", "update"],
 	enrollments: ["read_all", "write"],
+	products: ["read", "write"],
 	automation: ["read", "write"],
 
 	// Full access to existing sections

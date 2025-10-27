@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			.from("enrollments")
 			.select(`
 				*,
-				student:students!enrollments_student_id_students_id_fk (
+				student:students!enrollments_student_id_fkey (
 					id,
 					full_name,
 					first_name,
@@ -53,8 +53,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 					created_at,
 					updated_at
 				),
-				cohort:cohorts!enrollments_cohort_id_cohorts_id_fk (
+				cohort:cohorts!enrollments_cohort_id_fkey (
 					id,
+					nickname,
 					cohort_status,
 					start_date,
 					max_students,
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 						code,
 						level_group
 					),
-					weekly_sessions:weekly_sessions!weekly_sessions_cohort_id_cohorts_id_fk (
+					weekly_sessions:weekly_sessions!weekly_sessions_cohort_id_fkey (
 						id,
 						day_of_week,
 						start_time,
@@ -98,6 +99,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				return NextResponse.json(
 					{ error: "Enrollment not found" },
 					{ status: 404 },
+				);
+			}
+			// Check for permission denied - PGRST301 or 42501
+			if (error.code === "PGRST301" || error.code === "42501") {
+				return NextResponse.json(
+					{ error: "You don't have permission to view this enrollment" },
+					{ status: 403 },
 				);
 			}
 			console.error("Error fetching enrollment:", error);

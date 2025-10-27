@@ -40,6 +40,7 @@ import {
 	useUpdateCohort,
 } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
+import { formatDate } from "@/lib/date-utils";
 
 import { format } from "date-fns";
 import {
@@ -62,6 +63,7 @@ import { toast } from "sonner";
 
 interface CohortDetailPageClientProps {
 	cohortId: string;
+	permissions: any;
 }
 
 // Status options
@@ -69,14 +71,6 @@ const statusOptions = [
 	{ value: "enrollment_open", label: "Enrollment Open" },
 	{ value: "enrollment_closed", label: "Enrollment Closed" },
 	{ value: "class_ended", label: "Class Ended" },
-];
-
-// Room type options
-const roomTypeOptions = [
-	{ value: "for_one_to_one", label: "One-to-One" },
-	{ value: "medium", label: "Medium" },
-	{ value: "medium_plus", label: "Medium Plus" },
-	{ value: "large", label: "Large" },
 ];
 
 // Status badge variant mapping
@@ -118,15 +112,6 @@ const formatStatus = (status: CohortStatus) => {
 	return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-// Format room type for display
-const formatRoomType = (roomType: string | null) => {
-	if (!roomType) return "Not set";
-	return roomType
-		.replace("for_one_to_one", "One-to-One")
-		.replace(/_/g, " ")
-		.replace(/\b\w/g, (l) => l.toUpperCase());
-};
-
 // Format time to HH:MM
 const formatTime = (time: string) => {
 	if (!time) return "";
@@ -136,7 +121,13 @@ const formatTime = (time: string) => {
 
 export function CohortDetailPageClient({
 	cohortId,
+	permissions,
 }: CohortDetailPageClientProps) {
+	// Check permissions
+	const canAddSession = permissions?.cohorts?.includes("add_session");
+	const canEditCohort = permissions?.cohorts?.includes("write");
+	const canEditCurrentLevelOnly =
+		permissions?.cohorts?.includes("update_current_level") && !canEditCohort;
 	const router = useRouter();
 	const { data: cohortData, isLoading, error, isSuccess } = useCohort(cohortId);
 	const { data: cohortWithSessions } = useCohortWithSessions(cohortId);
@@ -297,9 +288,6 @@ export function CohortDetailPageClient({
 			}
 			if (editedCohort.current_level_id !== cohort.current_level_id) {
 				changes.current_level_id = editedCohort.current_level_id;
-			}
-			if (editedCohort.room_type !== cohort.room_type) {
-				changes.room_type = editedCohort.room_type;
 			}
 			if (editedCohort.product_id !== cohort.product_id) {
 				changes.product_id = editedCohort.product_id;
@@ -662,43 +650,47 @@ export function CohortDetailPageClient({
 						</div>
 
 						<div className="flex items-center gap-2">
-							{!cohort.setup_finalized ? (
-								<Button
-									variant="default"
-									size="sm"
-									onClick={() => setShowFinalizeConfirm(true)}
-								>
-									<CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-									Finalize Setup
-								</Button>
-							) : (
-								<Button
-									variant="outline"
-									size="sm"
-									disabled
-									className="border-green-200 bg-green-50 text-green-700"
-								>
-									<CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-									Setup Complete
-								</Button>
-							)}
+							{canEditCohort && (
+								<>
+									{!cohort.setup_finalized ? (
+										<Button
+											variant="default"
+											size="sm"
+											onClick={() => setShowFinalizeConfirm(true)}
+										>
+											<CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+											Finalize Setup
+										</Button>
+									) : (
+										<Button
+											variant="outline"
+											size="sm"
+											disabled
+											className="border-green-200 bg-green-50 text-green-700"
+										>
+											<CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+											Setup Complete
+										</Button>
+									)}
 
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="outline" size="sm">
-										<MoreVertical className="h-3.5 w-3.5" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-56">
-									<DropdownMenuItem
-										className="text-destructive focus:text-destructive"
-										onClick={() => setShowDeleteConfirm(true)}
-									>
-										<Trash2 className="mr-2 h-3.5 w-3.5" />
-										Delete Cohort
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button variant="outline" size="sm">
+												<MoreVertical className="h-3.5 w-3.5" />
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end" className="w-56">
+											<DropdownMenuItem
+												className="text-destructive focus:text-destructive"
+												onClick={() => setShowDeleteConfirm(true)}
+											>
+												<Trash2 className="mr-2 h-3.5 w-3.5" />
+												Delete Cohort
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</>
+							)}
 						</div>
 					</div>
 				</div>
@@ -792,6 +784,7 @@ export function CohortDetailPageClient({
 				{/* Cohort Information with inline editing */}
 				<EditableSection
 					title="Cohort Information"
+					canEdit={canEditCohort}
 					onEditStart={() => {
 						// Reset to current values when starting to edit
 						setEditedCohort(cohort);
@@ -1028,32 +1021,6 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
-
-									<div className="flex items-start gap-3">
-										<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">
-												Room Type:
-											</p>
-											{editing ? (
-												<InlineEditField
-													value={editedCohort?.room_type || ""}
-													onSave={(value) =>
-														updateEditedField("room_type", value || null)
-													}
-													editing={editing}
-													type="select"
-													options={roomTypeOptions}
-												/>
-											) : cohort.room_type ? (
-												<Badge variant="outline" className="h-5 text-xs">
-													{formatRoomType(cohort.room_type)}
-												</Badge>
-											) : (
-												<span className="font-medium text-sm">—</span>
-											)}
-										</div>
-									</div>
 								</div>
 							</div>
 
@@ -1174,7 +1141,7 @@ export function CohortDetailPageClient({
 					<div className="border-b p-4">
 						<div className="flex items-center justify-between">
 							<h2 className="font-semibold text-lg">Weekly Schedule</h2>
-							{sessionCount > 0 && (
+							{sessionCount > 0 && canAddSession && (
 								<Button
 									variant="outline"
 									size="sm"
@@ -1193,24 +1160,26 @@ export function CohortDetailPageClient({
 								<p className="mb-4 text-muted-foreground">
 									No weekly sessions scheduled
 								</p>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={navigateToAddSession}
-								>
-									<Plus className="mr-2 h-4 w-4" />
-									Add First Session
-								</Button>
+								{canAddSession && (
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={navigateToAddSession}
+									>
+										<Plus className="mr-2 h-4 w-4" />
+										Add First Session
+									</Button>
+								)}
 							</div>
 						) : (
 							<div className="grid gap-2 lg:grid-cols-2">
 								{cohortWithSessions?.weekly_sessions?.map((session: any) => (
 									<div
 										key={session.id}
-										className="group relative cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:shadow-md"
-										onClick={() => handleEditSession(session)}
-										role="button"
-										tabIndex={0}
+										className={`group relative overflow-hidden rounded-lg border bg-card transition-all duration-200 ${canAddSession ? "cursor-pointer hover:shadow-md" : ""}`}
+										onClick={canAddSession ? () => handleEditSession(session) : undefined}
+										role={canAddSession ? "button" : undefined}
+										tabIndex={canAddSession ? 0 : undefined}
 									>
 										{/* Day and Time Header */}
 										<div className="flex items-center justify-between border-b bg-muted/30 p-3">
@@ -1305,6 +1274,7 @@ export function CohortDetailPageClient({
 								languageLevels,
 							)}
 							onEnrollmentUpdate={fetchEnrollmentData}
+							canEnrollStudent={canEditCohort}
 						/>
 					</TabsContent>
 
@@ -1422,7 +1392,7 @@ export function CohortDetailPageClient({
 							<li>
 								• Start date:{" "}
 								{cohort.start_date
-									? new Date(cohort.start_date).toLocaleDateString()
+									? formatDate(cohort.start_date, "PPP")
 									: "Not set"}
 							</li>
 							<li>• Max students: {cohort.max_students || 10}</li>

@@ -53,6 +53,7 @@ import { toast } from "sonner";
 
 interface AssessmentDetailsClientProps {
 	assessment: any;
+	permissions?: any;
 }
 
 // Assessment result configuration
@@ -72,7 +73,10 @@ const RESULT_COLORS = {
 
 export default function AssessmentDetailsClient({
 	assessment: initialAssessment,
+	permissions,
 }: AssessmentDetailsClientProps) {
+	// Check if user can edit assessments
+	const canEditAssessment = permissions?.assessments?.includes("write");
 	const router = useRouter();
 	const [assessment, setAssessment] = useState(initialAssessment);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -264,14 +268,18 @@ export default function AssessmentDetailsClient({
 										View Student Profile
 									</Link>
 								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									className="text-destructive"
-									onClick={() => setDeleteDialogOpen(true)}
-								>
-									<Trash2 className="mr-2 h-3.5 w-3.5" />
-									Delete Assessment
-								</DropdownMenuItem>
+								{canEditAssessment && (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="text-destructive"
+											onClick={() => setDeleteDialogOpen(true)}
+										>
+											<Trash2 className="mr-2 h-3.5 w-3.5" />
+											Delete Assessment
+										</DropdownMenuItem>
+									</>
+								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>
@@ -282,6 +290,7 @@ export default function AssessmentDetailsClient({
 				{/* Assessment Information */}
 				<EditableSection
 					title="Assessment Information"
+					canEdit={canEditAssessment}
 					onEditStart={() => setEditedAssessment(assessment)}
 					onSave={saveAllChanges}
 					onCancel={() => setEditedAssessment(assessment)}

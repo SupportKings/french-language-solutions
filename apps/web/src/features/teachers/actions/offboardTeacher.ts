@@ -30,11 +30,13 @@ export const offboardTeacher = actionClient
 			}
 
 			// Get teacher details
+			const headersList = await headers();
 			const teacherResponse = await fetch(
 				`${process.env.NEXT_PUBLIC_APP_URL}/api/teachers/${parsedInput.teacherId}`,
 				{
 					headers: {
 						"Content-Type": "application/json",
+						Cookie: headersList.get("cookie") || "",
 					},
 				},
 			);
@@ -73,6 +75,7 @@ export const offboardTeacher = actionClient
 					method: "PATCH",
 					headers: {
 						"Content-Type": "application/json",
+						Cookie: headersList.get("cookie") || "",
 					},
 					body: JSON.stringify({
 						onboarding_status: "offboarded",
@@ -123,12 +126,14 @@ export const permanentlyDeleteTeacher = actionClient
 			}
 
 			// Use the DELETE endpoint which permanently deletes the teacher
+			const headersList = await headers();
 			const deleteResponse = await fetch(
 				`${process.env.NEXT_PUBLIC_APP_URL}/api/teachers/${parsedInput.teacherId}`,
 				{
 					method: "DELETE",
 					headers: {
 						"Content-Type": "application/json",
+						Cookie: headersList.get("cookie") || "",
 					},
 				},
 			);

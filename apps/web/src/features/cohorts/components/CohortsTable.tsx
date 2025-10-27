@@ -17,6 +17,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { formatDate } from "@/lib/date-utils";
 
 import { format } from "date-fns";
 import { BookOpen, Clock, User, Users } from "lucide-react";
@@ -452,7 +453,7 @@ export function CohortsTable({
 									<div className="flex h-12 items-center">
 										{cohort.start_date ? (
 											<p className="text-sm">
-												{format(new Date(cohort.start_date), "MMM d, yyyy")}
+												{formatDate(cohort.start_date, "MMM d, yyyy")}
 											</p>
 										) : (
 											<span className="text-muted-foreground">-</span>

@@ -63,6 +63,7 @@ interface StudentDetailsClientProps {
 	student: any;
 	enrollmentCount: number;
 	assessmentCount: number;
+	permissions?: any;
 }
 
 // Enrollment status configuration
@@ -94,7 +95,12 @@ export default function StudentDetailsClient({
 	student: initialStudent,
 	enrollmentCount,
 	assessmentCount,
+	permissions,
 }: StudentDetailsClientProps) {
+	// Check permissions
+	const canEditStudent = permissions?.students?.includes("write");
+	const canDeleteStudent = permissions?.students?.includes("write");
+
 	const router = useRouter();
 	const pathname = usePathname();
 	const [student, setStudent] = useState(initialStudent);
@@ -275,19 +281,21 @@ export default function StudentDetailsClient({
 							</div>
 						</div>
 
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="outline" size="sm">
-									<MoreVertical className="h-3.5 w-3.5" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-56">
-								<DropdownMenuItem className="text-destructive">
-									<Trash2 className="mr-2 h-3.5 w-3.5" />
-									Delete Student
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+						{canDeleteStudent && (
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button variant="outline" size="sm">
+										<MoreVertical className="h-3.5 w-3.5" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="w-56">
+									<DropdownMenuItem className="text-destructive">
+										<Trash2 className="mr-2 h-3.5 w-3.5" />
+										Delete Student
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						)}
 					</div>
 				</div>
 			</div>
@@ -296,6 +304,7 @@ export default function StudentDetailsClient({
 				{/* Student Information with inline editing */}
 				<EditableSection
 					title="Student Information"
+					canEdit={canEditStudent}
 					onEditStart={() => setEditedStudent(student)}
 					onSave={saveAllChanges}
 					onCancel={() => setEditedStudent(student)}
@@ -683,10 +692,12 @@ export default function StudentDetailsClient({
 												Course Enrollments
 											</CardTitle>
 										</div>
-										<Button size="sm" onClick={navigateToCreateEnrollment}>
-											<Plus className="mr-1.5 h-3.5 w-3.5" />
-											Add Enrollment
-										</Button>
+										{canEditStudent && (
+											<Button size="sm" onClick={navigateToCreateEnrollment}>
+												<Plus className="mr-1.5 h-3.5 w-3.5" />
+												Add Enrollment
+											</Button>
+										)}
 									</div>
 								</CardHeader>
 								<CardContent className="pt-0">
@@ -710,14 +721,19 @@ export default function StudentDetailsClient({
 													: "No assessments scheduled yet"}
 											</p>
 										</div>
-										<Button size="sm" onClick={navigateToCreateAssessment}>
-											<Plus className="mr-1.5 h-3.5 w-3.5" />
-											Schedule Assessment
-										</Button>
+										{canEditStudent && (
+											<Button size="sm" onClick={navigateToCreateAssessment}>
+												<Plus className="mr-1.5 h-3.5 w-3.5" />
+												Schedule Assessment
+											</Button>
+										)}
 									</div>
 								</CardHeader>
 								<CardContent className="pt-0">
-									<StudentAssessments studentId={student.id} />
+									<StudentAssessments
+									studentId={student.id}
+									canScheduleAssessment={canEditStudent}
+								/>
 								</CardContent>
 							</Card>
 						</TabsContent>
@@ -756,10 +772,12 @@ export default function StudentDetailsClient({
 												View and manage follow-ups linked to this student
 											</p>
 										</div>
-										<Button size="sm" onClick={navigateToSetFollowUp}>
-											<Plus className="mr-1.5 h-3.5 w-3.5" />
-											Set Follow-up
-										</Button>
+										{canEditStudent && (
+											<Button size="sm" onClick={navigateToSetFollowUp}>
+												<Plus className="mr-1.5 h-3.5 w-3.5" />
+												Set Follow-up
+											</Button>
+										)}
 									</div>
 								</CardHeader>
 								<CardContent>
@@ -781,22 +799,24 @@ export default function StudentDetailsClient({
 												View all touchpoints and interactions for this student
 											</p>
 										</div>
-										<Button
-											size="sm"
-											onClick={() => {
-												const params = new URLSearchParams({
-													studentId: student.id,
-													studentName: student.full_name,
-													redirectTo: `${pathname}?tab=touchpoints`,
-												});
-												router.push(
-													`/admin/touchpoints/new?${params.toString()}`,
-												);
-											}}
-										>
-											<Plus className="mr-1.5 h-3.5 w-3.5" />
-											Log Touchpoint
-										</Button>
+										{canEditStudent && (
+											<Button
+												size="sm"
+												onClick={() => {
+													const params = new URLSearchParams({
+														studentId: student.id,
+														studentName: student.full_name,
+														redirectTo: `${pathname}?tab=touchpoints`,
+													});
+													router.push(
+														`/admin/touchpoints/new?${params.toString()}`,
+													);
+												}}
+											>
+												<Plus className="mr-1.5 h-3.5 w-3.5" />
+												Log Touchpoint
+											</Button>
+										)}
 									</div>
 								</CardHeader>
 								<CardContent>

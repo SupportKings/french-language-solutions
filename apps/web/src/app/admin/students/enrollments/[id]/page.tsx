@@ -1,12 +1,15 @@
 import { Suspense } from "react";
 
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
-import { getEnrollment } from "@/features/enrollments/actions/getEnrollment";
+import { getApiUrl } from "@/lib/api-utils";
 import EnrollmentDetailSkeleton from "@/features/enrollments/components/enrollment.detail.skeleton";
 import EnrollmentDetailView from "@/features/enrollments/components/enrollment.detail.view";
 
 import { getUser } from "@/queries/getUser";
+import { rolesMap } from "@/lib/permissions";
+import { AccessDenied } from "@/components/ui/access-denied";
 
 import {
 	dehydrate,
@@ -18,6 +21,21 @@ interface EnrollmentDetailPageProps {
 	params: Promise<{
 		id: string;
 	}>;
+}
+
+async function getEnrollment(id: string) {
+	const response = await fetch(getApiUrl(`/api/enrollments/${id}`), {
+		cache: "no-store",
+		headers: { cookie: (await headers()).get("cookie") ?? "" },
+	});
+
+	if (!response.ok) {
+		// Return the status code along with null data
+		return { data: null, status: response.status };
+	}
+
+	const data = await response.json();
+	return { data, status: 200 };
 }
 
 export default function EnrollmentDetailPage({
@@ -40,38 +58,45 @@ async function EnrollmentDetailPageAsync({
 		notFound();
 	}
 
-	const queryClient = new QueryClient();
 	const session = await getUser();
 
 	if (!session) {
 		redirect("/");
 	}
 
-	// Prefetch the enrollment data with error handling
-	await Promise.all([
-		queryClient.prefetchQuery({
-			queryKey: ["enrollments", "detail", id],
-			queryFn: () => getEnrollment(id),
-		}),
-	]).catch((error) => {
-		// Convert not-found responses into 404 error (fail-fast)
-		if (error?.message?.includes("not found") || error?.status === 404) {
-			notFound();
-		}
-		// Propagate other errors
-		throw error;
-	});
+	// Get user's role and permissions
+	const userRole = session.user.role || "teacher";
+	const rolePermissions = rolesMap[userRole as keyof typeof rolesMap];
+	const permissions = rolePermissions?.statements || {};
 
-	// Verify the QueryClient cache contains the expected data
-	const cachedData = queryClient.getQueryData(["enrollments", "detail", id]);
-	if (!cachedData) {
-		// Throw error to prevent rendering a broken hydration boundary
-		throw new Error(`Failed to prefetch enrollment data for id: ${id}`);
+	// Fetch enrollment data
+	const result = await getEnrollment(id);
+
+	// Handle different error cases
+	if (!result.data) {
+		if (result.status === 403) {
+			return (
+				<AccessDenied
+					message="You don't have permission to view this enrollment."
+					backLink="/admin/students"
+					backLinkText="Back to Students List"
+				/>
+			);
+		}
+		notFound();
 	}
+
+	const queryClient = new QueryClient();
+
+	// Prefetch the enrollment data for React Query
+	await queryClient.prefetchQuery({
+		queryKey: ["enrollments", "detail", id],
+		queryFn: () => result.data,
+	});
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<EnrollmentDetailView enrollmentId={id} />
+			<EnrollmentDetailView enrollmentId={id} permissions={permissions} />
 		</HydrationBoundary>
 	);
 }

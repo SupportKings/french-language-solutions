@@ -112,7 +112,7 @@ export class TeacherService {
 					day_of_week,
 					start_time,
 					end_time,
-					cohort:cohorts!weekly_sessions_cohort_id_cohorts_id_fk (
+					cohort:cohorts!weekly_sessions_cohort_id_fkey (
 						id,
 						cohort_status
 					)

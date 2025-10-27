@@ -14,7 +14,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 // Create a Supabase client with service role key for server-side operations
-export const supabase = createClient<Database>(
+export const supabase = createClient<any>(
 	supabaseUrl,
 	supabaseServiceKey,
 	{

@@ -27,7 +27,7 @@ export async function getEnrollment(id: string) {
 		.from("enrollments")
 		.select(`
 			*,
-			student:students!enrollments_student_id_students_id_fk (
+			student:students!enrollments_student_id_fkey (
 				id,
 				full_name,
 				first_name,
@@ -45,7 +45,7 @@ export async function getEnrollment(id: string) {
 				created_at,
 				updated_at
 			),
-			cohort:cohorts!enrollments_cohort_id_cohorts_id_fk (
+			cohort:cohorts!enrollments_cohort_id_fkey (
 				id,
 				cohort_status,
 				start_date,
@@ -69,7 +69,7 @@ export async function getEnrollment(id: string) {
 					code,
 					level_group
 				),
-				weekly_sessions:weekly_sessions!weekly_sessions_cohort_id_cohorts_id_fk (
+				weekly_sessions:weekly_sessions!weekly_sessions_cohort_id_fkey (
 					id,
 					day_of_week,
 					start_time,

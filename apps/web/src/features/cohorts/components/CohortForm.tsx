@@ -37,6 +37,7 @@ import {
 	teachersQueries,
 	useTeachers,
 } from "@/features/teachers/queries/teachers.queries";
+import { parseDateString } from "@/lib/date-utils";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -79,11 +80,6 @@ const cohortFormSchema = z.object({
 		"class_ended",
 	]),
 
-	// Location
-	room_type: z
-		.enum(["for_one_to_one", "medium", "medium_plus", "large"])
-		.optional(),
-
 	// Resources
 	google_drive_folder_id: z.string().optional(),
 
@@ -121,13 +117,6 @@ interface CohortFormProps {
 	cohort?: any;
 	onSuccess?: () => void;
 }
-
-const roomTypeOptions = [
-	{ label: "One-to-One", value: "for_one_to_one" },
-	{ label: "Medium", value: "medium" },
-	{ label: "Medium Plus", value: "medium_plus" },
-	{ label: "Large", value: "large" },
-];
 
 const statusOptions = [
 	{ label: "Enrollment Open", value: "enrollment_open" },
@@ -192,9 +181,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			starting_level_id: cohort?.starting_level_id || "",
 			current_level_id: cohort?.current_level_id || "",
 			max_students: cohort?.max_students || 20,
-			start_date: cohort?.start_date ? new Date(cohort.start_date) : undefined,
+			start_date: cohort?.start_date ? parseDateString(cohort.start_date) : undefined,
 			cohort_status: cohort?.cohort_status ?? "enrollment_open",
-			room_type: cohort?.room_type || undefined,
 			product_id: cohort?.product_id || "",
 			google_drive_folder_id: cohort?.google_drive_folder_id || "",
 			weekly_sessions: cohort?.weekly_sessions ?? [],
@@ -236,9 +224,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 				max_students: data.max_students || 20,
 				google_drive_folder_id: data.google_drive_folder_id || null,
 				airtable_record_id: data.airtable_record_id || null,
-				room_type: data.room_type || null,
 				product_id: data.product_id || null,
 				starting_level_id: data.starting_level_id || null,
+				room_type: null,
 			};
 
 			// Use mutation hooks for better cache management
@@ -765,54 +753,31 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							</div>
 						</FormSection>
 
-						{/* Capacity & Location */}
+						{/* Capacity */}
 						<FormSection
-							title="Capacity & Location"
-							description="Maximum enrollment and classroom settings"
-							icon={MapPin}
+							title="Capacity"
+							description="Maximum enrollment for this cohort"
+							icon={Users}
 						>
-							<FormRow>
-								<FormField
-									label="Max Students"
-									hint="Maximum enrollment capacity for this cohort"
-									error={form.formState.errors.max_students?.message}
-								>
-									<InputField
-										type="number"
-										placeholder="20"
-										min={1}
-										max={100}
-										error={!!form.formState.errors.max_students}
-										{...form.register("max_students", {
-											setValueAs: (v) =>
-												v === "" || v === null ? undefined : Number(v),
-										})}
-									/>
-								</FormField>
-								<FormField
-									label="Room Type"
-									hint="Select the appropriate classroom size"
-									error={form.formState.errors.room_type?.message}
-								>
-									<SelectField
-										placeholder="Select room type"
-										value={form.watch("room_type") || ""}
-										onValueChange={(value) =>
-											form.setValue(
-												"room_type",
-												value as
-													| "for_one_to_one"
-													| "medium"
-													| "medium_plus"
-													| "large",
-											)
-										}
-										options={roomTypeOptions}
-									/>
-								</FormField>
-							</FormRow>
+							<FormField
+								label="Max Students"
+								hint="Maximum enrollment capacity for this cohort"
+								error={form.formState.errors.max_students?.message}
+							>
+								<InputField
+									type="number"
+									placeholder="20"
+									min={1}
+									max={100}
+									error={!!form.formState.errors.max_students}
+									{...form.register("max_students", {
+										setValueAs: (v) =>
+											v === "" || v === null ? undefined : Number(v),
+									})}
+								/>
+							</FormField>
 						</FormSection>
-			
+
 						{/* External References */}
 						<FormSection
 							title="External References"

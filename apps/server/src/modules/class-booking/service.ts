@@ -149,7 +149,7 @@ export class ClassBookingService {
 					student_id,
 					cohort_id,
 					status,
-					cohorts!enrollments_cohort_id_cohorts_id_fk (
+					cohorts!enrollments_cohort_id_fkey (
 						id,
 						products!cohorts_product_id_products_id_fk (
 							id,
@@ -169,7 +169,10 @@ export class ClassBookingService {
 			}
 
 			// Check if the product has a Stripe signup link
-			const stripeSignupLink = enrollment.cohorts?.products?.signup_link_for_self_checkout;
+			// Note: Supabase returns nested relationships as arrays
+			const cohort = Array.isArray(enrollment.cohorts) ? enrollment.cohorts[0] : enrollment.cohorts;
+			const product = Array.isArray(cohort?.products) ? cohort.products[0] : cohort?.products;
+			const stripeSignupLink = product?.signup_link_for_self_checkout;
 
 			if (!stripeSignupLink) {
 				return {
@@ -206,8 +209,8 @@ export class ClassBookingService {
 			.from("enrollments")
 			.select(`
 				*,
-				students!enrollments_student_id_students_id_fk (*),
-				cohorts!enrollments_cohort_id_cohorts_id_fk (
+				students!enrollments_student_id_fkey (*),
+				cohorts!enrollments_cohort_id_fkey (
 					*,
 					products!cohorts_product_id_products_id_fk (*)
 				)
@@ -226,6 +229,11 @@ export class ClassBookingService {
 
 		for (const enrollment of abandonedEnrollments || []) {
 			try {
+				// Handle array relationships from Supabase
+				const student = Array.isArray(enrollment.students) ? enrollment.students[0] : enrollment.students;
+				const cohort = Array.isArray(enrollment.cohorts) ? enrollment.cohorts[0] : enrollment.cohorts;
+				const product = Array.isArray(cohort?.products) ? cohort.products[0] : cohort?.products;
+
 				// Determine new status
 				const newStatus =
 					enrollment.status === "beginner_form_filled"
@@ -257,21 +265,21 @@ export class ClassBookingService {
 					oldStatus: enrollment.status,
 					newStatus: newStatus,
 					student: {
-						id: enrollment.students?.id,
-						email: enrollment.students?.email,
-						firstName: enrollment.students?.first_name,
-						lastName: enrollment.students?.last_name,
+						id: student?.id,
+						email: student?.email,
+						firstName: student?.first_name,
+						lastName: student?.last_name,
 					},
 					cohort: {
-						id: enrollment.cohorts?.id,
-						startDate: enrollment.cohorts?.start_date,
-						productFormat: enrollment.cohorts?.products?.format,
+						id: cohort?.id,
+						startDate: cohort?.start_date,
+						productFormat: product?.format,
 					},
 					product: {
-						id: enrollment.cohorts?.products?.id,
-						displayName: enrollment.cohorts?.products?.display_name,
-						format: enrollment.cohorts?.products?.format,
-						location: enrollment.cohorts?.products?.location,
+						id: product?.id,
+						displayName: product?.display_name,
+						format: product?.format,
+						location: product?.location,
 					},
 				};
 
@@ -290,7 +298,7 @@ export class ClassBookingService {
 				}
 
 				// Delete cohort if it's private format
-				if (enrollment.cohorts?.products?.format === "private") {
+				if (product?.format === "private") {
 					const { error: deleteError } = await supabase
 						.from("cohorts")
 						.delete()
@@ -311,7 +319,7 @@ export class ClassBookingService {
 					studentId: enrollment.student_id,
 					oldStatus: enrollment.status,
 					newStatus: newStatus,
-					cohortDeleted: enrollment.cohorts?.products?.format === "private",
+					cohortDeleted: product?.format === "private",
 				});
 
 				processedCount++;

@@ -1,6 +1,8 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
+import { AccessDenied } from "@/components/ui/access-denied";
 
 import { EnrollmentFormNew } from "@/features/enrollments/components/EnrollmentFormNew";
 
@@ -13,13 +15,15 @@ import {
 async function getEnrollment(id: string) {
 	const response = await fetch(getApiUrl(`/api/enrollments/${id}`), {
 		cache: "no-store",
+		headers: { cookie: (await headers()).get("cookie") ?? "" },
 	});
 
 	if (!response.ok) {
-		return null;
+		return { data: null, status: response.status };
 	}
 
-	return response.json();
+	const data = await response.json();
+	return { data, status: 200 };
 }
 
 export default async function EditEnrollmentPage({
@@ -31,9 +35,18 @@ export default async function EditEnrollmentPage({
 }) {
 	const { id } = await params;
 	const { redirectTo } = await searchParams;
-	const enrollment = await getEnrollment(id);
+	const result = await getEnrollment(id);
 
-	if (!enrollment) {
+	if (!result.data) {
+		if (result.status === 403) {
+			return (
+				<AccessDenied
+					message="You don't have permission to edit this enrollment."
+					backLink="/admin/students"
+					backLinkText="Back to Students List"
+				/>
+			);
+		}
 		notFound();
 	}
 
@@ -41,12 +54,12 @@ export default async function EditEnrollmentPage({
 
 	await queryClient.prefetchQuery({
 		queryKey: ["enrollment", id],
-		queryFn: () => enrollment,
+		queryFn: () => result.data,
 	});
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<EnrollmentFormNew enrollment={enrollment} redirectTo={redirectTo} />
+			<EnrollmentFormNew enrollment={result.data} redirectTo={redirectTo} />
 		</HydrationBoundary>
 	);
 }
