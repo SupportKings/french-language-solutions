@@ -297,29 +297,11 @@ export class ClassBookingService {
 					);
 				}
 
-				// Delete cohort if it's private format
-				if (product?.format === "private") {
-					const { error: deleteError } = await supabase
-						.from("cohorts")
-						.delete()
-						.eq("id", enrollment.cohort_id);
-
-					if (deleteError) {
-						console.error(
-							`Error deleting private cohort ${enrollment.cohort_id}:`,
-							deleteError,
-						);
-					} else {
-						console.log(`Deleted private cohort ${enrollment.cohort_id}`);
-					}
-				}
-
 				processedDetails.push({
 					enrollmentId: enrollment.id,
 					studentId: enrollment.student_id,
 					oldStatus: enrollment.status,
 					newStatus: newStatus,
-					cohortDeleted: product?.format === "private",
 				});
 
 				processedCount++;
