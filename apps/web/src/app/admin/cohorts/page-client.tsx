@@ -204,7 +204,7 @@ export function ClassesPageClient() {
 		columnsConfig: dynamicCohortColumns,
 	});
 
-	// Convert filters to query params - support multiple values
+	// Convert filters to query params - support multiple values with operators
 	const filterParams = useMemo(() => {
 		const params: Record<string, any> = {};
 
@@ -214,22 +214,24 @@ export function ClassesPageClient() {
 				// Support multiple values for filters
 				if (filter.type === "option") {
 					params[filter.columnId] = filter.values;
-					console.log(`📌 Filter ${filter.columnId}:`, filter.values);
+					params[`${filter.columnId}_operator`] = filter.operator;
+					console.log(`📌 Filter ${filter.columnId}:`, filter.values, "operator:", filter.operator);
 				} else if (filter.type === "text") {
 					// Text filter - use first value as search string
 					params[filter.columnId] = filter.values[0] as string;
 					console.log(`🔍 Text Filter ${filter.columnId}:`, filter.values[0]);
 				} else if (filter.type === "date") {
 					// Date filter can be single date or date range
+					params[`${filter.columnId}_operator`] = filter.operator;
 					if (filter.values.length === 1) {
-						// Single date - treat as "from" date
+						// Single date - treat based on operator
 						params[`${filter.columnId}_from`] = (filter.values[0] as Date).toISOString();
 					} else if (filter.values.length === 2) {
 						// Date range
 						params[`${filter.columnId}_from`] = (filter.values[0] as Date).toISOString();
 						params[`${filter.columnId}_to`] = (filter.values[1] as Date).toISOString();
 					}
-					console.log(`📌 Date Filter ${filter.columnId}:`, filter.values);
+					console.log(`📌 Date Filter ${filter.columnId}:`, filter.values, "operator:", filter.operator);
 				}
 			}
 		});
@@ -263,33 +265,42 @@ export function ClassesPageClient() {
 		// Only add filters if they have values
 		if (filterParams.format && filterParams.format.length > 0) {
 			query.format = filterParams.format as CohortFormat[];
+			query.format_operator = filterParams.format_operator;
 		}
 		if (filterParams.location && filterParams.location.length > 0) {
 			query.location = filterParams.location as string[];
+			query.location_operator = filterParams.location_operator;
 		}
 		if (filterParams.cohort_status && filterParams.cohort_status.length > 0) {
 			query.cohort_status = filterParams.cohort_status as CohortStatus[];
+			query.cohort_status_operator = filterParams.cohort_status_operator;
 		}
 		if (
 			filterParams.starting_level_id &&
 			filterParams.starting_level_id.length > 0
 		) {
 			query.starting_level_id = filterParams.starting_level_id as string[];
+			query.starting_level_id_operator = filterParams.starting_level_id_operator;
 		}
 		if (
 			filterParams.current_level_id &&
 			filterParams.current_level_id.length > 0
 		) {
 			query.current_level_id = filterParams.current_level_id as string[];
+			query.current_level_id_operator = filterParams.current_level_id_operator;
 		}
 		if (filterParams.teacher_ids && filterParams.teacher_ids.length > 0) {
 			query.teacher_ids = filterParams.teacher_ids as string[];
+			query.teacher_ids_operator = filterParams.teacher_ids_operator;
 		}
 		if (filterParams.start_date_from) {
 			query.start_date_from = filterParams.start_date_from;
 		}
 		if (filterParams.start_date_to) {
 			query.start_date_to = filterParams.start_date_to;
+		}
+		if (filterParams.start_date_operator) {
+			query.start_date_operator = filterParams.start_date_operator;
 		}
 
 		console.log("🎯 Final queryFilters:", query);

@@ -6,6 +6,75 @@ import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
 import { parseDateString } from "@/lib/date-utils";
 import type { Database } from "@/utils/supabase/database.types";
 
+// Helper function to apply option filters based on operator
+function applyOptionFilter<T>(
+	value: T | null | undefined,
+	filterValues: string[],
+	operator: string,
+): boolean {
+	if (filterValues.length === 0) return true;
+
+	const found = filterValues.includes(String(value));
+
+	switch (operator) {
+		case "is":
+		case "is any of":
+			return found;
+		case "is not":
+		case "is none of":
+			return !found;
+		default:
+			return found;
+	}
+}
+
+// Helper function to apply date filters based on operator
+function applyDateFilter(
+	cohortDate: Date,
+	fromDate: Date | null,
+	toDate: Date | null,
+	operator: string,
+): boolean {
+	if (!fromDate && !toDate) return true;
+
+	switch (operator) {
+		case "is":
+			if (!fromDate) return true;
+			return cohortDate.toDateString() === fromDate.toDateString();
+		case "is not":
+			if (!fromDate) return true;
+			return cohortDate.toDateString() !== fromDate.toDateString();
+		case "is before":
+			if (!fromDate) return true;
+			return cohortDate < fromDate;
+		case "is on or after":
+			if (!fromDate) return true;
+			return cohortDate >= fromDate;
+		case "is after":
+			if (!fromDate) return true;
+			return cohortDate > fromDate;
+		case "is on or before":
+			if (!fromDate) return true;
+			return cohortDate <= fromDate;
+		case "is between":
+			if (!fromDate || !toDate) return true;
+			return cohortDate >= fromDate && cohortDate <= toDate;
+		case "is not between":
+			if (!fromDate || !toDate) return true;
+			return cohortDate < fromDate || cohortDate > toDate;
+		default:
+			// Default behavior for backward compatibility
+			if (fromDate && toDate) {
+				return cohortDate >= fromDate && cohortDate <= toDate;
+			} else if (fromDate) {
+				return cohortDate >= fromDate;
+			} else if (toDate) {
+				return cohortDate <= toDate;
+			}
+			return true;
+	}
+}
+
 // GET /api/cohorts - List cohorts with pagination and filtering
 export async function GET(request: NextRequest) {
 	try {
@@ -20,14 +89,22 @@ export async function GET(request: NextRequest) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
 		const format = searchParams.getAll("format");
+		const format_operator = searchParams.get("format_operator") || "is any of";
 		const location = searchParams.getAll("location");
+		const location_operator = searchParams.get("location_operator") || "is any of";
 		const cohort_status = searchParams.getAll("cohort_status");
+		const cohort_status_operator = searchParams.get("cohort_status_operator") || "is any of";
 		const starting_level_id = searchParams.getAll("starting_level_id");
+		const starting_level_id_operator = searchParams.get("starting_level_id_operator") || "is any of";
 		const current_level_id = searchParams.getAll("current_level_id");
+		const current_level_id_operator = searchParams.get("current_level_id_operator") || "is any of";
 		const room_type = searchParams.getAll("room_type");
+		const room_type_operator = searchParams.get("room_type_operator") || "is any of";
 		const teacher_ids = searchParams.getAll("teacher_ids");
+		const teacher_ids_operator = searchParams.get("teacher_ids_operator") || "is any of";
 		const start_date_from = searchParams.get("start_date_from");
 		const start_date_to = searchParams.get("start_date_to");
+		const start_date_operator = searchParams.get("start_date_operator") || "is between";
 		const today_sessions = searchParams.get("today_sessions") === "true";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -165,72 +242,78 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// Format filter (any format value)
+		// Format filter with operator support
 		if (format.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				format.includes(cohort.products?.format),
+				applyOptionFilter(cohort.products?.format, format, format_operator),
 			);
 		}
 
-		// Location filter (any location value)
+		// Location filter with operator support
 		if (location.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				location.includes(cohort.products?.location),
+				applyOptionFilter(cohort.products?.location, location, location_operator),
 			);
 		}
 
-		// Multi-value filters - apply when we have any values (using AND logic)
+		// Cohort status filter with operator support
 		if (cohort_status.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				cohort_status.includes(cohort.cohort_status),
+				applyOptionFilter(cohort.cohort_status, cohort_status, cohort_status_operator),
 			);
 		}
 
+		// Starting level filter with operator support
 		if (starting_level_id.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				starting_level_id.includes(cohort.starting_level_id),
+				applyOptionFilter(cohort.starting_level_id, starting_level_id, starting_level_id_operator),
 			);
 		}
 
+		// Current level filter with operator support
 		if (current_level_id.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				current_level_id.includes(cohort.current_level_id),
+				applyOptionFilter(cohort.current_level_id, current_level_id, current_level_id_operator),
 			);
 		}
 
+		// Room type filter with operator support
 		if (room_type.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				room_type.includes(cohort.room_type),
+				applyOptionFilter(cohort.room_type, room_type, room_type_operator),
 			);
 		}
 
-		// Teacher filter (complex join - in-memory only)
+		// Teacher filter with operator support (complex join - in-memory only)
 		if (teacher_ids.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				const cohortTeacherIds =
-					cohort.weekly_sessions?.map((ws: any) => ws.teacher?.id) || [];
-				return teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
+					cohort.weekly_sessions?.map((ws: any) => ws.teacher?.id).filter(Boolean) || [];
+
+				// Apply operator logic
+				switch (teacher_ids_operator) {
+					case "is":
+					case "is any of":
+						return teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
+					case "is not":
+					case "is none of":
+						return !teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
+					default:
+						return teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
+				}
 			});
 		}
 
-		// Date range filter
+		// Date filter with operator support
 		if (start_date_from || start_date_to) {
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				if (!cohort.start_date) return false;
 				const cohortDate = parseDateString(cohort.start_date);
 
-				if (start_date_from && start_date_to) {
-					const fromDate = new Date(start_date_from);
-					const toDate = new Date(start_date_to);
-					return cohortDate >= fromDate && cohortDate <= toDate;
-				} else if (start_date_from) {
-					const fromDate = new Date(start_date_from);
-					return cohortDate >= fromDate;
-				} else if (start_date_to) {
-					const toDate = new Date(start_date_to);
-					return cohortDate <= toDate;
-				}
-				return true;
+				const fromDate = start_date_from ? new Date(start_date_from) : null;
+				const toDate = start_date_to ? new Date(start_date_to) : null;
+
+				return applyDateFilter(cohortDate, fromDate, toDate, start_date_operator);
 			});
 		}
 
