@@ -1,15 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth, requirePermission } from "@/lib/rbac-middleware";
 
 import { updateProductSchema } from "@/features/products/schemas/product.schema";
 
 // GET /api/products/[id] - Get a single product
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		await requireAuth();
+		await requirePermission("products", ["read"]);
+
 		const supabase = await createClient();
 		const { id } = await params;
 
@@ -40,6 +44,9 @@ export async function PATCH(
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		await requireAuth();
+		await requirePermission("products", ["write"]);
+
 		const supabase = await createClient();
 		const { id } = await params;
 		const body = await request.json();
@@ -96,10 +103,13 @@ export async function PATCH(
 
 // DELETE /api/products/[id] - Delete a product
 export async function DELETE(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
+		await requireAuth();
+		await requirePermission("products", ["write"]);
+
 		const supabase = await createClient();
 		const { id } = await params;
 

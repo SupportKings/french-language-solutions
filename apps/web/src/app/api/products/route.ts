@@ -1,12 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth, requirePermission } from "@/lib/rbac-middleware";
 
 import { createProductSchema } from "@/features/products/schemas/product.schema";
 
 // GET /api/products - List products
 export async function GET(request: NextRequest) {
 	try {
+		await requireAuth();
+		await requirePermission("products", ["read"]);
+
 		const supabase = await createClient();
 		const searchParams = request.nextUrl.searchParams;
 
@@ -100,6 +104,9 @@ export async function GET(request: NextRequest) {
 // POST /api/products - Create a new product
 export async function POST(request: NextRequest) {
 	try {
+		await requireAuth();
+		await requirePermission("products", ["write"]);
+
 		const supabase = await createClient();
 		const body = await request.json();
 
