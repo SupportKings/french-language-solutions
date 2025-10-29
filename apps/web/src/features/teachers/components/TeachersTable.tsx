@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 
 import {
 	DataTableFilter,
@@ -30,7 +31,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
 	Briefcase,
@@ -177,23 +177,58 @@ interface TeachersTableProps {
 
 export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 	const router = useRouter();
-	const [query, setQuery] = useState<TeacherQuery>({
-		page: 1,
-		limit: 20,
-		sortBy: "created_at",
-		sortOrder: "desc",
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
 	});
-	const [searchInput, setSearchInput] = useState("");
-	const debouncedSearch = useDebounce(searchInput, 300);
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
 	const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const limit = 20;
+
+	// Parse initial filters from URL
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			return parsed;
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
 
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: teacherColumns,
+		defaultFilters: initialFilters,
 	});
+
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
 
 	// Convert filters to query params - support multiple values
 	const filterQuery = useMemo(() => {
@@ -221,52 +256,68 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 		);
 
 		return {
-			// Pass arrays for multi-select filters
+			// Pass arrays for multi-select filters with operators
 			onboarding_status: onboardingFilter?.values?.length
 				? onboardingFilter.values
 				: undefined,
+			onboarding_status_operator: onboardingFilter?.operator,
 			contract_type: contractFilter?.values?.length
 				? contractFilter.values
 				: undefined,
+			contract_type_operator: contractFilter?.operator,
 			available_for_booking:
 				bookingFilter?.values?.[0] === "true"
 					? true
 					: bookingFilter?.values?.[0] === "false"
 						? false
 						: undefined,
+			available_for_booking_operator: bookingFilter?.operator,
 			qualified_for_under_16:
 				under16Filter?.values?.[0] === "true"
 					? true
 					: under16Filter?.values?.[0] === "false"
 						? false
 						: undefined,
+			qualified_for_under_16_operator: under16Filter?.operator,
 			available_for_online_classes:
 				onlineFilter?.values?.[0] === "true"
 					? true
 					: onlineFilter?.values?.[0] === "false"
 						? false
 						: undefined,
+			available_for_online_classes_operator: onlineFilter?.operator,
 			available_for_in_person_classes:
 				inPersonFilter?.values?.[0] === "true"
 					? true
 					: inPersonFilter?.values?.[0] === "false"
 						? false
 						: undefined,
+			available_for_in_person_classes_operator: inPersonFilter?.operator,
 			days_available_online: onlineDaysFilter?.values?.length
 				? onlineDaysFilter.values
 				: undefined,
+			days_available_online_operator: onlineDaysFilter?.operator,
 			days_available_in_person: inPersonDaysFilter?.values?.length
 				? inPersonDaysFilter.values
 				: undefined,
+			days_available_in_person_operator: inPersonDaysFilter?.operator,
 		};
 	}, [filters]);
 
-	// Update query when debounced search changes or filters change
-	const effectiveQuery = {
-		...query,
+	// Reset page when filters or search change
+	useEffect(() => {
+		setPageState(1);
+	}, [filterQuery, searchQuery, setPageState]);
+
+	// Build effective query with URL state and filters
+	const effectiveQuery = useMemo(() => ({
+		page,
+		limit,
+		sortBy: "created_at" as const,
+		sortOrder: "desc" as const,
 		...filterQuery,
-		search: debouncedSearch || undefined,
-	};
+		search: searchQuery || undefined,
+	}), [page, limit, filterQuery, searchQuery]);
 
 	const { data, isLoading, error } = useTeachers(effectiveQuery);
 	const deleteTeacher = useDeleteTeacher();
@@ -314,8 +365,8 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by name..."
-								value={searchInput}
-								onChange={(e) => setSearchInput(e.target.value)}
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
 								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
@@ -588,16 +639,16 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setQuery({ ...query, page: query.page - 1 })}
-								disabled={query.page === 1}
+								onClick={() => setPageState(page - 1)}
+								disabled={page === 1}
 							>
 								Previous
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setQuery({ ...query, page: query.page + 1 })}
-								disabled={query.page === data.meta.totalPages}
+								onClick={() => setPageState(page + 1)}
+								disabled={page === data.meta.totalPages}
 							>
 								Next
 							</Button>

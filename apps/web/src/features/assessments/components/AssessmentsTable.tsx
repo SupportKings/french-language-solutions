@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import Link from "next/link";
 
@@ -32,8 +32,8 @@ import {
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
+import { useQueryState } from "nuqs";
 import {
 	Calendar,
 	CheckCircle,
@@ -156,9 +156,25 @@ export function AssessmentsTable({
 	// Check permissions
 	const canAddAssessment = permissions?.assessments?.includes("write");
 	const canDeleteAssessment = permissions?.assessments?.includes("write");
-	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState("");
-	const debouncedSearch = useDebounce(search, 300);
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
+	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
 
 	// Fetch language levels for the level filter
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
@@ -180,14 +196,45 @@ export function AssessmentsTable({
 		});
 	}, [languageLevels]);
 
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
+				}
+				return filter;
+			});
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
+
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: dynamicAssessmentColumns,
+		defaultFilters: initialFilters,
 	});
 
-	// Convert filters to query params - support multiple values
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
+
+	// Convert filters to query params - support multiple values with operators
 	const filterQuery = useMemo(() => {
 		const resultFilter = filters.find((f) => f.columnId === "result");
 		const levelFilter = filters.find((f) => f.columnId === "level_id");
@@ -199,21 +246,26 @@ export function AssessmentsTable({
 		const dateFilter = filters.find((f) => f.columnId === "scheduled_date");
 
 		return {
-			// Pass arrays for multi-select filters
+			// Pass arrays for multi-select filters with operators
 			result: resultFilter?.values?.length ? resultFilter.values : undefined,
+			result_operator: resultFilter?.operator,
 			level_id: levelFilter?.values?.length ? levelFilter.values : undefined,
+			level_id_operator: levelFilter?.operator,
 			is_paid:
 				paidFilter?.values?.[0] === "true"
 					? "true"
 					: paidFilter?.values?.[0] === "false"
 						? "false"
 						: undefined,
+			is_paid_operator: paidFilter?.operator,
 			has_teacher: teacherFilter?.values?.length
 				? teacherFilter.values
 				: undefined,
+			has_teacher_operator: teacherFilter?.operator,
 			scheduled_status: scheduledFilter?.values?.length
 				? scheduledFilter.values
 				: undefined,
+			scheduled_status_operator: scheduledFilter?.operator,
 			// Date filter - can be single date or date range
 			date_from: dateFilter?.values?.[0]
 				? (() => {
@@ -224,55 +276,71 @@ export function AssessmentsTable({
 						return `${year}-${month}-${day}`;
 					})()
 				: undefined,
-			date_to: dateFilter?.values?.[1]
+			date_to: (dateFilter?.values?.[1] || (dateFilter?.values?.length === 1 && dateFilter?.values?.[0]))
 				? (() => {
-						const d = new Date(dateFilter.values[1]);
+						// Use second value if exists, otherwise use first value for single-date operators
+						const d = new Date(dateFilter.values[1] || dateFilter.values[0]);
 						const year = d.getFullYear();
 						const month = String(d.getMonth() + 1).padStart(2, "0");
 						const day = String(d.getDate()).padStart(2, "0");
 						return `${year}-${month}-${day}`;
 					})()
 				: undefined,
-			date_operator: dateFilter?.operator,
+			scheduled_date_operator: dateFilter?.operator,
 		};
 	}, [filters]);
 
 	// Reset page when filters or search change
 	useEffect(() => {
-		setPage(1);
-	}, [filterQuery, debouncedSearch]);
+		setPageState(1);
+	}, [filterQuery, searchQuery, setPageState]);
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ["assessments", page, debouncedSearch, filterQuery],
+		queryKey: ["assessments", page, searchQuery, filterQuery],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
 				limit: "20",
-				...(debouncedSearch && { search: debouncedSearch }),
+				...(searchQuery && { search: searchQuery }),
 				...(filterQuery.is_paid !== undefined && {
 					is_paid: filterQuery.is_paid,
 				}),
 				...(filterQuery.date_from && { date_from: filterQuery.date_from }),
 				...(filterQuery.date_to && { date_to: filterQuery.date_to }),
-				...(filterQuery.date_operator && {
-					date_operator: filterQuery.date_operator,
+				...(filterQuery.scheduled_date_operator && {
+					scheduled_date_operator: filterQuery.scheduled_date_operator,
 				}),
 			});
 
-			// Add array filters
+			// Add array filters with operators
 			if (filterQuery.result) {
 				filterQuery.result.forEach((v) => params.append("result", v));
+				if (filterQuery.result_operator) {
+					params.append("result_operator", filterQuery.result_operator);
+				}
 			}
 			if (filterQuery.level_id) {
 				filterQuery.level_id.forEach((v) => params.append("level_id", v));
+				if (filterQuery.level_id_operator) {
+					params.append("level_id_operator", filterQuery.level_id_operator);
+				}
 			}
 			if (filterQuery.has_teacher) {
 				filterQuery.has_teacher.forEach((v) => params.append("has_teacher", v));
+				if (filterQuery.has_teacher_operator) {
+					params.append("has_teacher_operator", filterQuery.has_teacher_operator);
+				}
 			}
 			if (filterQuery.scheduled_status) {
 				filterQuery.scheduled_status.forEach((v) =>
 					params.append("scheduled_status", v),
 				);
+				if (filterQuery.scheduled_status_operator) {
+					params.append("scheduled_status_operator", filterQuery.scheduled_status_operator);
+				}
+			}
+			if (filterQuery.is_paid_operator) {
+				params.append("is_paid_operator", filterQuery.is_paid_operator);
 			}
 
 			const response = await fetch(`/api/assessments?${params}`);
@@ -322,8 +390,11 @@ export function AssessmentsTable({
 							<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by student name or email..."
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
+								value={searchQuery || ""}
+								onChange={(e) => {
+									setSearchQuery(e.target.value || null);
+									setPageState(1); // Reset to first page on search
+								}}
 								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
@@ -546,7 +617,10 @@ export function AssessmentsTable({
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page - 1)}
+								onClick={() => {
+									setPageState(page - 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === 1}
 							>
 								Previous
@@ -554,7 +628,10 @@ export function AssessmentsTable({
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page + 1)}
+								onClick={() => {
+									setPageState(page + 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === data.pagination.totalPages}
 							>
 								Next

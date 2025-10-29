@@ -4,6 +4,28 @@ import { createClient } from "@/lib/supabase/server";
 
 import { teacherFormSchema } from "@/features/teachers/schemas/teacher.schema";
 
+// Helper function to apply option filters based on operator
+function applyOptionFilter<T>(
+	value: T | null | undefined,
+	filterValues: string[],
+	operator: string,
+): boolean {
+	if (filterValues.length === 0) return true;
+
+	const found = filterValues.includes(String(value));
+
+	switch (operator) {
+		case "is":
+		case "is any of":
+			return found;
+		case "is not":
+		case "is none of":
+			return !found;
+		default:
+			return found;
+	}
+}
+
 // GET /api/teachers - List teachers with pagination and filters
 export async function GET(request: NextRequest) {
 	try {
@@ -17,31 +39,42 @@ export async function GET(request: NextRequest) {
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
-		// Filters - handle multiple values
+		// Filters - handle multiple values with operators
 		const onboardingStatus = searchParams.getAll("onboarding_status");
+		const onboarding_status_operator = searchParams.get("onboarding_status_operator") || "is any of";
 		const contractType = searchParams.getAll("contract_type");
+		const contract_type_operator = searchParams.get("contract_type_operator") || "is any of";
 		const availableForBooking = searchParams.get("available_for_booking");
+		const available_for_booking_operator = searchParams.get("available_for_booking_operator") || "is any of";
 		const qualifiedForUnder16 = searchParams.get("qualified_for_under_16");
+		const qualified_for_under_16_operator = searchParams.get("qualified_for_under_16_operator") || "is any of";
 		const availableForOnlineClasses = searchParams.get(
 			"available_for_online_classes",
 		);
+		const available_for_online_classes_operator = searchParams.get("available_for_online_classes_operator") || "is any of";
 		const availableForInPersonClasses = searchParams.get(
 			"available_for_in_person_classes",
 		);
+		const available_for_in_person_classes_operator = searchParams.get("available_for_in_person_classes_operator") || "is any of";
 		const daysAvailableOnline = searchParams.getAll("days_available_online");
+		const days_available_online_operator = searchParams.get("days_available_online_operator") || "is any of";
 		const daysAvailableInPerson = searchParams.getAll(
 			"days_available_in_person",
 		);
+		const days_available_in_person_operator = searchParams.get("days_available_in_person_operator") || "is any of";
 
-		// Calculate offset
-		const offset = (page - 1) * limit;
+		// Determine if we need in-memory filtering for operators
+		const needsInMemoryFiltering =
+			onboardingStatus.length > 0 ||
+			contractType.length > 0 ||
+			availableForBooking ||
+			qualifiedForUnder16 ||
+			availableForOnlineClasses ||
+			availableForInPersonClasses ||
+			daysAvailableOnline.length > 0 ||
+			daysAvailableInPerson.length > 0;
 
-		// Build query for total count
-		let countQuery = supabase
-			.from("teachers")
-			.select("*", { count: "exact", head: true });
-
-		// Build query for data
+		// Build query for data - fetch all if using in-memory filtering
 		let dataQuery = supabase
 			.from("teachers")
 			.select(`
@@ -71,79 +104,22 @@ export async function GET(request: NextRequest) {
 				created_at,
 				updated_at
 			`)
-			.range(offset, offset + limit - 1)
 			.order(sortBy, { ascending: sortOrder === "asc" });
 
-		// Apply filters to both queries
+		// Only apply range if not doing in-memory filtering
+		if (!needsInMemoryFiltering) {
+			const offset = (page - 1) * limit;
+			dataQuery = dataQuery.range(offset, offset + limit - 1);
+		}
+
+		// Apply search filter
 		if (search) {
 			const searchFilter = `first_name.ilike.%${search}%,last_name.ilike.%${search}%`;
-			countQuery = countQuery.or(searchFilter);
 			dataQuery = dataQuery.or(searchFilter);
 		}
 
-		// Handle multiple values with IN operator
-		if (onboardingStatus.length > 0) {
-			countQuery = countQuery.in("onboarding_status", onboardingStatus);
-			dataQuery = dataQuery.in("onboarding_status", onboardingStatus);
-		}
-
-		if (contractType.length > 0) {
-			countQuery = countQuery.in("contract_type", contractType);
-			dataQuery = dataQuery.in("contract_type", contractType);
-		}
-
-		if (availableForBooking !== null && availableForBooking !== undefined) {
-			const value = availableForBooking === "true";
-			countQuery = countQuery.eq("available_for_booking", value);
-			dataQuery = dataQuery.eq("available_for_booking", value);
-		}
-
-		if (qualifiedForUnder16 !== null && qualifiedForUnder16 !== undefined) {
-			const value = qualifiedForUnder16 === "true";
-			countQuery = countQuery.eq("qualified_for_under_16", value);
-			dataQuery = dataQuery.eq("qualified_for_under_16", value);
-		}
-
-		if (
-			availableForOnlineClasses !== null &&
-			availableForOnlineClasses !== undefined
-		) {
-			const value = availableForOnlineClasses === "true";
-			countQuery = countQuery.eq("available_for_online_classes", value);
-			dataQuery = dataQuery.eq("available_for_online_classes", value);
-		}
-
-		if (
-			availableForInPersonClasses !== null &&
-			availableForInPersonClasses !== undefined
-		) {
-			const value = availableForInPersonClasses === "true";
-			countQuery = countQuery.eq("available_for_in_person_classes", value);
-			dataQuery = dataQuery.eq("available_for_in_person_classes", value);
-		}
-
-		// Handle array filtering for availability days - OR logic (teacher available on ANY of selected days)
-		if (daysAvailableOnline.length > 0) {
-			const orConditions = daysAvailableOnline
-				.map((day) => `days_available_online.cs.{${day}}`)
-				.join(",");
-			countQuery = countQuery.or(orConditions);
-			dataQuery = dataQuery.or(orConditions);
-		}
-
-		if (daysAvailableInPerson.length > 0) {
-			const orConditions = daysAvailableInPerson
-				.map((day) => `days_available_in_person.cs.{${day}}`)
-				.join(",");
-			countQuery = countQuery.or(orConditions);
-			dataQuery = dataQuery.or(orConditions);
-		}
-
-		// Execute queries
-		const [{ count }, { data, error }] = await Promise.all([
-			countQuery,
-			dataQuery,
-		]);
+		// Execute query
+		const { data, error, count } = await dataQuery;
 
 		if (error) {
 			console.error("Error fetching teachers:", error);
@@ -153,9 +129,99 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
+		// Apply in-memory filters with operator support
+		let filteredData = data || [];
+
+		// Onboarding status filter with operator
+		if (onboardingStatus.length > 0) {
+			filteredData = filteredData.filter((teacher: any) =>
+				applyOptionFilter(teacher.onboarding_status, onboardingStatus, onboarding_status_operator),
+			);
+		}
+
+		// Contract type filter with operator
+		if (contractType.length > 0) {
+			filteredData = filteredData.filter((teacher: any) =>
+				applyOptionFilter(teacher.contract_type, contractType, contract_type_operator),
+			);
+		}
+
+		// Available for booking filter with operator
+		if (availableForBooking !== null && availableForBooking !== undefined) {
+			const bookingValues = [availableForBooking];
+			filteredData = filteredData.filter((teacher: any) =>
+				applyOptionFilter(String(teacher.available_for_booking), bookingValues, available_for_booking_operator),
+			);
+		}
+
+		// Qualified for under 16 filter with operator
+		if (qualifiedForUnder16 !== null && qualifiedForUnder16 !== undefined) {
+			const under16Values = [qualifiedForUnder16];
+			filteredData = filteredData.filter((teacher: any) =>
+				applyOptionFilter(String(teacher.qualified_for_under_16), under16Values, qualified_for_under_16_operator),
+			);
+		}
+
+		// Available for online classes filter with operator
+		if (availableForOnlineClasses !== null && availableForOnlineClasses !== undefined) {
+			const onlineValues = [availableForOnlineClasses];
+			filteredData = filteredData.filter((teacher: any) =>
+				applyOptionFilter(String(teacher.available_for_online_classes), onlineValues, available_for_online_classes_operator),
+			);
+		}
+
+		// Available for in-person classes filter with operator
+		if (availableForInPersonClasses !== null && availableForInPersonClasses !== undefined) {
+			const inPersonValues = [availableForInPersonClasses];
+			filteredData = filteredData.filter((teacher: any) =>
+				applyOptionFilter(String(teacher.available_for_in_person_classes), inPersonValues, available_for_in_person_classes_operator),
+			);
+		}
+
+		// Days available online filter with operator
+		if (daysAvailableOnline.length > 0) {
+			filteredData = filteredData.filter((teacher: any) => {
+				const teacherDays = teacher.days_available_online || [];
+				const hasAnyDay = daysAvailableOnline.some(day => teacherDays.includes(day));
+
+				switch (days_available_online_operator) {
+					case "is any of":
+						return hasAnyDay;
+					case "is none of":
+						return !hasAnyDay;
+					default:
+						return hasAnyDay;
+				}
+			});
+		}
+
+		// Days available in-person filter with operator
+		if (daysAvailableInPerson.length > 0) {
+			filteredData = filteredData.filter((teacher: any) => {
+				const teacherDays = teacher.days_available_in_person || [];
+				const hasAnyDay = daysAvailableInPerson.some(day => teacherDays.includes(day));
+
+				switch (days_available_in_person_operator) {
+					case "is any of":
+						return hasAnyDay;
+					case "is none of":
+						return !hasAnyDay;
+					default:
+						return hasAnyDay;
+				}
+			});
+		}
+
+		// Apply pagination to filtered data
+		const total = filteredData.length;
+		const offset = (page - 1) * limit;
+		const paginatedData = needsInMemoryFiltering
+			? filteredData.slice(offset, offset + limit)
+			: filteredData;
+
 		// Transform data to match frontend expectations
 		// Fetch active cohorts count for each teacher
-		const teacherIds = (data || []).map((t) => t.id);
+		const teacherIds = paginatedData.map((t) => t.id);
 		let countsByTeacher = new Map<string, number>();
 		if (teacherIds.length > 0) {
 			const { data: sessionRows, error: sessionsError } = await supabase
@@ -186,20 +252,21 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
-		const transformedData = (data || []).map((teacher) => ({
+		const transformedData = paginatedData.map((teacher) => ({
 			...teacher,
 			full_name: `${teacher.first_name} ${teacher.last_name}`.trim(),
 			active_cohorts_count: countsByTeacher.get(teacher.id) ?? 0,
 		}));
 		// Calculate pagination metadata
-		const totalPages = Math.ceil((count || 0) / limit);
+		const actualTotal = needsInMemoryFiltering ? total : (count || 0);
+		const totalPages = Math.ceil(actualTotal / limit);
 
 		return NextResponse.json({
 			data: transformedData,
 			meta: {
 				page,
 				limit,
-				total: count || 0,
+				total: actualTotal,
 				totalPages,
 			},
 		});

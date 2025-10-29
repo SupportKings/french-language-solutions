@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 
 import {
 	DataTableFilter,
@@ -30,7 +31,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
 	ArrowDownLeft,
@@ -137,28 +137,64 @@ const touchpointColumns = [
 
 export function TouchpointsTable() {
 	const router = useRouter();
-	const [searchInput, setSearchInput] = useState("");
-	const debouncedSearch = useDebounce(searchInput, 300);
-	const [query, setQuery] = useState<TouchpointQuery>({
-		search: "",
-		page: 1,
-		limit: 20,
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
 	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
 	const [touchpointToDelete, setTouchpointToDelete] = useState<string | null>(
 		null,
 	);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const limit = 20;
 
 	const deleteTouchpoint = useDeleteTouchpoint();
+
+	// Parse initial filters from URL
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			return parsed;
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
 
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: touchpointColumns,
+		defaultFilters: initialFilters,
 	});
 
-	// Convert filters to query params
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
+
+	// Convert filters to query params with operators
 	const filterQuery = useMemo(() => {
 		const channelFilter = filters.find((f) => f.columnId === "channel");
 		const typeFilter = filters.find((f) => f.columnId === "type");
@@ -168,21 +204,30 @@ export function TouchpointsTable() {
 			channel: channelFilter?.values?.length
 				? (channelFilter.values as any)
 				: undefined,
+			channel_operator: channelFilter?.operator,
 			type: typeFilter?.values?.length ? (typeFilter.values as any) : undefined,
+			type_operator: typeFilter?.operator,
 			source: sourceFilter?.values?.length
 				? (sourceFilter.values as any)
 				: undefined,
+			source_operator: sourceFilter?.operator,
 		};
 	}, [filters]);
 
-	// Update query when search or filters change
+	// Reset page when filters or search change
+	useEffect(() => {
+		setPageState(1);
+	}, [filterQuery, searchQuery, setPageState]);
+
+	// Build effective query with URL state and filters
 	const finalQuery = useMemo(
 		() => ({
-			...query,
-			search: debouncedSearch,
+			page,
+			limit,
+			search: searchQuery || undefined,
 			...filterQuery,
 		}),
-		[query, debouncedSearch, filterQuery],
+		[page, limit, searchQuery, filterQuery],
 	);
 
 	const { data, isLoading, error } = useTouchpoints(finalQuery);
@@ -241,8 +286,8 @@ export function TouchpointsTable() {
 							<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by name, email, or phone..."
-								value={searchInput}
-								onChange={(e) => setSearchInput(e.target.value)}
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
 								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
@@ -435,16 +480,16 @@ export function TouchpointsTable() {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setQuery({ ...query, page: query.page - 1 })}
-								disabled={query.page === 1}
+								onClick={() => setPageState(page - 1)}
+								disabled={page === 1}
 							>
 								Previous
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setQuery({ ...query, page: query.page + 1 })}
-								disabled={query.page === data.meta.totalPages}
+								onClick={() => setPageState(page + 1)}
+								disabled={page === data.meta.totalPages}
 							>
 								Next
 							</Button>

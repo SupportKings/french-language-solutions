@@ -148,6 +148,33 @@ export function ClassesPageClient() {
 	});
 	const todaySessions = todaySessionsState === "true";
 
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
+				}
+				return filter;
+			});
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
+
 	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
 		const columns = [...cohortColumns];
@@ -202,7 +229,18 @@ export function ClassesPageClient() {
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: dynamicCohortColumns,
+		defaultFilters: initialFilters,
 	});
+
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
 
 	// Convert filters to query params - support multiple values with operators
 	const filterParams = useMemo(() => {

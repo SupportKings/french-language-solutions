@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import {
@@ -612,15 +613,18 @@ export function CohortDetailPageClient({
 			{/* Enhanced Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/cohorts"
-							className="transition-colors hover:text-foreground"
-						>
-							Classes
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<span>{cohortName}</span>
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/cohorts"
+								className="transition-colors hover:text-foreground"
+							>
+								Classes
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<span>{cohortName}</span>
+						</div>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">

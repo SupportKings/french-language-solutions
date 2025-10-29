@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,8 +33,8 @@ import {
 
 import { useSequences } from "@/features/sequences/queries/sequences.queries";
 
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
+import { useQueryState } from "nuqs";
 import {
   AlertCircle,
   CheckCircle,
@@ -116,13 +116,26 @@ const getColumnConfigurations = (
 
 export function AutomatedFollowUpsTable() {
   const router = useRouter();
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 300);
-  const [query, setQuery] = useState<AutomatedFollowUpQuery>({
-    search: "",
-    page: 1,
-    limit: 20,
+
+  // URL state management for pagination and search
+  const [pageState, setPageState] = useQueryState("page", {
+    parse: (value) => Number.parseInt(value) || 1,
+    serialize: (value) => value.toString(),
+    defaultValue: 1,
   });
+  const page = pageState ?? 1;
+
+  const [searchQuery, setSearchQuery] = useQueryState("search", {
+    defaultValue: "",
+  });
+
+  // Store filters in URL as JSON
+  const [filtersParam, setFiltersParam] = useQueryState("filters", {
+    defaultValue: "",
+    parse: (value) => value,
+    serialize: (value) => value,
+  });
+
   const [followUpToDelete, setFollowUpToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -135,14 +148,36 @@ export function AutomatedFollowUpsTable() {
   });
   const sequences = sequencesData?.data || [];
 
+  // Parse initial filters from URL
+  const initialFilters = useMemo(() => {
+    if (!filtersParam) return [];
+    try {
+      const parsed = JSON.parse(decodeURIComponent(filtersParam));
+      return parsed;
+    } catch {
+      return [];
+    }
+  }, [filtersParam]);
+
   // Data table filters hook - use dynamic columns
   const { columns, filters, actions, strategy } = useDataTableFilters({
     strategy: "server" as const,
     data: [], // Empty for server-side filtering
     columnsConfig: getColumnConfigurations(sequences, isLoadingSequences),
+    defaultFilters: initialFilters,
   });
 
-  // Convert filters to query params - support multiple values
+  // Sync filters to URL whenever they change
+  useEffect(() => {
+    if (filters.length === 0) {
+      setFiltersParam(null);
+    } else {
+      const serialized = encodeURIComponent(JSON.stringify(filters));
+      setFiltersParam(serialized);
+    }
+  }, [filters, setFiltersParam]);
+
+  // Convert filters to query params - support multiple values with operators
   const filterQuery = useMemo(() => {
     const statusFilter = filters.find((f) => f.columnId === "status");
     const sequenceFilter = filters.find((f) => f.columnId === "sequence_id");
@@ -151,20 +186,23 @@ export function AutomatedFollowUpsTable() {
       status: statusFilter?.values?.length
         ? (statusFilter.values as any)
         : undefined,
+      status_operator: statusFilter?.operator,
       sequence_id: sequenceFilter?.values?.length
         ? (sequenceFilter.values as any)
         : undefined,
+      sequence_id_operator: sequenceFilter?.operator,
     };
   }, [filters]);
 
-  // Update query when search or filters change
+  // Build query with URL state
   const finalQuery = useMemo(
     () => ({
-      ...query,
-      search: debouncedSearch,
+      page,
+      limit: 20,
+      search: searchQuery || "",
       ...filterQuery,
     }),
-    [query, debouncedSearch, filterQuery]
+    [page, searchQuery, filterQuery]
   );
 
   const { data, isLoading, error } = useAutomatedFollowUps(finalQuery);
@@ -204,8 +242,11 @@ export function AutomatedFollowUpsTable() {
               <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by student name..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                value={searchQuery || ""}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value || null);
+                  setPageState(1); // Reset to first page on search
+                }}
                 className="h-9 bg-muted/50 pl-9"
               />
             </div>
@@ -433,16 +474,22 @@ export function AutomatedFollowUpsTable() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setQuery({ ...query, page: query.page - 1 })}
-                disabled={query.page === 1}
+                onClick={() => {
+                  setPageState(page - 1);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                disabled={page === 1}
               >
                 Previous
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setQuery({ ...query, page: query.page + 1 })}
-                disabled={query.page === data.meta.totalPages}
+                onClick={() => {
+                  setPageState(page + 1);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                disabled={page === data.meta.totalPages}
               >
                 Next
               </Button>

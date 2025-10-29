@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { getApiUrl } from "@/lib/api-utils";
 
 import {
 	DataTableFilter,
@@ -33,8 +31,8 @@ import {
 } from "@/components/ui/table";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
+import { useQueryState } from "nuqs";
 import {
 	Building,
 	Calendar,
@@ -52,6 +50,8 @@ import {
 	Users,
 } from "lucide-react";
 import { toast } from "sonner";
+
+import { useProducts } from "@/features/products/queries/useProducts";
 
 const statusColors = {
 	declined_contract: "destructive",
@@ -121,53 +121,77 @@ interface EnrollmentsTableProps {
 
 export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 	const router = useRouter();
-	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState("");
-	const [products, setProducts] = useState<any[]>([]);
-	const debouncedSearch = useDebounce(search, 300);
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
+	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
 	const limit = 20;
 
-	// Fetch products for filter options
-	useEffect(() => {
-		const controller = new AbortController();
+	// Fetch products for filter options using React Query
+	const { data: productsData } = useProducts({
+		page: 1,
+		limit: 100,
+		sortBy: "display_name",
+		sortOrder: "asc",
+	});
 
-		async function fetchProducts() {
-			try {
-				const response = await fetch(getApiUrl("/api/products?limit=100"), {
-					signal: controller.signal,
-				});
+	const products = productsData?.data || [];
 
-				if (response.ok) {
-					const result = await response.json();
-					// Only update state if the fetch wasn't aborted
-					if (!controller.signal.aborted) {
-						setProducts(result.data || []);
-					}
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
 				}
-			} catch (error) {
-				// Only log error if it's not an abort error
-				if (error instanceof Error && error.name !== "AbortError") {
-					console.error("Error fetching products:", error);
-				}
-			}
+				return filter;
+			});
+		} catch {
+			return [];
 		}
-
-		fetchProducts();
-
-		// Cleanup function to abort fetch on unmount
-		return () => {
-			controller.abort();
-		};
-	}, []);
+	}, [filtersParam]);
 
 	// Data table filters hook - use dynamic columns with products
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: getEnrollmentColumns(products),
+		defaultFilters: initialFilters,
 	});
 
-	// Convert filters to query params
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
+
+	// Convert filters to query params with operators
 	const filterQuery = useMemo(() => {
 		const statusFilter = filters.find((f) => f.columnId === "status");
 		const productFilter = filters.find((f) => f.columnId === "product");
@@ -201,20 +225,23 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 
 		return {
 			status: statusFilter?.values || [],
+			status_operator: statusFilter?.operator,
 			productIds: productFilter?.values || [],
+			productIds_operator: productFilter?.operator,
 			dateFrom,
 			dateTo,
 			useAirtableDate,
+			created_at_operator: dateFilter?.operator,
 		};
 	}, [filters]);
 
-	// Reset page when filters change
+	// Reset page when filters or search change
 	useEffect(() => {
-		setPage(1);
-	}, [filters, debouncedSearch]);
+		setPageState(1);
+	}, [filters, searchQuery, setPageState]);
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ["enrollments", page, limit, debouncedSearch, filterQuery],
+		queryKey: ["enrollments", page, limit, searchQuery, filterQuery],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
@@ -224,21 +251,27 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			});
 
 			// Add search if present
-			if (debouncedSearch) {
-				params.append("search", debouncedSearch);
+			if (searchQuery) {
+				params.append("search", searchQuery);
 			}
 
-			// Add product filters (multiple values)
+			// Add product filters (multiple values) with operator
 			if (filterQuery.productIds && filterQuery.productIds.length > 0) {
 				filterQuery.productIds.forEach((id) => params.append("productId", id));
+				if (filterQuery.productIds_operator) {
+					params.append("productIds_operator", filterQuery.productIds_operator);
+				}
 			}
 
-			// Add status filters (multiple values)
+			// Add status filters (multiple values) with operator
 			if (filterQuery.status && filterQuery.status.length > 0) {
 				filterQuery.status.forEach((s) => params.append("status", s));
+				if (filterQuery.status_operator) {
+					params.append("status_operator", filterQuery.status_operator);
+				}
 			}
 
-			// Add date filters
+			// Add date filters with operator
 			if (filterQuery.dateFrom) {
 				params.append("dateFrom", filterQuery.dateFrom);
 				if (filterQuery.useAirtableDate) {
@@ -247,6 +280,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			}
 			if (filterQuery.dateTo) {
 				params.append("dateTo", filterQuery.dateTo);
+			}
+			if (filterQuery.created_at_operator) {
+				params.append("created_at_operator", filterQuery.created_at_operator);
 			}
 
 			const response = await fetch(`/api/enrollments?${params}`);
@@ -296,8 +332,11 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by student name or email..."
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
+								value={searchQuery || ""}
+								onChange={(e) => {
+									setSearchQuery(e.target.value || null);
+									setPageState(1); // Reset to first page on search
+								}}
 								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
@@ -517,7 +556,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page - 1)}
+								onClick={() => {
+									setPageState(page - 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === 1}
 							>
 								Previous
@@ -525,7 +567,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page + 1)}
+								onClick={() => {
+									setPageState(page + 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === data.pagination.totalPages}
 							>
 								Next

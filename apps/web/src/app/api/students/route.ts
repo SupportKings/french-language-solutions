@@ -7,6 +7,75 @@ import {
 	getCurrentUserCohortIds,
 } from "@/lib/rbac-middleware";
 
+// Helper function to apply option filters based on operator
+function applyOptionFilter<T>(
+	value: T | null | undefined,
+	filterValues: string[],
+	operator: string,
+): boolean {
+	if (filterValues.length === 0) return true;
+
+	const found = filterValues.includes(String(value));
+
+	switch (operator) {
+		case "is":
+		case "is any of":
+			return found;
+		case "is not":
+		case "is none of":
+			return !found;
+		default:
+			return found;
+	}
+}
+
+// Helper function to apply date filters based on operator
+function applyDateFilter(
+	itemDate: Date,
+	fromDate: Date | null,
+	toDate: Date | null,
+	operator: string,
+): boolean {
+	if (!fromDate && !toDate) return true;
+
+	switch (operator) {
+		case "is":
+			if (!fromDate) return true;
+			return itemDate.toDateString() === fromDate.toDateString();
+		case "is not":
+			if (!fromDate) return true;
+			return itemDate.toDateString() !== fromDate.toDateString();
+		case "is before":
+			if (!fromDate) return true;
+			return itemDate < fromDate;
+		case "is on or after":
+			if (!fromDate) return true;
+			return itemDate >= fromDate;
+		case "is after":
+			if (!fromDate) return true;
+			return itemDate > fromDate;
+		case "is on or before":
+			if (!fromDate) return true;
+			return itemDate <= fromDate;
+		case "is between":
+			if (!fromDate || !toDate) return true;
+			return itemDate >= fromDate && itemDate <= toDate;
+		case "is not between":
+			if (!fromDate || !toDate) return true;
+			return itemDate < fromDate || itemDate > toDate;
+		default:
+			// Default behavior for backward compatibility
+			if (fromDate && toDate) {
+				return itemDate >= fromDate && itemDate <= toDate;
+			} else if (fromDate) {
+				return itemDate >= fromDate;
+			} else if (toDate) {
+				return itemDate <= toDate;
+			}
+			return true;
+	}
+}
+
 // GET /api/students - List students with pagination, search, and filters
 export async function GET(request: NextRequest) {
 	try {
@@ -17,24 +86,31 @@ export async function GET(request: NextRequest) {
 		const supabase = await createClient();
 		const searchParams = request.nextUrl.searchParams;
 
-		// Parse query parameters - support multiple values for all filter fields
+		// Parse query parameters - support multiple values for all filter fields and operators
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "20");
 		const search = searchParams.get("search") || "";
 		const desired_starting_language_level_id = searchParams.getAll(
 			"desired_starting_language_level_id",
 		);
+		const desired_starting_language_level_id_operator = searchParams.get("desired_starting_language_level_id_operator") || "is any of";
 		const initial_channel = searchParams.getAll("initial_channel");
+		const initial_channel_operator = searchParams.get("initial_channel_operator") || "is any of";
 		const communication_channel = searchParams.getAll("communication_channel");
+		const communication_channel_operator = searchParams.get("communication_channel_operator") || "is any of";
 		const enrollmentStatus = searchParams.getAll("enrollment_status");
-		const is_full_beginner = searchParams.get("is_full_beginner");
-		const added_to_email_newsletter = searchParams.get(
+		const enrollment_status_operator = searchParams.get("enrollment_status_operator") || "is any of";
+		const is_full_beginner = searchParams.getAll("is_full_beginner");
+		const is_full_beginner_operator = searchParams.get("is_full_beginner_operator") || "is any of";
+		const added_to_email_newsletter = searchParams.getAll(
 			"added_to_email_newsletter",
 		);
-		const is_under_16 = searchParams.get("is_under_16");
+		const added_to_email_newsletter_operator = searchParams.get("added_to_email_newsletter_operator") || "is any of";
+		const is_under_16 = searchParams.getAll("is_under_16");
+		const is_under_16_operator = searchParams.get("is_under_16_operator") || "is any of";
 		const dateFrom = searchParams.get("dateFrom") || "";
 		const dateTo = searchParams.get("dateTo") || "";
-		const useAirtableDate = searchParams.get("useAirtableDate") === "true";
+		const created_at_operator = searchParams.get("created_at_operator") || "is between";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -113,6 +189,9 @@ export async function GET(request: NextRequest) {
 			desired_starting_language_level_id.length > 1 ||
 			initial_channel.length > 1 ||
 			communication_channel.length > 0 ||
+			is_full_beginner.length > 0 ||
+			added_to_email_newsletter.length > 0 ||
+			is_under_16.length > 0 ||
 			dateFrom ||
 			dateTo;
 
@@ -161,23 +240,7 @@ export async function GET(request: NextRequest) {
 			query = query.eq("initial_channel", initial_channel[0]);
 		}
 
-		if (is_full_beginner !== null && is_full_beginner !== undefined) {
-			query = query.eq("is_full_beginner", is_full_beginner === "true");
-		}
-
-		if (
-			added_to_email_newsletter !== null &&
-			added_to_email_newsletter !== undefined
-		) {
-			query = query.eq(
-				"added_to_email_newsletter",
-				added_to_email_newsletter === "true",
-			);
-		}
-
-		if (is_under_16 !== null && is_under_16 !== undefined) {
-			query = query.eq("is_under_16", is_under_16 === "true");
-		}
+		// Boolean filters are now handled in-memory to support "is any of" operation
 
 		// Apply sorting
 		query = query.order(sortBy, { ascending: sortOrder === "asc" });
@@ -212,55 +275,68 @@ export async function GET(request: NextRequest) {
 			};
 		});
 
-		// 6. Apply in-memory filters (when needed)
+		// 6. Apply in-memory filters (when needed) with operator support
 		let filteredData = processedData;
 
-		// Enrollment status filter - apply when we have any values (using AND logic)
+		// Enrollment status filter - apply with operator support
 		if (enrollmentStatus.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				enrollmentStatus.includes(student.enrollment_status),
+				applyOptionFilter(student.enrollment_status, enrollmentStatus, enrollment_status_operator),
 			);
 		}
 
-		// Language level filter - apply when we have any values (using AND logic)
+		// Language level filter - apply with operator support
 		if (desired_starting_language_level_id.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				desired_starting_language_level_id.includes(
+				applyOptionFilter(
 					student.desired_starting_language_level_id,
+					desired_starting_language_level_id,
+					desired_starting_language_level_id_operator,
 				),
 			);
 		}
 
-		// Initial channel filter - apply when we have any values (using AND logic)
+		// Initial channel filter - apply with operator support
 		if (initial_channel.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				initial_channel.includes(student.initial_channel),
+				applyOptionFilter(student.initial_channel, initial_channel, initial_channel_operator),
 			);
 		}
 
-		// Communication channel filter - apply when we have any values (using AND logic)
+		// Communication channel filter - apply with operator support
 		if (communication_channel.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				communication_channel.includes(student.communication_channel),
+				applyOptionFilter(student.communication_channel, communication_channel, communication_channel_operator),
 			);
 		}
 
-		// Date filters (in-memory only for complex Airtable date logic)
-		if (dateFrom) {
-			filteredData = filteredData.filter((student) => {
-				const dateToCheck = useAirtableDate
-					? student.airtable_created_at || student.created_at
-					: student.created_at;
-				return new Date(dateToCheck) >= new Date(dateFrom);
-			});
+		// Boolean filters - apply with operator support
+		if (is_full_beginner.length > 0) {
+			filteredData = filteredData.filter((student) =>
+				applyOptionFilter(student.is_full_beginner, is_full_beginner, is_full_beginner_operator),
+			);
 		}
 
-		if (dateTo) {
+		if (added_to_email_newsletter.length > 0) {
+			filteredData = filteredData.filter((student) =>
+				applyOptionFilter(student.added_to_email_newsletter, added_to_email_newsletter, added_to_email_newsletter_operator),
+			);
+		}
+
+		if (is_under_16.length > 0) {
+			filteredData = filteredData.filter((student) =>
+				applyOptionFilter(student.is_under_16, is_under_16, is_under_16_operator),
+			);
+		}
+
+		// Date filters with operator support
+		if (dateFrom || dateTo) {
 			filteredData = filteredData.filter((student) => {
-				const dateToCheck = useAirtableDate
-					? student.airtable_created_at || student.created_at
-					: student.created_at;
-				return new Date(dateToCheck) <= new Date(dateTo);
+				const itemDate = new Date(student.created_at);
+				const fromDateObj = dateFrom ? new Date(dateFrom) : null;
+				const toDateObj = dateTo ? new Date(dateTo) : null;
+
+				return applyDateFilter(itemDate, fromDateObj, toDateObj, created_at_operator);
 			});
 		}
 
