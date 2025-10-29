@@ -42,6 +42,8 @@ export async function GET(request: NextRequest) {
 		// Filters - handle multiple values with operators
 		const onboardingStatus = searchParams.getAll("onboarding_status");
 		const onboarding_status_operator = searchParams.get("onboarding_status_operator") || "is any of";
+		const role = searchParams.getAll("role");
+		const role_operator = searchParams.get("role_operator") || "is any of";
 		const contractType = searchParams.getAll("contract_type");
 		const contract_type_operator = searchParams.get("contract_type_operator") || "is any of";
 		const availableForBooking = searchParams.get("available_for_booking");
@@ -66,6 +68,7 @@ export async function GET(request: NextRequest) {
 		// Determine if we need in-memory filtering for operators
 		const needsInMemoryFiltering =
 			onboardingStatus.length > 0 ||
+			role.length > 0 ||
 			contractType.length > 0 ||
 			availableForBooking ||
 			qualifiedForUnder16 ||
@@ -137,6 +140,26 @@ export async function GET(request: NextRequest) {
 			filteredData = filteredData.filter((teacher: any) =>
 				applyOptionFilter(teacher.onboarding_status, onboardingStatus, onboarding_status_operator),
 			);
+		}
+
+		// Role filter with operator - role is an array field
+		if (role.length > 0) {
+			filteredData = filteredData.filter((teacher: any) => {
+				const teacherRoles = teacher.role || [];
+				// Check if any of the teacher's roles match the filter
+				const hasMatch = teacherRoles.some((r: string) => role.includes(r));
+
+				switch (role_operator) {
+					case "is":
+					case "is any of":
+						return hasMatch;
+					case "is not":
+					case "is none of":
+						return !hasMatch;
+					default:
+						return hasMatch;
+				}
+			});
 		}
 
 		// Contract type filter with operator

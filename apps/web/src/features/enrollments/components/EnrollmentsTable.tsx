@@ -52,6 +52,7 @@ import {
 import { toast } from "sonner";
 
 import { useProducts } from "@/features/products/queries/useProducts";
+import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 
 const statusColors = {
 	declined_contract: "destructive",
@@ -81,8 +82,8 @@ const statusLabels = {
 	offboarding: "Offboarding",
 };
 
-// Function to get column configurations - needs products for options
-const getEnrollmentColumns = (products: any[]) => [
+// Function to get column configurations - needs products and teachers for options
+const getEnrollmentColumns = (products: any[], teachers: any[]) => [
 	{
 		id: "status",
 		accessor: (enrollment: any) => enrollment.status,
@@ -103,6 +104,27 @@ const getEnrollmentColumns = (products: any[]) => [
 		options: products.map((product) => ({
 			label: product.display_name,
 			value: product.id,
+		})),
+	},
+	{
+		id: "cohort_nickname",
+		accessor: (enrollment: any) => enrollment.cohorts?.nickname,
+		displayName: "Cohort Nickname",
+		icon: Users,
+		type: "text" as const,
+	},
+	{
+		id: "teacher",
+		accessor: (enrollment: any) =>
+			enrollment.cohorts?.weekly_sessions
+				?.map((s: any) => s.teacher_id)
+				.filter(Boolean),
+		displayName: "Teacher",
+		icon: GraduationCap,
+		type: "option" as const,
+		options: teachers.map((teacher) => ({
+			label: `${teacher.first_name} ${teacher.last_name}`,
+			value: teacher.id,
 		})),
 	},
 	{
@@ -151,7 +173,20 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		sortOrder: "asc",
 	});
 
+	// Fetch teachers for filter options - only onboarded teachers with Teacher role
+	const { data: teachersData } = useQuery(
+		teachersQueries.list({
+			page: 1,
+			limit: 200,
+			sortBy: "first_name",
+			sortOrder: "asc",
+			onboarding_status: ["onboarded"],
+			role: ["Teacher"],
+		}),
+	);
+
 	const products = productsData?.data || [];
+	const teachers = teachersData?.data || [];
 
 	// Parse initial filters from URL and convert date strings back to Date objects
 	const initialFilters = useMemo(() => {
@@ -173,11 +208,11 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		}
 	}, [filtersParam]);
 
-	// Data table filters hook - use dynamic columns with products
+	// Data table filters hook - use dynamic columns with products and teachers
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: getEnrollmentColumns(products),
+		columnsConfig: getEnrollmentColumns(products, teachers),
 		defaultFilters: initialFilters,
 	});
 
@@ -195,6 +230,8 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 	const filterQuery = useMemo(() => {
 		const statusFilter = filters.find((f) => f.columnId === "status");
 		const productFilter = filters.find((f) => f.columnId === "product");
+		const cohortNicknameFilter = filters.find((f) => f.columnId === "cohort_nickname");
+		const teacherFilter = filters.find((f) => f.columnId === "teacher");
 		const dateFilter = filters.find((f) => f.columnId === "created_at");
 
 		// Date filter values are stored as [from, to] for ranges or [date] for single dates
@@ -224,10 +261,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		}
 
 		return {
-			status: statusFilter?.values || [],
+			status: statusFilter?.values?.length ? statusFilter.values : undefined,
 			status_operator: statusFilter?.operator,
-			productIds: productFilter?.values || [],
+			productIds: productFilter?.values?.length ? productFilter.values : undefined,
 			productIds_operator: productFilter?.operator,
+			cohortNickname: cohortNicknameFilter?.values?.[0] || undefined,
+			cohortNickname_operator: cohortNicknameFilter?.operator,
+			teacherIds: teacherFilter?.values?.length ? teacherFilter.values : undefined,
+			teacherIds_operator: teacherFilter?.operator,
 			dateFrom,
 			dateTo,
 			useAirtableDate,
@@ -268,6 +309,22 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 				filterQuery.status.forEach((s) => params.append("status", s));
 				if (filterQuery.status_operator) {
 					params.append("status_operator", filterQuery.status_operator);
+				}
+			}
+
+			// Add cohort nickname text search with operator
+			if (filterQuery.cohortNickname) {
+				params.append("cohortNickname", filterQuery.cohortNickname);
+				if (filterQuery.cohortNickname_operator) {
+					params.append("cohortNickname_operator", filterQuery.cohortNickname_operator);
+				}
+			}
+
+			// Add teacher filters (multiple values) with operator
+			if (filterQuery.teacherIds && filterQuery.teacherIds.length > 0) {
+				filterQuery.teacherIds.forEach((id) => params.append("teacherId", id));
+				if (filterQuery.teacherIds_operator) {
+					params.append("teacherIds_operator", filterQuery.teacherIds_operator);
 				}
 			}
 
@@ -365,6 +422,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						<TableRow>
 							<TableHead>Student</TableHead>
 							<TableHead>Cohort (Product and Sessions)</TableHead>
+							<TableHead>Teachers</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
@@ -384,6 +442,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										<Skeleton className="h-5 w-20" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-24" />
 									</TableCell>
 									<TableCell>
@@ -394,7 +455,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						) : data?.enrollments?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={6}
 									className="text-center text-muted-foreground"
 								>
 									No enrollments found
@@ -494,6 +555,32 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 													</div>
 												)}
 										</div>
+									</TableCell>
+									<TableCell>
+										{enrollment.cohorts?.weekly_sessions &&
+										enrollment.cohorts.weekly_sessions.length > 0 ? (
+											<div className="flex flex-wrap gap-1">
+												{enrollment.cohorts.weekly_sessions
+													.map((session: any) => session.teachers)
+													.filter(Boolean) // Remove null/undefined
+													.filter(
+														(teacher: any, index: number, self: any[]) =>
+															teacher && self.findIndex((t: any) => t?.id === teacher?.id) === index,
+													) // Get unique teachers
+													.map((teacher: any) => (
+														<LinkedRecordBadge
+															key={teacher.id}
+															href={`/admin/people/teachers/${teacher.id}`}
+															label={`${teacher.first_name} ${teacher.last_name}`}
+															icon={GraduationCap}
+														/>
+													))}
+											</div>
+										) : (
+											<span className="text-muted-foreground text-sm">
+												No teachers
+											</span>
+										)}
 									</TableCell>
 									<TableCell>
 										<Badge variant={(statusColors as any)[enrollment.status]}>

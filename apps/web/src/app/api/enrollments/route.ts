@@ -88,6 +88,10 @@ export async function GET(request: NextRequest) {
 		const status_operator = searchParams.get("status_operator") || "is any of";
 		const productIds = searchParams.getAll("productId"); // Support multiple products
 		const productIds_operator = searchParams.get("productIds_operator") || "is any of";
+		const cohortNickname = searchParams.get("cohortNickname") || "";
+		const cohortNickname_operator = searchParams.get("cohortNickname_operator") || "contains";
+		const teacherIds = searchParams.getAll("teacherId"); // Support multiple teachers
+		const teacherIds_operator = searchParams.get("teacherIds_operator") || "is any of";
 		const dateFrom = searchParams.get("dateFrom") || "";
 		const dateTo = searchParams.get("dateTo") || "";
 		const created_at_operator = searchParams.get("created_at_operator") || "is between";
@@ -137,7 +141,13 @@ export async function GET(request: NextRequest) {
 						id,
 						day_of_week,
 						start_time,
-						end_time
+						end_time,
+						teacher_id,
+						teachers (
+							id,
+							first_name,
+							last_name
+						)
 					)
 				)
 			`,
@@ -148,6 +158,8 @@ export async function GET(request: NextRequest) {
 		const needsInMemoryFiltering =
 			status.length > 0 ||
 			productIds.length > 0 ||
+			cohortNickname ||
+			teacherIds.length > 0 ||
 			dateFrom ||
 			dateTo;
 
@@ -235,6 +247,50 @@ export async function GET(request: NextRequest) {
 			filteredData = filteredData.filter((enrollment: any) =>
 				applyOptionFilter(enrollment.cohorts?.product_id, productIds, productIds_operator),
 			);
+		}
+
+		// Cohort nickname text search filter with operator
+		if (cohortNickname) {
+			filteredData = filteredData.filter((enrollment: any) => {
+				const nickname = enrollment.cohorts?.nickname?.toLowerCase() || "";
+				const searchTerm = cohortNickname.toLowerCase();
+				const matches = nickname.includes(searchTerm);
+
+				switch (cohortNickname_operator) {
+					case "contains":
+						return matches;
+					case "does not contain":
+						return !matches;
+					default:
+						return matches;
+				}
+			});
+		}
+
+		// Teacher filter with operator
+		if (teacherIds.length > 0) {
+			filteredData = filteredData.filter((enrollment: any) => {
+				const sessions = enrollment.cohorts?.weekly_sessions || [];
+				const enrollmentTeacherIds = sessions
+					.map((s: any) => s.teacher_id)
+					.filter(Boolean);
+
+				// Check if any of the enrollment's teachers match the filter
+				const hasMatch = enrollmentTeacherIds.some((teacherId: string) =>
+					teacherIds.includes(teacherId)
+				);
+
+				switch (teacherIds_operator) {
+					case "is":
+					case "is any of":
+						return hasMatch;
+					case "is not":
+					case "is none of":
+						return !hasMatch;
+					default:
+						return hasMatch;
+				}
+			});
 		}
 
 		// Date filters with operator support
