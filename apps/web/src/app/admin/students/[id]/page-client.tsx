@@ -126,11 +126,13 @@ export default function StudentDetailsClient({
 
 	// Get initials for avatar
 	const initials = student.full_name
-		.split(" ")
-		.map((n: string) => n[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
+		? student.full_name
+				.split(" ")
+				.map((n: string) => n[0])
+				.join("")
+				.toUpperCase()
+				.slice(0, 2)
+		: "?";
 
 	// Update edited student field locally
 	const updateEditedField = async (field: string, value: any) => {
