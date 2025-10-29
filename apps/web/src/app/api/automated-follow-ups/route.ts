@@ -83,17 +83,22 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
+		// Order by started_at desc, then created_at desc
+		query = query
+			.order("started_at", { ascending: false })
+			.order("created_at", { ascending: false });
+
+		// Get total count first for pagination
+		const { count: totalCount } = await supabase
+			.from("automated_follow_ups")
+			.select("*", { count: "exact", head: true });
+
 		// Only apply range if not doing in-memory filtering
 		if (!needsInMemoryFiltering) {
 			const start = (page - 1) * limit;
 			const end = start + limit - 1;
 			query = query.range(start, end);
 		}
-
-		// Order by started_at desc, then created_at desc
-		query = query
-			.order("started_at", { ascending: false })
-			.order("created_at", { ascending: false });
 
 		const { data, error } = await query;
 
@@ -123,7 +128,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Apply pagination to filtered data
-		const total = filteredData.length;
+		const total = needsInMemoryFiltering ? filteredData.length : (totalCount || 0);
 		const start = (page - 1) * limit;
 		const paginatedData = needsInMemoryFiltering
 			? filteredData.slice(start, start + limit)

@@ -85,15 +85,20 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
+		// Order by occurred_at desc (most recent first)
+		query = query.order("occurred_at", { ascending: false });
+
+		// Get total count first for pagination
+		const { count: totalCount } = await supabase
+			.from("touchpoints")
+			.select("*", { count: "exact", head: true });
+
 		// Only apply range if not doing in-memory filtering
 		if (!needsInMemoryFiltering) {
 			const start = (page - 1) * limit;
 			const end = start + limit - 1;
 			query = query.range(start, end);
 		}
-
-		// Order by occurred_at desc (most recent first)
-		query = query.order("occurred_at", { ascending: false });
 
 		const { data, error } = await query;
 
@@ -130,7 +135,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Apply pagination to filtered data
-		const total = filteredData.length;
+		const total = needsInMemoryFiltering ? filteredData.length : (totalCount || 0);
 		const start = (page - 1) * limit;
 		const paginatedData = needsInMemoryFiltering
 			? filteredData.slice(start, start + limit)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import Link from "next/link";
 
@@ -97,8 +97,8 @@ const assessmentColumns = [
 		accessor: (assessment: any) => assessment.level_id,
 		displayName: "Determined Level",
 		icon: GraduationCap,
-		type: "async_option" as const,
-		// We'll need to fetch language levels dynamically
+		type: "option" as const,
+		options: [], // Will be populated dynamically when language levels load
 	},
 	{
 		id: "is_paid",
@@ -156,6 +156,9 @@ export function AssessmentsTable({
 	// Check permissions
 	const canAddAssessment = permissions?.assessments?.includes("write");
 	const canDeleteAssessment = permissions?.assessments?.includes("write");
+
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
 
 	// URL state management for pagination and search
 	const [pageState, setPageState] = useQueryState("page", {
@@ -290,8 +293,12 @@ export function AssessmentsTable({
 		};
 	}, [filters]);
 
-	// Reset page when filters or search change
+	// Reset page when filters or search change (but not on initial mount)
 	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
 		setPageState(1);
 	}, [filterQuery, searchQuery, setPageState]);
 

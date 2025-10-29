@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -126,6 +126,9 @@ const cohortColumns = [
 export function ClassesPageClient() {
 	console.log("🔥 ClassesPageClient component mounted");
 	const router = useRouter();
+
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
 
 	// Fetch language levels and teachers for filter options
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
@@ -278,8 +281,12 @@ export function ClassesPageClient() {
 		return params;
 	}, [filters]);
 
-	// Reset to page 1 when filters change
+	// Reset to page 1 when filters change (but not on initial mount)
 	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
 		setPageState(1);
 	}, [filterParams, setPageState]);
 

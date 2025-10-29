@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -117,6 +117,9 @@ const getColumnConfigurations = (
 export function AutomatedFollowUpsTable() {
   const router = useRouter();
 
+  // Track if this is the first render to avoid resetting page on initial load
+  const isInitialMount = useRef(true);
+
   // URL state management for pagination and search
   const [pageState, setPageState] = useQueryState("page", {
     parse: (value) => Number.parseInt(value) || 1,
@@ -193,6 +196,15 @@ export function AutomatedFollowUpsTable() {
       sequence_id_operator: sequenceFilter?.operator,
     };
   }, [filters]);
+
+  // Reset page when filters or search change (but not on initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    setPageState(1);
+  }, [filterQuery, searchQuery, setPageState]);
 
   // Build query with URL state
   const finalQuery = useMemo(
