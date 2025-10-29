@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
 	Eye,
@@ -44,25 +44,45 @@ import { SequenceCreateModal } from "./SequenceCreateModal";
 
 export function SequencesTable() {
 	const router = useRouter();
-	const [searchInput, setSearchInput] = useState("");
-	const debouncedSearch = useDebounce(searchInput, 300);
-	const [query, setQuery] = useState<SequenceQuery>({
-		search: "",
-		page: 1,
-		limit: 20,
+
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
 	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
 	const [sequenceToDelete, setSequenceToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const limit = 20;
 
 	const deleteSequence = useDeleteSequence();
 
-	// Update query when search changes
+	// Reset page when search changes (but not on initial mount)
+	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
+		setPageState(1);
+	}, [searchQuery, setPageState]);
+
+	// Build effective query with URL state
 	const finalQuery = useMemo(
 		() => ({
-			...query,
-			search: debouncedSearch,
+			page,
+			limit,
+			search: searchQuery || undefined,
 		}),
-		[query, debouncedSearch],
+		[page, limit, searchQuery],
 	);
 
 	const { data, isLoading, error } = useSequences(finalQuery);
@@ -106,8 +126,8 @@ export function SequencesTable() {
 					<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 					<Input
 						placeholder="Search sequences..."
-						value={searchInput}
-						onChange={(e) => setSearchInput(e.target.value)}
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
 						className="h-9 bg-muted/50 pl-9"
 					/>
 				</div>
@@ -254,16 +274,16 @@ export function SequencesTable() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setQuery({ ...query, page: query.page - 1 })}
-							disabled={query.page === 1}
+							onClick={() => setPageState(page - 1)}
+							disabled={page === 1}
 						>
 							Previous
 						</Button>
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setQuery({ ...query, page: query.page + 1 })}
-							disabled={query.page === data.meta.totalPages}
+							onClick={() => setPageState(page + 1)}
+							disabled={page === data.meta.totalPages}
 						>
 							Next
 						</Button>

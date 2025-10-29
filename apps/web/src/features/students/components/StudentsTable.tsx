@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import {
 	DataTableFilter,
@@ -33,10 +32,8 @@ import {
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
-	Calendar,
 	CalendarDays,
 	Eye,
 	GraduationCap,
@@ -48,8 +45,8 @@ import {
 	UserCheck,
 	Users,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import { useDeleteStudent, useStudents } from "../queries/students.queries";
-import type { StudentQuery } from "../schemas/student.schema";
 
 // This will be replaced with dynamic data from the database
 
@@ -131,7 +128,7 @@ const studentColumns = [
 	},
 	{
 		id: "is_full_beginner",
-		accessor: (student: any) => student.is_full_beginner,
+		accessor: (student: any) => String(student.is_full_beginner),
 		displayName: "Beginner Status",
 		icon: UserCheck,
 		type: "option" as const,
@@ -142,7 +139,7 @@ const studentColumns = [
 	},
 	{
 		id: "added_to_email_newsletter",
-		accessor: (student: any) => student.added_to_email_newsletter,
+		accessor: (student: any) => String(student.added_to_email_newsletter),
 		displayName: "Newsletter Status",
 		icon: MessageSquare,
 		type: "option" as const,
@@ -153,7 +150,7 @@ const studentColumns = [
 	},
 	{
 		id: "is_under_16",
-		accessor: (student: any) => student.is_under_16,
+		accessor: (student: any) => String(student.is_under_16),
 		displayName: "Age Group",
 		icon: Users,
 		type: "option" as const,
@@ -184,18 +181,31 @@ export function StudentsTable({
 	// Check permissions
 	const canAddStudent = permissions?.students?.includes("write");
 	const canDeleteStudent = permissions?.students?.includes("write");
-	const router = useRouter();
+
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
+	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
 
 	// Fetch language levels for filter options
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
-	const [query, setQuery] = useState<StudentQuery>({
-		page: 1,
-		limit: 20,
-		sortBy: "created_at",
-		sortOrder: "desc",
-	});
-	const [searchInput, setSearchInput] = useState("");
-	const debouncedSearch = useDebounce(searchInput, 300);
 	const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
@@ -222,14 +232,45 @@ export function StudentsTable({
 		return columns;
 	}, [languageLevels]);
 
-	// Data table filters hook
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
+				}
+				return filter;
+			});
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
+
+	// Data table filters hook with URL-synced state
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: dynamicStudentColumns,
+		defaultFilters: initialFilters,
 	});
 
-	// Convert filters to query params - support multiple values
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
+
+	// Convert filters to query params - support multiple values with operators
 	const filterQuery = useMemo(() => {
 		const enrollmentFilter = filters.find(
 			(f) => f.columnId === "enrollment_status",
@@ -282,39 +323,62 @@ export function StudentsTable({
 		}
 
 		return {
-			// Pass arrays for multi-select filters
+			// Pass arrays for multi-select filters with operators
 			enrollment_status: enrollmentFilter?.values?.length
 				? (enrollmentFilter.values as any)
 				: undefined,
+			enrollment_status_operator: enrollmentFilter?.operator,
 			desired_starting_language_level_id: levelFilter?.values?.length
 				? (levelFilter.values as any)
 				: undefined,
+			desired_starting_language_level_id_operator: levelFilter?.operator,
 			initial_channel: channelFilter?.values?.length
 				? (channelFilter.values as any)
 				: undefined,
+			initial_channel_operator: channelFilter?.operator,
 			communication_channel: commFilter?.values?.length
 				? (commFilter.values as any)
 				: undefined,
-			is_full_beginner: beginnerFilter?.values?.[0] || undefined,
-			added_to_email_newsletter: newsletterFilter?.values?.[0] || undefined,
-			is_under_16: ageFilter?.values?.[0] || undefined,
+			communication_channel_operator: commFilter?.operator,
+			is_full_beginner: beginnerFilter?.values?.length
+				? (beginnerFilter.values as any)
+				: undefined,
+			is_full_beginner_operator: beginnerFilter?.operator,
+			added_to_email_newsletter: newsletterFilter?.values?.length
+				? (newsletterFilter.values as any)
+				: undefined,
+			added_to_email_newsletter_operator: newsletterFilter?.operator,
+			is_under_16: ageFilter?.values?.length
+				? (ageFilter.values as any)
+				: undefined,
+			is_under_16_operator: ageFilter?.operator,
 			dateFrom,
 			dateTo,
 			useAirtableDate,
+			created_at_operator: dateFilter?.operator,
 		};
 	}, [filters]);
 
-	// Update query when debounced search changes or filters change
-	const effectiveQuery = {
-		...query,
-		...filterQuery,
-		search: debouncedSearch || undefined,
-	};
+	// Build effective query with URL state and filters
+	const effectiveQuery = useMemo(() => {
+		return {
+			page,
+			limit: 20,
+			sortBy: "created_at" as const,
+			sortOrder: "desc" as const,
+			...filterQuery,
+			search: searchQuery || undefined,
+		};
+	}, [page, searchQuery, filterQuery]);
 
-	// Reset page when filters change
+	// Reset page when filters or search change (but not on initial mount)
 	useEffect(() => {
-		setQuery({ ...query, page: 1 });
-	}, [filters, debouncedSearch]);
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
+		setPageState(1);
+	}, [filters, searchQuery, setPageState]);
 
 	const { data, isLoading, error } = useStudents(effectiveQuery);
 	const deleteStudent = useDeleteStudent();
@@ -354,8 +418,11 @@ export function StudentsTable({
 							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search students by name, email, or phone..."
-								value={searchInput}
-								onChange={(e) => setSearchInput(e.target.value)}
+								value={searchQuery || ""}
+								onChange={(e) => {
+									setSearchQuery(e.target.value || null);
+									setPageState(1); // Reset to first page on search
+								}}
 								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
@@ -532,16 +599,22 @@ export function StudentsTable({
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setQuery({ ...query, page: query.page - 1 })}
-								disabled={query.page === 1}
+								onClick={() => {
+									setPageState(page - 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
+								disabled={page === 1}
 							>
 								Previous
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setQuery({ ...query, page: query.page + 1 })}
-								disabled={query.page === data.meta.totalPages}
+								onClick={() => {
+									setPageState(page + 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
+								disabled={page === data.meta.totalPages}
 							>
 								Next
 							</Button>
