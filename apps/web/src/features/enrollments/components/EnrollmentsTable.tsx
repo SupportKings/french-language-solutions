@@ -577,7 +577,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 													.map((teacher: any) => (
 														<LinkedRecordBadge
 															key={teacher.id}
-															href={`/admin/people/teachers/${teacher.id}`}
+															href={`/admin/team-members/teachers/${teacher.id}`}
 															label={`${teacher.first_name} ${teacher.last_name}`}
 															icon={GraduationCap}
 														/>
