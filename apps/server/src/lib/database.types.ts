@@ -1111,6 +1111,7 @@ export type Database = {
         Row: {
           airtable_created_at: string | null
           airtable_record_id: string | null
+          calendar_event_url: string | null
           cohort_id: string | null
           created_at: string
           day_of_week: Database["public"]["Enums"]["day_of_week"] | null
@@ -1124,6 +1125,7 @@ export type Database = {
         Insert: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
+          calendar_event_url?: string | null
           cohort_id?: string | null
           created_at?: string
           day_of_week?: Database["public"]["Enums"]["day_of_week"] | null
@@ -1137,6 +1139,7 @@ export type Database = {
         Update: {
           airtable_created_at?: string | null
           airtable_record_id?: string | null
+          calendar_event_url?: string | null
           cohort_id?: string | null
           created_at?: string
           day_of_week?: Database["public"]["Enums"]["day_of_week"] | null

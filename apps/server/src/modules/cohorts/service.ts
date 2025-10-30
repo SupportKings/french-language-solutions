@@ -1,4 +1,5 @@
 import { addDays } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { supabase } from "../../lib/supabase";
 import { triggerWebhook } from "../../lib/webhooks";
 import type {
@@ -6,6 +7,9 @@ import type {
 	MakeWebhookPayload,
 	WeeklySessionForCalendar,
 } from "./types";
+
+// Canadian Eastern Time timezone (only used for determining "tomorrow")
+const CANADIAN_TIMEZONE = "America/Toronto";
 
 export class CohortService {
 	/**
@@ -353,6 +357,265 @@ export class CohortService {
 			const errorMessage =
 				error instanceof Error ? error.message : "Unknown error occurred";
 			return { success: false, message: errorMessage };
+		}
+	}
+
+	/**
+	 * Gets tomorrow's day of the week as a lowercase string matching the database enum
+	 * Uses Canadian Eastern Time to determine "tomorrow"
+	 */
+	private getTomorrowDayOfWeek(): string {
+		// Get current time in Canadian timezone
+		const nowInCanada = toZonedTime(new Date(), CANADIAN_TIMEZONE);
+		const tomorrow = addDays(nowInCanada, 1);
+		const dayIndex = tomorrow.getDay();
+		const days = [
+			"sunday",
+			"monday",
+			"tuesday",
+			"wednesday",
+			"thursday",
+			"friday",
+			"saturday",
+		];
+		const tomorrowDay = days[dayIndex];
+		console.log(`[Auto-Create Classes] Today in Canada: ${nowInCanada.toISOString()}, Tomorrow: ${tomorrow.toISOString()}, Day: ${tomorrowDay}`);
+		return tomorrowDay;
+	}
+
+	/**
+	 * Finds all cohorts that have weekly sessions tomorrow
+	 * Only returns active cohorts (setup_finalized = true, cohort_status != 'class_ended')
+	 */
+	async getTomorrowsCohorts(): Promise<
+		Array<{
+			cohort: CohortWithDetails;
+			tomorrowSessions: Array<
+				CohortWithDetails["weekly_sessions"][number]
+			>;
+		}>
+	> {
+		const tomorrowDay = this.getTomorrowDayOfWeek();
+
+		// Fetch all active cohorts with weekly sessions
+		const { data: cohorts, error } = await supabase
+			.from("cohorts")
+			.select(`
+				*,
+				product:products!cohorts_product_id_products_id_fk(*),
+				weekly_sessions(
+					*,
+					teacher:teachers(*)
+				),
+				enrollments!enrollments_cohort_id_fkey(
+					*,
+					student:students!enrollments_student_id_fkey(*)
+				)
+			`)
+			.eq("setup_finalized", true)
+			.neq("cohort_status", "class_ended");
+
+		if (error || !cohorts) {
+			console.error("[Auto-Create Classes] Error fetching cohorts:", error);
+			return [];
+		}
+
+		console.log(`[Auto-Create Classes] Found ${cohorts.length} active cohorts (setup_finalized=true, status!=class_ended)`);
+
+		// Filter cohorts that have sessions matching tomorrow's day
+		const result = cohorts
+			.map((cohort) => {
+				const tomorrowSessions = (cohort.weekly_sessions || []).filter(
+					(session: any) => session.day_of_week === tomorrowDay,
+				);
+
+				if (tomorrowSessions.length > 0) {
+					return {
+						cohort: cohort as unknown as CohortWithDetails,
+						tomorrowSessions,
+					};
+				}
+				return null;
+			})
+			.filter(Boolean) as Array<{
+			cohort: CohortWithDetails;
+			tomorrowSessions: Array<
+				CohortWithDetails["weekly_sessions"][number]
+			>;
+		}>;
+
+		console.log(`[Auto-Create Classes] ${result.length} cohorts have sessions scheduled for ${tomorrowDay}`);
+		return result;
+	}
+
+	/**
+	 * Creates class records for tomorrow's weekly sessions
+	 * Returns the number of classes created
+	 * Uses Canadian Eastern Time to determine "tomorrow"
+	 */
+	async createClassesForTomorrow(): Promise<{
+		success: boolean;
+		message: string;
+		classesCreated: number;
+	}> {
+		try {
+			console.log("[Auto-Create Classes] Starting class creation process...");
+			const tomorrowsCohorts = await this.getTomorrowsCohorts();
+
+			if (tomorrowsCohorts.length === 0) {
+				console.log("[Auto-Create Classes] No cohorts found with sessions for tomorrow");
+				return {
+					success: true,
+					message: "No cohorts with sessions scheduled for tomorrow",
+					classesCreated: 0,
+				};
+			}
+
+			// Get tomorrow in Canadian timezone
+			const nowInCanada = toZonedTime(new Date(), CANADIAN_TIMEZONE);
+			const tomorrow = addDays(nowInCanada, 1);
+
+			const classesToCreate: Array<{
+				cohort_id: string;
+				teacher_id: string | null;
+				start_time: string;
+				end_time: string;
+				google_calendar_event_id: string | null;
+				meeting_link: string | null;
+				status: "scheduled";
+			}> = [];
+
+			// Prepare all class records
+			for (const { cohort, tomorrowSessions } of tomorrowsCohorts) {
+				console.log(`[Auto-Create Classes] Processing cohort ${cohort.id} (${cohort.nickname || 'unnamed'}) with ${tomorrowSessions.length} sessions`);
+
+				for (const session of tomorrowSessions) {
+					// Create datetime for tomorrow with session times
+					// Get YYYY-MM-DD format for tomorrow
+					const year = tomorrow.getFullYear();
+					const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+					const day = String(tomorrow.getDate()).padStart(2, '0');
+					const tomorrowDateStr = `${year}-${month}-${day}`;
+
+					// Combine date with session times (format: "HH:mm:ss")
+					// Store times exactly as they are without timezone conversion
+					const startTimeStr = `${tomorrowDateStr}T${session.start_time!}`;
+					const endTimeStr = `${tomorrowDateStr}T${session.end_time!}`;
+
+					console.log(`[Auto-Create Classes]   - Session ${session.id}: ${startTimeStr} to ${endTimeStr}, teacher: ${session.teacher_id}`);
+
+					classesToCreate.push({
+						cohort_id: cohort.id,
+						teacher_id: session.teacher_id,
+						start_time: startTimeStr,
+						end_time: endTimeStr,
+						google_calendar_event_id: session.google_calendar_event_id,
+						meeting_link: session.calendar_event_url,
+						status: "scheduled",
+					});
+				}
+			}
+
+			console.log(`[Auto-Create Classes] Inserting ${classesToCreate.length} classes into database...`);
+
+			// Bulk insert all classes
+			const { data: createdClasses, error } = await supabase
+				.from("classes")
+				.insert(classesToCreate)
+				.select();
+
+			if (error) {
+				console.error("[Auto-Create Classes] Error creating classes:", error);
+				return {
+					success: false,
+					message: `Failed to create classes: ${error.message}`,
+					classesCreated: 0,
+				};
+			}
+
+			console.log(`[Auto-Create Classes] ✓ Successfully created ${createdClasses?.length || 0} classes`);
+
+			// Create attendance records for each class
+			const attendanceRecords: Array<{
+				class_id: string;
+				cohort_id: string;
+				student_id: string;
+				status: "unset";
+				homework_completed: boolean;
+			}> = [];
+
+			// Map class IDs back to their cohorts for attendance creation
+			const classIdToCohortMap = new Map<string, { cohortId: string; students: string[] }>();
+
+			// Build map of class ID to cohort and its enrolled students
+			for (let i = 0; i < tomorrowsCohorts.length; i++) {
+				const { cohort } = tomorrowsCohorts[i];
+				const enrolledStudents = cohort.enrollments
+					.filter((enrollment: any) =>
+						enrollment.status === "paid" || enrollment.status === "welcome_package_sent"
+					)
+					.map((enrollment: any) => enrollment.student_id);
+
+				// Find all classes created for this cohort
+				const cohortClasses = createdClasses?.filter(c => c.cohort_id === cohort.id) || [];
+
+				for (const classRecord of cohortClasses) {
+					classIdToCohortMap.set(classRecord.id, {
+						cohortId: cohort.id,
+						students: enrolledStudents,
+					});
+				}
+
+				console.log(`[Auto-Create Classes] Cohort ${cohort.id}: ${enrolledStudents.length} enrolled students (paid/welcome_package_sent)`);
+			}
+
+			// Create attendance records for all students in all classes
+			for (const [classId, { cohortId, students }] of classIdToCohortMap) {
+				for (const studentId of students) {
+					attendanceRecords.push({
+						class_id: classId,
+						cohort_id: cohortId,
+						student_id: studentId,
+						status: "unset",
+						homework_completed: false,
+					});
+				}
+			}
+
+			console.log(`[Auto-Create Classes] Creating ${attendanceRecords.length} attendance records...`);
+
+			// Bulk insert attendance records
+			if (attendanceRecords.length > 0) {
+				const { error: attendanceError } = await supabase
+					.from("attendance_records")
+					.insert(attendanceRecords);
+
+				if (attendanceError) {
+					console.error("[Auto-Create Classes] Error creating attendance records:", attendanceError);
+					return {
+						success: false,
+						message: `Classes created but failed to create attendance records: ${attendanceError.message}`,
+						classesCreated: createdClasses?.length || 0,
+					};
+				}
+
+				console.log(`[Auto-Create Classes] ✓ Successfully created ${attendanceRecords.length} attendance records`);
+			}
+
+			return {
+				success: true,
+				message: `Successfully created ${createdClasses?.length || 0} classes with ${attendanceRecords.length} attendance records for tomorrow`,
+				classesCreated: createdClasses?.length || 0,
+			};
+		} catch (error) {
+			console.error("[Auto-Create Classes] Unexpected error:", error);
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error occurred";
+			return {
+				success: false,
+				message: errorMessage,
+				classesCreated: 0,
+			};
 		}
 	}
 }

@@ -22,6 +22,10 @@
 		{
 			"path": "/api/follow-ups/find-and-trigger-students",
 			"schedule": "0 8 * * *"
+		},
+		{
+			"path": "/api/cohorts/create-tomorrow-classes",
+			"schedule": "0 12 * * *"
 		}
 	]
 }
