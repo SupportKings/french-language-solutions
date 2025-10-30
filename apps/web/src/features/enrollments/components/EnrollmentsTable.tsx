@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -36,6 +37,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import {
+	BarChart3,
 	Building,
 	Calendar,
 	CalendarDays,
@@ -113,6 +115,15 @@ const getEnrollmentColumns = (products: any[]) => [
 		icon: CalendarDays,
 		type: "date" as const,
 	},
+	{
+		id: "completion_percentage",
+		accessor: (enrollment: any) => enrollment.completion_percentage ?? 0,
+		displayName: "Completion Progress",
+		icon: BarChart3,
+		type: "number" as const,
+		min: 0,
+		max: 100,
+	},
 ];
 
 interface EnrollmentsTableProps {
@@ -172,6 +183,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		const statusFilter = filters.find((f) => f.columnId === "status");
 		const productFilter = filters.find((f) => f.columnId === "product");
 		const dateFilter = filters.find((f) => f.columnId === "created_at");
+		const completionFilter = filters.find((f) => f.columnId === "completion_percentage");
 
 		// Date filter values are stored as [from, to] for ranges or [date] for single dates
 		const dateValues = dateFilter?.values || [];
@@ -199,12 +211,74 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			dateTo = toDate.toISOString();
 		}
 
+		// Completion percentage filter
+		const completionValues = completionFilter?.values || [];
+		const completionOperator = completionFilter?.operator;
+		let completionMin = null;
+		let completionMax = null;
+		let completionExact = null;
+		let completionExclude = null;
+
+		if (completionValues.length > 0) {
+			const value = completionValues[0];
+
+			switch (completionOperator) {
+				case "is":
+					// Exact match
+					completionExact = value;
+					break;
+				case "is not":
+					// Exclude this value
+					completionExclude = value;
+					break;
+				case "is greater than":
+					// Greater than: min is value + 0.01 to exclude the exact value
+					completionMin = value + 0.01;
+					break;
+				case "is greater than or equal to":
+					// Greater than or equal: min is value
+					completionMin = value;
+					break;
+				case "is less than":
+					// Less than: max is value - 0.01 to exclude the exact value
+					completionMax = value - 0.01;
+					break;
+				case "is less than or equal to":
+					// Less than or equal: max is value
+					completionMax = value;
+					break;
+				case "is between":
+					// Range: use both values
+					if (completionValues.length > 1) {
+						completionMin = completionValues[0];
+						completionMax = completionValues[1];
+					}
+					break;
+				case "is not between":
+					// Not in range - this is complex, we'll handle separately
+					if (completionValues.length > 1) {
+						// For "not between", we need special handling on the server
+						completionMin = completionValues[0];
+						completionMax = completionValues[1];
+					}
+					break;
+				default:
+					// Fallback: treat as exact match
+					completionExact = value;
+			}
+		}
+
 		return {
 			status: statusFilter?.values || [],
 			productIds: productFilter?.values || [],
 			dateFrom,
 			dateTo,
 			useAirtableDate,
+			completionMin,
+			completionMax,
+			completionExact,
+			completionExclude,
+			completionOperator,
 		};
 	}, [filters]);
 
@@ -247,6 +321,23 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			}
 			if (filterQuery.dateTo) {
 				params.append("dateTo", filterQuery.dateTo);
+			}
+
+			// Add completion percentage filters
+			if (filterQuery.completionMin !== null && filterQuery.completionMin !== undefined) {
+				params.append("completionMin", filterQuery.completionMin.toString());
+			}
+			if (filterQuery.completionMax !== null && filterQuery.completionMax !== undefined) {
+				params.append("completionMax", filterQuery.completionMax.toString());
+			}
+			if (filterQuery.completionExact !== null && filterQuery.completionExact !== undefined) {
+				params.append("completionExact", filterQuery.completionExact.toString());
+			}
+			if (filterQuery.completionExclude !== null && filterQuery.completionExclude !== undefined) {
+				params.append("completionExclude", filterQuery.completionExclude.toString());
+			}
+			if (filterQuery.completionOperator) {
+				params.append("completionOperator", filterQuery.completionOperator);
 			}
 
 			const response = await fetch(`/api/enrollments?${params}`);
@@ -327,6 +418,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<TableHead>Student</TableHead>
 							<TableHead>Cohort (Product and Sessions)</TableHead>
 							<TableHead>Status</TableHead>
+							<TableHead>Progress</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
@@ -345,6 +437,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										<Skeleton className="h-5 w-20" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-24" />
 									</TableCell>
 									<TableCell>
@@ -355,7 +450,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						) : data?.enrollments?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={6}
 									className="text-center text-muted-foreground"
 								>
 									No enrollments found
@@ -440,6 +535,12 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		session.day_of_week
 																	: "";
 
+																// Format time to HH:MM
+																const formatTime = (timeStr: string | null) => {
+																	if (!timeStr) return "";
+																	return timeStr.slice(0, 5); // Already in HH:MM:SS format
+																};
+
 																return (
 																	<Badge
 																		key={session.id}
@@ -447,7 +548,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		className="text-xs"
 																	>
 																		{dayAbbrev}{" "}
-																		{session.start_time?.slice(0, 5)}
+																		{formatTime(session.start_time)}
 																	</Badge>
 																);
 															},
@@ -460,6 +561,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										<Badge variant={(statusColors as any)[enrollment.status]}>
 											{(statusLabels as any)[enrollment.status]}
 										</Badge>
+									</TableCell>
+									<TableCell onClick={(e) => e.stopPropagation()}>
+										<div className="min-w-[140px]">
+											<ProgressBar
+												value={enrollment.completion_percentage || 0}
+												size="sm"
+											/>
+										</div>
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">

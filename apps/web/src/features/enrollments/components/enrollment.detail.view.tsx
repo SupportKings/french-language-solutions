@@ -92,6 +92,15 @@ const formatDate = (dateString: string | null) => {
 	}
 };
 
+const formatDateTime = (dateString: string | null) => {
+	if (!dateString) return "Not set";
+	try {
+		return format(new Date(dateString), "MMM dd, yyyy 'at' HH:mm");
+	} catch {
+		return "Invalid date";
+	}
+};
+
 export default function EnrollmentDetailView({
 	enrollmentId,
 	permissions,
@@ -344,7 +353,7 @@ export default function EnrollmentDetailView({
 												Enrolled Date:
 											</p>
 											<p className="text-sm">
-												{formatDate(currentEnrollment.created_at)}
+												{formatDateTime(currentEnrollment.created_at)}
 											</p>
 										</div>
 									</div>
@@ -421,6 +430,10 @@ export default function EnrollmentDetailView({
 							queryClient.invalidateQueries({
 								queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
 							});
+							// Invalidate enrollments list to update progress bar when navigating back
+							queryClient.invalidateQueries({
+								queryKey: ["enrollments"],
+							});
 						}}
 						canEdit={canEditStudent}
 					/>
@@ -437,6 +450,10 @@ export default function EnrollmentDetailView({
 						onUpdate={() => {
 							queryClient.invalidateQueries({
 								queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+							});
+							// Invalidate enrollments list to update progress bar when navigating back
+							queryClient.invalidateQueries({
+								queryKey: ["enrollments"],
 							});
 						}}
 						canEdit={canEditStudent}
@@ -455,6 +472,10 @@ export default function EnrollmentDetailView({
 							onUpdate={() => {
 								queryClient.invalidateQueries({
 									queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+								});
+								// Invalidate enrollments list to update progress bar when navigating back
+								queryClient.invalidateQueries({
+									queryKey: ["enrollments"],
 								});
 							}}
 							canEdit={canEditStudent}
