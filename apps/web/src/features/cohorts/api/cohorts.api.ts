@@ -106,7 +106,24 @@ export const cohortsApi = {
 			body: JSON.stringify(data),
 		});
 		if (!response.ok) {
-			throw new Error(`Failed to create cohort: ${response.statusText}`);
+			// Try to get detailed error message from response
+			let errorMessage = `Failed to create cohort: ${response.statusText}`;
+			try {
+				const errorData = await response.json();
+				if (errorData.error) {
+					errorMessage = errorData.error;
+					// Include validation details if available
+					if (errorData.details && Array.isArray(errorData.details)) {
+						const validationErrors = errorData.details
+							.map((d: any) => `${d.path.join(".")}: ${d.message}`)
+							.join(", ");
+						errorMessage += ` - ${validationErrors}`;
+					}
+				}
+			} catch {
+				// If parsing fails, use the status text
+			}
+			throw new Error(errorMessage);
 		}
 		return response.json();
 	},

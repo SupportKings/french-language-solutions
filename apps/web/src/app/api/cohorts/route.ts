@@ -406,7 +406,7 @@ export async function GET(request: NextRequest) {
 
 // Zod schema for cohort creation - explicit field whitelisting
 const createCohortSchema = z.object({
-	nickname: z.string().min(1, "Nickname is required"),
+	nickname: z.string().nullable().optional(),
 	cohort_status: z
 		.enum(["enrollment_open", "enrollment_closed", "class_ended"])
 		.optional(),

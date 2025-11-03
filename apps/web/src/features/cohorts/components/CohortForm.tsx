@@ -371,9 +371,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			}
 		} catch (error) {
 			console.error("Error saving cohort:", error);
-			toast.error(
-				isEditMode ? "Failed to update cohort" : "Failed to create cohort",
-			);
+			const errorMessage =
+				error instanceof Error ? error.message : "An unexpected error occurred";
+			toast.error(errorMessage);
 		}
 	};
 
@@ -776,25 +776,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 										setValueAs: (v) =>
 											v === "" || v === null ? undefined : Number(v),
 									})}
-								/>
-							</FormField>
-						</FormSection>
-
-						{/* External References */}
-						<FormSection
-							title="External References"
-							description="IDs from external systems"
-							icon={Settings}
-						>
-							<FormField
-								label="Airtable Record ID"
-								hint="Record ID from Airtable"
-								error={form.formState.errors.airtable_record_id?.message}
-							>
-								<InputField
-									placeholder="rec..."
-									error={!!form.formState.errors.airtable_record_id}
-									{...form.register("airtable_record_id")}
 								/>
 							</FormField>
 						</FormSection>
