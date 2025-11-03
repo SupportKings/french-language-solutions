@@ -139,7 +139,9 @@ export class ClassBookingService {
 	 * Get Stripe payment URL for an enrollment
 	 * Returns the Stripe signup link with client reference ID
 	 */
-	async getPaymentUrl(enrollmentId: string): Promise<{ success: boolean; paymentUrl?: string; error?: string }> {
+	async getPaymentUrl(
+		enrollmentId: string,
+	): Promise<{ success: boolean; paymentUrl?: string; error?: string }> {
 		try {
 			// Fetch enrollment with related cohort and product data
 			const { data: enrollment, error: enrollmentError } = await supabase
@@ -170,8 +172,12 @@ export class ClassBookingService {
 
 			// Check if the product has a Stripe signup link
 			// Note: Supabase returns nested relationships as arrays
-			const cohort = Array.isArray(enrollment.cohorts) ? enrollment.cohorts[0] : enrollment.cohorts;
-			const product = Array.isArray(cohort?.products) ? cohort.products[0] : cohort?.products;
+			const cohort = Array.isArray(enrollment.cohorts)
+				? enrollment.cohorts[0]
+				: enrollment.cohorts;
+			const product = Array.isArray(cohort?.products)
+				? cohort.products[0]
+				: cohort?.products;
 			const stripeSignupLink = product?.signup_link_for_self_checkout;
 
 			if (!stripeSignupLink) {
@@ -230,9 +236,15 @@ export class ClassBookingService {
 		for (const enrollment of abandonedEnrollments || []) {
 			try {
 				// Handle array relationships from Supabase
-				const student = Array.isArray(enrollment.students) ? enrollment.students[0] : enrollment.students;
-				const cohort = Array.isArray(enrollment.cohorts) ? enrollment.cohorts[0] : enrollment.cohorts;
-				const product = Array.isArray(cohort?.products) ? cohort.products[0] : cohort?.products;
+				const student = Array.isArray(enrollment.students)
+					? enrollment.students[0]
+					: enrollment.students;
+				const cohort = Array.isArray(enrollment.cohorts)
+					? enrollment.cohorts[0]
+					: enrollment.cohorts;
+				const product = Array.isArray(cohort?.products)
+					? cohort.products[0]
+					: cohort?.products;
 
 				// Determine new status
 				const newStatus =

@@ -29,12 +29,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MultiSelect } from "@/components/ui/multi-select";
 
+import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 import {
 	offboardTeacher,
 	permanentlyDeleteTeacher,
 } from "@/features/teachers/actions/offboardTeacher";
 import { CreateUserDialog } from "@/features/teachers/components/CreateUserDialog";
-import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 
 import { format } from "date-fns";
 import {

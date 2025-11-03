@@ -331,7 +331,9 @@ export function calculateChecklistProgress(
 	return {
 		total: items.length,
 		completed: completedAll.length,
-		percentage: Math.round((completedRequired.length / requiredItems.length) * 100),
+		percentage: Math.round(
+			(completedRequired.length / requiredItems.length) * 100,
+		),
 		requiredCompleted: completedRequired.length,
 		requiredTotal: requiredItems.length,
 	};
@@ -367,10 +369,12 @@ export const TRANSITION_CHECKLIST_LABELS: Record<
 	whatsapp_group_updated: "Remove / add to appropriate WhatsApp group",
 	class_links_updated: "Remove / add to class links",
 	new_contract_sent: "Send new contract if needed (for private classes only)",
-	confirmation_message_sent: "Send a message asking if they received everything",
+	confirmation_message_sent:
+		"Send a message asking if they received everything",
 	follow_up_reminder_set:
 		"Reminder to transition + send a follow-up message after their first class",
-	future_class_title_correct: "Make sure the title for future classes is correct",
+	future_class_title_correct:
+		"Make sure the title for future classes is correct",
 	both_teachers_notified: "Notify both teachers",
 	transition_meeting_organized: "Organize a transition meeting if needed",
 	google_drive_transferred: "Google drive + transfer to new teacher",
@@ -389,7 +393,8 @@ export const OFFBOARDING_CHECKLIST_LABELS: Record<
 	class_links_title_corrected: "Student removed from future class links titles",
 	removal_reminder_set:
 		"Set reminder to remove from WhatsApp, group sheet, clients actifs sheet, FLS Team tag, and Google Drive after final class",
-	removed_from_system: "Student removed from all systems (WhatsApp, sheets, tags, Drive)",
+	removed_from_system:
+		"Student removed from all systems (WhatsApp, sheets, tags, Drive)",
 	review_requested: "Review requested from student (Optional)",
 	review_received: "Review received from student (Optional)",
 };

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 
 import {
 	FormActions,
@@ -452,77 +452,79 @@ export function EnrollmentFormNew({
 										</PopoverTrigger>
 										{!cohortId && (
 											<PopoverContent className="w-[400px] p-0">
-											<Command
-												shouldFilter={false}
-												className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground"
-											>
-												<CommandInput
-													placeholder="Search by product name or nickname..."
-													value={cohortSearch}
-													onValueChange={setCohortSearch}
-												/>
-												{!cohortSearch && (
-													<div className="border-b p-2 text-muted-foreground text-sm">
-														<AlertCircle className="mr-1 inline-block h-3 w-3" />
-														Type a product name or nickname to search for cohorts
-													</div>
-												)}
-												<CommandEmpty>
-													{loadingCohorts
-														? "Searching..."
-														: cohortSearch
-															? "No cohorts found with this product name or nickname."
-															: ""}
-												</CommandEmpty>
-												<CommandGroup className="max-h-64 overflow-auto [&_[cmdk-item]]:cursor-pointer">
-													{cohorts.length > 0 && cohortSearch
-														? cohorts.map((cohort, index) => (
-																<CommandItem
-																	key={`cohort-${cohort.id}-${index}`}
-																	value={cohort.id}
-																	onSelect={() => {
-																		form.setValue("cohort_id", cohort.id);
-																		setCohortPopoverOpen(false);
-																		setCohortSearch("");
-																	}}
-																	className="cursor-pointer"
-																>
-																	<Check
-																		className={cn(
-																			"mr-2 h-4 w-4",
-																			form.watch("cohort_id") === cohort.id
-																				? "opacity-100"
-																				: "opacity-0",
-																		)}
-																	/>
-																	<div className="flex flex-1 items-start gap-2">
-																		<div className="flex flex-1 flex-col">
-																			<span className="flex items-center gap-2 font-medium">
-																				{cohort.nickname ||
-																					cohort.products?.display_name ||
-																					(cohort.products?.format
-																						? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
-																						: "Course")}
-																			</span>
-																			<span className="text-muted-foreground text-xs">
-																				{cohort.starting_level?.display_name ||
-																					cohort.starting_level?.code?.toUpperCase() ||
-																					"N/A"}{" "}
-																				→{" "}
-																				{cohort.current_level?.display_name ||
-																					cohort.current_level?.code?.toUpperCase() ||
-																					"N/A"}
-																				{cohort.start_date &&
-																					` • Starts ${formatDate(cohort.start_date, "PP")}`}
-																			</span>
+												<Command
+													shouldFilter={false}
+													className="[&_[cmdk-item]:hover]:bg-accent [&_[cmdk-item]:hover]:text-accent-foreground"
+												>
+													<CommandInput
+														placeholder="Search by product name or nickname..."
+														value={cohortSearch}
+														onValueChange={setCohortSearch}
+													/>
+													{!cohortSearch && (
+														<div className="border-b p-2 text-muted-foreground text-sm">
+															<AlertCircle className="mr-1 inline-block h-3 w-3" />
+															Type a product name or nickname to search for
+															cohorts
+														</div>
+													)}
+													<CommandEmpty>
+														{loadingCohorts
+															? "Searching..."
+															: cohortSearch
+																? "No cohorts found with this product name or nickname."
+																: ""}
+													</CommandEmpty>
+													<CommandGroup className="max-h-64 overflow-auto [&_[cmdk-item]]:cursor-pointer">
+														{cohorts.length > 0 && cohortSearch
+															? cohorts.map((cohort, index) => (
+																	<CommandItem
+																		key={`cohort-${cohort.id}-${index}`}
+																		value={cohort.id}
+																		onSelect={() => {
+																			form.setValue("cohort_id", cohort.id);
+																			setCohortPopoverOpen(false);
+																			setCohortSearch("");
+																		}}
+																		className="cursor-pointer"
+																	>
+																		<Check
+																			className={cn(
+																				"mr-2 h-4 w-4",
+																				form.watch("cohort_id") === cohort.id
+																					? "opacity-100"
+																					: "opacity-0",
+																			)}
+																		/>
+																		<div className="flex flex-1 items-start gap-2">
+																			<div className="flex flex-1 flex-col">
+																				<span className="flex items-center gap-2 font-medium">
+																					{cohort.nickname ||
+																						cohort.products?.display_name ||
+																						(cohort.products?.format
+																							? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
+																							: "Course")}
+																				</span>
+																				<span className="text-muted-foreground text-xs">
+																					{cohort.starting_level
+																						?.display_name ||
+																						cohort.starting_level?.code?.toUpperCase() ||
+																						"N/A"}{" "}
+																					→{" "}
+																					{cohort.current_level?.display_name ||
+																						cohort.current_level?.code?.toUpperCase() ||
+																						"N/A"}
+																					{cohort.start_date &&
+																						` • Starts ${formatDate(cohort.start_date, "PP")}`}
+																				</span>
+																			</div>
 																		</div>
-																	</div>
-																</CommandItem>
-															))
-														: null}
-												</CommandGroup>
-											</Command>
-										</PopoverContent>
+																	</CommandItem>
+																))
+															: null}
+													</CommandGroup>
+												</Command>
+											</PopoverContent>
 										)}
 									</Popover>
 								</FormField>

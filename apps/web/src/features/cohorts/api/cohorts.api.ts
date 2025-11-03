@@ -74,7 +74,9 @@ export const cohortsApi = {
 	async getById(id: string): Promise<Cohort> {
 		const response = await fetch(`${BASE_URL}/${id}`);
 		if (!response.ok) {
-			const error: any = new Error(`Failed to fetch cohort: ${response.statusText}`);
+			const error: any = new Error(
+				`Failed to fetch cohort: ${response.statusText}`,
+			);
 			error.status = response.status;
 			throw error;
 		}

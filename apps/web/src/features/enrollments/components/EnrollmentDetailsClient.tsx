@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
@@ -251,7 +251,10 @@ export function EnrollmentDetailsClient({
 											: "Private Class"}{" "}
 										•{" "}
 										{enrollment.cohorts?.nickname ? (
-											<span className="truncate max-w-[200px] inline-block align-bottom" title={enrollment.cohorts.nickname}>
+											<span
+												className="inline-block max-w-[200px] truncate align-bottom"
+												title={enrollment.cohorts.nickname}
+											>
 												{enrollment.cohorts.nickname}
 											</span>
 										) : (

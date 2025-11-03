@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/date-utils";
 
 import { format } from "date-fns";
 import { BookOpen, Clock, User, Users } from "lucide-react";
@@ -262,7 +262,10 @@ export function CohortsTable({
 									<div className="flex h-12 flex-col justify-center gap-1">
 										{cohort.nickname ? (
 											<>
-												<span className="truncate font-medium text-sm" title={cohort.nickname}>
+												<span
+													className="truncate font-medium text-sm"
+													title={cohort.nickname}
+												>
 													{cohort.nickname}
 												</span>
 												<LinkedRecordBadge

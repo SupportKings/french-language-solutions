@@ -387,12 +387,16 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 											{/* Cohort Name - show nickname if available, otherwise product + level */}
 											<div className="font-medium">
 												{enrollment.cohorts?.nickname ? (
-													<span className="truncate max-w-[250px] inline-block align-bottom" title={enrollment.cohorts.nickname}>
+													<span
+														className="inline-block max-w-[250px] truncate align-bottom"
+														title={enrollment.cohorts.nickname}
+													>
 														{enrollment.cohorts.nickname}
 													</span>
 												) : (
 													<>
-														{enrollment.cohorts?.products?.display_name || "N/A"}
+														{enrollment.cohorts?.products?.display_name ||
+															"N/A"}
 														{enrollment.cohorts?.starting_level?.code ? (
 															<span className="font-normal text-muted-foreground">
 																{" "}
