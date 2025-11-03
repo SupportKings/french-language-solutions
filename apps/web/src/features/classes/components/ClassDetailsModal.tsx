@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { EditableSection } from "@/components/inline-edit/EditableSection";
-import { InlineEditField } from "@/components/inline-edit/InlineEditField";
+import { SearchableSelect } from "@/components/form-layout/SearchableSelect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,13 +24,19 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { cohortsKeys } from "@/features/cohorts/queries/cohorts.queries";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
+	AlertCircle,
 	Calendar,
 	CheckCircle2,
 	Clock,
 	Edit2,
 	ExternalLink,
+	GraduationCap,
 	Users,
 	Video,
 } from "lucide-react";
@@ -56,6 +61,11 @@ interface ClassDetails {
 		id: string;
 		format: "online" | "in-person" | "hybrid";
 		room?: string;
+		current_level_id?: string;
+		current_level?: {
+			id: string;
+			display_name: string;
+		};
 	};
 }
 
@@ -74,18 +84,41 @@ export function ClassDetailsModal({
 }: ClassDetailsModalProps) {
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
-	const [formData, setFormData] = useState<Partial<ClassDetails>>({});
+	const [formData, setFormData] = useState<
+		Partial<ClassDetails> & { current_level_id?: string }
+	>({});
 
-	// Initialize form data when class changes
+	const queryClient = useQueryClient();
+
+	// Fetch language levels
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
+		languageLevelQueries.list(),
+	);
+
+	// Initialize form data when class changes or when modal opens
 	useEffect(() => {
-		if (classItem) {
+		if (classItem && open) {
 			setFormData({
 				status: classItem.status,
 				meeting_link: classItem.meeting_link || "",
 				notes: classItem.notes || "",
+				current_level_id: classItem.cohort?.current_level_id || "",
 			});
 		}
-	}, [classItem]);
+	}, [classItem, open]);
+
+	// Auto-populate current_level_id when status is "completed" and editing mode is active
+	useEffect(() => {
+		if (editing && formData.status === "completed" && classItem?.cohort?.current_level_id) {
+			// Always sync with cohort's current level when entering edit mode for completed classes
+			if (!formData.current_level_id) {
+				setFormData((prev) => ({
+					...prev,
+					current_level_id: classItem.cohort?.current_level_id || "",
+				}));
+			}
+		}
+	}, [editing, formData.status, formData.current_level_id, classItem?.cohort?.current_level_id]);
 
 	// Reset editing state when modal closes
 	useEffect(() => {
@@ -94,27 +127,68 @@ export function ClassDetailsModal({
 		}
 	}, [open]);
 
-	const updateField = async (field: string, value: any) => {
+	const saveChanges = async () => {
 		if (!classItem) return;
 
 		setSaving(true);
 		try {
+			// Update class details
 			const response = await fetch(`/api/classes/${classItem.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value || null }),
+				body: JSON.stringify({
+					status: formData.status || null,
+					meeting_link: formData.meeting_link || null,
+					notes: formData.notes || null,
+				}),
 			});
 
 			if (!response.ok) throw new Error("Failed to update class");
 
 			const updated = await response.json();
+
+			// Update cohort current level if status is completed and level changed
+			if (
+				formData.status === "completed" &&
+				formData.current_level_id &&
+				formData.current_level_id !== classItem.cohort?.current_level_id
+			) {
+				const cohortResponse = await fetch(
+					`/api/cohorts/${classItem.cohort_id}`,
+					{
+						method: "PATCH",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							current_level_id: formData.current_level_id,
+						}),
+					},
+				);
+
+				if (!cohortResponse.ok) {
+					throw new Error("Failed to update cohort level");
+				}
+
+				// Invalidate cohort queries to refresh data immediately
+				await Promise.all([
+					queryClient.invalidateQueries({
+						queryKey: cohortsKeys.detail(classItem.cohort_id),
+					}),
+					queryClient.invalidateQueries({
+						queryKey: cohortsKeys.all,
+					}),
+					// Also invalidate classes list to update the cohort level displayed with classes
+					queryClient.invalidateQueries({
+						queryKey: ["cohorts", classItem.cohort_id, "classes"],
+					}),
+				]);
+			}
+
 			onUpdate(updated);
-			setFormData({ ...formData, [field]: value });
 			toast.success("Class updated successfully");
+			setEditing(false);
 		} catch (error) {
 			console.error("Error updating class:", error);
 			toast.error("Failed to update class");
-			throw error;
 		} finally {
 			setSaving(false);
 		}
@@ -167,31 +241,10 @@ export function ClassDetailsModal({
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-[600px]">
 				<DialogHeader>
-					<div className="flex items-center justify-between">
-						<div>
-							<DialogTitle>Class Details</DialogTitle>
-							<DialogDescription>
-								View and edit class information
-							</DialogDescription>
-						</div>
-						<Button
-							variant={editing ? "default" : "outline"}
-							size="sm"
-							onClick={() => setEditing(!editing)}
-						>
-							{editing ? (
-								<>
-									<CheckCircle2 className="mr-2 h-4 w-4" />
-									Done Editing
-								</>
-							) : (
-								<>
-									<Edit2 className="mr-2 h-4 w-4" />
-									Edit Details
-								</>
-							)}
-						</Button>
-					</div>
+					<DialogTitle>Class Details</DialogTitle>
+					<DialogDescription>
+						View and edit class information
+					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">
@@ -231,7 +284,9 @@ export function ClassDetailsModal({
 						{editing ? (
 							<Select
 								value={formData.status || classItem.status}
-								onValueChange={(value) => updateField("status", value)}
+								onValueChange={(value) =>
+									setFormData({ ...formData, status: value as any })
+								}
 							>
 								<SelectTrigger>
 									<SelectValue />
@@ -251,6 +306,37 @@ export function ClassDetailsModal({
 							</Badge>
 						)}
 					</div>
+
+					{/* Current Level - Only show in edit mode when status is completed */}
+					{editing && formData.status === "completed" ? (
+						<div className="space-y-2">
+							<Label>Current Level</Label>
+							<p className="text-muted-foreground text-xs">
+								Update the cohort's current level to accurately track student
+								progress after completing this class
+							</p>
+							<SearchableSelect
+								placeholder={
+									languageLevelsLoading
+										? "Loading levels..."
+										: "Select current level"
+								}
+								searchPlaceholder="Type to search levels..."
+								value={formData.current_level_id || ""}
+								onValueChange={(value) =>
+									setFormData((prev) => ({ ...prev, current_level_id: value }))
+								}
+								options={
+									languageLevels?.map((level) => ({
+										label: level.display_name,
+										value: level.id,
+									})) || []
+								}
+								showOnlyOnSearch={true}
+								disabled={languageLevelsLoading}
+							/>
+						</div>
+					) : null}
 
 					{/* Teacher */}
 					{classItem.teacher && (
@@ -275,9 +361,6 @@ export function ClassDetailsModal({
 								value={formData.meeting_link || ""}
 								onChange={(e) =>
 									setFormData({ ...formData, meeting_link: e.target.value })
-								}
-								onBlur={() =>
-									updateField("meeting_link", formData.meeting_link)
 								}
 								placeholder="https://..."
 								type="url"
@@ -309,7 +392,6 @@ export function ClassDetailsModal({
 								onChange={(e) =>
 									setFormData({ ...formData, notes: e.target.value })
 								}
-								onBlur={() => updateField("notes", formData.notes)}
 								placeholder="Add internal notes..."
 								rows={3}
 							/>
@@ -329,10 +411,40 @@ export function ClassDetailsModal({
 					</div>
 				</div>
 
-				<DialogFooter>
-					<Button variant="outline" onClick={handleClose}>
+				<DialogFooter className="flex items-center justify-between gap-3 sm:justify-between">
+					<Button
+						variant="outline"
+						onClick={handleClose}
+						disabled={saving}
+						className="order-1"
+					>
 						Close
 					</Button>
+					{editing ? (
+						<Button
+							onClick={saveChanges}
+							disabled={saving}
+							className="order-2"
+						>
+							{saving ? (
+								<>Saving...</>
+							) : (
+								<>
+									<CheckCircle2 className="mr-2 h-4 w-4" />
+									Done Editing
+								</>
+							)}
+						</Button>
+					) : (
+						<Button
+							variant="outline"
+							onClick={() => setEditing(true)}
+							className="order-2"
+						>
+							<Edit2 className="mr-2 h-4 w-4" />
+							Edit Details
+						</Button>
+					)}
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

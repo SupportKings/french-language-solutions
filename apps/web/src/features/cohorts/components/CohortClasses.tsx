@@ -123,9 +123,9 @@ export function CohortClasses({
 	// Handle class update from modal
 	const handleClassUpdate = (updatedClass: any) => {
 		setClasses((prevClasses) => {
-			// Update the class and re-sort
+			// Update the class and re-sort, preserving cohort data
 			const updated = prevClasses.map((c) =>
-				c.id === updatedClass.id ? updatedClass : c,
+				c.id === updatedClass.id ? { ...updatedClass, cohort: c.cohort } : c,
 			);
 			return updated.sort((a, b) => {
 				const dateA = new Date(a.start_time);
@@ -133,7 +133,10 @@ export function CohortClasses({
 				return dateB.getTime() - dateA.getTime();
 			});
 		});
-		setSelectedClass(updatedClass);
+		// Also update selectedClass to preserve cohort data
+		if (selectedClass?.id === updatedClass.id) {
+			setSelectedClass({ ...updatedClass, cohort: selectedClass.cohort });
+		}
 	};
 
 	// Handle view attendance for a class
