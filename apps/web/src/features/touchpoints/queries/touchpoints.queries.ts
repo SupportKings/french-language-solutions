@@ -23,11 +23,20 @@ export const touchpointsQueries = {
 				if (query.channel) {
 					query.channel.forEach((v) => params.append("channel", v));
 				}
+				if (query.channel_operator) {
+					params.append("channel_operator", query.channel_operator);
+				}
 				if (query.type) {
 					query.type.forEach((v) => params.append("type", v));
 				}
+				if (query.type_operator) {
+					params.append("type_operator", query.type_operator);
+				}
 				if (query.source) {
 					query.source.forEach((v) => params.append("source", v));
+				}
+				if (query.source_operator) {
+					params.append("source_operator", query.source_operator);
 				}
 
 				const response = await fetch(`/api/touchpoints?${params}`);

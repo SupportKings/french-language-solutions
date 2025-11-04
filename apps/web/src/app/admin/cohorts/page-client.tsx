@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -128,6 +128,9 @@ export function ClassesPageClient() {
 	console.log("🔥 ClassesPageClient component mounted");
 	const router = useRouter();
 
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
+
 	// Fetch language levels and teachers for filter options
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
 	const { data: teachersData } = useQuery(teachersQueries.list());
@@ -151,6 +154,33 @@ export function ClassesPageClient() {
 		},
 	);
 	const todaySessions = todaySessionsState === "true";
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
+				}
+				return filter;
+			});
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
 
 	// Update cohortColumns with language level and teacher options
 	const dynamicCohortColumns = useMemo(() => {
@@ -206,7 +236,18 @@ export function ClassesPageClient() {
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: dynamicCohortColumns,
+		defaultFilters: initialFilters,
 	});
+
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
 
 	// Convert filters to query params - support multiple values with operators
 	const filterParams = useMemo(() => {
@@ -260,8 +301,12 @@ export function ClassesPageClient() {
 		return params;
 	}, [filters]);
 
-	// Reset to page 1 when filters change
+	// Reset to page 1 when filters change (but not on initial mount)
 	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
 		setPageState(1);
 	}, [filterParams, setPageState]);
 
