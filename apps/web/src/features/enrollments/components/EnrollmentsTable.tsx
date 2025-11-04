@@ -220,51 +220,83 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		let completionExclude = null;
 
 		if (completionValues.length > 0) {
-			const value = completionValues[0];
+			const numValue = Number(completionValues[0]);
 
 			switch (completionOperator) {
 				case "is":
 					// Exact match
-					completionExact = value;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
 					break;
 				case "is not":
 					// Exclude this value
-					completionExclude = value;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExclude = numValue;
+					}
 					break;
 				case "is greater than":
 					// Greater than: min is value + 0.01 to exclude the exact value
-					completionMin = value + 0.01;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue + 0.01;
+					}
 					break;
 				case "is greater than or equal to":
 					// Greater than or equal: min is value
-					completionMin = value;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue;
+					}
 					break;
 				case "is less than":
 					// Less than: max is value - 0.01 to exclude the exact value
-					completionMax = value - 0.01;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue - 0.01;
+					}
 					break;
 				case "is less than or equal to":
 					// Less than or equal: max is value
-					completionMax = value;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue;
+					}
 					break;
 				case "is between":
 					// Range: use both values
 					if (completionValues.length > 1) {
-						completionMin = completionValues[0];
-						completionMax = completionValues[1];
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
 					}
 					break;
 				case "is not between":
 					// Not in range - this is complex, we'll handle separately
 					if (completionValues.length > 1) {
-						// For "not between", we need special handling on the server
-						completionMin = completionValues[0];
-						completionMax = completionValues[1];
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							// For "not between", we need special handling on the server
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
 					}
 					break;
 				default:
 					// Fallback: treat as exact match
-					completionExact = value;
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
 			}
 		}
 
