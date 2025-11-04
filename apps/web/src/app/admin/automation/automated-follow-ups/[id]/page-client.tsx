@@ -15,6 +15,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
@@ -218,15 +219,18 @@ export function AutomatedFollowUpDetailPageClient({
 			{/* Enhanced Header with Breadcrumb - matching cohort style exactly */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/automation/automated-follow-ups"
-							className="transition-colors hover:text-foreground"
-						>
-							Automated Follow-ups
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<span>{followUpName}</span>
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/automation/automated-follow-ups"
+								className="transition-colors hover:text-foreground"
+							>
+								Automated Follow-ups
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<span>{followUpName}</span>
+						</div>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">

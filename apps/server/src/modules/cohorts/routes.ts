@@ -36,4 +36,23 @@ app.get("/:cohortId/attendees", (c) => controller.getAttendees(c));
  */
 app.post("/finalize-setup", (c) => controller.finalizeSetup(c));
 
+/**
+ * GET /api/cohorts/create-tomorrow-classes
+ *
+ * Automatically create class records for tomorrow's weekly sessions
+ *
+ * This endpoint will:
+ * 1. Find all cohorts with setup_finalized = true and cohort_status != 'class_ended'
+ * 2. Filter cohorts that have weekly sessions scheduled for tomorrow
+ * 3. Create class records for each matching weekly session
+ *
+ * Returns:
+ * {
+ *   "success": true,
+ *   "message": "Successfully created 5 classes for tomorrow",
+ *   "classesCreated": 5
+ * }
+ */
+app.get("/create-tomorrow-classes", (c) => controller.createTomorrowClasses(c));
+
 export default app;

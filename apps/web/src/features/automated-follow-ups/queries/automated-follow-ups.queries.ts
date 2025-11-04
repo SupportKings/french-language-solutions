@@ -23,8 +23,14 @@ export const automatedFollowUpsQueries = {
 				if (query.status) {
 					query.status.forEach((v) => params.append("status", v));
 				}
+				if (query.status_operator) {
+					params.append("status_operator", query.status_operator);
+				}
 				if (query.sequence_id) {
 					query.sequence_id.forEach((v) => params.append("sequence_id", v));
+				}
+				if (query.sequence_id_operator) {
+					params.append("sequence_id_operator", query.sequence_id_operator);
 				}
 
 				const response = await fetch(`/api/automated-follow-ups?${params}`);

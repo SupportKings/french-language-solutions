@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import type { Database } from "@/utils/supabase/database.types";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
@@ -251,15 +252,18 @@ export default function EnrollmentDetailView({
 			{/* Enhanced Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/students/enrollments"
-							className="transition-colors hover:text-foreground"
-						>
-							Enrollments
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<span>Enrollment</span>
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/students/enrollments"
+								className="transition-colors hover:text-foreground"
+							>
+								Enrollments
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<span>Enrollment</span>
+						</div>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
