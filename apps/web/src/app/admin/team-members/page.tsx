@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { requirePermission } from "@/lib/rbac-middleware";
-import { getUser } from "@/queries/getUser";
 
 import { TeachersTable } from "@/features/teachers/components/TeachersTable";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function TeamMembersPage() {
 	const session = await getUser();

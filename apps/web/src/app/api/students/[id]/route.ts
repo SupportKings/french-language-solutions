@@ -1,7 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+	canAccessStudent,
+	requireAdmin,
+	requireAuth,
+} from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
-import { requireAuth, canAccessStudent, requireAdmin } from "@/lib/rbac-middleware";
 
 interface RouteParams {
 	params: Promise<{ id: string }>;

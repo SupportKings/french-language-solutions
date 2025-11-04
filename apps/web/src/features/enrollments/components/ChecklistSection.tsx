@@ -10,16 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 
-import {
-	ENROLLMENT_CHECKLIST_LABELS,
-	OFFBOARDING_CHECKLIST_LABELS,
-	TRANSITION_CHECKLIST_LABELS,
-	calculateChecklistProgress,
-	type EnrollmentChecklist,
-	type OffboardingChecklist,
-	type TransitionChecklist,
-} from "../types/checklist.types";
-
 import { format } from "date-fns";
 import {
 	AlertCircle,
@@ -33,6 +23,15 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { updateChecklistAction } from "../actions/updateChecklist";
+import {
+	calculateChecklistProgress,
+	ENROLLMENT_CHECKLIST_LABELS,
+	type EnrollmentChecklist,
+	OFFBOARDING_CHECKLIST_LABELS,
+	type OffboardingChecklist,
+	TRANSITION_CHECKLIST_LABELS,
+	type TransitionChecklist,
+} from "../types/checklist.types";
 
 type ChecklistType = "enrollment" | "transition" | "offboarding";
 
@@ -239,11 +238,13 @@ export function ChecklistSection({
 							<CardTitle className="text-lg">{getTitle()}</CardTitle>
 							<div className="mt-1 flex items-center gap-2">
 								<span className="text-muted-foreground text-sm">
-									{progress.requiredCompleted} of {progress.requiredTotal} required
-									completed
+									{progress.requiredCompleted} of {progress.requiredTotal}{" "}
+									required completed
 								</span>
 								<Badge
-									variant={progress.percentage === 100 ? "success" : "secondary"}
+									variant={
+										progress.percentage === 100 ? "success" : "secondary"
+									}
 									className="text-xs"
 								>
 									{progress.percentage}%
@@ -297,7 +298,9 @@ export function ChecklistSection({
 											<Label
 												htmlFor={`checklist-${key}`}
 												className={`cursor-pointer text-sm leading-snug ${
-													item.completed ? "line-through text-muted-foreground" : ""
+													item.completed
+														? "text-muted-foreground line-through"
+														: ""
 												}`}
 											>
 												{label}
@@ -307,19 +310,22 @@ export function ChecklistSection({
 													</span>
 												)}
 												{isDeprecated && (
-													<Badge variant="secondary" className="ml-1.5 text-[10px] px-1 py-0">
+													<Badge
+														variant="secondary"
+														className="ml-1.5 px-1 py-0 text-[10px]"
+													>
 														Deprecated
 													</Badge>
 												)}
 											</Label>
 											{item.completed && (
-												<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-600 mt-0.5" />
+												<CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600" />
 											)}
 										</div>
 
 										{/* Show note if available */}
 										{item.note && !item.completed && (
-											<p className="text-muted-foreground text-[11px] leading-tight">
+											<p className="text-[11px] text-muted-foreground leading-tight">
 												{item.note}
 											</p>
 										)}
@@ -366,7 +372,7 @@ export function ChecklistSection({
 														/>
 														<Label
 															htmlFor={`${key}-old`}
-															className="text-[11px] cursor-pointer"
+															className="cursor-pointer text-[11px]"
 														>
 															Old teacher notified
 														</Label>
@@ -387,7 +393,7 @@ export function ChecklistSection({
 														/>
 														<Label
 															htmlFor={`${key}-new`}
-															className="text-[11px] cursor-pointer"
+															className="cursor-pointer text-[11px]"
 														>
 															New teacher notified
 														</Label>
@@ -428,10 +434,13 @@ export function ChecklistSection({
 
 										{/* Show completion info */}
 										{item.completed && item.completed_at && (
-											<div className="flex items-center gap-1 text-muted-foreground text-[10px]">
+											<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
 												<User className="h-2.5 w-2.5" />
 												<span>
-													{format(new Date(item.completed_at), "MMM d, yyyy 'at' h:mm a")}
+													{format(
+														new Date(item.completed_at),
+														"MMM d, yyyy 'at' h:mm a",
+													)}
 												</span>
 											</div>
 										)}
@@ -452,7 +461,7 @@ export function ChecklistSection({
 								<p className="font-medium text-xs">
 									{progress.requiredCompleted}/{progress.requiredTotal} Required
 								</p>
-								<p className="text-muted-foreground text-[10px]">
+								<p className="text-[10px] text-muted-foreground">
 									{progress.completed}/{progress.total} Total
 								</p>
 							</div>

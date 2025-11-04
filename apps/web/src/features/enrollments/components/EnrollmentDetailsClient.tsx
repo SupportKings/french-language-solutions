@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import {
@@ -42,7 +43,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import {
 	AlertCircle,
-	ArrowLeft,
 	BookOpen,
 	Building,
 	Calendar,
@@ -61,7 +61,6 @@ import {
 	UserCircle,
 	Users,
 } from "lucide-react";
-import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 const statusColors = {
@@ -120,10 +119,6 @@ export function EnrollmentDetailsClient({
 		}
 	}, [initialEnrollment]);
 
-	// Get redirectTo param from URL
-	const [redirectTo] = useQueryState("redirectTo", {
-		defaultValue: "/admin/students/enrollments",
-	});
 
 	// Get student initials for avatar
 	const studentInitials =
@@ -189,7 +184,7 @@ export function EnrollmentDetailsClient({
 			if (!response.ok) throw new Error("Failed to delete enrollment");
 
 			toast.success("Enrollment deleted successfully");
-			router.push(redirectTo);
+			router.back();
 		} catch (error) {
 			console.error("Error deleting enrollment:", error);
 			toast.error("Failed to delete enrollment");
@@ -204,7 +199,6 @@ export function EnrollmentDetailsClient({
 			studentId: enrollment.student_id,
 			studentName: enrollment.students?.full_name || "",
 			cohortId: enrollment.cohort_id,
-			redirectTo: redirectTo,
 		});
 		router.push(
 			`/admin/students/enrollments/new?${params.toString()}&edit=${enrollment.id}`,
@@ -217,12 +211,7 @@ export function EnrollmentDetailsClient({
 				<div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 					{/* Header */}
 					<div className="mb-8">
-						<Link href={redirectTo}>
-							<Button variant="ghost" size="sm" className="mb-4">
-								<ArrowLeft className="mr-2 h-4 w-4" />
-								Back
-							</Button>
-						</Link>
+						<BackButton />
 
 						<div className="flex items-start justify-between">
 							<div className="flex items-start gap-4">
@@ -251,7 +240,10 @@ export function EnrollmentDetailsClient({
 											: "Private Class"}{" "}
 										•{" "}
 										{enrollment.cohorts?.nickname ? (
-											<span className="truncate max-w-[200px] inline-block align-bottom" title={enrollment.cohorts.nickname}>
+											<span
+												className="inline-block max-w-[200px] truncate align-bottom"
+												title={enrollment.cohorts.nickname}
+											>
 												{enrollment.cohorts.nickname}
 											</span>
 										) : (

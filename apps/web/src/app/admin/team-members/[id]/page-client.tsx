@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import {
@@ -29,12 +30,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MultiSelect } from "@/components/ui/multi-select";
 
+import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 import {
 	offboardTeacher,
 	permanentlyDeleteTeacher,
 } from "@/features/teachers/actions/offboardTeacher";
 import { CreateUserDialog } from "@/features/teachers/components/CreateUserDialog";
-import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 
 import { format } from "date-fns";
 import {
@@ -342,15 +343,18 @@ export default function TeacherDetailsClient({
 			{/* Enhanced Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/team-members"
-							className="transition-colors hover:text-foreground"
-						>
-							Team Members
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<span>{fullName}</span>
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/team-members"
+								className="transition-colors hover:text-foreground"
+							>
+								Team Members
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<span>{fullName}</span>
+						</div>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
@@ -1109,21 +1113,23 @@ export default function TeacherDetailsClient({
 					)}
 				</EditableSection>
 
-				{/* Teacher's Cohorts Section */}
-				<div className="rounded-lg border bg-card">
-					<div className="border-b bg-muted/30 px-4 py-3">
-						<h2 className="flex items-center gap-2 font-semibold text-lg">
-							<Users className="h-5 w-5 text-primary" />
-							Cohorts
-						</h2>
-						<p className="mt-1 text-muted-foreground text-sm">
-							All cohorts where {fullName} is assigned as a teacher
-						</p>
+				{/* Teacher's Cohorts Section - Only show if role includes Teacher */}
+				{teacher.role?.includes("Teacher") && (
+					<div className="rounded-lg border bg-card">
+						<div className="border-b bg-muted/30 px-4 py-3">
+							<h2 className="flex items-center gap-2 font-semibold text-lg">
+								<Users className="h-5 w-5 text-primary" />
+								Cohorts
+							</h2>
+							<p className="mt-1 text-muted-foreground text-sm">
+								All cohorts where {fullName} is assigned as a teacher
+							</p>
+						</div>
+						<div className="p-4">
+							<TeacherCohorts teacherId={teacher.id} teacherName={fullName} />
+						</div>
 					</div>
-					<div className="p-4">
-						<TeacherCohorts teacherId={teacher.id} teacherName={fullName} />
-					</div>
-				</div>
+				)}
 
 				{/* System Information - Less prominent at the bottom */}
 				<div className="mt-8 border-t pt-6">

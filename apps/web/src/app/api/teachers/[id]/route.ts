@@ -1,7 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+	requireAdmin,
+	requireAuth,
+	requirePermission,
+} from "@/lib/rbac-middleware";
+
 import { createClient } from "@/utils/supabase/server";
-import { requireAuth, requirePermission, requireAdmin } from "@/lib/rbac-middleware";
 
 import { teacherFormSchema } from "@/features/teachers/schemas/teacher.schema";
 
@@ -208,7 +213,10 @@ export async function PATCH(
 			console.error("Update data that failed:", updateData);
 
 			// Check for unique constraint violation on email
-			if (error.code === "23505" && error.message?.includes("teachers_email_unique")) {
+			if (
+				error.code === "23505" &&
+				error.message?.includes("teachers_email_unique")
+			) {
 				return NextResponse.json(
 					{ error: "A teacher with this email already exists" },
 					{ status: 409 },

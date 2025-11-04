@@ -14,16 +14,12 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 // Create a Supabase client with service role key for server-side operations
-export const supabase = createClient<any>(
-	supabaseUrl,
-	supabaseServiceKey,
-	{
-		auth: {
-			autoRefreshToken: false,
-			persistSession: false,
-		},
+export const supabase = createClient<any>(supabaseUrl, supabaseServiceKey, {
+	auth: {
+		autoRefreshToken: false,
+		persistSession: false,
 	},
-);
+});
 
 // Helper function to handle Supabase errors
 export function handleSupabaseError(error: any): {

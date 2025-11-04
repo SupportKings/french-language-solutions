@@ -4,12 +4,14 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
+import { rolesMap } from "@/lib/permissions";
+
+import { AccessDenied } from "@/components/ui/access-denied";
+
 import EnrollmentDetailSkeleton from "@/features/enrollments/components/enrollment.detail.skeleton";
 import EnrollmentDetailView from "@/features/enrollments/components/enrollment.detail.view";
 
 import { getUser } from "@/queries/getUser";
-import { rolesMap } from "@/lib/permissions";
-import { AccessDenied } from "@/components/ui/access-denied";
 
 import {
 	dehydrate,

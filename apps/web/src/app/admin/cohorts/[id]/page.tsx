@@ -1,11 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 
+import { rolesMap } from "@/lib/permissions";
+
+import { AccessDenied } from "@/components/ui/access-denied";
+
 import { cohortsApi } from "@/features/cohorts/api/cohorts.api";
 import { cohortsQueries } from "@/features/cohorts/queries/cohorts.queries";
 
 import { getUser } from "@/queries/getUser";
-import { rolesMap } from "@/lib/permissions";
-import { AccessDenied } from "@/components/ui/access-denied";
 
 import {
 	dehydrate,

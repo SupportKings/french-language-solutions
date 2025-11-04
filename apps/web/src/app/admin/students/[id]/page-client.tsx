@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
@@ -126,11 +127,13 @@ export default function StudentDetailsClient({
 
 	// Get initials for avatar
 	const initials = student.full_name
-		.split(" ")
-		.map((n: string) => n[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
+		? student.full_name
+				.split(" ")
+				.map((n: string) => n[0])
+				.join("")
+				.toUpperCase()
+				.slice(0, 2)
+		: "?";
 
 	// Update edited student field locally
 	const updateEditedField = async (field: string, value: any) => {
@@ -245,15 +248,18 @@ export default function StudentDetailsClient({
 			{/* Enhanced Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/students"
-							className="transition-colors hover:text-foreground"
-						>
-							Students
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<span>{student.full_name}</span>
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/students"
+								className="transition-colors hover:text-foreground"
+							>
+								Students
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<span>{student.full_name}</span>
+						</div>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
@@ -731,9 +737,9 @@ export default function StudentDetailsClient({
 								</CardHeader>
 								<CardContent className="pt-0">
 									<StudentAssessments
-									studentId={student.id}
-									canScheduleAssessment={canEditStudent}
-								/>
+										studentId={student.id}
+										canScheduleAssessment={canEditStudent}
+									/>
 								</CardContent>
 							</Card>
 						</TabsContent>

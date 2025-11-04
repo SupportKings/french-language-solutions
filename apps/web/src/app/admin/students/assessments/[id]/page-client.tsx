@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import {
@@ -19,7 +20,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -45,7 +45,6 @@ import {
 	Phone,
 	Trash2,
 	User,
-	UserCheck,
 	Video,
 	XCircle,
 } from "lucide-react";
@@ -201,21 +200,24 @@ export default function AssessmentDetailsClient({
 			{/* Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/students/assessments"
-							className="transition-colors hover:text-foreground"
-						>
-							Assessments
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<Link
-							href={`/admin/students/${assessment.student_id}`}
-							className="transition-colors hover:text-foreground"
-						>
-							{assessment.students?.full_name || "Student"}
-						</Link>
-						<ChevronRight className="h-3 w-3" />
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/students/assessments"
+								className="transition-colors hover:text-foreground"
+							>
+								Assessments
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<Link
+								href={`/admin/students/${assessment.student_id}`}
+								className="transition-colors hover:text-foreground"
+							>
+								{assessment.students?.full_name || "Student"}
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+						</div>
 						<span>Assessment Details</span>
 					</div>
 					<div className="flex items-center justify-between">
@@ -501,25 +503,30 @@ export default function AssessmentDetailsClient({
 											<p className="text-muted-foreground text-xs">
 												Calendar Event:
 											</p>
-											<InlineEditField
-												value={editedAssessment.calendar_event_url || ""}
-												onSave={(value) =>
-													updateEditedField("calendar_event_url", value || null)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter calendar event URL"
-											/>
-											{!editing && assessment.calendar_event_url && (
+											{editing ? (
+												<InlineEditField
+													value={editedAssessment.calendar_event_url || ""}
+													onSave={(value) =>
+														updateEditedField("calendar_event_url", value || null)
+													}
+													editing={editing}
+													type="text"
+													placeholder="Enter calendar event URL"
+												/>
+											) : assessment.calendar_event_url ? (
 												<a
 													href={assessment.calendar_event_url}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="mt-1 inline-flex items-center gap-1 text-primary text-xs hover:underline"
+													className="inline-flex items-center gap-1.5 text-primary text-sm hover:underline"
 												>
-													<ExternalLink className="h-3 w-3" />
+													<ExternalLink className="h-3.5 w-3.5" />
 													Open Event
 												</a>
+											) : (
+												<span className="text-muted-foreground text-sm">
+													No calendar event
+												</span>
 											)}
 										</div>
 									</div>
@@ -530,28 +537,33 @@ export default function AssessmentDetailsClient({
 											<p className="text-muted-foreground text-xs">
 												Recording URL:
 											</p>
-											<InlineEditField
-												value={editedAssessment.meeting_recording_url || ""}
-												onSave={(value) =>
-													updateEditedField(
-														"meeting_recording_url",
-														value || null,
-													)
-												}
-												editing={editing}
-												type="text"
-												placeholder="Enter recording URL"
-											/>
-											{!editing && assessment.meeting_recording_url && (
+											{editing ? (
+												<InlineEditField
+													value={editedAssessment.meeting_recording_url || ""}
+													onSave={(value) =>
+														updateEditedField(
+															"meeting_recording_url",
+															value || null,
+														)
+													}
+													editing={editing}
+													type="text"
+													placeholder="Enter recording URL"
+												/>
+											) : assessment.meeting_recording_url ? (
 												<a
 													href={assessment.meeting_recording_url}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="mt-1 inline-flex items-center gap-1 text-primary text-xs hover:underline"
+													className="inline-flex items-center gap-1.5 text-primary text-sm hover:underline"
 												>
-													<ExternalLink className="h-3 w-3" />
+													<ExternalLink className="h-3.5 w-3.5" />
 													Watch Recording
 												</a>
+											) : (
+												<span className="text-muted-foreground text-sm">
+													No recording
+												</span>
 											)}
 										</div>
 									</div>

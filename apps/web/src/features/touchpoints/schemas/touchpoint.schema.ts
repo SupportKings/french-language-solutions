@@ -47,7 +47,9 @@ export type Touchpoint = z.infer<typeof touchpointSchema>;
 export const touchpointQuerySchema = z.object({
 	search: z.string().optional(),
 	channel: z.array(z.enum(["sms", "call", "whatsapp", "email"])).optional(),
+	channel_operator: z.string().optional(),
 	type: z.array(z.enum(["inbound", "outbound"])).optional(),
+	type_operator: z.string().optional(),
 	source: z
 		.array(
 			z.enum([
@@ -60,6 +62,7 @@ export const touchpointQuerySchema = z.object({
 			]),
 		)
 		.optional(),
+	source_operator: z.string().optional(),
 	page: z.number().int().positive().default(1),
 	limit: z.number().int().positive().default(20),
 });

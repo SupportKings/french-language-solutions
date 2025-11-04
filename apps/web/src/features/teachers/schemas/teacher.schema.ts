@@ -92,6 +92,7 @@ export const teacherQuerySchema = z.object({
 	onboarding_status: z
 		.union([onboardingStatusEnum, z.array(onboardingStatusEnum)])
 		.optional(),
+	role: z.union([teamRoleEnum, z.array(teamRoleEnum)]).optional(),
 	contract_type: z
 		.union([contractTypeEnum, z.array(contractTypeEnum)])
 		.optional(),
