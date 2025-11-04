@@ -106,6 +106,13 @@ export async function GET(request: NextRequest) {
 		const startingLevelArray = searchParams.getAll("starting_level");
 		const roomTypeArray = searchParams.getAll("room_type");
 
+		// Get additional query parameters for completion_percentage filter
+		const completionMin = searchParams.get("completionMin");
+		const completionMax = searchParams.get("completionMax");
+		const completionExact = searchParams.get("completionExact");
+		const completionExclude = searchParams.get("completionExclude");
+		const completionOperator = searchParams.get("completionOperator");
+
 		// Build query - use inner join when filtering by products to exclude N/A records
 		const cohortJoin = productIds.length > 0 ? "cohorts!inner" : "cohorts";
 		let query = supabase.from("enrollments").select(
@@ -201,6 +208,29 @@ export async function GET(request: NextRequest) {
 
 		if (roomTypeArray.length > 0) {
 			query = query.in("cohorts.room_type", roomTypeArray);
+		}
+
+		// Apply completion_percentage filters based on operator
+		if (completionExact !== null && completionExact !== "") {
+			// Exact match: completion_percentage = value
+			query = query.eq("completion_percentage", Number.parseFloat(completionExact));
+		} else if (completionExclude !== null && completionExclude !== "") {
+			// Not equal: completion_percentage != value
+			query = query.neq("completion_percentage", Number.parseFloat(completionExclude));
+		} else if (completionOperator === "is not between" && completionMin !== null && completionMax !== null) {
+			// Not between: completion_percentage < min OR completion_percentage > max
+			query = query.or(
+				`completion_percentage.lt.${Number.parseFloat(completionMin)},completion_percentage.gt.${Number.parseFloat(completionMax)}`
+			);
+		} else {
+			// Range-based filters (greater than, less than, between, etc.)
+			if (completionMin !== null && completionMin !== "") {
+				query = query.gte("completion_percentage", Number.parseFloat(completionMin));
+			}
+
+			if (completionMax !== null && completionMax !== "") {
+				query = query.lte("completion_percentage", Number.parseFloat(completionMax));
+			}
 		}
 
 		if (search) {

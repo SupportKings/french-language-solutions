@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -34,6 +35,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useQueryState } from "nuqs";
 import {
+	BarChart3,
 	Building,
 	Calendar,
 	CalendarDays,
@@ -134,6 +136,15 @@ const getEnrollmentColumns = (products: any[], teachers: any[]) => [
 		displayName: "Created Date",
 		icon: CalendarDays,
 		type: "date" as const,
+	},
+	{
+		id: "completion_percentage",
+		accessor: (enrollment: any) => enrollment.completion_percentage ?? 0,
+		displayName: "Completion Progress",
+		icon: BarChart3,
+		type: "number" as const,
+		min: 0,
+		max: 100,
 	},
 ];
 
@@ -236,6 +247,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		const cohortNicknameFilter = filters.find((f) => f.columnId === "cohort_nickname");
 		const teacherFilter = filters.find((f) => f.columnId === "teacher");
 		const dateFilter = filters.find((f) => f.columnId === "created_at");
+		const completionFilter = filters.find((f) => f.columnId === "completion_percentage");
 
 		// Date filter values are stored as [from, to] for ranges or [date] for single dates
 		const dateValues = dateFilter?.values || [];
@@ -263,6 +275,95 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			dateTo = toDate.toISOString();
 		}
 
+		// Completion percentage filter
+		const completionValues = completionFilter?.values || [];
+		const completionOperator = completionFilter?.operator;
+		let completionMin = null;
+		let completionMax = null;
+		let completionExact = null;
+		let completionExclude = null;
+
+		if (completionValues.length > 0) {
+			const numValue = Number(completionValues[0]);
+
+			switch (completionOperator) {
+				case "is":
+					// Exact match
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
+					break;
+				case "is not":
+					// Exclude this value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExclude = numValue;
+					}
+					break;
+				case "is greater than":
+					// Greater than: min is value + 0.01 to exclude the exact value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue + 0.01;
+					}
+					break;
+				case "is greater than or equal to":
+					// Greater than or equal: min is value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue;
+					}
+					break;
+				case "is less than":
+					// Less than: max is value - 0.01 to exclude the exact value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue - 0.01;
+					}
+					break;
+				case "is less than or equal to":
+					// Less than or equal: max is value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue;
+					}
+					break;
+				case "is between":
+					// Range: use both values
+					if (completionValues.length > 1) {
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
+					}
+					break;
+				case "is not between":
+					// Not in range - this is complex, we'll handle separately
+					if (completionValues.length > 1) {
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							// For "not between", we need special handling on the server
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
+					}
+					break;
+				default:
+					// Fallback: treat as exact match
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
+			}
+		}
+
 		return {
 			status: statusFilter?.values?.length ? statusFilter.values : undefined,
 			status_operator: statusFilter?.operator,
@@ -276,6 +377,11 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			dateTo,
 			useAirtableDate,
 			created_at_operator: dateFilter?.operator,
+			completionMin,
+			completionMax,
+			completionExact,
+			completionExclude,
+			completionOperator,
 		};
 	}, [filters]);
 
@@ -347,6 +453,23 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			}
 			if (filterQuery.created_at_operator) {
 				params.append("created_at_operator", filterQuery.created_at_operator);
+			}
+
+			// Add completion percentage filters
+			if (filterQuery.completionMin !== null && filterQuery.completionMin !== undefined) {
+				params.append("completionMin", filterQuery.completionMin.toString());
+			}
+			if (filterQuery.completionMax !== null && filterQuery.completionMax !== undefined) {
+				params.append("completionMax", filterQuery.completionMax.toString());
+			}
+			if (filterQuery.completionExact !== null && filterQuery.completionExact !== undefined) {
+				params.append("completionExact", filterQuery.completionExact.toString());
+			}
+			if (filterQuery.completionExclude !== null && filterQuery.completionExclude !== undefined) {
+				params.append("completionExclude", filterQuery.completionExclude.toString());
+			}
+			if (filterQuery.completionOperator) {
+				params.append("completionOperator", filterQuery.completionOperator);
 			}
 
 			const response = await fetch(`/api/enrollments?${params}`);
@@ -431,6 +554,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<TableHead>Cohort (Product and Sessions)</TableHead>
 							<TableHead>Teachers</TableHead>
 							<TableHead>Status</TableHead>
+							<TableHead>Progress</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
@@ -450,6 +574,12 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 									</TableCell>
 									<TableCell>
 										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
 									</TableCell>
 									<TableCell>
 										<Skeleton className="h-5 w-24" />
@@ -551,6 +681,12 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		session.day_of_week
 																	: "";
 
+																// Format time to HH:MM
+																const formatTime = (timeStr: string | null) => {
+																	if (!timeStr) return "";
+																	return timeStr.slice(0, 5); // Already in HH:MM:SS format
+																};
+
 																return (
 																	<Badge
 																		key={session.id}
@@ -558,7 +694,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		className="text-xs"
 																	>
 																		{dayAbbrev}{" "}
-																		{session.start_time?.slice(0, 5)}
+																		{formatTime(session.start_time)}
 																	</Badge>
 																);
 															},
@@ -597,6 +733,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										<Badge variant={(statusColors as any)[enrollment.status]}>
 											{(statusLabels as any)[enrollment.status]}
 										</Badge>
+									</TableCell>
+									<TableCell onClick={(e) => e.stopPropagation()}>
+										<div className="min-w-[140px]">
+											<ProgressBar
+												value={enrollment.completion_percentage || 0}
+												size="sm"
+											/>
+										</div>
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
