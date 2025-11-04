@@ -2,9 +2,11 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
-import { getUser } from "@/queries/getUser";
 import { rolesMap } from "@/lib/permissions";
+
 import { AccessDenied } from "@/components/ui/access-denied";
+
+import { getUser } from "@/queries/getUser";
 
 import AssessmentDetailsClient from "./page-client";
 
@@ -60,5 +62,10 @@ export default async function AssessmentDetailsPage({ params }: PageProps) {
 		notFound();
 	}
 
-	return <AssessmentDetailsClient assessment={result.data} permissions={permissions} />;
+	return (
+		<AssessmentDetailsClient
+			assessment={result.data}
+			permissions={permissions}
+		/>
+	);
 }

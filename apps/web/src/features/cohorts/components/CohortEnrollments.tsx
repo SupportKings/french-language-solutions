@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,8 @@ import {
 
 import { EnrollmentCreateModal } from "@/features/enrollments/components/EnrollmentCreateModal";
 import { EnrollmentDetailsModal } from "@/features/enrollments/components/EnrollmentDetailsModal";
+
+import { cohortsKeys } from "@/features/cohorts/queries/cohorts.queries";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -52,7 +53,6 @@ export function CohortEnrollments({
 	onEnrollmentUpdate,
 	canEnrollStudent = true,
 }: CohortEnrollmentsProps) {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -101,6 +101,13 @@ export function CohortEnrollments({
 		// Invalidate the cohort enrollments query to refetch
 		queryClient.invalidateQueries({
 			queryKey: ["enrollments", "cohort", cohortId],
+		});
+		// Invalidate cohort details to refresh cohort data
+		queryClient.invalidateQueries({
+			queryKey: cohortsKeys.detail(cohortId),
+		});
+		queryClient.invalidateQueries({
+			queryKey: cohortsKeys.withSessions(cohortId),
 		});
 		// Also refresh the parent's enrollment progress data
 		if (onEnrollmentUpdate) {

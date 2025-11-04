@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { productQuery } from "@/features/products/queries/products.queries";
-import { getUser } from "@/queries/getUser";
 import { rolesMap } from "@/lib/permissions";
+
 import { AccessDenied } from "@/components/ui/access-denied";
+
+import { productQuery } from "@/features/products/queries/products.queries";
+
+import { getUser } from "@/queries/getUser";
 
 import {
 	dehydrate,
@@ -30,7 +33,9 @@ export default async function ProductDetailPage({
 	const permissions = rolePermissions?.statements || {};
 
 	// Check if user has permission to view products
-	const canViewProducts = (permissions as any)?.products?.includes("read") || (permissions as any)?.products?.includes("write");
+	const canViewProducts =
+		(permissions as any)?.products?.includes("read") ||
+		(permissions as any)?.products?.includes("write");
 
 	if (!canViewProducts) {
 		return (

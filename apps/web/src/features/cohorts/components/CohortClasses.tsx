@@ -299,7 +299,9 @@ export function CohortClasses({
 											<TableHead className="w-[150px]">Teacher</TableHead>
 											<TableHead className="w-[100px]">Status</TableHead>
 											<TableHead className="w-[120px]">Attendance</TableHead>
-											<TableHead className="w-[200px]">Internal Notes</TableHead>
+											<TableHead className="w-[200px]">
+												Internal Notes
+											</TableHead>
 											<TableHead className="w-[80px] text-right">
 												Actions
 											</TableHead>

@@ -316,7 +316,9 @@ export function ClassDetailsModal({
 						) : classItem.notes ? (
 							<p className="text-muted-foreground text-sm">{classItem.notes}</p>
 						) : (
-							<span className="text-muted-foreground text-sm">No internal notes</span>
+							<span className="text-muted-foreground text-sm">
+								No internal notes
+							</span>
 						)}
 					</div>
 

@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import Link from "next/link";
+
+import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -15,17 +26,20 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Users, Calendar, BookOpen, Loader2, ChevronLeft, ChevronRight, Clock, User } from "lucide-react";
+
 import { useCohorts } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
-import { formatDate } from "@/lib/date-utils";
+
+import {
+	BookOpen,
+	Calendar,
+	ChevronLeft,
+	ChevronRight,
+	Clock,
+	Loader2,
+	User,
+	Users,
+} from "lucide-react";
 
 interface TeacherCohortsProps {
 	teacherId: string;
@@ -102,10 +116,15 @@ const formatLevel = (level: any) => {
 	return "—";
 };
 
-export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) {
+export function TeacherCohorts({
+	teacherId,
+	teacherName,
+}: TeacherCohortsProps) {
 	const [page, setPage] = useState(1);
 	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [cohortsWithStats, setCohortsWithStats] = useState<CohortWithStats[]>([]);
+	const [cohortsWithStats, setCohortsWithStats] = useState<CohortWithStats[]>(
+		[],
+	);
 	const [loadingStats, setLoadingStats] = useState(false);
 	const limit = 10;
 
@@ -196,7 +215,7 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 				{/* Header with filter */}
 				<div className="flex items-center justify-between">
 					<div>
-						<Skeleton className="h-6 w-40 mb-2" />
+						<Skeleton className="mb-2 h-6 w-40" />
 						<Skeleton className="h-4 w-60" />
 					</div>
 					<Skeleton className="h-10 w-[200px]" />
@@ -220,15 +239,33 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 						<TableBody>
 							{Array.from({ length: 3 }).map((_, i) => (
 								<TableRow key={i}>
-									<TableCell><Skeleton className="h-4 w-40" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-24" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-24" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-24" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-16" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-40" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-16" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
 								</TableRow>
 							))}
 						</TableBody>
@@ -245,7 +282,8 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 				<div>
 					<h3 className="font-medium text-lg">Assigned Cohorts</h3>
 					<p className="text-muted-foreground text-sm">
-						{total} cohort{total !== 1 ? "s" : ""} where {teacherName} is assigned
+						{total} cohort{total !== 1 ? "s" : ""} where {teacherName} is
+						assigned
 					</p>
 				</div>
 				<Select value={statusFilter} onValueChange={handleStatusChange}>
@@ -282,15 +320,33 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 							// Loading stats skeletons
 							Array.from({ length: 3 }).map((_, i) => (
 								<TableRow key={i}>
-									<TableCell><Skeleton className="h-4 w-40" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-24" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-24" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-24" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-16" /></TableCell>
-									<TableCell><Skeleton className="h-4 w-20" /></TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-40" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-16" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-4 w-20" />
+									</TableCell>
 								</TableRow>
 							))
 						) : cohortsWithStats.length === 0 ? (
@@ -301,7 +357,7 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 										<p className="text-muted-foreground text-sm">
 											{statusFilter === "all"
 												? `${teacherName} is not assigned to any cohorts`
-												: `No cohorts found with selected status`}
+												: "No cohorts found with selected status"}
 										</p>
 									</div>
 								</TableCell>
@@ -317,14 +373,19 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 									<TableRow
 										key={cohort.id}
 										className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
-										onClick={() => window.location.href = `/admin/cohorts/${cohort.id}`}
+										onClick={() =>
+											(window.location.href = `/admin/cohorts/${cohort.id}`)
+										}
 									>
 										{/* Cohort Name & Product */}
 										<TableCell className="max-w-[200px]">
 											<div className="flex h-12 flex-col justify-center gap-1">
 												{cohort.nickname ? (
 													<>
-														<span className="truncate font-medium text-sm" title={cohort.nickname}>
+														<span
+															className="truncate font-medium text-sm"
+															title={cohort.nickname}
+														>
 															{cohort.nickname}
 														</span>
 														<LinkedRecordBadge
@@ -372,7 +433,9 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 															cohort.products.format.slice(1)}
 													</Badge>
 												) : (
-													<span className="text-muted-foreground text-sm">—</span>
+													<span className="text-muted-foreground text-sm">
+														—
+													</span>
 												)}
 											</div>
 										</TableCell>
@@ -386,11 +449,15 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 															? "In-Person"
 															: cohort.products.location === "online"
 																? "Online"
-																: cohort.products.location.charAt(0).toUpperCase() +
+																: cohort.products.location
+																		.charAt(0)
+																		.toUpperCase() +
 																	cohort.products.location.slice(1)}
 													</Badge>
 												) : (
-													<span className="text-muted-foreground text-sm">—</span>
+													<span className="text-muted-foreground text-sm">
+														—
+													</span>
 												)}
 											</div>
 										</TableCell>
@@ -452,7 +519,8 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 															{session.day_of_week
 																.slice(0, 3)
 																.charAt(0)
-																.toUpperCase() + session.day_of_week.slice(1, 3)}
+																.toUpperCase() +
+																session.day_of_week.slice(1, 3)}
 															, {session.start_time?.slice(0, 5) || "N/A"}
 														</Badge>
 													))
@@ -538,8 +606,8 @@ export function TeacherCohorts({ teacherId, teacherName }: TeacherCohortsProps) 
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between rounded-lg border bg-card px-4 py-3">
 					<p className="text-muted-foreground text-sm">
-						Showing {(page - 1) * limit + 1} to{" "}
-						{Math.min(page * limit, total)} of {total} cohorts
+						Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)}{" "}
+						of {total} cohorts
 					</p>
 					<div className="flex items-center gap-2">
 						<Button

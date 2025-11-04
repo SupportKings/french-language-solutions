@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/queries/getUser";
 import { rolesMap } from "@/lib/permissions";
 
 import { StudentsTable } from "@/features/students/components/StudentsTable";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function StudentsPage() {
 	const session = await getUser();

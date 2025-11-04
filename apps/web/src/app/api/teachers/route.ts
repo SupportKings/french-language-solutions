@@ -255,7 +255,10 @@ export async function POST(request: NextRequest) {
 			console.error("Error creating teacher:", error);
 
 			// Check for unique constraint violation on email
-			if (error.code === "23505" && error.message?.includes("teachers_email_unique")) {
+			if (
+				error.code === "23505" &&
+				error.message?.includes("teachers_email_unique")
+			) {
 				return NextResponse.json(
 					{ error: "A teacher with this email already exists" },
 					{ status: 409 },

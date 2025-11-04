@@ -733,9 +733,9 @@ export default function StudentDetailsClient({
 								</CardHeader>
 								<CardContent className="pt-0">
 									<StudentAssessments
-									studentId={student.id}
-									canScheduleAssessment={canEditStudent}
-								/>
+										studentId={student.id}
+										canScheduleAssessment={canEditStudent}
+									/>
 								</CardContent>
 							</Card>
 						</TabsContent>

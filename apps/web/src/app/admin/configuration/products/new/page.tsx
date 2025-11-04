@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { requirePermission } from "@/lib/rbac-middleware";
-import { getUser } from "@/queries/getUser";
 
 import { ProductForm } from "@/features/products/components/ProductForm";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function NewProductPage() {
 	const session = await getUser();

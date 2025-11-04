@@ -106,7 +106,9 @@ export class CohortService {
 			(session) => {
 				// Validate required fields
 				if (!session.day_of_week || !session.start_time || !session.end_time) {
-					throw new Error(`Invalid session data: missing required fields for session ${session.id}`);
+					throw new Error(
+						`Invalid session data: missing required fields for session ${session.id}`,
+					);
 				}
 
 				// Get the first occurrence of this weekday on or after the cohort start date
@@ -229,7 +231,9 @@ export class CohortService {
 		if (enrollmentError) {
 			console.error("Error fetching enrollments:", enrollmentError);
 		} else if (enrollments) {
-			console.log(`Found ${enrollments.length} paid/welcome_package_sent enrollments`);
+			console.log(
+				`Found ${enrollments.length} paid/welcome_package_sent enrollments`,
+			);
 			enrollments.forEach((enrollment: any) => {
 				if (enrollment.students?.email) {
 					attendees.push(enrollment.students.email);
@@ -288,7 +292,9 @@ export class CohortService {
 
 		// Return unique emails
 		const uniqueAttendees = [...new Set(attendees)];
-		console.log(`Total unique attendees for cohort ${cohortId}: ${uniqueAttendees.length}`);
+		console.log(
+			`Total unique attendees for cohort ${cohortId}: ${uniqueAttendees.length}`,
+		);
 		return uniqueAttendees;
 	}
 

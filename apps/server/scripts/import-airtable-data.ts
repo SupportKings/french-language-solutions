@@ -576,9 +576,14 @@ async function importStudents() {
 					: false,
 			is_under_16: fields["Age Group"] === "Under 16" ? true : false,
 			purpose_to_learn: fields["Why do you want to learn french?"] || null,
-			subjective_deadline_for_student: fields["Student's Subjective Deadline"] || null,
-			added_to_email_newsletter: fields["ConvertKit Subscriber ID"] ? true : false,
-			website_quiz_submission_date: convertToISO8601(fields["Website Quiz Completed Date"]),
+			subjective_deadline_for_student:
+				fields["Student's Subjective Deadline"] || null,
+			added_to_email_newsletter: fields["ConvertKit Subscriber ID"]
+				? true
+				: false,
+			website_quiz_submission_date: convertToISO8601(
+				fields["Website Quiz Completed Date"],
+			),
 			desired_starting_language_level_id: null, // Will be set in Pass 2
 			convertkit_id: fields["ConvertKit Subscriber ID"] || null,
 			openphone_contact_id: fields["OpenPhone Contact ID"] || null,
@@ -589,7 +594,8 @@ async function importStudents() {
 			airtable_record_id: record.id,
 			heard_from: fields["How did you hear about us?"] || null,
 			// Store Airtable references for Pass 2
-			_airtable_desired_starting_level_id: fields["Desired Starting Language Level"]?.[0] || null
+			_airtable_desired_starting_level_id:
+				fields["Desired Starting Language Level"]?.[0] || null,
 		};
 
 		students.push(student);
@@ -2017,8 +2023,7 @@ async function main() {
 		);
 		console.log("   Example: bun run scripts/import-airtable-data.ts --clean");
 	}
-	
-	
+
 	console.log("\nUsing THREE-PASS strategy:");
 	console.log("  1. Pre-Import: Match language levels");
 	console.log("  2. Pass 1: Import all data with airtable_record_id");
