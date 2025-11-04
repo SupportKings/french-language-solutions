@@ -403,6 +403,11 @@ export class CohortService {
 	> {
 		const tomorrowDay = this.getTomorrowDayOfWeek();
 
+		// Get tomorrow's date in Canadian timezone for filtering
+		const nowInCanada = toZonedTime(new Date(), CANADIAN_TIMEZONE);
+		const tomorrow = addDays(nowInCanada, 1);
+		const tomorrowDate = tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
 		// Fetch all active cohorts with weekly sessions
 		const { data: cohorts, error } = await supabase
 			.from("cohorts")
@@ -419,7 +424,8 @@ export class CohortService {
 				)
 			`)
 			.eq("setup_finalized", true)
-			.neq("cohort_status", "class_ended");
+			.neq("cohort_status", "class_ended")
+			.lte("start_date", tomorrowDate);
 
 		if (error || !cohorts) {
 			console.error("[Auto-Create Classes] Error fetching cohorts:", error);
