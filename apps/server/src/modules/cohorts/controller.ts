@@ -115,4 +115,44 @@ export class CohortController {
 			);
 		}
 	}
+
+	/**
+	 * Automatically create class records for tomorrow's weekly sessions
+	 *
+	 * This endpoint will:
+	 * 1. Find all cohorts with setup_finalized = true and cohort_status != 'class_ended'
+	 * 2. Filter cohorts that have weekly sessions scheduled for tomorrow
+	 * 3. Create class records for each matching weekly session
+	 * 4. Return count of classes created
+	 *
+	 * Returns:
+	 * {
+	 *   "success": true,
+	 *   "message": "Successfully created 5 classes for tomorrow",
+	 *   "classesCreated": 5
+	 * }
+	 */
+	async createTomorrowClasses(c: Context) {
+		try {
+			const result = await this.cohortService.createClassesForTomorrow();
+
+			return c.json({
+				success: result.success,
+				message: result.message,
+				classesCreated: result.classesCreated,
+			});
+		} catch (error) {
+			console.error("Error creating tomorrow's classes:", error);
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error occurred";
+			return c.json(
+				{
+					success: false,
+					error: "Failed to create classes",
+					message: errorMessage,
+				},
+				500,
+			);
+		}
+	}
 }
