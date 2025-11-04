@@ -255,7 +255,12 @@ export type DateFilterOperator =
 	| "is not between";
 
 /* Operators for option data */
-export type OptionFilterOperator = "is" | "is not" | "is any of" | "is none of";
+export type OptionFilterOperator =
+	| "is"
+	| "is not"
+	| "is any of"
+	| "is none of"
+	| "is exactly";
 
 /* Operators for multi-option data */
 export type MultiOptionFilterOperator =
