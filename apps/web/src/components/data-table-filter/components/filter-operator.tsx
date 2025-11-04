@@ -190,9 +190,19 @@ function FilterOperatorOptionController<TData>({
 }: FilterOperatorControllerProps<TData, "option">) {
 	const filterDetails = optionFilterOperators[filter.operator];
 
-	const relatedFilters = Object.values(optionFilterOperators).filter(
+	let relatedFilters = Object.values(optionFilterOperators).filter(
 		(o) => o.target === filterDetails.target,
 	);
+
+	// If column has allowedOperators, filter to only those operators
+	if (column.allowedOperators && column.allowedOperators.length > 0) {
+		relatedFilters = relatedFilters.filter((o) =>
+			column.allowedOperators?.includes(o.value as FilterOperators["option"]),
+		);
+	} else {
+		// If no allowedOperators specified, exclude "is exactly" by default (it's opt-in only)
+		relatedFilters = relatedFilters.filter((o) => o.value !== "is exactly");
+	}
 
 	const changeOperator = (value: string) => {
 		actions?.setFilterOperator(column.id, value as FilterOperators["option"]);

@@ -120,6 +120,9 @@ export type ColumnConfig<
 		? TTransformOptionFn<TVal>
 		: never;
 	orderFn?: TType extends OptionBasedColumnDataType ? TOrderFn<TVal> : never;
+	allowedOperators?: TType extends ColumnDataType
+		? Array<FilterOperators[TType]>
+		: never;
 };
 
 export type OptionColumnId<T> = T extends ColumnConfig<

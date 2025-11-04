@@ -124,6 +124,7 @@ const cohortColumns = [
 		icon: Users,
 		type: "option" as const,
 		options: [], // Will be populated dynamically
+		allowedOperators: ["is", "is not", "is any of", "is none of", "is exactly"],
 	},
 	{
 		id: "start_date",

@@ -14,6 +14,7 @@
 	"filters.option.isNot": "is not",
 	"filters.option.isAnyOf": "is any of",
 	"filters.option.isNoneOf": "is none of",
+	"filters.option.isExactly": "is exactly",
 	"filters.multiOption.include": "includes",
 	"filters.multiOption.exclude": "excludes",
 	"filters.multiOption.includeAnyOf": "includes any of",
