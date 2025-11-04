@@ -202,7 +202,9 @@ export function EnrollmentCreateModal({
 									disabled={loadingStudents}
 								>
 									<span className="truncate">
-										{selectedStudent ? selectedStudent.full_name : "Select student..."}
+										{selectedStudent
+											? selectedStudent.full_name
+											: "Select student..."}
 									</span>
 									<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 								</Button>
@@ -259,12 +261,14 @@ export function EnrollmentCreateModal({
 												))
 											: null}
 									</CommandGroup>
-									{students.length === 0 && !loadingStudents && studentSearch && (
-										<div className="p-3 text-center text-muted-foreground text-xs">
-											<AlertCircle className="mx-auto mb-1 h-4 w-4" />
-											Note: Students with name "Unknown" will not be shown
-										</div>
-									)}
+									{students.length === 0 &&
+										!loadingStudents &&
+										studentSearch && (
+											<div className="p-3 text-center text-muted-foreground text-xs">
+												<AlertCircle className="mx-auto mb-1 h-4 w-4" />
+												Note: Students with name "Unknown" will not be shown
+											</div>
+										)}
 								</Command>
 							</PopoverContent>
 						</Popover>
@@ -317,7 +321,10 @@ export function EnrollmentCreateModal({
 					<Button variant="outline" onClick={onClose} disabled={isLoading}>
 						Cancel
 					</Button>
-					<Button onClick={handleSubmit} disabled={isLoading || !selectedStudentId}>
+					<Button
+						onClick={handleSubmit}
+						disabled={isLoading || !selectedStudentId}
+					>
 						{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						Create Enrollment
 					</Button>

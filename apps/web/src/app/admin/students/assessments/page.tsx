@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/queries/getUser";
 import { rolesMap } from "@/lib/permissions";
 
 import { AssessmentsTable } from "@/features/assessments/components/AssessmentsTable";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function AssessmentsPage() {
 	const session = await getUser();

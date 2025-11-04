@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { formatDate } from "@/lib/date-utils";
 import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
@@ -41,7 +42,6 @@ import {
 	useUpdateCohort,
 } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
-import { formatDate } from "@/lib/date-utils";
 
 import { format } from "date-fns";
 import {
@@ -225,9 +225,7 @@ export function CohortDetailPageClient({
 				const result = await response.json();
 				const enrollments = result.enrollments || [];
 
-				const paid = enrollments.filter(
-					(e: any) => e.status === "paid",
-				).length;
+				const paid = enrollments.filter((e: any) => e.status === "paid").length;
 				const welcomePackageSent = enrollments.filter(
 					(e: any) => e.status === "welcome_package_sent",
 				).length;
@@ -603,9 +601,9 @@ export function CohortDetailPageClient({
 	// Get initials for avatar
 	const cohortFormat = cohort.products?.format || "group";
 	const initials = cohortFormat === "group" ? "GC" : "PC";
-	const cohortName = cohort.nickname || `${
-		cohortFormat.charAt(0).toUpperCase() + cohortFormat.slice(1)
-	} Cohort`;
+	const cohortName =
+		cohort.nickname ||
+		`${cohortFormat.charAt(0).toUpperCase() + cohortFormat.slice(1)} Cohort`;
 	const sessionCount = cohortWithSessions?.weekly_sessions?.length || 0;
 
 	return (
@@ -1025,6 +1023,22 @@ export function CohortDetailPageClient({
 											)}
 										</div>
 									</div>
+
+									<div className="flex items-start gap-3">
+										<Clock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Level Last Updated at:
+											</p>
+											<p className="font-medium text-sm">
+												{formatDate(
+													cohort.current_level_last_updated_at,
+													"MMM d, yyyy 'at' h:mm a",
+													"Not updated yet",
+												)}
+											</p>
+										</div>
+									</div>
 								</div>
 							</div>
 
@@ -1181,7 +1195,11 @@ export function CohortDetailPageClient({
 									<div
 										key={session.id}
 										className={`group relative overflow-hidden rounded-lg border bg-card transition-all duration-200 ${canAddSession ? "cursor-pointer hover:shadow-md" : ""}`}
-										onClick={canAddSession ? () => handleEditSession(session) : undefined}
+										onClick={
+											canAddSession
+												? () => handleEditSession(session)
+												: undefined
+										}
 										role={canAddSession ? "button" : undefined}
 										tabIndex={canAddSession ? 0 : undefined}
 									>

@@ -505,7 +505,9 @@ export function StudentsTable({
 											<p className="cursor-pointer font-medium transition-colors hover:text-primary">
 												{student.full_name || (
 													<span className="text-muted-foreground italic">
-														No name provided
+														{!student.full_name && !student.email
+															? "Unnamed lead from OpenPhone"
+															: "No name provided"}
 													</span>
 												)}
 											</p>

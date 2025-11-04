@@ -4,11 +4,14 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { parseDateString } from "@/lib/date-utils";
+
 import {
 	DataTableFilter,
 	useDataTableFilters,
 } from "@/components/data-table-filter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import { CohortsTable } from "@/features/cohorts/components/CohortsTable";
 import { useCohorts } from "@/features/cohorts/queries/cohorts.queries";
@@ -21,12 +24,10 @@ import { languageLevelQueries } from "@/features/language-levels/queries/languag
 import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
 import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
-import { parseDateString } from "@/lib/date-utils";
 
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, Plus, Search, Users } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { Input } from "@/components/ui/input";
 
 // Extended cohort type with relationships
 interface CohortWithRelations extends Cohort {
@@ -146,9 +147,12 @@ export function ClassesPageClient() {
 		defaultValue: "",
 	});
 
-	const [todaySessionsState, setTodaySessionsState] = useQueryState("today_sessions", {
-		defaultValue: "",
-	});
+	const [todaySessionsState, setTodaySessionsState] = useQueryState(
+		"today_sessions",
+		{
+			defaultValue: "",
+		},
+	);
 	const todaySessions = todaySessionsState === "true";
 
 	// Store filters in URL as JSON
@@ -256,7 +260,12 @@ export function ClassesPageClient() {
 				if (filter.type === "option") {
 					params[filter.columnId] = filter.values;
 					params[`${filter.columnId}_operator`] = filter.operator;
-					console.log(`📌 Filter ${filter.columnId}:`, filter.values, "operator:", filter.operator);
+					console.log(
+						`📌 Filter ${filter.columnId}:`,
+						filter.values,
+						"operator:",
+						filter.operator,
+					);
 				} else if (filter.type === "text") {
 					// Text filter - use first value as search string
 					params[filter.columnId] = filter.values[0] as string;
@@ -266,13 +275,24 @@ export function ClassesPageClient() {
 					params[`${filter.columnId}_operator`] = filter.operator;
 					if (filter.values.length === 1) {
 						// Single date - treat based on operator
-						params[`${filter.columnId}_from`] = (filter.values[0] as Date).toISOString();
+						params[`${filter.columnId}_from`] = (
+							filter.values[0] as Date
+						).toISOString();
 					} else if (filter.values.length === 2) {
 						// Date range
-						params[`${filter.columnId}_from`] = (filter.values[0] as Date).toISOString();
-						params[`${filter.columnId}_to`] = (filter.values[1] as Date).toISOString();
+						params[`${filter.columnId}_from`] = (
+							filter.values[0] as Date
+						).toISOString();
+						params[`${filter.columnId}_to`] = (
+							filter.values[1] as Date
+						).toISOString();
 					}
-					console.log(`📌 Date Filter ${filter.columnId}:`, filter.values, "operator:", filter.operator);
+					console.log(
+						`📌 Date Filter ${filter.columnId}:`,
+						filter.values,
+						"operator:",
+						filter.operator,
+					);
 				}
 			}
 		});
@@ -325,7 +345,8 @@ export function ClassesPageClient() {
 			filterParams.starting_level_id.length > 0
 		) {
 			query.starting_level_id = filterParams.starting_level_id as string[];
-			query.starting_level_id_operator = filterParams.starting_level_id_operator;
+			query.starting_level_id_operator =
+				filterParams.starting_level_id_operator;
 		}
 		if (
 			filterParams.current_level_id &&
@@ -354,8 +375,15 @@ export function ClassesPageClient() {
 
 	// Fetch cohorts data
 	console.log("🔍 Query filters being sent:", queryFilters);
-	const { data, isLoading, isFetching, isPlaceholderData, error } = useCohorts(queryFilters);
-	console.log("📊 Cohorts query result:", { data, isLoading, isFetching, isPlaceholderData, error });
+	const { data, isLoading, isFetching, isPlaceholderData, error } =
+		useCohorts(queryFilters);
+	console.log("📊 Cohorts query result:", {
+		data,
+		isLoading,
+		isFetching,
+		isPlaceholderData,
+		error,
+	});
 
 	const handlePageChange = (newPage: number) => {
 		setPageState(newPage);
@@ -370,7 +398,7 @@ export function ClassesPageClient() {
 				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
 					{/* Search input */}
 					<div className="relative">
-						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+						<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 						<Input
 							type="text"
 							placeholder="Search by nickname..."
@@ -396,7 +424,9 @@ export function ClassesPageClient() {
 
 						<div className="ml-auto flex items-center gap-2">
 							<Button
-								onClick={() => setTodaySessionsState(todaySessions ? "" : "true")}
+								onClick={() =>
+									setTodaySessionsState(todaySessions ? "" : "true")
+								}
 								size="sm"
 								variant={todaySessions ? "default" : "outline"}
 								className="h-9"

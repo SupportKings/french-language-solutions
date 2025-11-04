@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { parseDateString } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
 import {
@@ -37,7 +38,6 @@ import {
 	teachersQueries,
 	useTeachers,
 } from "@/features/teachers/queries/teachers.queries";
-import { parseDateString } from "@/lib/date-utils";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -181,7 +181,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			starting_level_id: cohort?.starting_level_id || "",
 			current_level_id: cohort?.current_level_id || "",
 			max_students: cohort?.max_students || 20,
-			start_date: cohort?.start_date ? parseDateString(cohort.start_date) : undefined,
+			start_date: cohort?.start_date
+				? parseDateString(cohort.start_date)
+				: undefined,
 			cohort_status: cohort?.cohort_status ?? "enrollment_open",
 			product_id: cohort?.product_id || "",
 			google_drive_folder_id: cohort?.google_drive_folder_id || "",
@@ -369,9 +371,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			}
 		} catch (error) {
 			console.error("Error saving cohort:", error);
-			toast.error(
-				isEditMode ? "Failed to update cohort" : "Failed to create cohort",
-			);
+			const errorMessage =
+				error instanceof Error ? error.message : "An unexpected error occurred";
+			toast.error(errorMessage);
 		}
 	};
 
@@ -774,25 +776,6 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 										setValueAs: (v) =>
 											v === "" || v === null ? undefined : Number(v),
 									})}
-								/>
-							</FormField>
-						</FormSection>
-
-						{/* External References */}
-						<FormSection
-							title="External References"
-							description="IDs from external systems"
-							icon={Settings}
-						>
-							<FormField
-								label="Airtable Record ID"
-								hint="Record ID from Airtable"
-								error={form.formState.errors.airtable_record_id?.message}
-							>
-								<InputField
-									placeholder="rec..."
-									error={!!form.formState.errors.airtable_record_id}
-									{...form.register("airtable_record_id")}
 								/>
 							</FormField>
 						</FormSection>

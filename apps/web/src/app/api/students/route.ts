@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
 import {
-	requireAuth,
-	isAdmin,
 	getCurrentUserCohortIds,
+	isAdmin,
+	requireAuth,
 } from "@/lib/rbac-middleware";
+import { createClient } from "@/lib/supabase/server";
 
 // Helper function to apply option filters based on operator
 function applyOptionFilter<T>(
@@ -148,11 +148,12 @@ export async function GET(request: NextRequest) {
 			// For teachers: Get student IDs that have paid/welcome_package_sent enrollments in teacher's cohorts
 			const allowedStatuses = ["paid", "welcome_package_sent"];
 
-			const { data: enrollmentsData, error: enrollmentsError } = await supabaseClient
-				.from("enrollments")
-				.select("student_id")
-				.in("cohort_id", teacherCohortIds)
-				.in("status", allowedStatuses);
+			const { data: enrollmentsData, error: enrollmentsError } =
+				await supabaseClient
+					.from("enrollments")
+					.select("student_id")
+					.in("cohort_id", teacherCohortIds)
+					.in("status", allowedStatuses);
 
 			if (enrollmentsError) {
 				console.error("Error fetching enrollments for teacher:", {
@@ -167,7 +168,9 @@ export async function GET(request: NextRequest) {
 				);
 			}
 
-			studentIds = [...new Set(enrollmentsData?.map((e) => e.student_id) || [])];
+			studentIds = [
+				...new Set(enrollmentsData?.map((e) => e.student_id) || []),
+			];
 
 			if (studentIds.length === 0) {
 				// No students found - return empty result
@@ -229,7 +232,10 @@ export async function GET(request: NextRequest) {
 			query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
 		}
 
-		if (desired_starting_language_level_id.length === 1 && !needsInMemoryFiltering) {
+		if (
+			desired_starting_language_level_id.length === 1 &&
+			!needsInMemoryFiltering
+		) {
 			query = query.eq(
 				"desired_starting_language_level_id",
 				desired_starting_language_level_id[0],

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 
+import {
+	canAccessCohort,
+	requireAdmin,
+	requireAuth,
+} from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
-import { requireAuth, canAccessCohort, requireAdmin } from "@/lib/rbac-middleware";
 
 export async function GET(
 	request: Request,

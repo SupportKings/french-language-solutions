@@ -37,16 +37,16 @@ import { toast } from "sonner";
 import { updateEnrollmentAction } from "../actions/updateEnrollment";
 // Import queries
 import { enrollmentQueries, useEnrollment } from "../queries/useEnrollments";
-// Import checklist component
-import { ChecklistSection } from "./ChecklistSection";
 import {
+	type EnrollmentChecklist,
 	getDefaultEnrollmentChecklist,
 	getDefaultOffboardingChecklist,
 	getDefaultTransitionChecklist,
-	type EnrollmentChecklist,
 	type OffboardingChecklist,
 	type TransitionChecklist,
 } from "../types/checklist.types";
+// Import checklist component
+import { ChecklistSection } from "./ChecklistSection";
 
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
 

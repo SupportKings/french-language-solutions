@@ -6,29 +6,29 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
-  DataTableFilter,
-  useDataTableFilters,
+	DataTableFilter,
+	useDataTableFilters,
 } from "@/components/data-table-filter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from "@/components/ui/table";
 
 import { useSequences } from "@/features/sequences/queries/sequences.queries";
@@ -36,83 +36,83 @@ import { useSequences } from "@/features/sequences/queries/sequences.queries";
 import { format } from "date-fns";
 import { useQueryState } from "nuqs";
 import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Eye,
-  Loader2,
-  MessageSquare,
-  MoreHorizontal,
-  Play,
-  Plus,
-  Search,
-  Trash,
-  User,
-  XCircle,
+	AlertCircle,
+	CheckCircle,
+	Clock,
+	Eye,
+	Loader2,
+	MessageSquare,
+	MoreHorizontal,
+	Play,
+	Plus,
+	Search,
+	Trash,
+	User,
+	XCircle,
 } from "lucide-react";
 import {
-  useAutomatedFollowUps,
-  useDeleteAutomatedFollowUp,
+	useAutomatedFollowUps,
+	useDeleteAutomatedFollowUp,
 } from "../queries/automated-follow-ups.queries";
 import type { AutomatedFollowUpQuery } from "../schemas/automated-follow-up.schema";
 
 const statusColors = {
-  activated: "info",
-  ongoing: "warning",
-  answer_received: "secondary",
-  completed: "success",
-  disabled: "destructive",
+	activated: "info",
+	ongoing: "warning",
+	answer_received: "secondary",
+	completed: "success",
+	disabled: "destructive",
 };
 
 const statusLabels = {
-  activated: "Activated",
-  ongoing: "Ongoing",
-  answer_received: "Answer Received",
-  completed: "Completed",
-  disabled: "Disabled",
+	activated: "Activated",
+	ongoing: "Ongoing",
+	answer_received: "Answer Received",
+	completed: "Completed",
+	disabled: "Disabled",
 };
 
 const statusIcons = {
-  activated: Play,
-  ongoing: Clock,
-  answer_received: CheckCircle,
-  completed: CheckCircle,
-  disabled: XCircle,
+	activated: Play,
+	ongoing: Clock,
+	answer_received: CheckCircle,
+	completed: CheckCircle,
+	disabled: XCircle,
 };
 
 // Define column configurations for data-table-filter - will be populated dynamically
 const getColumnConfigurations = (
-  sequences: any[],
-  isLoadingSequences: boolean
+	sequences: any[],
+	isLoadingSequences: boolean,
 ) =>
-  [
-    {
-      id: "status",
-      accessor: (touchpoint: any) => touchpoint.status,
-      displayName: "Status",
-      icon: AlertCircle,
-      type: "option" as const,
-      options: Object.entries(statusLabels).map(([value, label]) => ({
-        label,
-        value,
-      })),
-    },
-    {
-      id: "sequence_id",
-      accessor: (touchpoint: any) => touchpoint.sequence_id,
-      displayName: isLoadingSequences ? "Sequence (Loading...)" : "Sequence",
-      icon: isLoadingSequences ? Loader2 : MessageSquare,
-      type: "option" as const,
-      options: isLoadingSequences
-        ? [{ label: "Loading sequences...", value: "loading", disabled: true }]
-        : sequences.length === 0
-        ? [{ label: "No sequences available", value: "none", disabled: true }]
-        : sequences.map((sequence) => ({
-            label: sequence.display_name || "Unknown",
-            value: sequence.id,
-          })),
-    },
-  ] as const;
+	[
+		{
+			id: "status",
+			accessor: (touchpoint: any) => touchpoint.status,
+			displayName: "Status",
+			icon: AlertCircle,
+			type: "option" as const,
+			options: Object.entries(statusLabels).map(([value, label]) => ({
+				label,
+				value,
+			})),
+		},
+		{
+			id: "sequence_id",
+			accessor: (touchpoint: any) => touchpoint.sequence_id,
+			displayName: isLoadingSequences ? "Sequence (Loading...)" : "Sequence",
+			icon: isLoadingSequences ? Loader2 : MessageSquare,
+			type: "option" as const,
+			options: isLoadingSequences
+				? [{ label: "Loading sequences...", value: "loading", disabled: true }]
+				: sequences.length === 0
+					? [{ label: "No sequences available", value: "none", disabled: true }]
+					: sequences.map((sequence) => ({
+							label: sequence.display_name || "Unknown",
+							value: sequence.id,
+						})),
+		},
+	] as const;
 
 export function AutomatedFollowUpsTable() {
   const router = useRouter();
@@ -142,7 +142,7 @@ export function AutomatedFollowUpsTable() {
   const [followUpToDelete, setFollowUpToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const deleteFollowUp = useDeleteAutomatedFollowUp();
+	const deleteFollowUp = useDeleteAutomatedFollowUp();
 
   // Fetch sequences for filters
   const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({
@@ -217,30 +217,30 @@ export function AutomatedFollowUpsTable() {
     [page, searchQuery, filterQuery]
   );
 
-  const { data, isLoading, error } = useAutomatedFollowUps(finalQuery);
+	const { data, isLoading, error } = useAutomatedFollowUps(finalQuery);
 
-  const handleDelete = async () => {
-    if (!followUpToDelete) return;
-    setIsDeleting(true);
-    try {
-      await deleteFollowUp.mutateAsync(followUpToDelete);
-      setFollowUpToDelete(null);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+	const handleDelete = async () => {
+		if (!followUpToDelete) return;
+		setIsDeleting(true);
+		try {
+			await deleteFollowUp.mutateAsync(followUpToDelete);
+			setFollowUpToDelete(null);
+		} finally {
+			setIsDeleting(false);
+		}
+	};
 
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="py-10">
-          <p className="text-center text-muted-foreground">
-            Failed to load automated follow-ups
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="py-10">
+					<p className="text-center text-muted-foreground">
+						Failed to load automated follow-ups
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
 
   return (
     <div className="space-y-4">
@@ -263,219 +263,219 @@ export function AutomatedFollowUpsTable() {
               />
             </div>
 
-            <div className="ml-auto">
-              <Link href="/admin/automation/automated-follow-ups/new">
-                <Button size="sm" className="h-9">
-                  <Plus className="mr-1.5 h-4 w-4" />
-                  New Follow-up
-                </Button>
-              </Link>
-            </div>
-          </div>
+						<div className="ml-auto">
+							<Link href="/admin/automation/automated-follow-ups/new">
+								<Button size="sm" className="h-9">
+									<Plus className="mr-1.5 h-4 w-4" />
+									New Follow-up
+								</Button>
+							</Link>
+						</div>
+					</div>
 
-          {/* Filter bar */}
-          <DataTableFilter
-            columns={columns}
-            filters={filters}
-            actions={actions}
-            strategy={strategy}
-          />
-        </div>
+					{/* Filter bar */}
+					<DataTableFilter
+						columns={columns}
+						filters={filters}
+						actions={actions}
+						strategy={strategy}
+					/>
+				</div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Sequence</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Started</TableHead>
-              <TableHead>Last Message Sent at</TableHead>
-              <TableHead>Completed at</TableHead>
-              <TableHead className="w-[70px]" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  <TableCell>
-                    <Skeleton className="h-5 w-32" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-40" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-20" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-8" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : data?.data?.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center text-muted-foreground"
-                >
-                  No automated follow-ups found
-                </TableCell>
-              </TableRow>
-            ) : (
-              data?.data?.map((touchpoint: any) => {
-                const StatusIcon = (statusIcons as any)[touchpoint.status];
-                return (
-                  <TableRow
-                    key={touchpoint.id}
-                    className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
-                    onClick={() =>
-                      router.push(
-                        `/admin/automation/automated-follow-ups/${touchpoint.id}`
-                      )
-                    }
-                  >
-                    <TableCell>
-                      {touchpoint.students ? (
-                        <LinkedRecordBadge
-                          href={`/admin/students/${touchpoint.student_id}`}
-                          label={touchpoint.students.full_name}
-                          icon={User}
-                          title={touchpoint.students.email || "No email"}
-                        />
-                      ) : (
-                        <span className="text-muted-foreground">Unknown</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {touchpoint.sequence || touchpoint.sequences ? (
-                        <LinkedRecordBadge
-                          href={`/admin/automation/sequences/${touchpoint.sequence_id}`}
-                          label={
-                            touchpoint.sequence?.display_name ||
-                            touchpoint.sequences?.display_name ||
-                            "Sequence"
-                          }
-                          icon={MessageSquare}
-                          title={
-                            touchpoint.sequence?.subject ||
-                            touchpoint.sequences?.subject ||
-                            "No subject"
-                          }
-                        />
-                      ) : (
-                        <span className="text-muted-foreground">Unknown</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={(statusColors as any)[touchpoint.status]}
-                        className="gap-1"
-                      >
-                        {(() => {
-                          const Icon = (statusIcons as any)[touchpoint.status];
-                          return Icon ? <Icon className="h-3 w-3" /> : null;
-                        })()}
-                        {(statusLabels as any)[touchpoint.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm">
-                        {format(new Date(touchpoint.started_at), "MMM d, yyyy")}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {format(new Date(touchpoint.started_at), "h:mm a")}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      {touchpoint.last_message_sent_at ? (
-                        <>
-                          <p className="text-sm">
-                            {format(
-                              new Date(touchpoint.last_message_sent_at),
-                              "MMM d, yyyy"
-                            )}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {format(
-                              new Date(touchpoint.last_message_sent_at),
-                              "h:mm a"
-                            )}
-                          </p>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">
-                          Not sent
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {touchpoint.completed_at ? (
-                        <>
-                          <p className="text-sm">
-                            {format(
-                              new Date(touchpoint.completed_at),
-                              "MMM d, yyyy"
-                            )}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {format(
-                              new Date(touchpoint.completed_at),
-                              "h:mm a"
-                            )}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-muted-foreground text-xs">-</p>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <Link
-                            href={`/admin/automation/automated-follow-ups/${touchpoint.id}`}
-                          >
-                            <DropdownMenuItem>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                          </Link>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setFollowUpToDelete(touchpoint.id);
-                            }}
-                            className="text-destructive"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Student</TableHead>
+							<TableHead>Sequence</TableHead>
+							<TableHead>Status</TableHead>
+							<TableHead>Started</TableHead>
+							<TableHead>Last Message Sent at</TableHead>
+							<TableHead>Completed at</TableHead>
+							<TableHead className="w-[70px]" />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{isLoading ? (
+							Array.from({ length: 5 }).map((_, i) => (
+								<TableRow key={`skeleton-${i}`}>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-40" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-8" />
+									</TableCell>
+								</TableRow>
+							))
+						) : data?.data?.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={7}
+									className="text-center text-muted-foreground"
+								>
+									No automated follow-ups found
+								</TableCell>
+							</TableRow>
+						) : (
+							data?.data?.map((touchpoint: any) => {
+								const StatusIcon = (statusIcons as any)[touchpoint.status];
+								return (
+									<TableRow
+										key={touchpoint.id}
+										className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+										onClick={() =>
+											router.push(
+												`/admin/automation/automated-follow-ups/${touchpoint.id}`,
+											)
+										}
+									>
+										<TableCell>
+											{touchpoint.students ? (
+												<LinkedRecordBadge
+													href={`/admin/students/${touchpoint.student_id}`}
+													label={touchpoint.students.full_name}
+													icon={User}
+													title={touchpoint.students.email || "No email"}
+												/>
+											) : (
+												<span className="text-muted-foreground">Unknown</span>
+											)}
+										</TableCell>
+										<TableCell>
+											{touchpoint.sequence || touchpoint.sequences ? (
+												<LinkedRecordBadge
+													href={`/admin/automation/sequences/${touchpoint.sequence_id}`}
+													label={
+														touchpoint.sequence?.display_name ||
+														touchpoint.sequences?.display_name ||
+														"Sequence"
+													}
+													icon={MessageSquare}
+													title={
+														touchpoint.sequence?.subject ||
+														touchpoint.sequences?.subject ||
+														"No subject"
+													}
+												/>
+											) : (
+												<span className="text-muted-foreground">Unknown</span>
+											)}
+										</TableCell>
+										<TableCell>
+											<Badge
+												variant={(statusColors as any)[touchpoint.status]}
+												className="gap-1"
+											>
+												{(() => {
+													const Icon = (statusIcons as any)[touchpoint.status];
+													return Icon ? <Icon className="h-3 w-3" /> : null;
+												})()}
+												{(statusLabels as any)[touchpoint.status]}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											<p className="text-sm">
+												{format(new Date(touchpoint.started_at), "MMM d, yyyy")}
+											</p>
+											<p className="text-muted-foreground text-xs">
+												{format(new Date(touchpoint.started_at), "h:mm a")}
+											</p>
+										</TableCell>
+										<TableCell>
+											{touchpoint.last_message_sent_at ? (
+												<>
+													<p className="text-sm">
+														{format(
+															new Date(touchpoint.last_message_sent_at),
+															"MMM d, yyyy",
+														)}
+													</p>
+													<p className="text-muted-foreground text-xs">
+														{format(
+															new Date(touchpoint.last_message_sent_at),
+															"h:mm a",
+														)}
+													</p>
+												</>
+											) : (
+												<span className="text-muted-foreground text-sm">
+													Not sent
+												</span>
+											)}
+										</TableCell>
+										<TableCell>
+											{touchpoint.completed_at ? (
+												<>
+													<p className="text-sm">
+														{format(
+															new Date(touchpoint.completed_at),
+															"MMM d, yyyy",
+														)}
+													</p>
+													<p className="text-muted-foreground text-xs">
+														{format(
+															new Date(touchpoint.completed_at),
+															"h:mm a",
+														)}
+													</p>
+												</>
+											) : (
+												<p className="text-muted-foreground text-xs">-</p>
+											)}
+										</TableCell>
+										<TableCell>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														variant="ghost"
+														size="icon"
+														onClick={(e) => e.stopPropagation()}
+													>
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<Link
+														href={`/admin/automation/automated-follow-ups/${touchpoint.id}`}
+													>
+														<DropdownMenuItem>
+															<Eye className="mr-2 h-4 w-4" />
+															View Details
+														</DropdownMenuItem>
+													</Link>
+													<DropdownMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															setFollowUpToDelete(touchpoint.id);
+														}}
+														className="text-destructive"
+													>
+														<Trash className="mr-2 h-4 w-4" />
+														Delete
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</TableCell>
+									</TableRow>
+								);
+							})
+						)}
+					</TableBody>
+				</Table>
 
         {data && data.meta?.totalPages > 1 && (
           <div className="flex items-center justify-between border-border/50 border-t p-4">
@@ -510,14 +510,14 @@ export function AutomatedFollowUpsTable() {
         )}
       </div>
 
-      <DeleteConfirmationDialog
-        open={!!followUpToDelete}
-        onOpenChange={(open) => !open && setFollowUpToDelete(null)}
-        onConfirm={handleDelete}
-        title="Delete Automated Follow-up"
-        description="Are you sure you want to delete this automated follow-up?"
-        isDeleting={isDeleting}
-      />
-    </div>
-  );
+			<DeleteConfirmationDialog
+				open={!!followUpToDelete}
+				onOpenChange={(open) => !open && setFollowUpToDelete(null)}
+				onConfirm={handleDelete}
+				title="Delete Automated Follow-up"
+				description="Are you sure you want to delete this automated follow-up?"
+				isDeleting={isDeleting}
+			/>
+		</div>
+	);
 }

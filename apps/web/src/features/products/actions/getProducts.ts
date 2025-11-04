@@ -47,7 +47,8 @@ export async function getProducts(
 			created_at: "created_at",
 			updated_at: "updated_at",
 		};
-		const sortBy = allowedSortColumns[query.sortBy || "display_name"] || "display_name";
+		const sortBy =
+			allowedSortColumns[query.sortBy || "display_name"] || "display_name";
 		const sortOrder = query.sortOrder === "desc" ? "desc" : "asc";
 
 		// Calculate offset for pagination
@@ -67,7 +68,9 @@ export async function getProducts(
 
 		// Apply format filters
 		if (query.format) {
-			const formatFilters = Array.isArray(query.format) ? query.format : [query.format];
+			const formatFilters = Array.isArray(query.format)
+				? query.format
+				: [query.format];
 			if (formatFilters.length > 0) {
 				dbQuery = dbQuery.in("format", formatFilters);
 			}
@@ -75,7 +78,9 @@ export async function getProducts(
 
 		// Apply location filters
 		if (query.location) {
-			const locationFilters = Array.isArray(query.location) ? query.location : [query.location];
+			const locationFilters = Array.isArray(query.location)
+				? query.location
+				: [query.location];
 			if (locationFilters.length > 0) {
 				dbQuery = dbQuery.in("location", locationFilters);
 			}

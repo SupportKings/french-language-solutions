@@ -30,12 +30,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MultiSelect } from "@/components/ui/multi-select";
 
+import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 import {
 	offboardTeacher,
 	permanentlyDeleteTeacher,
 } from "@/features/teachers/actions/offboardTeacher";
 import { CreateUserDialog } from "@/features/teachers/components/CreateUserDialog";
-import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 
 import { format } from "date-fns";
 import {
@@ -1113,21 +1113,23 @@ export default function TeacherDetailsClient({
 					)}
 				</EditableSection>
 
-				{/* Teacher's Cohorts Section */}
-				<div className="rounded-lg border bg-card">
-					<div className="border-b bg-muted/30 px-4 py-3">
-						<h2 className="flex items-center gap-2 font-semibold text-lg">
-							<Users className="h-5 w-5 text-primary" />
-							Cohorts
-						</h2>
-						<p className="mt-1 text-muted-foreground text-sm">
-							All cohorts where {fullName} is assigned as a teacher
-						</p>
+				{/* Teacher's Cohorts Section - Only show if role includes Teacher */}
+				{teacher.role?.includes("Teacher") && (
+					<div className="rounded-lg border bg-card">
+						<div className="border-b bg-muted/30 px-4 py-3">
+							<h2 className="flex items-center gap-2 font-semibold text-lg">
+								<Users className="h-5 w-5 text-primary" />
+								Cohorts
+							</h2>
+							<p className="mt-1 text-muted-foreground text-sm">
+								All cohorts where {fullName} is assigned as a teacher
+							</p>
+						</div>
+						<div className="p-4">
+							<TeacherCohorts teacherId={teacher.id} teacherName={fullName} />
+						</div>
 					</div>
-					<div className="p-4">
-						<TeacherCohorts teacherId={teacher.id} teacherName={fullName} />
-					</div>
-				</div>
+				)}
 
 				{/* System Information - Less prominent at the bottom */}
 				<div className="mt-8 border-t pt-6">

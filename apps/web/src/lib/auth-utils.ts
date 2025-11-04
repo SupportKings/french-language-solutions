@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+
 import { auth } from "@/lib/auth";
 
 /**
@@ -47,7 +48,7 @@ export async function isTeacher() {
  */
 export async function hasPermission(
 	resource: string,
-	actions: string[]
+	actions: string[],
 ): Promise<boolean> {
 	const session = await getUserSession();
 	if (!session) return false;

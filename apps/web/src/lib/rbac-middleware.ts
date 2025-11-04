@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+
 import { auth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,7 +38,9 @@ export async function requireAuth() {
  * Check if current user is an admin
  * Admins have unrestricted access to everything
  */
-export async function isAdmin(session?: Awaited<ReturnType<typeof requireAuth>>) {
+export async function isAdmin(
+	session?: Awaited<ReturnType<typeof requireAuth>>,
+) {
 	const userSession = session || (await requireAuth());
 	return userSession.user.role === "admin";
 }
@@ -45,7 +48,9 @@ export async function isAdmin(session?: Awaited<ReturnType<typeof requireAuth>>)
 /**
  * Check if current user is a teacher (and NOT an admin)
  */
-export async function isTeacher(session?: Awaited<ReturnType<typeof requireAuth>>) {
+export async function isTeacher(
+	session?: Awaited<ReturnType<typeof requireAuth>>,
+) {
 	const userSession = session || (await requireAuth());
 	return userSession.user.role === "teacher";
 }
@@ -55,7 +60,7 @@ export async function isTeacher(session?: Awaited<ReturnType<typeof requireAuth>
  */
 export async function requireAdmin() {
 	const session = await requireAuth();
-	if (!await isAdmin(session)) {
+	if (!(await isAdmin(session))) {
 		throw new Error("FORBIDDEN");
 	}
 	return session;
@@ -70,7 +75,7 @@ export async function requireAdmin() {
  */
 export async function hasPermission(
 	resource: string,
-	actions: string[]
+	actions: string[],
 ): Promise<boolean> {
 	try {
 		const session = await requireAuth();
@@ -109,7 +114,7 @@ export async function requirePermission(resource: string, actions: string[]) {
  * Returns null if user is not linked to a teacher
  */
 export async function getTeacherIdFromSession(
-	session?: Awaited<ReturnType<typeof requireAuth>>
+	session?: Awaited<ReturnType<typeof requireAuth>>,
 ): Promise<string | null> {
 	const userSession = session || (await requireAuth());
 	const supabase = await createClient();
@@ -127,7 +132,9 @@ export async function getTeacherIdFromSession(
  * Get cohort IDs that a teacher is assigned to
  * Returns empty array if teacher has no assignments
  */
-export async function getTeacherCohortIds(teacherId: string): Promise<string[]> {
+export async function getTeacherCohortIds(
+	teacherId: string,
+): Promise<string[]> {
 	const supabase = await createClient();
 
 	const { data: weeklySessions } = await supabase
@@ -142,7 +149,7 @@ export async function getTeacherCohortIds(teacherId: string): Promise<string[]> 
  * Get cohort IDs for current user (if they're a teacher)
  */
 export async function getCurrentUserCohortIds(
-	session?: Awaited<ReturnType<typeof requireAuth>>
+	session?: Awaited<ReturnType<typeof requireAuth>>,
 ): Promise<string[]> {
 	const teacherId = await getTeacherIdFromSession(session);
 	if (!teacherId) return [];
@@ -201,7 +208,7 @@ export async function canAccessStudent(studentId: string): Promise<boolean> {
  */
 export async function applyStudentFilter<T>(
 	query: any,
-	session?: Awaited<ReturnType<typeof requireAuth>>
+	session?: Awaited<ReturnType<typeof requireAuth>>,
 ) {
 	const userSession = session || (await requireAuth());
 
@@ -229,7 +236,7 @@ export async function applyStudentFilter<T>(
  */
 export async function applyCohortFilter(
 	query: any,
-	session?: Awaited<ReturnType<typeof requireAuth>>
+	session?: Awaited<ReturnType<typeof requireAuth>>,
 ) {
 	const userSession = session || (await requireAuth());
 
@@ -257,7 +264,7 @@ export async function applyCohortFilter(
  */
 export async function filterStudentsByAccess(
 	students: any[],
-	session?: Awaited<ReturnType<typeof requireAuth>>
+	session?: Awaited<ReturnType<typeof requireAuth>>,
 ): Promise<any[]> {
 	const userSession = session || (await requireAuth());
 
@@ -280,9 +287,10 @@ export async function filterStudentsByAccess(
 	// Filter students who have enrollments in teacher's cohorts with allowed statuses
 	return students.filter((student) => {
 		const enrollments = student.enrollments || [];
-		return enrollments.some((enrollment: any) =>
-			teacherCohortIds.includes(enrollment.cohort_id) &&
-			allowedStatuses.includes(enrollment.status)
+		return enrollments.some(
+			(enrollment: any) =>
+				teacherCohortIds.includes(enrollment.cohort_id) &&
+				allowedStatuses.includes(enrollment.status),
 		);
 	});
 }

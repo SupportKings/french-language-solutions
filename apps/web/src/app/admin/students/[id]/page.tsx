@@ -2,11 +2,13 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
 import { getApiUrl } from "@/lib/api-utils";
-import { getUser } from "@/queries/getUser";
 import { rolesMap } from "@/lib/permissions";
+
 import { AccessDenied } from "@/components/ui/access-denied";
 
 import { studentsKeys } from "@/features/students/queries/students.queries";
+
+import { getUser } from "@/queries/getUser";
 
 import {
 	dehydrate,

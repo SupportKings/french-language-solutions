@@ -186,7 +186,7 @@ export const createTeacherUser = actionClient
 				console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 
 				try {
-					const inviteUrl = `https://french-language-solutions.vercel.app/`;
+					const inviteUrl = "https://french-language-solutions.vercel.app/";
 					console.log("Invite URL:", inviteUrl);
 
 					const emailResponse = await resend.emails.send({

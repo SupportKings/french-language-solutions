@@ -1,10 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
-import { createClient } from "@/lib/supabase/server";
-import { requireAuth, getCurrentUserCohortIds } from "@/lib/rbac-middleware";
 import { parseDateString } from "@/lib/date-utils";
+import { getCurrentUserCohortIds, requireAuth } from "@/lib/rbac-middleware";
+import { createClient } from "@/lib/supabase/server";
+
 import type { Database } from "@/utils/supabase/database.types";
+
+import { z } from "zod";
 
 // Helper function to apply option filters based on operator
 function applyOptionFilter<T>(
@@ -66,9 +68,11 @@ function applyDateFilter(
 			// Default behavior for backward compatibility
 			if (fromDate && toDate) {
 				return cohortDate >= fromDate && cohortDate <= toDate;
-			} else if (fromDate) {
+			}
+			if (fromDate) {
 				return cohortDate >= fromDate;
-			} else if (toDate) {
+			}
+			if (toDate) {
 				return cohortDate <= toDate;
 			}
 			return true;
@@ -91,20 +95,27 @@ export async function GET(request: NextRequest) {
 		const format = searchParams.getAll("format");
 		const format_operator = searchParams.get("format_operator") || "is any of";
 		const location = searchParams.getAll("location");
-		const location_operator = searchParams.get("location_operator") || "is any of";
+		const location_operator =
+			searchParams.get("location_operator") || "is any of";
 		const cohort_status = searchParams.getAll("cohort_status");
-		const cohort_status_operator = searchParams.get("cohort_status_operator") || "is any of";
+		const cohort_status_operator =
+			searchParams.get("cohort_status_operator") || "is any of";
 		const starting_level_id = searchParams.getAll("starting_level_id");
-		const starting_level_id_operator = searchParams.get("starting_level_id_operator") || "is any of";
+		const starting_level_id_operator =
+			searchParams.get("starting_level_id_operator") || "is any of";
 		const current_level_id = searchParams.getAll("current_level_id");
-		const current_level_id_operator = searchParams.get("current_level_id_operator") || "is any of";
+		const current_level_id_operator =
+			searchParams.get("current_level_id_operator") || "is any of";
 		const room_type = searchParams.getAll("room_type");
-		const room_type_operator = searchParams.get("room_type_operator") || "is any of";
+		const room_type_operator =
+			searchParams.get("room_type_operator") || "is any of";
 		const teacher_ids = searchParams.getAll("teacher_ids");
-		const teacher_ids_operator = searchParams.get("teacher_ids_operator") || "is any of";
+		const teacher_ids_operator =
+			searchParams.get("teacher_ids_operator") || "is any of";
 		const start_date_from = searchParams.get("start_date_from");
 		const start_date_to = searchParams.get("start_date_to");
-		const start_date_operator = searchParams.get("start_date_operator") || "is between";
+		const start_date_operator =
+			searchParams.get("start_date_operator") || "is between";
 		const today_sessions = searchParams.get("today_sessions") === "true";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -153,10 +164,8 @@ export async function GET(request: NextRequest) {
 		// 4. Build query with server-side filtering
 		const tableName = "cohorts";
 
-		let query = supabase
-			.from(tableName as any)
-			.select(
-				`
+		let query = supabase.from(tableName as any).select(
+			`
 					*,
 					products (
 						id,
@@ -188,8 +197,8 @@ export async function GET(request: NextRequest) {
 						)
 					)
 				`,
-				{ count: "exact" },
-			);
+			{ count: "exact" },
+		);
 
 		// Apply RBAC filter at database level
 		if (cohortIds !== null) {
@@ -252,28 +261,44 @@ export async function GET(request: NextRequest) {
 		// Location filter with operator support
 		if (location.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				applyOptionFilter(cohort.products?.location, location, location_operator),
+				applyOptionFilter(
+					cohort.products?.location,
+					location,
+					location_operator,
+				),
 			);
 		}
 
 		// Cohort status filter with operator support
 		if (cohort_status.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				applyOptionFilter(cohort.cohort_status, cohort_status, cohort_status_operator),
+				applyOptionFilter(
+					cohort.cohort_status,
+					cohort_status,
+					cohort_status_operator,
+				),
 			);
 		}
 
 		// Starting level filter with operator support
 		if (starting_level_id.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				applyOptionFilter(cohort.starting_level_id, starting_level_id, starting_level_id_operator),
+				applyOptionFilter(
+					cohort.starting_level_id,
+					starting_level_id,
+					starting_level_id_operator,
+				),
 			);
 		}
 
 		// Current level filter with operator support
 		if (current_level_id.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
-				applyOptionFilter(cohort.current_level_id, current_level_id, current_level_id_operator),
+				applyOptionFilter(
+					cohort.current_level_id,
+					current_level_id,
+					current_level_id_operator,
+				),
 			);
 		}
 
@@ -288,7 +313,9 @@ export async function GET(request: NextRequest) {
 		if (teacher_ids.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				const cohortTeacherIds =
-					cohort.weekly_sessions?.map((ws: any) => ws.teacher?.id).filter(Boolean) || [];
+					cohort.weekly_sessions
+						?.map((ws: any) => ws.teacher?.id)
+						.filter(Boolean) || [];
 
 				// Apply operator logic
 				switch (teacher_ids_operator) {
@@ -313,18 +340,27 @@ export async function GET(request: NextRequest) {
 				const fromDate = start_date_from ? new Date(start_date_from) : null;
 				const toDate = start_date_to ? new Date(start_date_to) : null;
 
-				return applyDateFilter(cohortDate, fromDate, toDate, start_date_operator);
+				return applyDateFilter(
+					cohortDate,
+					fromDate,
+					toDate,
+					start_date_operator,
+				);
 			});
 		}
 
 		// Today's sessions filter
 		if (today_sessions) {
 			const now = new Date();
-			const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as Database["public"]["Enums"]["day_of_week"];
+			const dayOfWeek = now
+				.toLocaleDateString("en-US", { weekday: "long" })
+				.toLowerCase() as Database["public"]["Enums"]["day_of_week"];
 
 			filteredCohorts = filteredCohorts.filter((cohort) => {
 				const sessions = cohort.weekly_sessions || [];
-				return sessions.some((session: any) => session.day_of_week === dayOfWeek);
+				return sessions.some(
+					(session: any) => session.day_of_week === dayOfWeek,
+				);
 			});
 		}
 
@@ -370,18 +406,19 @@ export async function GET(request: NextRequest) {
 
 // Zod schema for cohort creation - explicit field whitelisting
 const createCohortSchema = z.object({
-	nickname: z.string().min(1, "Nickname is required"),
-	cohort_status: z.enum([
-		"enrollment_open",
-		"enrollment_closed",
-		"class_ended",
-	]).optional(),
+	nickname: z.string().nullable().optional(),
+	cohort_status: z
+		.enum(["enrollment_open", "enrollment_closed", "class_ended"])
+		.optional(),
 	start_date: z.string().nullable().optional(),
 	current_level_id: z.string().uuid().nullable().optional(),
 	starting_level_id: z.string().uuid().nullable().optional(),
 	product_id: z.string().uuid().nullable().optional(),
 	max_students: z.number().int().positive().nullable().optional(),
-	room_type: z.enum(["for_one_to_one", "medium", "medium_plus", "large"]).nullable().optional(),
+	room_type: z
+		.enum(["for_one_to_one", "medium", "medium_plus", "large"])
+		.nullable()
+		.optional(),
 	setup_finalized: z.boolean().nullable().optional(),
 	google_drive_folder_id: z.string().nullable().optional(),
 	weekly_sessions: z.array(z.any()).optional(), // Handled separately

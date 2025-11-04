@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
@@ -36,7 +36,9 @@ export const updateChecklistAction = actionClient
 
 			if (!session?.user) {
 				return returnValidationErrors(checklistUpdateSchema, {
-					_errors: ["Not authenticated. Please refresh the page and try again."],
+					_errors: [
+						"Not authenticated. Please refresh the page and try again.",
+					],
 				});
 			}
 
@@ -70,14 +72,20 @@ export const updateChecklistAction = actionClient
 						: "offboarding_checklist";
 
 			// Validate that the checklist type matches the enrollment status
-			if (checklistType === "transition" && enrollment.status !== "transitioning") {
+			if (
+				checklistType === "transition" &&
+				enrollment.status !== "transitioning"
+			) {
 				return returnValidationErrors(checklistUpdateSchema, {
 					_errors: [
 						"Cannot update transition checklist when enrollment status is not 'transitioning'",
 					],
 				});
 			}
-			if (checklistType === "offboarding" && enrollment.status !== "offboarding") {
+			if (
+				checklistType === "offboarding" &&
+				enrollment.status !== "offboarding"
+			) {
 				return returnValidationErrors(checklistUpdateSchema, {
 					_errors: [
 						"Cannot update offboarding checklist when enrollment status is not 'offboarding'",
@@ -118,10 +126,7 @@ export const updateChecklistAction = actionClient
 			if (updates.old_teacher_notified !== undefined) {
 				updatedItem.old_teacher_notified = updates.old_teacher_notified;
 				// Auto-complete if both teachers notified
-				if (
-					updates.old_teacher_notified &&
-					updatedItem.new_teacher_notified
-				) {
+				if (updates.old_teacher_notified && updatedItem.new_teacher_notified) {
 					updatedItem.completed = true;
 					updatedItem.completed_at = new Date().toISOString();
 					updatedItem.completed_by = userId;
@@ -130,10 +135,7 @@ export const updateChecklistAction = actionClient
 			if (updates.new_teacher_notified !== undefined) {
 				updatedItem.new_teacher_notified = updates.new_teacher_notified;
 				// Auto-complete if both teachers notified
-				if (
-					updates.new_teacher_notified &&
-					updatedItem.old_teacher_notified
-				) {
+				if (updates.new_teacher_notified && updatedItem.old_teacher_notified) {
 					updatedItem.completed = true;
 					updatedItem.completed_at = new Date().toISOString();
 					updatedItem.completed_by = userId;

@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
 
+import { rolesMap } from "@/lib/permissions";
+
 import { PageHeader } from "@/components/admin/page-header";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import { getUser } from "@/queries/getUser";
-import { rolesMap } from "@/lib/permissions";
 
 export default async function AdminLayout({
 	children,
