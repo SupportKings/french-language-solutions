@@ -10,7 +10,18 @@ export async function GET(
 		const { id } = await params;
 		const supabase = await createClient();
 
-		// First get all classes for the cohort
+		// Get the cohort with current level
+		const { data: cohort } = await supabase
+			.from("cohorts")
+			.select(`
+				id,
+				current_level_id,
+				current_level:language_levels!cohorts_current_level_id_language_levels_id_fk(id, display_name)
+			`)
+			.eq("id", id)
+			.single();
+
+		// Then get all classes for the cohort
 		const { data: classes, error } = await supabase
 			.from("classes")
 			.select(`
@@ -40,6 +51,13 @@ export async function GET(
 				return {
 					...classItem,
 					attendance_count: count || 0,
+					...(cohort && {
+						cohort: {
+							id: cohort.id,
+							current_level_id: cohort.current_level_id,
+							current_level: cohort.current_level,
+						},
+					}),
 				};
 			}),
 		);

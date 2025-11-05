@@ -123,17 +123,30 @@ export function CohortClasses({
 	// Handle class update from modal
 	const handleClassUpdate = (updatedClass: any) => {
 		setClasses((prevClasses) => {
-			// Update the class and re-sort
-			const updated = prevClasses.map((c) =>
-				c.id === updatedClass.id ? updatedClass : c,
-			);
+			// Update the class and merge cohort data, letting new cohort fields override old ones
+			const updated = prevClasses.map((c) => {
+				if (c.id === updatedClass.id) {
+					// Merge cohort: new fields from updatedClass override old fields from c
+					const mergedCohort = updatedClass.cohort
+						? { ...c.cohort, ...updatedClass.cohort }
+						: c.cohort;
+					return { ...updatedClass, cohort: mergedCohort };
+				}
+				return c;
+			});
 			return updated.sort((a, b) => {
 				const dateA = new Date(a.start_time);
 				const dateB = new Date(b.start_time);
 				return dateB.getTime() - dateA.getTime();
 			});
 		});
-		setSelectedClass(updatedClass);
+		// Also update selectedClass with merged cohort data
+		if (selectedClass?.id === updatedClass.id) {
+			const mergedCohort = updatedClass.cohort
+				? { ...selectedClass.cohort, ...updatedClass.cohort }
+				: selectedClass.cohort;
+			setSelectedClass({ ...updatedClass, cohort: mergedCohort });
+		}
 	};
 
 	// Handle view attendance for a class
