@@ -181,9 +181,28 @@ export function ClassDetailsModal({
 						queryKey: ["cohorts", classItem.cohort_id, "classes"],
 					}),
 				]);
-			}
 
-			onUpdate(updated);
+				// Build nextCohort with updated level information
+				const selectedLevel = languageLevels?.find(
+					(level) => level.id === formData.current_level_id,
+				);
+
+				const nextCohort = {
+					...classItem.cohort,
+					current_level_id: formData.current_level_id,
+					current_level: selectedLevel
+						? {
+								id: selectedLevel.id,
+								display_name: selectedLevel.display_name,
+							}
+						: undefined,
+				};
+
+				// Call onUpdate with the refreshed cohort level
+				onUpdate({ ...updated, cohort: nextCohort });
+			} else {
+				onUpdate(updated);
+			}
 			toast.success("Class updated successfully");
 			setEditing(false);
 		} catch (error) {
