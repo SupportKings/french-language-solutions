@@ -6,6 +6,7 @@ import {
 	requireAuth,
 } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
+import { extractGoogleDriveFolderId } from "@/utils/google-drive";
 
 export async function GET(
 	request: Request,
@@ -94,6 +95,14 @@ export async function PATCH(
 
 		// 3. Update cohort
 		const body = await request.json();
+
+		// Extract Google Drive folder ID if present
+		if (body.google_drive_folder_id) {
+			body.google_drive_folder_id = extractGoogleDriveFolderId(
+				body.google_drive_folder_id,
+			);
+		}
+
 		const supabase = await createClient();
 
 		const { data, error } = await supabase
