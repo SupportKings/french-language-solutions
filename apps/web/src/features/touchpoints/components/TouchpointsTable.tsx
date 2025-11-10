@@ -480,9 +480,15 @@ export function TouchpointsTable() {
 
 				{data && data.meta?.totalPages > 1 && (
 					<div className="flex items-center justify-between border-border/50 border-t p-4">
-						<p className="text-muted-foreground text-sm">
-							Page {data.meta.page} of {data.meta.totalPages}
-						</p>
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<span className="font-medium text-primary">
+								Total: {data.meta.total || 0}
+							</span>
+							<span>•</span>
+							<span>
+								Page {data.meta.page} of {data.meta.totalPages}
+							</span>
+						</div>
 						<div className="flex gap-2">
 							<Button
 								variant="outline"
