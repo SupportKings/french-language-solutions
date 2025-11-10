@@ -145,21 +145,17 @@ export async function GET(request: NextRequest) {
 		let studentIds: string[] | null = null;
 
 		if (!userIsAdmin) {
-			// For teachers: Get student IDs that have paid/welcome_package_sent enrollments in teacher's cohorts
-			const allowedStatuses = ["paid", "welcome_package_sent"];
-
+			// For teachers: Get student IDs that have enrollments in teacher's cohorts (any status)
 			const { data: enrollmentsData, error: enrollmentsError } =
 				await supabaseClient
 					.from("enrollments")
 					.select("student_id")
-					.in("cohort_id", teacherCohortIds)
-					.in("status", allowedStatuses);
+					.in("cohort_id", teacherCohortIds);
 
 			if (enrollmentsError) {
 				console.error("Error fetching enrollments for teacher:", {
 					error: enrollmentsError,
 					cohortIds: teacherCohortIds,
-					allowedStatuses,
 					sessionUserId: session.user.id,
 				});
 				return NextResponse.json(

@@ -260,7 +260,7 @@ export async function applyCohortFilter(
 /**
  * Filter array of students based on teacher's cohort access
  * Used for in-memory filtering when database filtering isn't feasible
- * Teachers only see students with "paid" or "welcome_package_sent" enrollment status
+ * Teachers see all students in their assigned cohorts regardless of enrollment status
  */
 export async function filterStudentsByAccess(
 	students: any[],
@@ -273,24 +273,19 @@ export async function filterStudentsByAccess(
 		return students;
 	}
 
-	// Teachers only see students in their cohorts with specific enrollment statuses
+	// Teachers see students in their cohorts (any enrollment status)
 	const teacherCohortIds = await getCurrentUserCohortIds(userSession);
 
 	if (teacherCohortIds.length === 0) {
 		return [];
 	}
 
-	// Allowed enrollment statuses for teachers to see
-	// Teachers ONLY see students with "paid" or "welcome_package_sent" status
-	const allowedStatuses = ["paid", "welcome_package_sent"];
-
-	// Filter students who have enrollments in teacher's cohorts with allowed statuses
+	// Filter students who have enrollments in teacher's cohorts
 	return students.filter((student) => {
 		const enrollments = student.enrollments || [];
 		return enrollments.some(
 			(enrollment: any) =>
-				teacherCohortIds.includes(enrollment.cohort_id) &&
-				allowedStatuses.includes(enrollment.status),
+				teacherCohortIds.includes(enrollment.cohort_id),
 		);
 	});
 }
