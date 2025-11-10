@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { formatDate } from "@/lib/date-utils";
+import { extractGoogleDriveFolderId } from "@/utils/google-drive";
 import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
@@ -300,7 +301,11 @@ export function CohortDetailPageClient({
 			if (
 				editedCohort.google_drive_folder_id !== cohort.google_drive_folder_id
 			) {
-				changes.google_drive_folder_id = editedCohort.google_drive_folder_id;
+				// Extract ID from URL or ID input
+				const extracted = editedCohort.google_drive_folder_id
+					? extractGoogleDriveFolderId(editedCohort.google_drive_folder_id)
+					: null;
+				changes.google_drive_folder_id = extracted;
 			}
 
 			// If no changes, return early
@@ -914,7 +919,7 @@ export function CohortDetailPageClient({
 													}
 													editing={editing}
 													type="text"
-													placeholder="Enter Google Drive folder ID"
+													placeholder="Paste folder URL or ID"
 												/>
 											) : (
 												<div className="flex items-center gap-2">

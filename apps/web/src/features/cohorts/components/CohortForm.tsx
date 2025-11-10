@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { parseDateString } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { extractGoogleDriveFolderId } from "@/utils/google-drive";
 
 import {
 	FormActions,
@@ -81,7 +82,21 @@ const cohortFormSchema = z.object({
 	]),
 
 	// Resources
-	google_drive_folder_id: z.string().optional(),
+	google_drive_folder_id: z
+		.string()
+		.optional()
+		.refine(
+			(val) => {
+				// If empty, it's valid (optional field)
+				if (!val || val.trim() === "") return true;
+				// If provided, must be valid format
+				return extractGoogleDriveFolderId(val) !== null;
+			},
+			{
+				message:
+					"Invalid Google Drive folder URL or ID. Please paste a valid Google Drive folder URL or folder ID.",
+			},
+		),
 
 	// Weekly Sessions
 	weekly_sessions: z.array(
@@ -224,7 +239,9 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 					: null,
 				current_level_id: data.current_level_id || data.starting_level_id,
 				max_students: data.max_students || 20,
-				google_drive_folder_id: data.google_drive_folder_id || null,
+				google_drive_folder_id: data.google_drive_folder_id
+					? extractGoogleDriveFolderId(data.google_drive_folder_id)
+					: null,
 				airtable_record_id: data.airtable_record_id || null,
 				product_id: data.product_id || null,
 				starting_level_id: data.starting_level_id || null,
@@ -612,12 +629,12 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 							icon={FolderOpen}
 						>
 							<FormField
-								label="Google Drive Folder ID"
-								hint="The ID from the Google Drive folder URL"
+								label="Google Drive Folder"
+								hint="Paste the full Google Drive folder URL or just the folder ID"
 								error={form.formState.errors.google_drive_folder_id?.message}
 							>
 								<InputField
-									placeholder="Folder ID"
+									placeholder="https://drive.google.com/drive/folders/... or folder ID"
 									error={!!form.formState.errors.google_drive_folder_id}
 									{...form.register("google_drive_folder_id")}
 								/>

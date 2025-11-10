@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { parseDateString } from "@/lib/date-utils";
 import { getCurrentUserCohortIds, requireAuth } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
+import { extractGoogleDriveFolderId } from "@/utils/google-drive";
 
 import type { Database } from "@/utils/supabase/database.types";
 
@@ -434,7 +435,16 @@ const createCohortSchema = z.object({
 		.nullable()
 		.optional(),
 	setup_finalized: z.boolean().nullable().optional(),
-	google_drive_folder_id: z.string().nullable().optional(),
+	google_drive_folder_id: z
+		.string()
+		.nullable()
+		.optional()
+		.transform((val) => {
+			// If empty or null, return null
+			if (!val) return null;
+			// Extract ID from URL or return ID if already extracted
+			return extractGoogleDriveFolderId(val);
+		}),
 	weekly_sessions: z.array(z.any()).optional(), // Handled separately
 });
 
