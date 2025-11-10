@@ -59,7 +59,7 @@ export const optionFilterOperators = {
 		value: "is any of",
 		target: "multiple",
 		pluralOf: "is",
-		relativeOf: "is none of",
+		relativeOf: ["is none of", "is exactly"],
 		isNegated: false,
 		negation: "is none of",
 	},
@@ -68,9 +68,18 @@ export const optionFilterOperators = {
 		value: "is none of",
 		target: "multiple",
 		pluralOf: "is not",
-		relativeOf: "is any of",
+		relativeOf: ["is any of", "is exactly"],
 		isNegated: true,
 		negationOf: "is any of",
+	},
+	"is exactly": {
+		key: "filters.option.isExactly",
+		value: "is exactly",
+		target: "multiple",
+		pluralOf: "is",
+		relativeOf: ["is any of", "is none of"],
+		isNegated: false,
+		negation: "is none of",
 	},
 } as const satisfies FilterDetails<"option">;
 

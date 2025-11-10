@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import type { Database } from "@/utils/supabase/database.types";
 
+import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +91,15 @@ const formatDate = (dateString: string | null) => {
 	if (!dateString) return "Not set";
 	try {
 		return format(new Date(dateString), "MMM dd, yyyy");
+	} catch {
+		return "Invalid date";
+	}
+};
+
+const formatDateTime = (dateString: string | null) => {
+	if (!dateString) return "Not set";
+	try {
+		return format(new Date(dateString), "MMM dd, yyyy 'at' HH:mm");
 	} catch {
 		return "Invalid date";
 	}
@@ -245,15 +255,18 @@ export default function EnrollmentDetailView({
 			{/* Enhanced Header with Breadcrumb */}
 			<div className="border-b bg-background">
 				<div className="px-6 py-3">
-					<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
-						<Link
-							href="/admin/students/enrollments"
-							className="transition-colors hover:text-foreground"
-						>
-							Enrollments
-						</Link>
-						<ChevronRight className="h-3 w-3" />
-						<span>Enrollment</span>
+					<div className="mb-2 flex items-center gap-2">
+						<BackButton />
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Link
+								href="/admin/students/enrollments"
+								className="transition-colors hover:text-foreground"
+							>
+								Enrollments
+							</Link>
+							<ChevronRight className="h-3 w-3" />
+							<span>Enrollment</span>
+						</div>
 					</div>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
@@ -347,7 +360,7 @@ export default function EnrollmentDetailView({
 												Enrolled Date:
 											</p>
 											<p className="text-sm">
-												{formatDate(currentEnrollment.created_at)}
+												{formatDateTime(currentEnrollment.created_at)}
 											</p>
 										</div>
 									</div>
@@ -424,6 +437,10 @@ export default function EnrollmentDetailView({
 							queryClient.invalidateQueries({
 								queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
 							});
+							// Invalidate enrollments list to update progress bar when navigating back
+							queryClient.invalidateQueries({
+								queryKey: ["enrollments"],
+							});
 						}}
 						canEdit={canEditStudent}
 					/>
@@ -440,6 +457,10 @@ export default function EnrollmentDetailView({
 						onUpdate={() => {
 							queryClient.invalidateQueries({
 								queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+							});
+							// Invalidate enrollments list to update progress bar when navigating back
+							queryClient.invalidateQueries({
+								queryKey: ["enrollments"],
 							});
 						}}
 						canEdit={canEditStudent}
@@ -458,6 +479,10 @@ export default function EnrollmentDetailView({
 							onUpdate={() => {
 								queryClient.invalidateQueries({
 									queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+								});
+								// Invalidate enrollments list to update progress bar when navigating back
+								queryClient.invalidateQueries({
+									queryKey: ["enrollments"],
 								});
 							}}
 							canEdit={canEditStudent}

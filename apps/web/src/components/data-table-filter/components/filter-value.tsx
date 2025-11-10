@@ -518,7 +518,7 @@ export function FilterValueOptionController<TData>({
 		<Command loop>
 			<CommandInput autoFocus placeholder={t("search", locale)} />
 			<CommandEmpty>{t("noresults", locale)}</CommandEmpty>
-			<CommandList className="max-h-fit">
+			<CommandList className="max-h-[min(400px,70vh)]">
 				<CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
 					{selectedOptions.map((option) => (
 						<OptionItem
@@ -597,7 +597,7 @@ export function FilterValueMultiOptionController<TData>({
 		<Command loop>
 			<CommandInput autoFocus placeholder={t("search", locale)} />
 			<CommandEmpty>{t("noresults", locale)}</CommandEmpty>
-			<CommandList>
+			<CommandList className="max-h-[min(400px,70vh)]">
 				<CommandGroup className={cn(selectedOptions.length === 0 && "hidden")}>
 					{selectedOptions.map((option) => (
 						<OptionItem
@@ -651,7 +651,7 @@ export function FilterValueDateController<TData>({
 
 	return (
 		<Command>
-			<CommandList className="max-h-fit">
+			<CommandList className="max-h-[min(500px,80vh)]">
 				<CommandGroup>
 					<div>
 						<Calendar
@@ -681,7 +681,7 @@ export function FilterValueTextController<TData>({
 
 	return (
 		<Command>
-			<CommandList className="max-h-fit">
+			<CommandList className="max-h-fit overflow-hidden">
 				<CommandGroup>
 					<CommandItem>
 						<DebouncedInput

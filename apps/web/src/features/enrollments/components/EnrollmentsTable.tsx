@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { getApiUrl } from "@/lib/api-utils";
 
 import {
 	DataTableFilter,
@@ -22,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
@@ -33,9 +32,10 @@ import {
 } from "@/components/ui/table";
 
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
+import { useQueryState } from "nuqs";
 import {
+	BarChart3,
 	Building,
 	Calendar,
 	CalendarDays,
@@ -52,6 +52,9 @@ import {
 	Users,
 } from "lucide-react";
 import { toast } from "sonner";
+
+import { useProducts } from "@/features/products/queries/useProducts";
+import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 
 const statusColors = {
 	declined_contract: "destructive",
@@ -81,8 +84,8 @@ const statusLabels = {
 	offboarding: "Offboarding",
 };
 
-// Function to get column configurations - needs products for options
-const getEnrollmentColumns = (products: any[]) => [
+// Function to get column configurations - needs products and teachers for options
+const getEnrollmentColumns = (products: any[], teachers: any[]) => [
 	{
 		id: "status",
 		accessor: (enrollment: any) => enrollment.status,
@@ -106,12 +109,42 @@ const getEnrollmentColumns = (products: any[]) => [
 		})),
 	},
 	{
+		id: "cohort_nickname",
+		accessor: (enrollment: any) => enrollment.cohorts?.nickname,
+		displayName: "Cohort Nickname",
+		icon: Users,
+		type: "text" as const,
+	},
+	{
+		id: "teacher",
+		accessor: (enrollment: any) =>
+			enrollment.cohorts?.weekly_sessions
+				?.map((s: any) => s.teacher_id)
+				.filter(Boolean),
+		displayName: "Teacher",
+		icon: GraduationCap,
+		type: "option" as const,
+		options: teachers.map((teacher) => ({
+			label: `${teacher.first_name} ${teacher.last_name}`,
+			value: teacher.id,
+		})),
+	},
+	{
 		id: "created_at",
 		accessor: (enrollment: any) =>
 			enrollment.airtable_created_at || enrollment.created_at,
 		displayName: "Created Date",
 		icon: CalendarDays,
 		type: "date" as const,
+	},
+	{
+		id: "completion_percentage",
+		accessor: (enrollment: any) => enrollment.completion_percentage ?? 0,
+		displayName: "Completion Progress",
+		icon: BarChart3,
+		type: "number" as const,
+		min: 0,
+		max: 100,
 	},
 ];
 
@@ -121,57 +154,100 @@ interface EnrollmentsTableProps {
 
 export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 	const router = useRouter();
-	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState("");
-	const [products, setProducts] = useState<any[]>([]);
-	const debouncedSearch = useDebounce(search, 300);
+
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
+	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
+
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
 	const limit = 20;
 
-	// Fetch products for filter options
-	useEffect(() => {
-		const controller = new AbortController();
+	// Fetch products for filter options using React Query
+	const { data: productsData } = useProducts({
+		page: 1,
+		limit: 100,
+		sortBy: "display_name",
+		sortOrder: "asc",
+	});
 
-		async function fetchProducts() {
-			try {
-				const response = await fetch(getApiUrl("/api/products?limit=100"), {
-					signal: controller.signal,
-				});
+	// Fetch teachers for filter options - only onboarded teachers with Teacher role
+	const { data: teachersData } = useQuery(
+		teachersQueries.list({
+			page: 1,
+			limit: 200,
+			sortBy: "first_name",
+			sortOrder: "asc",
+			onboarding_status: ["onboarded"],
+			role: ["Teacher"],
+		}),
+	);
 
-				if (response.ok) {
-					const result = await response.json();
-					// Only update state if the fetch wasn't aborted
-					if (!controller.signal.aborted) {
-						setProducts(result.data || []);
-					}
+	const products = productsData?.data || [];
+	const teachers = teachersData?.data || [];
+
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
 				}
-			} catch (error) {
-				// Only log error if it's not an abort error
-				if (error instanceof Error && error.name !== "AbortError") {
-					console.error("Error fetching products:", error);
-				}
-			}
+				return filter;
+			});
+		} catch {
+			return [];
 		}
+	}, [filtersParam]);
 
-		fetchProducts();
-
-		// Cleanup function to abort fetch on unmount
-		return () => {
-			controller.abort();
-		};
-	}, []);
-
-	// Data table filters hook - use dynamic columns with products
+	// Data table filters hook - use dynamic columns with products and teachers
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
-		columnsConfig: getEnrollmentColumns(products),
+		columnsConfig: getEnrollmentColumns(products, teachers),
+		defaultFilters: initialFilters,
 	});
 
-	// Convert filters to query params
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
+
+	// Convert filters to query params with operators
 	const filterQuery = useMemo(() => {
 		const statusFilter = filters.find((f) => f.columnId === "status");
 		const productFilter = filters.find((f) => f.columnId === "product");
+		const cohortNicknameFilter = filters.find((f) => f.columnId === "cohort_nickname");
+		const teacherFilter = filters.find((f) => f.columnId === "teacher");
 		const dateFilter = filters.find((f) => f.columnId === "created_at");
+		const completionFilter = filters.find((f) => f.columnId === "completion_percentage");
 
 		// Date filter values are stored as [from, to] for ranges or [date] for single dates
 		const dateValues = dateFilter?.values || [];
@@ -199,22 +275,127 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			dateTo = toDate.toISOString();
 		}
 
+		// Completion percentage filter
+		const completionValues = completionFilter?.values || [];
+		const completionOperator = completionFilter?.operator;
+		let completionMin = null;
+		let completionMax = null;
+		let completionExact = null;
+		let completionExclude = null;
+
+		if (completionValues.length > 0) {
+			const numValue = Number(completionValues[0]);
+
+			switch (completionOperator) {
+				case "is":
+					// Exact match
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
+					break;
+				case "is not":
+					// Exclude this value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExclude = numValue;
+					}
+					break;
+				case "is greater than":
+					// Greater than: min is value + 0.01 to exclude the exact value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue + 0.01;
+					}
+					break;
+				case "is greater than or equal to":
+					// Greater than or equal: min is value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue;
+					}
+					break;
+				case "is less than":
+					// Less than: max is value - 0.01 to exclude the exact value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue - 0.01;
+					}
+					break;
+				case "is less than or equal to":
+					// Less than or equal: max is value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue;
+					}
+					break;
+				case "is between":
+					// Range: use both values
+					if (completionValues.length > 1) {
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
+					}
+					break;
+				case "is not between":
+					// Not in range - this is complex, we'll handle separately
+					if (completionValues.length > 1) {
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							// For "not between", we need special handling on the server
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
+					}
+					break;
+				default:
+					// Fallback: treat as exact match
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
+			}
+		}
+
 		return {
-			status: statusFilter?.values || [],
-			productIds: productFilter?.values || [],
+			status: statusFilter?.values?.length ? statusFilter.values : undefined,
+			status_operator: statusFilter?.operator,
+			productIds: productFilter?.values?.length ? productFilter.values : undefined,
+			productIds_operator: productFilter?.operator,
+			cohortNickname: cohortNicknameFilter?.values?.[0] || undefined,
+			cohortNickname_operator: cohortNicknameFilter?.operator,
+			teacherIds: teacherFilter?.values?.length ? teacherFilter.values : undefined,
+			teacherIds_operator: teacherFilter?.operator,
 			dateFrom,
 			dateTo,
 			useAirtableDate,
+			created_at_operator: dateFilter?.operator,
+			completionMin,
+			completionMax,
+			completionExact,
+			completionExclude,
+			completionOperator,
 		};
 	}, [filters]);
 
-	// Reset page when filters change
+	// Reset page when filters or search change (but not on initial mount)
 	useEffect(() => {
-		setPage(1);
-	}, [filters, debouncedSearch]);
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
+		setPageState(1);
+	}, [filters, searchQuery, setPageState]);
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ["enrollments", page, limit, debouncedSearch, filterQuery],
+		queryKey: ["enrollments", page, limit, searchQuery, filterQuery],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
@@ -224,21 +405,43 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			});
 
 			// Add search if present
-			if (debouncedSearch) {
-				params.append("search", debouncedSearch);
+			if (searchQuery) {
+				params.append("search", searchQuery);
 			}
 
-			// Add product filters (multiple values)
+			// Add product filters (multiple values) with operator
 			if (filterQuery.productIds && filterQuery.productIds.length > 0) {
 				filterQuery.productIds.forEach((id) => params.append("productId", id));
+				if (filterQuery.productIds_operator) {
+					params.append("productIds_operator", filterQuery.productIds_operator);
+				}
 			}
 
-			// Add status filters (multiple values)
+			// Add status filters (multiple values) with operator
 			if (filterQuery.status && filterQuery.status.length > 0) {
 				filterQuery.status.forEach((s) => params.append("status", s));
+				if (filterQuery.status_operator) {
+					params.append("status_operator", filterQuery.status_operator);
+				}
 			}
 
-			// Add date filters
+			// Add cohort nickname text search with operator
+			if (filterQuery.cohortNickname) {
+				params.append("cohortNickname", filterQuery.cohortNickname);
+				if (filterQuery.cohortNickname_operator) {
+					params.append("cohortNickname_operator", filterQuery.cohortNickname_operator);
+				}
+			}
+
+			// Add teacher filters (multiple values) with operator
+			if (filterQuery.teacherIds && filterQuery.teacherIds.length > 0) {
+				filterQuery.teacherIds.forEach((id) => params.append("teacherId", id));
+				if (filterQuery.teacherIds_operator) {
+					params.append("teacherIds_operator", filterQuery.teacherIds_operator);
+				}
+			}
+
+			// Add date filters with operator
 			if (filterQuery.dateFrom) {
 				params.append("dateFrom", filterQuery.dateFrom);
 				if (filterQuery.useAirtableDate) {
@@ -247,6 +450,26 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			}
 			if (filterQuery.dateTo) {
 				params.append("dateTo", filterQuery.dateTo);
+			}
+			if (filterQuery.created_at_operator) {
+				params.append("created_at_operator", filterQuery.created_at_operator);
+			}
+
+			// Add completion percentage filters
+			if (filterQuery.completionMin !== null && filterQuery.completionMin !== undefined) {
+				params.append("completionMin", filterQuery.completionMin.toString());
+			}
+			if (filterQuery.completionMax !== null && filterQuery.completionMax !== undefined) {
+				params.append("completionMax", filterQuery.completionMax.toString());
+			}
+			if (filterQuery.completionExact !== null && filterQuery.completionExact !== undefined) {
+				params.append("completionExact", filterQuery.completionExact.toString());
+			}
+			if (filterQuery.completionExclude !== null && filterQuery.completionExclude !== undefined) {
+				params.append("completionExclude", filterQuery.completionExclude.toString());
+			}
+			if (filterQuery.completionOperator) {
+				params.append("completionOperator", filterQuery.completionOperator);
 			}
 
 			const response = await fetch(`/api/enrollments?${params}`);
@@ -296,8 +519,11 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by student name or email..."
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
+								value={searchQuery || ""}
+								onChange={(e) => {
+									setSearchQuery(e.target.value || null);
+									setPageState(1); // Reset to first page on search
+								}}
 								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
@@ -326,7 +552,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						<TableRow>
 							<TableHead>Student</TableHead>
 							<TableHead>Cohort (Product and Sessions)</TableHead>
+							<TableHead>Teachers</TableHead>
 							<TableHead>Status</TableHead>
+							<TableHead>Progress</TableHead>
 							<TableHead>Created at</TableHead>
 							<TableHead className="w-[70px]" />
 						</TableRow>
@@ -345,6 +573,15 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										<Skeleton className="h-5 w-20" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-24" />
 									</TableCell>
 									<TableCell>
@@ -355,7 +592,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						) : data?.enrollments?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={6}
 									className="text-center text-muted-foreground"
 								>
 									No enrollments found
@@ -444,6 +681,12 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		session.day_of_week
 																	: "";
 
+																// Format time to HH:MM
+																const formatTime = (timeStr: string | null) => {
+																	if (!timeStr) return "";
+																	return timeStr.slice(0, 5); // Already in HH:MM:SS format
+																};
+
 																return (
 																	<Badge
 																		key={session.id}
@@ -451,7 +694,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		className="text-xs"
 																	>
 																		{dayAbbrev}{" "}
-																		{session.start_time?.slice(0, 5)}
+																		{formatTime(session.start_time)}
 																	</Badge>
 																);
 															},
@@ -461,9 +704,43 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 										</div>
 									</TableCell>
 									<TableCell>
+										{enrollment.cohorts?.weekly_sessions &&
+										enrollment.cohorts.weekly_sessions.length > 0 ? (
+											<div className="flex flex-wrap gap-1">
+												{enrollment.cohorts.weekly_sessions
+													.map((session: any) => session.teachers)
+													.filter(Boolean) // Remove null/undefined
+													.filter(
+														(teacher: any, index: number, self: any[]) =>
+															teacher && self.findIndex((t: any) => t?.id === teacher?.id) === index,
+													) // Get unique teachers
+													.map((teacher: any) => (
+														<LinkedRecordBadge
+															key={teacher.id}
+															href={`/admin/team-members/${teacher.id}`}
+															label={`${teacher.first_name} ${teacher.last_name}`}
+															icon={GraduationCap}
+														/>
+													))}
+											</div>
+										) : (
+											<span className="text-muted-foreground text-sm">
+												No teachers
+											</span>
+										)}
+									</TableCell>
+									<TableCell>
 										<Badge variant={(statusColors as any)[enrollment.status]}>
 											{(statusLabels as any)[enrollment.status]}
 										</Badge>
+									</TableCell>
+									<TableCell onClick={(e) => e.stopPropagation()}>
+										<div className="min-w-[140px]">
+											<ProgressBar
+												value={enrollment.completion_percentage || 0}
+												size="sm"
+											/>
+										</div>
 									</TableCell>
 									<TableCell>
 										<p className="text-sm">
@@ -521,7 +798,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page - 1)}
+								onClick={() => {
+									setPageState(page - 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === 1}
 							>
 								Previous
@@ -529,7 +809,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page + 1)}
+								onClick={() => {
+									setPageState(page + 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === data.pagination.totalPages}
 							>
 								Next

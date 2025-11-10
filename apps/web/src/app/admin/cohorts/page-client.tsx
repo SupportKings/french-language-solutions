@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -22,18 +22,21 @@ import type {
 } from "@/features/cohorts/schemas/cohort.schema";
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import type { LanguageLevel } from "@/features/language-levels/types/language-level.types";
+import { useProducts } from "@/features/products/queries/useProducts";
 import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 import type { Teacher } from "@/features/teachers/schemas/teacher.schema";
 
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, Plus, Search, Users } from "lucide-react";
+import { CalendarClock, Package, Plus, Search, Users } from "lucide-react";
 import { useQueryState } from "nuqs";
 
 // Extended cohort type with relationships
 interface CohortWithRelations extends Cohort {
 	products?: {
+		id: string;
 		format: string;
 		location: string;
+		display_name?: string;
 	} | null;
 	starting_level?: LanguageLevel | null;
 	current_level?: LanguageLevel | null;
@@ -48,6 +51,14 @@ interface CohortWithRelations extends Cohort {
 
 // Define column configurations for data-table-filter
 const cohortColumns = [
+	{
+		id: "product_id",
+		accessor: (cohort: CohortWithRelations) => cohort.products?.id,
+		displayName: "Product",
+		icon: Package,
+		type: "option" as const,
+		options: [], // Will be populated dynamically
+	},
 	{
 		id: "format",
 		accessor: (cohort: CohortWithRelations) => cohort.products?.format,
@@ -113,6 +124,7 @@ const cohortColumns = [
 		icon: Users,
 		type: "option" as const,
 		options: [], // Will be populated dynamically
+		allowedOperators: ["is", "is not", "is any of", "is none of", "is exactly"],
 	},
 	{
 		id: "start_date",
@@ -128,9 +140,18 @@ export function ClassesPageClient() {
 	console.log("🔥 ClassesPageClient component mounted");
 	const router = useRouter();
 
-	// Fetch language levels and teachers for filter options
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
+
+	// Fetch language levels, teachers, and products for filter options
 	const { data: languageLevels } = useQuery(languageLevelQueries.list());
 	const { data: teachersData } = useQuery(teachersQueries.list());
+	const { data: productsData } = useProducts({
+		page: 1,
+		limit: 100,
+		sortBy: "display_name",
+		sortOrder: "asc",
+	});
 
 	// URL state management for pagination and search
 	const [pageState, setPageState] = useQueryState("page", {
@@ -152,9 +173,50 @@ export function ClassesPageClient() {
 	);
 	const todaySessions = todaySessionsState === "true";
 
-	// Update cohortColumns with language level and teacher options
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => v ? new Date(v) : v),
+					};
+				}
+				return filter;
+			});
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
+
+	// Update cohortColumns with language level, teacher, and product options
 	const dynamicCohortColumns = useMemo(() => {
 		const columns = [...cohortColumns];
+
+		// Update product options
+		const productColumnIndex = columns.findIndex(
+			(col) => col.id === "product_id",
+		);
+		if (productColumnIndex !== -1 && productsData?.data) {
+			columns[productColumnIndex] = {
+				...columns[productColumnIndex],
+				options: productsData.data.map((product: any) => ({
+					label: product.display_name || "Unknown Product",
+					value: product.id,
+				})),
+			} as any;
+		}
 
 		// Update starting level options
 		const startingLevelColumnIndex = columns.findIndex(
@@ -199,14 +261,25 @@ export function ClassesPageClient() {
 		}
 
 		return columns;
-	}, [languageLevels, teachersData]);
+	}, [languageLevels, teachersData, productsData]);
 
 	// Data table filters hook
 	const { columns, filters, actions, strategy } = useDataTableFilters({
 		strategy: "server" as const,
 		data: [], // Empty for server-side filtering
 		columnsConfig: dynamicCohortColumns,
+		defaultFilters: initialFilters,
 	});
+
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
 
 	// Convert filters to query params - support multiple values with operators
 	const filterParams = useMemo(() => {
@@ -260,8 +333,12 @@ export function ClassesPageClient() {
 		return params;
 	}, [filters]);
 
-	// Reset to page 1 when filters change
+	// Reset to page 1 when filters change (but not on initial mount)
 	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
 		setPageState(1);
 	}, [filterParams, setPageState]);
 
@@ -283,6 +360,10 @@ export function ClassesPageClient() {
 		}
 
 		// Only add filters if they have values
+		if (filterParams.product_id && filterParams.product_id.length > 0) {
+			query.product_id = filterParams.product_id as string[];
+			query.product_id_operator = filterParams.product_id_operator;
+		}
 		if (filterParams.format && filterParams.format.length > 0) {
 			query.format = filterParams.format as CohortFormat[];
 			query.format_operator = filterParams.format_operator;

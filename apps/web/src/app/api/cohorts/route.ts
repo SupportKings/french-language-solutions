@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { parseDateString } from "@/lib/date-utils";
 import { getCurrentUserCohortIds, requireAuth } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
+import { extractGoogleDriveFolderId } from "@/utils/google-drive";
 
 import type { Database } from "@/utils/supabase/database.types";
 
@@ -92,6 +93,9 @@ export async function GET(request: NextRequest) {
 		const page = Number.parseInt(searchParams.get("page") || "1");
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search") || "";
+		const product_id = searchParams.getAll("product_id");
+		const product_id_operator =
+			searchParams.get("product_id_operator") || "is any of";
 		const format = searchParams.getAll("format");
 		const format_operator = searchParams.get("format_operator") || "is any of";
 		const location = searchParams.getAll("location");
@@ -150,6 +154,7 @@ export async function GET(request: NextRequest) {
 		// 3. Determine if we need to fetch all records (for in-memory filtering)
 		const needsInMemoryFiltering =
 			search.length > 0 ||
+			product_id.length > 0 ||
 			format.length > 0 ||
 			location.length > 0 ||
 			cohort_status.length > 1 ||
@@ -251,6 +256,13 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
+		// Product filter with operator support
+		if (product_id.length > 0) {
+			filteredCohorts = filteredCohorts.filter((cohort) =>
+				applyOptionFilter(cohort.product_id, product_id, product_id_operator),
+			);
+		}
+
 		// Format filter with operator support
 		if (format.length > 0) {
 			filteredCohorts = filteredCohorts.filter((cohort) =>
@@ -325,6 +337,9 @@ export async function GET(request: NextRequest) {
 					case "is not":
 					case "is none of":
 						return !teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
+					case "is exactly":
+						// Check if cohort has ALL the specified teachers (AND logic)
+						return teacher_ids.every((tid) => cohortTeacherIds.includes(tid));
 					default:
 						return teacher_ids.some((tid) => cohortTeacherIds.includes(tid));
 				}
@@ -420,7 +435,16 @@ const createCohortSchema = z.object({
 		.nullable()
 		.optional(),
 	setup_finalized: z.boolean().nullable().optional(),
-	google_drive_folder_id: z.string().nullable().optional(),
+	google_drive_folder_id: z
+		.string()
+		.nullable()
+		.optional()
+		.transform((val) => {
+			// If empty or null, return null
+			if (!val) return null;
+			// Extract ID from URL or return ID if already extracted
+			return extractGoogleDriveFolderId(val);
+		}),
 	weekly_sessions: z.array(z.any()).optional(), // Handled separately
 });
 

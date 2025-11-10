@@ -120,6 +120,9 @@ export type ColumnConfig<
 		? TTransformOptionFn<TVal>
 		: never;
 	orderFn?: TType extends OptionBasedColumnDataType ? TOrderFn<TVal> : never;
+	allowedOperators?: TType extends ColumnDataType
+		? Array<FilterOperators[TType]>
+		: never;
 };
 
 export type OptionColumnId<T> = T extends ColumnConfig<
@@ -255,7 +258,12 @@ export type DateFilterOperator =
 	| "is not between";
 
 /* Operators for option data */
-export type OptionFilterOperator = "is" | "is not" | "is any of" | "is none of";
+export type OptionFilterOperator =
+	| "is"
+	| "is not"
+	| "is any of"
+	| "is none of"
+	| "is exactly";
 
 /* Operators for multi-option data */
 export type MultiOptionFilterOperator =
