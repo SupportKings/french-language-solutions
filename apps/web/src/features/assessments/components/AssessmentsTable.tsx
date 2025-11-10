@@ -562,7 +562,7 @@ export function AssessmentsTable({
 									<TableCell>
 										{assessment.interview_held_by ? (
 											<LinkedRecordBadge
-												href={`/admin/teachers/${assessment.interview_held_by_id}`}
+												href={`/admin/team-members/${assessment.interview_held_by_id}`}
 												label={`${assessment.interview_held_by.first_name} ${assessment.interview_held_by.last_name}`.trim()}
 												icon={User}
 											/>
@@ -573,7 +573,7 @@ export function AssessmentsTable({
 									<TableCell>
 										{assessment.level_checked_by ? (
 											<LinkedRecordBadge
-												href={`/admin/teachers/${assessment.level_checked_by_id}`}
+												href={`/admin/team-members/${assessment.level_checked_by_id}`}
 												label={`${assessment.level_checked_by.first_name} ${assessment.level_checked_by.last_name}`.trim()}
 												icon={User}
 											/>

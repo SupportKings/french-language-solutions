@@ -423,7 +423,7 @@ export function CohortsTable({
 												.map((teacher: any) => (
 													<LinkedRecordBadge
 														key={teacher.id}
-														href={`/admin/teachers/${teacher.id}`}
+														href={`/admin/team-members/${teacher.id}`}
 														label={
 															teacher.first_name && teacher.last_name
 																? `${teacher.first_name} ${teacher.last_name}`

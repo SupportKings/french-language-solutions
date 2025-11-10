@@ -1238,7 +1238,7 @@ export function CohortDetailPageClient({
 														</div>
 														<div>
 															<Link
-																href={`/admin/teachers/${session.teacher_id}`}
+																href={`/admin/team-members/${session.teacher_id}`}
 																className="cursor-pointer font-medium text-sm transition-colors hover:text-primary hover:underline"
 															>
 																{session.teachers.first_name}{" "}
