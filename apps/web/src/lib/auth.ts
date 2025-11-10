@@ -79,7 +79,6 @@ export const auth = betterAuth({
 			async sendVerificationOTP({ email, otp, type }) {
 				switch (type) {
 					case "sign-in":
-						console.log("sign-in", email, otp, type);
 						await sendOTP({ email, otp, type });
 						break;
 					case "email-verification":

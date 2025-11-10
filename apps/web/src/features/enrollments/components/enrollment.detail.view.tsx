@@ -35,6 +35,7 @@ import {
 import { toast } from "sonner";
 // Import update action
 import { updateEnrollmentAction } from "../actions/updateEnrollment";
+import { updateEnrollmentInternalNotes } from "../actions/updateInternalNotes";
 // Import queries
 import { enrollmentQueries, useEnrollment } from "../queries/useEnrollments";
 import {
@@ -47,6 +48,8 @@ import {
 } from "../types/checklist.types";
 // Import checklist component
 import { ChecklistSection } from "./ChecklistSection";
+// Import internal notes component
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
 
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
 
@@ -485,6 +488,22 @@ export default function EnrollmentDetailView({
 							canEdit={canEditStudent}
 						/>
 					)}
+
+				{/* Internal Notes Section */}
+				<InternalNotes
+					initialContent={currentEnrollment.internal_notes}
+					onSave={async (content) => {
+						await updateEnrollmentInternalNotes({
+							enrollmentId,
+							internalNotes: content,
+						});
+						queryClient.invalidateQueries({
+							queryKey: enrollmentQueries.detail(enrollmentId).queryKey,
+						});
+					}}
+					canEdit={canEditStudent}
+					entityType="enrollment"
+				/>
 			</div>
 		</div>
 	);

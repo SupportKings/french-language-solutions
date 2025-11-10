@@ -291,6 +291,7 @@ export type Database = {
           current_level_last_updated_at: string | null
           google_drive_folder_id: string | null
           id: string
+          internal_notes: Json | null
           max_students: number | null
           nickname: string | null
           product_id: string | null
@@ -309,6 +310,7 @@ export type Database = {
           current_level_last_updated_at?: string | null
           google_drive_folder_id?: string | null
           id?: string
+          internal_notes?: Json | null
           max_students?: number | null
           nickname?: string | null
           product_id?: string | null
@@ -327,6 +329,7 @@ export type Database = {
           current_level_last_updated_at?: string | null
           google_drive_folder_id?: string | null
           id?: string
+          internal_notes?: Json | null
           max_students?: number | null
           nickname?: string | null
           product_id?: string | null
@@ -369,6 +372,7 @@ export type Database = {
           created_at: string
           enrollment_checklist: Json | null
           id: string
+          internal_notes: Json | null
           offboarding_checklist: Json | null
           status: Database["public"]["Enums"]["enrollment_status"]
           student_id: string
@@ -383,6 +387,7 @@ export type Database = {
           created_at?: string
           enrollment_checklist?: Json | null
           id?: string
+          internal_notes?: Json | null
           offboarding_checklist?: Json | null
           status?: Database["public"]["Enums"]["enrollment_status"]
           student_id: string
@@ -397,6 +402,7 @@ export type Database = {
           created_at?: string
           enrollment_checklist?: Json | null
           id?: string
+          internal_notes?: Json | null
           offboarding_checklist?: Json | null
           status?: Database["public"]["Enums"]["enrollment_status"]
           student_id?: string
@@ -690,6 +696,7 @@ export type Database = {
           heard_from: string | null
           id: string
           initial_channel: Database["public"]["Enums"]["initial_channel"] | null
+          internal_notes: Json | null
           is_full_beginner: boolean | null
           is_under_16: boolean | null
           last_name: string | null
@@ -722,6 +729,7 @@ export type Database = {
           initial_channel?:
             | Database["public"]["Enums"]["initial_channel"]
             | null
+          internal_notes?: Json | null
           is_full_beginner?: boolean | null
           is_under_16?: boolean | null
           last_name?: string | null
@@ -754,6 +762,7 @@ export type Database = {
           initial_channel?:
             | Database["public"]["Enums"]["initial_channel"]
             | null
+          internal_notes?: Json | null
           is_full_beginner?: boolean | null
           is_under_16?: boolean | null
           last_name?: string | null

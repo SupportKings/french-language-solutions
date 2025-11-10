@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
+
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import { StudentAssessments } from "@/features/students/components/StudentAssessments";
 import { StudentAttendance } from "@/features/students/components/StudentAttendance";
@@ -32,6 +34,7 @@ import {
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
+import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
 
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -832,6 +835,24 @@ export default function StudentDetailsClient({
 						</TabsContent>
 					</Tabs>
 				</div>
+
+				{/* Internal Notes Section */}
+				<InternalNotes
+					initialContent={student.internal_notes}
+					onSave={async (content) => {
+						await updateStudentInternalNotes({
+							studentId: student.id,
+							internalNotes: content,
+						});
+						// Update local state
+						setStudent({
+							...student,
+							internal_notes: content,
+						});
+					}}
+					canEdit={canEditStudent}
+					entityType="student"
+				/>
 
 				{/* System Information - Less prominent at the bottom */}
 				<div className="mt-8 border-t pt-6">

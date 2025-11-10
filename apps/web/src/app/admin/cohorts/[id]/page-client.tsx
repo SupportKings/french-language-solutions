@@ -32,10 +32,12 @@ import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { finalizeSetup } from "@/features/cohorts/actions/finalize-setup";
+import { updateCohortInternalNotes } from "@/features/cohorts/actions/updateInternalNotes";
 import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance";
 import { CohortClasses } from "@/features/cohorts/components/CohortClasses";
 import { CohortEnrollments } from "@/features/cohorts/components/CohortEnrollments";
 import { WeeklySessionModal } from "@/features/cohorts/components/WeeklySessionModal";
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
 import {
 	useCohort,
 	useCohortWithSessions,
@@ -1323,6 +1325,28 @@ export function CohortDetailPageClient({
 						/>
 					</TabsContent>
 				</Tabs>
+
+				{/* Internal Notes Section */}
+				<InternalNotes
+					initialContent={cohort.internal_notes}
+					onSave={async (content) => {
+						await updateCohortInternalNotes({
+							cohortId,
+							internalNotes: content,
+						});
+						// Update local state
+						setCohort({
+							...cohort,
+							internal_notes: content,
+						});
+						setEditedCohort({
+							...editedCohort,
+							internal_notes: content,
+						});
+					}}
+					canEdit={canEditCohort}
+					entityType="cohort"
+				/>
 
 				{/* System Information - Less prominent at the bottom */}
 				<div className="mt-8 border-t pt-6">
