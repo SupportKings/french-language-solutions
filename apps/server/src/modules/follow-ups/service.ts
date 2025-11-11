@@ -271,7 +271,7 @@ export class FollowUpService {
 		}
 
 		// Find template message with step_index = current_step
-		const nextStepIndex = followUp.current_step + 1;
+		const nextStepIndex = followUp.current_step;
 		const { data: nextMessage, error: messageError } = await supabase
 			.from("template_follow_up_messages")
 			.select("*")
