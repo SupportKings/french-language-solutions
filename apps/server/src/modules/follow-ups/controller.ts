@@ -153,9 +153,9 @@ export class FollowUpController {
 
 	async checkRecentEngagementsToStop(c: Context) {
 		try {
-			// Parse optional request body for custom time range (default 1 hour)
+			// Parse optional request body for custom time range (default 24 hours)
 			const body = await c.req.json().catch(() => ({}));
-			const { hoursBack = 1 } = body;
+			const { hoursBack = 24 } = body;
 
 			// Call service to check recent engagements and stop follow-ups
 			const result = await this.service.checkRecentEngagementsToStop(hoursBack);

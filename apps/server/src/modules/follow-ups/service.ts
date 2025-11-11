@@ -689,7 +689,7 @@ export class FollowUpService {
 	/**
 	 * Check recent engagements (touchpoints, assessments, and enrollments) and stop follow-ups for those students
 	 */
-	async checkRecentEngagementsToStop(hoursBack = 1) {
+	async checkRecentEngagementsToStop(hoursBack = 24) {
 		try {
 			// Calculate the timestamp for X hours ago
 			const cutoffTime = new Date();
@@ -729,11 +729,12 @@ export class FollowUpService {
 				};
 			}
 
-			// Find all enrollments created after the cutoff time
+			// Find all enrollments created after the cutoff time with status paid or welcome_package_sent
 			const { data: recentEnrollments, error: enrollmentError } = await supabase
 				.from("enrollments")
 				.select("student_id, created_at, status")
 				.gte("created_at", cutoffTimeISO)
+				.in("status", ["paid", "welcome_package_sent"])
 				.order("created_at", { ascending: false });
 
 			if (enrollmentError) {
