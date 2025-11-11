@@ -1132,6 +1132,7 @@ export type Database = {
           id: string
           start_time: string | null
           teacher_id: string | null
+          temp_calendar_name: string | null
           updated_at: string
         }
         Insert: {
@@ -1146,6 +1147,7 @@ export type Database = {
           id?: string
           start_time?: string | null
           teacher_id?: string | null
+          temp_calendar_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -1160,6 +1162,7 @@ export type Database = {
           id?: string
           start_time?: string | null
           teacher_id?: string | null
+          temp_calendar_name?: string | null
           updated_at?: string
         }
         Relationships: [
