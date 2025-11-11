@@ -257,7 +257,7 @@ export class FollowUpService {
 	/**
 	 * Find the next template message for a follow-up
 	 */
-	async findNextTemplateMessage(followUpId: string) {
+	async findTemplateMessageByStep(followUpId: string, step: number) {
 		// First get the follow-up with its current step and sequence
 		const { data: followUp, error: followUpError } = await supabase
 			.from("automated_follow_ups")
@@ -271,7 +271,7 @@ export class FollowUpService {
 		}
 
 		// Find template message with step_index = current_step
-		const nextStepIndex = followUp.current_step;
+		const nextStepIndex = followUp.current_step + step;
 		const { data: nextMessage, error: messageError } = await supabase
 			.from("template_follow_up_messages")
 			.select("*")
@@ -336,7 +336,7 @@ export class FollowUpService {
 		}
 
 		// Check if there's a next message
-		const nextMessage = await this.findNextTemplateMessage(followUpId);
+		const nextMessage = await this.findTemplateMessageByStep(followUpId,1);
 		const now = new Date().toISOString();
 
 		if (nextMessage) {
@@ -566,7 +566,7 @@ export class FollowUpService {
 						.single();
 
 					// Get the next message to send its ID
-					const nextMessage = await this.findNextTemplateMessage(followUp.id);
+					const nextMessage = await this.findTemplateMessageByStep(followUp.id,0);
 					if (!nextMessage) {
 						console.error(`No next message found for follow-up ${followUp.id}`);
 						results.push({
