@@ -19,12 +19,6 @@
 		"db:generate": "turbo -F server db:generate",
 		"db:migrate": "turbo -F server db:migrate"
 	},
-	"dependencies": {
-		"@hookform/resolvers": "^5.2.1",
-		"@uidotdev/usehooks": "^2.4.1",
-		"framer-motion": "^12.23.12",
-		"zod": "^3.25.0"
-	},
 	"devDependencies": {
 		"turbo": "^2.5.4",
 		"@biomejs/biome": "^2.0.0"
