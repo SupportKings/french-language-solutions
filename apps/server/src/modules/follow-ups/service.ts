@@ -141,9 +141,10 @@ export class FollowUpService {
 		const sequence = await this.findSequenceByBackendName(sequenceBackendName);
 		if (!sequence) {
 			return {
-				success: false,
-				error: "Follow-up sequence not found",
-				code: "SEQUENCE_NOT_FOUND",
+				success: true,
+				created: false,
+				reason: "SEQUENCE_NOT_FOUND",
+				message: "Follow-up sequence not found",
 			};
 		}
 
@@ -154,9 +155,10 @@ export class FollowUpService {
 		);
 		if (!meetsEnrollmentConditions) {
 			return {
-				success: false,
-				error: "Student does not meet enrollment conditions",
-				code: "ENROLLMENT_CONDITIONS_NOT_MET",
+				success: true,
+				created: false,
+				reason: "ENROLLMENT_CONDITIONS_NOT_MET",
+				message: "Student does not meet enrollment conditions",
 				details:
 					"Student either has no enrollments or has enrollment with restricted statuses",
 			};
@@ -166,9 +168,10 @@ export class FollowUpService {
 		const canCreateFollowUp = await this.checkExistingFollowUps(studentId);
 		if (!canCreateFollowUp) {
 			return {
-				success: false,
-				error: "Student already has active follow-up",
-				code: "ACTIVE_FOLLOW_UP_EXISTS",
+				success: true,
+				created: false,
+				reason: "ACTIVE_FOLLOW_UP_EXISTS",
+				message: "Student already has active follow-up",
 				details:
 					"Student has an automated follow-up with status: activated or ongoing",
 			};
@@ -178,9 +181,10 @@ export class FollowUpService {
 		const hasFutureAssessments = await this.checkFutureAssessments(studentId);
 		if (!hasFutureAssessments) {
 			return {
-				success: false,
-				error: "Student has future assessment scheduled",
-				code: "HAS_FUTURE_ASSESSMENT",
+				success: true,
+				created: false,
+				reason: "HAS_FUTURE_ASSESSMENT",
+				message: "Student has future assessment scheduled",
 				details: "Student has an assessment scheduled for a future date",
 			};
 		}
@@ -191,6 +195,7 @@ export class FollowUpService {
 
 			return {
 				success: true,
+				created: true,
 				data: {
 					follow_up_id: followUp.id,
 					student_id: followUp.student_id,
@@ -204,7 +209,7 @@ export class FollowUpService {
 				success: false,
 				error: "Failed to create follow-up",
 				code: "CREATE_FAILED",
-				details: error,
+				details: error instanceof Error ? error.message : "Unknown error",
 			};
 		}
 	}
