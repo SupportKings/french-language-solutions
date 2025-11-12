@@ -130,6 +130,12 @@ export function ClassDetailsModal({
 	const saveChanges = async () => {
 		if (!classItem) return;
 
+		// Validate: Internal Notes required when status is completed
+		if (formData.status === "completed" && !formData.notes?.trim()) {
+			toast.error("Internal Notes are required when status is set to Completed");
+			return;
+		}
+
 		setSaving(true);
 		try {
 			// Update class details
@@ -143,7 +149,10 @@ export function ClassDetailsModal({
 				}),
 			});
 
-			if (!response.ok) throw new Error("Failed to update class");
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || "Failed to update class");
+			}
 
 			const updated = await response.json();
 
@@ -207,7 +216,8 @@ export function ClassDetailsModal({
 			setEditing(false);
 		} catch (error) {
 			console.error("Error updating class:", error);
-			toast.error("Failed to update class");
+			const errorMessage = error instanceof Error ? error.message : "Failed to update class";
+			toast.error(errorMessage);
 		} finally {
 			setSaving(false);
 		}
@@ -404,7 +414,17 @@ export function ClassDetailsModal({
 
 					{/* Internal Notes */}
 					<div className="space-y-2">
-						<Label>Internal Notes</Label>
+						<Label>
+							Internal Notes
+							{editing && formData.status === "completed" && (
+								<span className="ml-1 text-red-500">*</span>
+							)}
+						</Label>
+						{editing && formData.status === "completed" && (
+							<p className="text-muted-foreground text-xs">
+								Required when status is set to Completed
+							</p>
+						)}
 						{editing ? (
 							<Textarea
 								value={formData.notes || ""}

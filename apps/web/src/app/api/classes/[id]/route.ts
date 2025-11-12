@@ -136,6 +136,14 @@ export async function PATCH(
 		const body = await request.json();
 		const supabase = await createClient();
 
+		// Validate: Internal Notes required when status is completed
+		if (body.status === "completed" && (!body.notes || !body.notes.trim())) {
+			return NextResponse.json(
+				{ error: "Internal Notes are required when status is set to Completed" },
+				{ status: 400 },
+			);
+		}
+
 		// Update the class
 		const { data: updatedClass, error } = await supabase
 			.from("classes")
