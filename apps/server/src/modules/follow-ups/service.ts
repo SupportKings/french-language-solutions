@@ -939,8 +939,7 @@ export class FollowUpService {
 							`[FollowUp] ✓ Successfully created follow-up ${followUpResult.data?.follow_up_id} for student ${student.id}`,
 						);
 					} else {
-						console.log(
-							`[FollowUp] ✗ Failed to create follow-up for student ${student.id}: ${followUpResult.error} (${followUpResult.code})`,
+						console.log(`[FollowUp] ✗ Failed to create follow-up for student ${student.id}: ${followUpResult.error} (${followUpResult.code})`,
 						);
 					}
 

@@ -161,6 +161,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const [showSessions, setShowSessions] = useState(
 		cohort?.weekly_sessions?.length > 0 || false,
 	);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const isEditMode = !!cohort;
 	// Track original weekly sessions to detect removals
 	const [originalSessionIds] = useState<string[]>(
@@ -230,6 +231,10 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	};
 
 	const onSubmit = async (data: CohortFormValues) => {
+		// Prevent duplicate submissions
+		if (isSubmitting) return;
+
+		setIsSubmitting(true);
 		try {
 			const formattedData = {
 				...data,
@@ -392,6 +397,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 			const errorMessage =
 				error instanceof Error ? error.message : "An unexpected error occurred";
 			toast.error(errorMessage);
+			// Reset submitting state on error to allow retry
+			setIsSubmitting(false);
 		}
 	};
 
@@ -802,7 +809,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 
 				<FormActions
 					primaryLabel={
-						createCohortMutation.isPending || updateCohortMutation.isPending
+						isSubmitting
 							? isEditMode
 								? "Updating..."
 								: "Creating..."
@@ -810,9 +817,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 								? "Update Cohort"
 								: "Create Cohort"
 					}
-					primaryLoading={
-						createCohortMutation.isPending || updateCohortMutation.isPending
-					}
+					primaryLoading={isSubmitting}
 					primaryType="submit"
 					secondaryLabel="Cancel"
 					onSecondaryClick={handleCancel}
