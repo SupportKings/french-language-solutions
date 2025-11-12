@@ -791,9 +791,15 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 
 				{data?.pagination && data.pagination.totalPages > 1 && (
 					<div className="flex items-center justify-between border-t bg-muted/10 px-4 py-3">
-						<p className="text-muted-foreground text-sm">
-							Page {data.pagination.page} of {data.pagination.totalPages}
-						</p>
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<span className="font-medium text-primary">
+								Total: {data.pagination.total || 0}
+							</span>
+							<span>•</span>
+							<span>
+								Page {data.pagination.page} of {data.pagination.totalPages}
+							</span>
+						</div>
 						<div className="flex gap-2">
 							<Button
 								variant="outline"
