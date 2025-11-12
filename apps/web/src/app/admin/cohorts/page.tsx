@@ -31,6 +31,7 @@ export default async function ClassesPage({
 		format: params.format as any,
 		location: params.location as any,
 		cohort_status: params.cohort_status as any,
+		setup_finalized: params.setup_finalized as any,
 		starting_level: params.starting_level as any,
 		current_level: params.current_level as any,
 		room_type: params.room_type as any,

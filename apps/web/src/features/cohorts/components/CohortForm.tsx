@@ -246,6 +246,7 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 				product_id: data.product_id || null,
 				starting_level_id: data.starting_level_id || null,
 				room_type: null,
+				setup_finalized: cohort?.setup_finalized ?? false,
 			};
 
 			// Use mutation hooks for better cache management

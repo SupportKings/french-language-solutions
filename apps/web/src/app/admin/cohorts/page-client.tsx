@@ -94,6 +94,17 @@ const cohortColumns = [
 		],
 	},
 	{
+		id: "setup_finalized",
+		accessor: (cohort: CohortWithRelations) => cohort.setup_finalized,
+		displayName: "Setup Finalized",
+		icon: Users,
+		type: "option" as const,
+		options: [
+			{ label: "Yes", value: "true" },
+			{ label: "No", value: "false" },
+		],
+	},
+	{
 		id: "starting_level_id",
 		accessor: (cohort: CohortWithRelations) => cohort.starting_level?.id,
 		displayName: "Starting Level",
@@ -375,6 +386,10 @@ export function ClassesPageClient() {
 		if (filterParams.cohort_status && filterParams.cohort_status.length > 0) {
 			query.cohort_status = filterParams.cohort_status as CohortStatus[];
 			query.cohort_status_operator = filterParams.cohort_status_operator;
+		}
+		if (filterParams.setup_finalized && filterParams.setup_finalized.length > 0) {
+			query.setup_finalized = filterParams.setup_finalized as string[];
+			query.setup_finalized_operator = filterParams.setup_finalized_operator;
 		}
 		if (
 			filterParams.starting_level_id &&

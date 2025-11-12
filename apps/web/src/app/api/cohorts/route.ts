@@ -104,6 +104,9 @@ export async function GET(request: NextRequest) {
 		const cohort_status = searchParams.getAll("cohort_status");
 		const cohort_status_operator =
 			searchParams.get("cohort_status_operator") || "is any of";
+		const setup_finalized = searchParams.getAll("setup_finalized");
+		const setup_finalized_operator =
+			searchParams.get("setup_finalized_operator") || "is any of";
 		const starting_level_id = searchParams.getAll("starting_level_id");
 		const starting_level_id_operator =
 			searchParams.get("starting_level_id_operator") || "is any of";
@@ -158,6 +161,7 @@ export async function GET(request: NextRequest) {
 			format.length > 0 ||
 			location.length > 0 ||
 			cohort_status.length > 1 ||
+			setup_finalized.length > 0 ||
 			starting_level_id.length > 1 ||
 			current_level_id.length > 1 ||
 			room_type.length > 1 ||
@@ -290,6 +294,18 @@ export async function GET(request: NextRequest) {
 					cohort_status_operator,
 				),
 			);
+		}
+
+		// Setup finalized filter with operator support
+		if (setup_finalized.length > 0) {
+			filteredCohorts = filteredCohorts.filter((cohort) => {
+				const cohortSetupFinalized = String(cohort.setup_finalized || false);
+				return applyOptionFilter(
+					cohortSetupFinalized,
+					setup_finalized,
+					setup_finalized_operator,
+				);
+			});
 		}
 
 		// Starting level filter with operator support
