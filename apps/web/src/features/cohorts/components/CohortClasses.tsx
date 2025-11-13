@@ -42,6 +42,7 @@ import { ClassDetailsModal } from "@/features/classes/components/ClassDetailsMod
 
 import { format } from "date-fns";
 import {
+	AlertCircle,
 	Calendar,
 	CheckCircle2,
 	ChevronLeft,
@@ -60,6 +61,7 @@ interface CohortClassesProps {
 	cohortId: string;
 	cohortFormat?: string;
 	cohortRoom?: string;
+	cohortStartDate?: string | null;
 	onViewAttendance?: (classId: string) => void;
 }
 
@@ -67,6 +69,7 @@ export function CohortClasses({
 	cohortId,
 	cohortFormat = "group",
 	cohortRoom,
+	cohortStartDate,
 	onViewAttendance,
 }: CohortClassesProps) {
 	const [classes, setClasses] = useState<any[]>([]);
@@ -87,10 +90,16 @@ export function CohortClasses({
 	const [currentPage, setCurrentPage] = useState(1);
 	const classesPerPage = 10;
 
-	// Fetch classes
+	// Fetch classes only if cohort has a start date
 	useEffect(() => {
 		async function fetchClasses() {
 			if (!cohortId) return;
+
+			// Don't fetch classes if cohort doesn't have a start date
+			if (!cohortStartDate) {
+				setClasses([]);
+				return;
+			}
 
 			setLoadingClasses(true);
 			try {
@@ -112,7 +121,7 @@ export function CohortClasses({
 			}
 		}
 		fetchClasses();
-	}, [cohortId]);
+	}, [cohortId, cohortStartDate]);
 
 	// Handle class click
 	const handleClassClick = (classItem: any) => {
@@ -255,7 +264,17 @@ export function CohortClasses({
 				</div>
 
 				<div className="space-y-4">
-					{loadingClasses ? (
+					{!cohortStartDate ? (
+						<div className="rounded-lg border border-amber-200 bg-amber-50/50 py-8 text-center">
+							<AlertCircle className="mx-auto mb-4 h-12 w-12 text-amber-600" />
+							<p className="mb-2 font-medium text-amber-900">
+								Cohort start date required
+							</p>
+							<p className="text-amber-700 text-sm">
+								Please set the cohort start date before managing classes
+							</p>
+						</div>
+					) : loadingClasses ? (
 						<div className="grid gap-2">
 							{[1, 2, 3].map((i) => (
 								<div

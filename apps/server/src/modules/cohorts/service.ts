@@ -121,13 +121,15 @@ export class CohortService {
 					session.day_of_week,
 				);
 
-				// Create full datetime for first event in Canadian timezone
-				// The times in the database represent Canadian Eastern Time
-				const dateStr = firstEventDate.toISOString().split('T')[0];
+				// Create ISO datetime strings without timezone conversion
+				// Just combine the date with the exact times from the database
+				const year = firstEventDate.getFullYear();
+				const month = String(firstEventDate.getMonth() + 1).padStart(2, '0');
+				const day = String(firstEventDate.getDate()).padStart(2, '0');
+				const dateStr = `${year}-${month}-${day}`;
 
-				// Combine date with session times and interpret as Canadian timezone
-				const firstEventStart = toZonedTime(`${dateStr}T${session.start_time}`, CANADIAN_TIMEZONE);
-				const firstEventEnd = toZonedTime(`${dateStr}T${session.end_time}`, CANADIAN_TIMEZONE);
+				const firstEventStart = `${dateStr}T${session.start_time}`;
+				const firstEventEnd = `${dateStr}T${session.end_time}`;
 
 				const teacherName = `${session.teacher.first_name} ${session.teacher.last_name}`;
 
@@ -142,8 +144,8 @@ export class CohortService {
 
 				return {
 					session_id: session.id, // Supabase ID of the weekly session
-					first_event_start_time: firstEventStart.toISOString(),
-					first_event_end_time: firstEventEnd.toISOString(),
+					first_event_start_time: firstEventStart,
+					first_event_end_time: firstEventEnd,
 					day_of_week_abbreviation: this.getDayAbbreviation(
 						session.day_of_week,
 					),
