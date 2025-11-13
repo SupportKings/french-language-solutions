@@ -248,7 +248,7 @@ export class CohortService {
 				id,
 				teachers!inner(
 					id,
-					user_id
+					email
 				)
 			`)
 			.eq("cohort_id", cohortId);
@@ -258,35 +258,21 @@ export class CohortService {
 		} else if (sessions) {
 			console.log(`Found ${sessions.length} weekly sessions`);
 
-			// Collect unique teacher user IDs
-			const teacherUserIds = new Set<string>();
+			// Collect unique teacher emails
+			const teacherEmails = new Set<string>();
 			sessions.forEach((session: any) => {
-				if (session.teachers?.user_id) {
-					teacherUserIds.add(session.teachers.user_id);
+				if (session.teachers?.email) {
+					teacherEmails.add(session.teachers.email);
 				}
 			});
 
-			console.log(`Found ${teacherUserIds.size} unique teacher user IDs`);
+			console.log(`Found ${teacherEmails.size} unique teachers`);
 
-			// Fetch teacher emails from user table
-			if (teacherUserIds.size > 0) {
-				const { data: users, error: userError } = await supabase
-					.from("user")
-					.select("email")
-					.in("id", Array.from(teacherUserIds));
-
-				if (userError) {
-					console.error("Error fetching teacher emails:", userError);
-				} else if (users) {
-					console.log(`Found ${users.length} teacher users`);
-					users.forEach((user: { email: string | null }) => {
-						if (user.email) {
-							attendees.push(user.email);
-							console.log(`Added teacher email: ${user.email}`);
-						}
-					});
-				}
-			}
+			// Add teacher emails to attendees
+			teacherEmails.forEach((email) => {
+				attendees.push(email);
+				console.log(`Added teacher email: ${email}`);
+			});
 		}
 
 		// Return unique emails
