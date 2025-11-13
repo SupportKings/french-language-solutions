@@ -121,18 +121,13 @@ export class CohortService {
 					session.day_of_week,
 				);
 
-				// Parse the time strings (assuming format is "HH:mm:ss")
-				const [startHour, startMinute] = session.start_time
-					.split(":")
-					.map(Number);
-				const [endHour, endMinute] = session.end_time.split(":").map(Number);
+				// Create full datetime for first event in Canadian timezone
+				// The times in the database represent Canadian Eastern Time
+				const dateStr = firstEventDate.toISOString().split('T')[0];
 
-				// Create full datetime for first event
-				const firstEventStart = new Date(firstEventDate);
-				firstEventStart.setHours(startHour, startMinute, 0, 0);
-
-				const firstEventEnd = new Date(firstEventDate);
-				firstEventEnd.setHours(endHour, endMinute, 0, 0);
+				// Combine date with session times and interpret as Canadian timezone
+				const firstEventStart = toZonedTime(`${dateStr}T${session.start_time}`, CANADIAN_TIMEZONE);
+				const firstEventEnd = toZonedTime(`${dateStr}T${session.end_time}`, CANADIAN_TIMEZONE);
 
 				const teacherName = `${session.teacher.first_name} ${session.teacher.last_name}`;
 
