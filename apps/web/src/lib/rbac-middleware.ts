@@ -188,14 +188,14 @@ export async function canAccessStudent(studentId: string): Promise<boolean> {
 	if (teacherCohortIds.length === 0) return false;
 
 	// Check if student is enrolled in any of teacher's cohorts
-	const { data: enrollment } = await supabase
+	// Use array to handle students with multiple enrollments
+	const { data: enrollments } = await supabase
 		.from("enrollments")
 		.select("id")
 		.eq("student_id", studentId)
-		.in("cohort_id", teacherCohortIds)
-		.maybeSingle();
+		.in("cohort_id", teacherCohortIds);
 
-	return !!enrollment;
+	return (enrollments?.length || 0) > 0;
 }
 
 // ============================================
