@@ -67,9 +67,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
+		// Fetch user data separately if student has a user_id
+		let userData = null;
+		if (data.user_id) {
+			const { data: user } = await supabase
+				.from("user")
+				.select("id, banned, banReason")
+				.eq("id", data.user_id)
+				.single();
+			userData = user;
+		}
+
 		// Add enrollment status from the latest enrollment
 		const processedData = {
 			...data,
+			user: userData,
 			enrollment_status: null as string | null,
 			latest_enrollment: null as any,
 		};

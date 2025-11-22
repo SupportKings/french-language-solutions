@@ -34,6 +34,7 @@ import {
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
+import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
 import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
 
 import { useQuery } from "@tanstack/react-query";
@@ -273,8 +274,8 @@ export default function StudentDetailsClient({
 							</div>
 							<div>
 								<h1 className="font-semibold text-xl">{student.full_name}</h1>
-								{enrollmentStatus && (
-									<div className="mt-0.5 flex items-center gap-2">
+								<div className="mt-0.5 flex items-center gap-2">
+									{enrollmentStatus && (
 										<Badge
 											variant={
 												(ENROLLMENT_STATUS_COLORS as any)[enrollmentStatus] ||
@@ -285,26 +286,46 @@ export default function StudentDetailsClient({
 											{(ENROLLMENT_STATUS_LABELS as any)[enrollmentStatus] ||
 												enrollmentStatus}
 										</Badge>
-									</div>
-								)}
+									)}
+									{student.user_id && (
+										<Badge
+											variant={student.user?.banned ? "destructive" : "success"}
+											className="h-4 px-1.5 text-[10px]"
+										>
+											{student.user?.banned ? "Access Revoked" : "Portal Access"}
+										</Badge>
+									)}
+								</div>
 							</div>
 						</div>
 
-						{canDeleteStudent && (
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="outline" size="sm">
-										<MoreVertical className="h-3.5 w-3.5" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-56">
-									<DropdownMenuItem className="text-destructive">
-										<Trash2 className="mr-2 h-3.5 w-3.5" />
-										Delete Student
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						)}
+						<div className="flex items-center gap-2">
+							{canEditStudent && (
+								<StudentPortalAccessDialog
+									studentId={student.id}
+									studentEmail={student.email}
+									studentName={student.full_name}
+									userId={student.user_id}
+									isBanned={student.user?.banned ?? false}
+								/>
+							)}
+
+							{canDeleteStudent && (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button variant="outline" size="sm">
+											<MoreVertical className="h-3.5 w-3.5" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="end" className="w-56">
+										<DropdownMenuItem className="text-destructive">
+											<Trash2 className="mr-2 h-3.5 w-3.5" />
+											Delete Student
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
