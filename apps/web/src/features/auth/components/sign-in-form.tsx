@@ -29,9 +29,15 @@ const emailSchema = z.object({
 
 interface SignInFormProps {
 	redirectTo?: string;
+	error?: string;
 }
 
-export function SignInForm({ redirectTo = "/" }: SignInFormProps) {
+const errorMessages: Record<string, string> = {
+	unauthorized:
+		"You don't have permission to access the admin portal. If you're a student, please use the Student Portal.",
+};
+
+export function SignInForm({ redirectTo = "/", error }: SignInFormProps) {
 	const [step, setStep] = useState<"email" | "otp">("email");
 	const [email, setEmail] = useState("");
 	const [otp, setOtp] = useState("");
@@ -246,6 +252,12 @@ export function SignInForm({ redirectTo = "/" }: SignInFormProps) {
 						Enter your email to receive a sign-in code
 					</p>
 				</div>
+
+				{error && errorMessages[error] && (
+					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-destructive text-sm">
+						{errorMessages[error]}
+					</div>
+				)}
 
 				<AnimatePresence mode="wait">
 					{step === "email" ? (

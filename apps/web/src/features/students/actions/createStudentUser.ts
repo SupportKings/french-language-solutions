@@ -9,7 +9,7 @@ import { createClient } from "@/utils/supabase/server";
 
 import { siteConfig } from "@/siteConfig";
 
-import { InviteEmail } from "@workspace/emails/emails/invite";
+import { StudentInviteEmail } from "@workspace/emails/emails/student-invite";
 import { returnValidationErrors } from "next-safe-action";
 import { Resend } from "resend";
 import { z } from "zod";
@@ -148,13 +148,12 @@ export const createStudentUser = actionClient
 					const emailResponse = await resend.emails.send({
 						from: "French Language Solutions <portal@frenchlanguagesolutions.com>",
 						to: [parsedInput.email],
-						subject: `Welcome to ${siteConfig.name} Student Portal`,
-						react: InviteEmail({
+						subject: `Bienvenue! Welcome to ${siteConfig.name} Student Portal 🎉`,
+						react: StudentInviteEmail({
+							studentName: fullName,
 							inviteUrl,
 							companyName: siteConfig.name,
-							inviterName: session.user.name,
-							inviterEmail: session.user.email,
-							role: "Student",
+							inviterName: session.user.name || undefined,
 						}),
 					});
 

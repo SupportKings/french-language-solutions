@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { createStudentUser } from "@/features/students/actions/createStudentUser";
 import { toggleStudentAccess } from "@/features/students/actions/toggleStudentAccess";
+import { studentsKeys } from "@/features/students/queries/students.queries";
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -64,7 +65,7 @@ export function StudentPortalAccessDialog({
 				if (result.data?.success) {
 					toast.success(result.data.message);
 					setOpen(false);
-					queryClient.invalidateQueries({ queryKey: ["students"] });
+					queryClient.invalidateQueries({ queryKey: studentsKeys.detail(studentId) });
 				}
 			},
 			onError: ({ error }) => {
@@ -85,7 +86,7 @@ export function StudentPortalAccessDialog({
 					toast.success(result.data.message);
 					setOpen(false);
 					setRevokeReason("");
-					queryClient.invalidateQueries({ queryKey: ["students"] });
+					queryClient.invalidateQueries({ queryKey: studentsKeys.detail(studentId) });
 				}
 			},
 			onError: ({ error }) => {
@@ -292,7 +293,7 @@ export function StudentPortalAccessDialog({
 				</div>
 			</div>
 
-			<DialogFooter className="gap-2 sm:gap-0">
+			<DialogFooter className="gap-2">
 				<Button
 					type="button"
 					variant="outline"
@@ -353,7 +354,7 @@ export function StudentPortalAccessDialog({
 				</div>
 			</div>
 
-			<DialogFooter className="gap-2 sm:gap-0">
+			<DialogFooter className="gap-2">
 				<Button
 					type="button"
 					variant="outline"

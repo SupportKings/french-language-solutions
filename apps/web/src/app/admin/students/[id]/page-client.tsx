@@ -36,8 +36,10 @@ import { StudentFollowUps } from "@/features/students/components/StudentFollowUp
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
 import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
+import { studentsKeys } from "@/features/students/queries/students.queries";
+import { studentsApi } from "@/features/students/api/students.api";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
 	Baby,
@@ -46,7 +48,6 @@ import {
 	ChevronRight,
 	ClipboardCheck,
 	Clock,
-	CreditCard,
 	GraduationCap,
 	Hand,
 	Mail,
@@ -108,17 +109,24 @@ export default function StudentDetailsClient({
 
 	const router = useRouter();
 	const pathname = usePathname();
-	const [student, setStudent] = useState(initialStudent);
+	const queryClient = useQueryClient();
+
+	// Use React Query with initialData for automatic refetching on invalidation
+	const { data: student } = useQuery({
+		queryKey: studentsKeys.detail(initialStudent.id),
+		queryFn: () => studentsApi.getById(initialStudent.id),
+		initialData: initialStudent,
+	});
+
 	// Local state for edited values
 	const [editedStudent, setEditedStudent] = useState<any>(initialStudent);
 
-	// Update the student when data changes
+	// Update edited student when student data changes
 	useEffect(() => {
-		if (initialStudent) {
-			setStudent(initialStudent);
-			setEditedStudent(initialStudent);
+		if (student) {
+			setEditedStudent(student);
 		}
-	}, [initialStudent]);
+	}, [student]);
 
 	// Fetch language levels
 	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
@@ -203,9 +211,8 @@ export default function StudentDetailsClient({
 
 			if (!response.ok) throw new Error("Failed to update");
 
-			const updated = await response.json();
-			setStudent(updated);
-			setEditedStudent(updated);
+			// Invalidate query to refetch updated data
+			await queryClient.invalidateQueries({ queryKey: studentsKeys.detail(student.id) });
 			toast.success("Changes saved successfully");
 		} catch (error) {
 			toast.error("Failed to save changes");
@@ -634,31 +641,6 @@ export default function StudentDetailsClient({
 									</div>
 								</div>
 
-								{/* External Integrations - Read only */}
-								{(student.stripe_customer_id ||
-									student.convertkit_id ||
-									student.openphone_contact_id) && (
-									<div className="mt-6 space-y-4">
-										<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-											Integrations
-										</h3>
-										<div className="space-y-3">
-											{student.stripe_customer_id && (
-												<div className="flex items-start gap-3">
-													<CreditCard className="mt-0.5 h-4 w-4 text-muted-foreground" />
-													<div className="flex-1 space-y-0.5">
-														<p className="text-muted-foreground text-xs">
-															Stripe:
-														</p>
-														<code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-															{student.stripe_customer_id.slice(0, 14)}...
-														</code>
-													</div>
-												</div>
-											)}
-										</div>
-									</div>
-								)}
 							</div>
 						</div>
 					)}
@@ -865,11 +847,8 @@ export default function StudentDetailsClient({
 							studentId: student.id,
 							internalNotes: content,
 						});
-						// Update local state
-						setStudent({
-							...student,
-							internal_notes: content,
-						});
+						// Invalidate query to refetch updated data
+						await queryClient.invalidateQueries({ queryKey: studentsKeys.detail(student.id) });
 					}}
 					canEdit={canEditStudent}
 					entityType="student"
