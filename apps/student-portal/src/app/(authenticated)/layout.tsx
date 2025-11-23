@@ -4,11 +4,8 @@ import { getUser } from "@/queries/getUser";
 
 import { createClient } from "@/lib/supabase/server";
 
-interface StudentData {
-	id: string;
-	full_name: string;
-	email: string;
-}
+import { PageHeader, StudentSidebar } from "@/components/layout";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function AuthenticatedLayout({
 	children,
@@ -25,7 +22,7 @@ export default async function AuthenticatedLayout({
 	const supabase = await createClient();
 	const { data: user } = await supabase
 		.from("user")
-		.select("banned, banReason")
+		.select("banned, banReason, image")
 		.eq("id", session.user.id)
 		.single();
 
@@ -36,32 +33,32 @@ export default async function AuthenticatedLayout({
 	// Verify user is a student
 	const { data: student } = await supabase
 		.from("students")
-		.select("id, full_name, email")
+		.select("id, full_name, first_name, email")
 		.eq("user_id", session.user.id)
 		.single();
 
 	if (!student) {
-		// User exists but is not linked to a student record
 		redirect("/?error=not_a_student");
 	}
 
+	const studentData = {
+		id: student.id,
+		fullName: student.full_name || "Student",
+		email: student.email || "",
+		avatar: user?.image || undefined,
+	};
+
 	return (
-		<div className="min-h-screen bg-background">
-			<header className="sticky top-0 z-50 w-full border-border/40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-				<div className="container flex h-14 max-w-screen-2xl items-center">
-					<div className="flex flex-1 items-center justify-between">
-						<div className="flex items-center gap-2">
-							<span className="font-semibold">Student Portal</span>
-						</div>
-						<div className="flex items-center gap-4">
-							<span className="text-muted-foreground text-sm">
-								{student.full_name}
-							</span>
-						</div>
+		<SidebarProvider>
+			<StudentSidebar student={studentData} />
+			<SidebarInset>
+				<PageHeader student={studentData} />
+				<main className="flex-1 overflow-auto">
+					<div className="container max-w-screen-xl py-6 lg:py-8">
+						{children}
 					</div>
-				</div>
-			</header>
-			<main className="container max-w-screen-2xl py-6">{children}</main>
-		</div>
+				</main>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 }

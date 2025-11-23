@@ -55,7 +55,6 @@ export const StudentInviteEmail = ({
 					</Text>
 
 					<Section style={featureList}>
-						<Text style={featureItem}>📚 Access your course materials</Text>
 						<Text style={featureItem}>📅 View your upcoming class sessions</Text>
 						<Text style={featureItem}>📈 Track your learning progress</Text>
 						<Text style={featureItem}>👤 Manage your profile</Text>
