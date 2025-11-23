@@ -15,35 +15,50 @@
 
 html,
 body {
-	@apply bg-white dark:bg-gray-950;
+	@apply bg-background;
 }
 
 :root {
 	--radius: 0.5rem;
+	/* FLS Brand - Clean white background */
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.267 0.063 253.7);
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.267 0.063 253.7);
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.267 0.063 253.7);
+
+	/* Primary - FLS Blue #004990 */
 	--primary: oklch(0.267 0.063 253.7);
 	--primary-foreground: oklch(1 0 0);
+
+	/* Secondary - FLS Red #f80003 */
 	--secondary: oklch(0.534 0.222 24.4);
 	--secondary-foreground: oklch(1 0 0);
+
+	/* Muted - Soft blue-gray */
 	--muted: oklch(0.974 0.012 253.7);
 	--muted-foreground: oklch(0.467 0.045 253.7);
+
+	/* Accent - Light blue for highlights */
 	--accent: oklch(0.748 0.082 253.7);
 	--accent-foreground: oklch(1 0 0);
+
 	--destructive: oklch(0.534 0.222 24.4);
 	--destructive-foreground: oklch(1 0 0);
+
 	--border: oklch(0.95 0.008 253.7);
 	--input: oklch(0.95 0.008 253.7);
 	--ring: oklch(0.267 0.063 253.7);
+
+	/* Chart palette */
 	--chart-1: oklch(0.267 0.063 253.7);
 	--chart-2: oklch(0.534 0.222 24.4);
 	--chart-3: oklch(0.748 0.082 253.7);
 	--chart-4: oklch(0.974 0.012 253.7);
 	--chart-5: oklch(0.467 0.045 253.7);
+
+	/* Sidebar */
 	--sidebar: oklch(0.985 0.002 253.7);
 	--sidebar-foreground: oklch(0.267 0.063 253.7);
 	--sidebar-primary: oklch(0.267 0.063 253.7);

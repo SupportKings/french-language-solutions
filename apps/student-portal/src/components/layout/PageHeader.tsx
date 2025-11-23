@@ -30,10 +30,6 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 		title: "Settings",
 		description: "Manage your account",
 	},
-	"/profile": {
-		title: "Profile",
-		description: "Your personal information",
-	},
 };
 
 export function PageHeader({ student, unreadCount = 2 }: PageHeaderProps) {

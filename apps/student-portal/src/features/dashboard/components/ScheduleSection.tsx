@@ -23,7 +23,7 @@ export function ScheduleSection() {
 	return (
 		<Card>
 			<CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-				<CardTitle className="text-lg">My Schedule</CardTitle>
+				<CardTitle className="text-xl font-bold">Schedule</CardTitle>
 
 				<div className="flex items-center gap-3">
 					{/* Filter Tabs (for list view) */}
@@ -32,11 +32,11 @@ export function ScheduleSection() {
 							value={filterMode}
 							onValueChange={(v) => setFilterMode(v as FilterMode)}
 						>
-							<TabsList className="h-8">
-								<TabsTrigger value="upcoming" className="text-xs px-3">
+							<TabsList className="h-9">
+								<TabsTrigger value="upcoming" className="text-sm px-4">
 									Upcoming
 								</TabsTrigger>
-								<TabsTrigger value="past" className="text-xs px-3">
+								<TabsTrigger value="past" className="text-sm px-4">
 									Past
 								</TabsTrigger>
 							</TabsList>
@@ -44,24 +44,24 @@ export function ScheduleSection() {
 					)}
 
 					{/* View Mode Toggle */}
-					<div className="flex items-center rounded-md border bg-muted/30 p-0.5">
+					<div className="flex items-center rounded-lg border bg-muted/30 p-0.5">
 						<Button
 							variant={viewMode === "list" ? "secondary" : "ghost"}
 							size="sm"
-							className="h-7 gap-1.5 px-2"
+							className="h-8 gap-2 px-3"
 							onClick={() => setViewMode("list")}
 						>
-							<List className="h-3.5 w-3.5" />
-							<span className="hidden sm:inline text-xs">List</span>
+							<List className="h-4 w-4" />
+							<span className="hidden sm:inline">List</span>
 						</Button>
 						<Button
 							variant={viewMode === "calendar" ? "secondary" : "ghost"}
 							size="sm"
-							className="h-7 gap-1.5 px-2"
+							className="h-8 gap-2 px-3"
 							onClick={() => setViewMode("calendar")}
 						>
-							<CalendarDays className="h-3.5 w-3.5" />
-							<span className="hidden sm:inline text-xs">Calendar</span>
+							<CalendarDays className="h-4 w-4" />
+							<span className="hidden sm:inline">Calendar</span>
 						</Button>
 					</div>
 				</div>
