@@ -29,6 +29,51 @@ export class CohortService {
 	}
 
 	/**
+	 * Calculate duration in minutes between start and end time
+	 * Times are in format "HH:mm:ss"
+	 */
+	private calculateDurationMinutes(
+		startTime: string,
+		endTime: string,
+	): number {
+		const [startHours, startMinutes] = startTime.split(":").map(Number);
+		const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+		const startTotalMinutes = startHours * 60 + startMinutes;
+		const endTotalMinutes = endHours * 60 + endMinutes;
+
+		return endTotalMinutes - startTotalMinutes;
+	}
+
+	/**
+	 * Format duration for display (e.g., "45 min", "1 hr", "1.5 hr")
+	 */
+	private formatDuration(minutes: number): string {
+		if (minutes === 60) {
+			return "1 hr";
+		}
+		if (minutes < 60) {
+			return `${minutes} min`;
+		}
+		// For durations over 60 minutes, show as hours with decimal
+		const hours = minutes / 60;
+		return `${hours} hr`;
+	}
+
+	/**
+	 * Format name as "First Name Last Initial" with optional period
+	 * Examples: "John S", "Laura R."
+	 */
+	private formatNameWithInitial(
+		firstName: string,
+		lastName: string,
+		addPeriod = false,
+	): string {
+		const lastInitial = lastName.charAt(0).toUpperCase();
+		return `${firstName} ${lastInitial}${addPeriod ? "." : ""}`;
+	}
+
+	/**
 	 * Gets the next occurrence of a specific weekday from a given date
 	 */
 	private getNextWeekday(startDate: Date, targetDay: string): Date {
@@ -102,8 +147,6 @@ export class CohortService {
 
 		// Get product info for event summary
 		const productName = cohort.product.display_name;
-		const location =
-			cohort.product.location === "online" ? "Online" : "In-Person";
 
 		// Prepare sessions array for Google Calendar
 		const sessions: WeeklySessionForCalendar[] = cohort.weekly_sessions.map(
@@ -133,14 +176,46 @@ export class CohortService {
 
 				const teacherName = `${session.teacher.first_name} ${session.teacher.last_name}`;
 
-				// Format day name properly
-				const dayName =
-					session.day_of_week.charAt(0).toUpperCase() +
-					session.day_of_week.slice(1);
+				// Calculate session duration
+				const durationMinutes = this.calculateDurationMinutes(
+					session.start_time,
+					session.end_time,
+				);
+				const formattedDuration = this.formatDuration(durationMinutes);
 
-				// Create event summary for this specific session
-				// Format: "1-1 - Online: Monday / Léa Emeriau"
-				const eventSummary = `${productName} - ${location}: ${dayName} / ${teacherName}`;
+				// Create event summary based on product format
+				let eventSummary: string;
+
+				if (cohort.product.format === "private") {
+					// Private Classes: FLS CP [Student Name] – [Teacher Name] – [Class Length]
+					// Example: FLS CP John S – Laura R. – 45 min
+					const formattedTeacher = this.formatNameWithInitial(
+						session.teacher.first_name,
+						session.teacher.last_name,
+						true, // Add period for teacher
+					);
+
+					// Get the first enrolled student for private class
+					const student = cohort.enrollments[0]?.student;
+					if (!student || !student.first_name || !student.last_name) {
+						throw new Error(
+							`No student found or incomplete student data for private class cohort ${cohort.id}`,
+						);
+					}
+
+					const formattedStudent = this.formatNameWithInitial(
+						student.first_name,
+						student.last_name,
+						false, // No period for student
+					);
+
+					eventSummary = `FLS CP ${formattedStudent} – ${formattedTeacher} – ${formattedDuration}`;
+				} else {
+					// Group Classes: FLS CG[# of Students] – [Class Length]
+					// Example: FLS CG2 – 1 hr
+					const numberOfStudents = cohort.enrollments.length;
+					eventSummary = `FLS CG${numberOfStudents} – ${formattedDuration}`;
+				}
 
 				return {
 					session_id: session.id, // Supabase ID of the weekly session
@@ -163,8 +238,9 @@ export class CohortService {
 		const eventLocation =
 			cohort.product.location === "online" ? "Online" : cohort.product.location;
 
-		// Generic summary for the cohort (Make.com can override with individual session summaries)
-		const event_summary = `${productName} - ${location}`;
+		// Generic summary for the cohort (Make.com should use individual session summaries instead)
+		// Use the first session's summary as the generic fallback
+		const event_summary = sessions[0]?.event_summary || `FLS - ${productName}`;
 
 		return {
 			cohort_id: cohort.id,
