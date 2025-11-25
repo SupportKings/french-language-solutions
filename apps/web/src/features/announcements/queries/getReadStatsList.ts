@@ -30,13 +30,14 @@ export async function getReadStatsList(announcementId: string) {
 	let studentsQuery;
 
 	if (announcement.scope === "school_wide") {
-		// All students
+		// All students with user accounts
 		studentsQuery = supabase
 			.from("students")
-			.select("id, full_name, email")
-			.is("deleted_at", null);
+			.select("id, full_name, email, user_id")
+			.is("deleted_at", null)
+			.not("user_id", "is", null);
 	} else if (announcement.cohort_id) {
-		// Students in the specific cohort with active enrollment
+		// Students in the specific cohort with active enrollment and user accounts
 		studentsQuery = supabase
 			.from("enrollments")
 			.select(
@@ -45,12 +46,14 @@ export async function getReadStatsList(announcementId: string) {
         students!enrollments_student_id_fkey(
           id,
           full_name,
-          email
+          email,
+          user_id
         )
       `,
 			)
 			.eq("cohort_id", announcement.cohort_id)
-			.in("status", ["paid", "welcome_package_sent"]); // Active enrollment statuses
+			.in("status", ["paid", "welcome_package_sent"])
+			.not("students.user_id", "is", null);
 	} else {
 		return [];
 	}
@@ -60,6 +63,29 @@ export async function getReadStatsList(announcementId: string) {
 	if (studentsError) {
 		throw new Error(`Failed to fetch students: ${studentsError.message}`);
 	}
+
+	// Get all user IDs from students
+	const userIds =
+		announcement.scope === "school_wide"
+			? (studentsData || []).map((s: any) => s.user_id)
+			: (studentsData || [])
+					.map((e: any) => e.students?.user_id)
+					.filter(Boolean);
+
+	// Fetch user ban status separately
+	const { data: usersData, error: usersError } = await supabase
+		.from("user")
+		.select("id, banned")
+		.in("id", userIds);
+
+	if (usersError) {
+		throw new Error(`Failed to fetch users: ${usersError.message}`);
+	}
+
+	// Create a map of user ban status
+	const userBanMap = new Map(
+		(usersData || []).map((u) => [u.id, u.banned]),
+	);
 
 	// Get all reads for this announcement
 	const { data: reads, error: readsError } = await supabase
@@ -78,20 +104,9 @@ export async function getReadStatsList(announcementId: string) {
 	let studentsList: StudentReadStatus[] = [];
 
 	if (announcement.scope === "school_wide") {
-		studentsList = (studentsData || []).map((student: any) => ({
-			student: {
-				id: student.id,
-				full_name: student.full_name,
-				email: student.email,
-			},
-			read_at: readsMap.get(student.id) || null,
-			has_read: readsMap.has(student.id),
-		}));
-	} else {
-		// For cohort-specific, studentsData has a different structure from enrollments query
-		studentsList = (studentsData || []).map((enrollment: any) => {
-			const student = enrollment.students;
-			return {
+		studentsList = (studentsData || [])
+			.filter((student: any) => !userBanMap.get(student.user_id))
+			.map((student: any) => ({
 				student: {
 					id: student.id,
 					full_name: student.full_name,
@@ -99,8 +114,26 @@ export async function getReadStatsList(announcementId: string) {
 				},
 				read_at: readsMap.get(student.id) || null,
 				has_read: readsMap.has(student.id),
-			};
-		});
+			}));
+	} else {
+		// For cohort-specific, studentsData has a different structure from enrollments query
+		studentsList = (studentsData || [])
+			.filter((enrollment: any) => {
+				const student = enrollment.students;
+				return student && !userBanMap.get(student.user_id);
+			})
+			.map((enrollment: any) => {
+				const student = enrollment.students;
+				return {
+					student: {
+						id: student.id,
+						full_name: student.full_name,
+						email: student.email,
+					},
+					read_at: readsMap.get(student.id) || null,
+					has_read: readsMap.has(student.id),
+				};
+			});
 	}
 
 	// Sort by read status (unread first) and then by name

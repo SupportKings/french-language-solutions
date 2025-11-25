@@ -91,20 +91,17 @@ export const createAnnouncement = actionClient
 
 		// Send email notifications to enrolled students
 		try {
-			// Build the query to get eligible students
+			// Build the query to get eligible students with their user info
 			let studentsQuery = supabase
 				.from("students")
 				.select(
 					`
 				id,
-				user:user!students_user_id_fkey(
-					id,
-					email,
-					full_name
-				),
+				user_id,
 				enrollments!inner(
 					id,
-					status
+					status,
+					cohort_id
 				)
 			`,
 				)
@@ -124,37 +121,52 @@ export const createAnnouncement = actionClient
 			if (studentsError) {
 				console.error("[Email] Error fetching students:", studentsError);
 			} else if (students && students.length > 0) {
-				// Filter for test email only
-				const testRecipients = students
-					.filter((student) => student.user?.email === "vnasraddinli@gmail.com")
-					.map((student) => ({
-						email: student.user!.email!,
-						name: student.user!.full_name || "Student",
-					}));
-
-				console.log(
-					`[Email] Found ${students.length} eligible students, but only sending to test email (vnasraddinli@gmail.com)`,
+				// Deduplicate students by ID (in case they have multiple enrollments)
+				const uniqueStudents = Array.from(
+					new Map(students.map((student) => [student.id, student])).values(),
 				);
-				console.log("[Email] Test recipients:", testRecipients);
 
-				if (testRecipients.length > 0) {
-					const { sendAnnouncementNotificationsBatch } = await import(
-						"@/lib/email"
-					);
-					await sendAnnouncementNotificationsBatch(
-						testRecipients,
-						input.title,
-						process.env.STUDENT_PORTAL_URL ||
-							process.env.NEXT_PUBLIC_APP_URL ||
-							"https://student.frenchlanguagesolutions.com",
-					);
-				} else {
-					console.log(
-						"[Email] No test recipients found matching vnasraddinli@gmail.com",
-					);
+				// Fetch user data for all unique students
+				const userIds = uniqueStudents
+					.map((s) => s.user_id)
+					.filter((id): id is string => id !== null);
+
+				const { data: users, error: usersError } = await supabase
+					.from("user")
+					.select("id, email, name")
+					.in("id", userIds);
+
+				if (usersError) {
+					console.error("[Email] Error fetching user data:", usersError);
+				} else if (users && users.length > 0) {
+					// Create a map of user_id to user data
+					const userMap = new Map(users.map((user) => [user.id, user]));
+
+					// Map students to recipients with their email and name
+					const recipients = uniqueStudents
+						.map((student) => {
+							const user = student.user_id ? userMap.get(student.user_id) : null;
+							if (!user?.email) return null;
+							return {
+								email: user.email,
+								name: user.name || "Student",
+							};
+						})
+						.filter((r): r is { email: string; name: string } => r !== null);
+
+					if (recipients.length > 0) {
+						const { sendAnnouncementNotificationsBatch } = await import(
+							"@/lib/email"
+						);
+						await sendAnnouncementNotificationsBatch(
+							recipients,
+							input.title,
+							process.env.STUDENT_PORTAL_URL ||
+								process.env.NEXT_PUBLIC_APP_URL ||
+								"https://student.frenchlanguagesolutions.com",
+						);
+					}
 				}
-			} else {
-				console.log("[Email] No eligible students found for notification");
 			}
 		} catch (emailError) {
 			// Don't fail the announcement creation if email fails

@@ -44,21 +44,8 @@ interface StudentSidebarProps {
 		email: string;
 		avatar?: string;
 	};
+	unreadAnnouncementCount?: number;
 }
-
-const navItems = [
-	{
-		title: "Dashboard",
-		url: "/dashboard",
-		icon: Home,
-	},
-	{
-		title: "Announcements",
-		url: "/announcements",
-		icon: Megaphone,
-		badge: 2,
-	},
-];
 
 const bottomNavItems = [
 	{
@@ -68,7 +55,23 @@ const bottomNavItems = [
 	},
 ];
 
-export function StudentSidebar({ student }: StudentSidebarProps) {
+export function StudentSidebar({ student, unreadAnnouncementCount }: StudentSidebarProps) {
+	console.log("unreadAnnouncementCount:", unreadAnnouncementCount, typeof unreadAnnouncementCount);
+
+	const navItems = [
+		{
+			title: "Dashboard",
+			url: "/dashboard",
+			icon: Home,
+			badge: undefined as number | undefined,
+		},
+		{
+			title: "Announcements",
+			url: "/announcements",
+			icon: Megaphone,
+			badge: unreadAnnouncementCount,
+		},
+	];
 	const pathname = usePathname();
 
 	const initials = student.fullName
@@ -119,8 +122,8 @@ export function StudentSidebar({ student }: StudentSidebarProps) {
 											<Link href={item.url}>
 												<item.icon className="size-4" />
 												<span>{item.title}</span>
-												{item.badge && (
-													<span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-secondary font-bold text-[10px] text-secondary-foreground">
+												{typeof item.badge === "number" && item.badge > 0 && (
+													<span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 font-bold text-[10px] text-destructive-foreground">
 														{item.badge}
 													</span>
 												)}

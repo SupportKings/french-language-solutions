@@ -20,8 +20,8 @@ function DialogTrigger({
 				data-slot="dialog-trigger"
 				render={(triggerProps, state) => {
 					return React.cloneElement(children, {
-						...triggerProps,
-						...children.props,
+						...(triggerProps as object),
+						...(children.props as object),
 					});
 				}}
 				{...props}

@@ -18,7 +18,6 @@ import {
 	AnnouncementCard,
 	CategorySidebar,
 	CreateAnnouncementDialog,
-	PinnedSidebar,
 	ReadStatsDialog,
 } from "@/features/announcements/components";
 import { announcementsQueries } from "@/features/announcements/queries/announcements.queries";
@@ -26,6 +25,7 @@ import { announcementsQueries } from "@/features/announcements/queries/announcem
 import { useQuery } from "@tanstack/react-query";
 import { parseISO } from "date-fns";
 import { Bell, Calendar, Plus, SlidersHorizontal } from "lucide-react";
+import { toast } from "sonner";
 
 type AnnouncementScope = Database["public"]["Enums"]["announcement_scope"];
 type SortOption = "newest" | "oldest";
@@ -92,7 +92,7 @@ export function AnnouncementsPageClient() {
 
 	return (
 		<div className="min-h-screen bg-muted/30">
-			<div className="grid gap-6 p-6 lg:grid-cols-[240px_1fr_280px]">
+			<div className="grid gap-6 p-6 lg:grid-cols-[240px_1fr]">
 				{/* Left Sidebar - Categories */}
 				<div className="hidden lg:block">
 					<div className="sticky top-20 space-y-4">
@@ -222,27 +222,19 @@ export function AnnouncementsPageClient() {
 						)}
 					</div>
 				) : (
-					<div className="space-y-4">
+					<div className="space-y-4 max-w-3xl mx-auto">
 						{filteredAnnouncements.map((announcement) => (
 							<AnnouncementCard
 								key={announcement.id}
 								announcement={announcement}
 								onViewStats={(id) => setSelectedAnnouncementId(id)}
 								onEdit={(id) => {
-									// TODO: Implement edit functionality
-									console.log("Edit announcement:", id);
+									toast.info("Edit functionality coming soon");
 								}}
 							/>
 						))}
 					</div>
 				)}
-			</div>
-
-			{/* Right Sidebar - Pinned */}
-			<div className="hidden lg:block">
-				<div className="sticky top-20">
-					<PinnedSidebar announcements={allAnnouncements} />
-				</div>
 			</div>
 
 			{/* Read Stats Dialog */}

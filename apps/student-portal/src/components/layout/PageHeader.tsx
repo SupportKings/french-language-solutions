@@ -32,7 +32,7 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 	},
 };
 
-export function PageHeader({ student, unreadCount = 2 }: PageHeaderProps) {
+export function PageHeader({ student, unreadCount }: PageHeaderProps) {
 	const pathname = usePathname();
 	const info = pageInfo[pathname] || { title: "Student Portal" };
 
@@ -69,8 +69,8 @@ export function PageHeader({ student, unreadCount = 2 }: PageHeaderProps) {
 				{/* Notification bell */}
 				<Button variant="ghost" size="icon" className="relative">
 					<Bell className="h-5 w-5" />
-					{unreadCount > 0 && (
-						<span className="-top-0.5 -right-0.5 absolute flex h-4 w-4 items-center justify-center rounded-full bg-secondary font-bold text-[10px] text-secondary-foreground">
+					{unreadCount && unreadCount > 0 && (
+						<span className="-top-0.5 -right-0.5 absolute flex h-4 w-4 items-center justify-center rounded-full bg-destructive font-bold text-[10px] text-destructive-foreground">
 							{unreadCount}
 						</span>
 					)}

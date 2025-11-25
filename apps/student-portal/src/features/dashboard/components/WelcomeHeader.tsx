@@ -26,8 +26,6 @@ export function WelcomeHeader({ studentName }: WelcomeHeaderProps) {
 			<div className="relative space-y-2">
 				<div className="flex items-center gap-2">
 					<p className="text-blue-100 text-sm">{formattedDate}</p>
-					<div className="h-1 w-1 rounded-full bg-secondary/60" />
-					<div className="h-1 w-1 rounded-full bg-secondary/40" />
 				</div>
 				<h1 className="font-bold text-2xl tracking-tight sm:text-3xl">
 					{greeting}, {studentName}

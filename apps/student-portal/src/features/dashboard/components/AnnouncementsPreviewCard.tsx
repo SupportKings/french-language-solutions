@@ -5,18 +5,24 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { mockAnnouncements } from "@/features/shared/data/mock-data";
-import type { Announcement } from "@/features/shared/types";
+import type { StudentAnnouncement } from "@/features/announcements/queries/getStudentAnnouncements";
+import { useStudentAnnouncements } from "@/features/announcements/queries";
 
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { ArrowRight, Bell, Pin } from "lucide-react";
 
+interface AnnouncementsPreviewCardProps {
+	studentId: string;
+}
+
 function AnnouncementItem({
 	announcement,
 	isUnread,
+	studentId,
 }: {
-	announcement: Announcement;
+	announcement: StudentAnnouncement;
 	isUnread: boolean;
+	studentId: string;
 }) {
 	const timeAgo = formatDistanceToNow(parseISO(announcement.createdAt), {
 		addSuffix: true,
@@ -51,9 +57,14 @@ function AnnouncementItem({
 	);
 }
 
-export function AnnouncementsPreviewCard() {
+export function AnnouncementsPreviewCard({
+	studentId,
+}: AnnouncementsPreviewCardProps) {
+	const { data: announcements = [], isLoading } =
+		useStudentAnnouncements(studentId);
+
 	// Separate and sort announcements
-	const unreadAnnouncements = [...mockAnnouncements]
+	const unreadAnnouncements = [...announcements]
 		.filter((a) => !a.isRead)
 		.sort((a, b) => {
 			if (a.isPinned && !b.isPinned) return -1;
@@ -62,7 +73,7 @@ export function AnnouncementsPreviewCard() {
 		})
 		.slice(0, 3);
 
-	const readAnnouncements = [...mockAnnouncements]
+	const readAnnouncements = [...announcements]
 		.filter((a) => a.isRead)
 		.sort((a, b) => {
 			if (a.isPinned && !b.isPinned) return -1;
@@ -71,9 +82,24 @@ export function AnnouncementsPreviewCard() {
 		})
 		.slice(0, 3);
 
-	const unreadCount = mockAnnouncements.filter((a) => !a.isRead).length;
+	const unreadCount = announcements.filter((a) => !a.isRead).length;
 	const hasAnnouncements =
 		unreadAnnouncements.length > 0 || readAnnouncements.length > 0;
+
+	if (isLoading) {
+		return (
+			<Card>
+				<CardHeader className="pb-3">
+					<CardTitle className="text-base">Announcements</CardTitle>
+				</CardHeader>
+				<CardContent className="pt-0">
+					<div className="flex flex-col items-center justify-center py-8 text-center">
+						<p className="text-muted-foreground text-sm">Loading...</p>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<Card>
@@ -124,6 +150,7 @@ export function AnnouncementsPreviewCard() {
 											key={announcement.id}
 											announcement={announcement}
 											isUnread
+											studentId={studentId}
 										/>
 									))}
 								</div>
@@ -142,6 +169,7 @@ export function AnnouncementsPreviewCard() {
 											key={announcement.id}
 											announcement={announcement}
 											isUnread={false}
+											studentId={studentId}
 										/>
 									))}
 								</div>

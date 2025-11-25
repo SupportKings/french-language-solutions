@@ -1,5 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,27 +17,16 @@ export const deleteAnnouncement = actionClient
 	.action(async ({ parsedInput: input }) => {
 		const supabase = await createClient();
 
-		// Get the current user
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
+		// Get the session using Better Auth
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
 
-		if (!user) {
+		if (!session?.user) {
 			throw new Error("Unauthorized");
 		}
 
-		// Get teacher record
-		const { data: teacher, error: teacherError } = await supabase
-			.from("teachers")
-			.select("id")
-			.eq("user_id", user.id)
-			.single();
-
-		if (teacherError || !teacher) {
-			throw new Error("Teacher not found");
-		}
-
-		// Verify the announcement belongs to this teacher or user is admin
+		// Verify the announcement belongs to this user or user is admin
 		const { data: existingAnnouncement, error: fetchError } = await supabase
 			.from("announcements")
 			.select("author_id")
@@ -49,12 +41,12 @@ export const deleteAnnouncement = actionClient
 		const { data: userData } = await supabase
 			.from("user")
 			.select("role")
-			.eq("id", user.id)
+			.eq("id", session.user.id)
 			.single();
 
 		const isAdmin = userData?.role === "admin";
 
-		if (existingAnnouncement.author_id !== teacher.id && !isAdmin) {
+		if (existingAnnouncement.author_id !== session.user.id && !isAdmin) {
 			throw new Error("Unauthorized to delete this announcement");
 		}
 

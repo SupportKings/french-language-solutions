@@ -1,5 +1,11 @@
 import { redirect } from "next/navigation";
 
+import {
+	HydrationBoundary,
+	QueryClient,
+	dehydrate,
+} from "@tanstack/react-query";
+
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -13,6 +19,7 @@ import {
 	getStudentStats,
 } from "@/features/dashboard/queries";
 import { getScheduleClasses } from "@/features/schedule/queries";
+import { announcementQueries } from "@/features/announcements/queries";
 
 import { getUser } from "@/queries/getUser";
 
@@ -38,8 +45,10 @@ export default async function DashboardPage() {
 	const enrollments = await getStudentEnrollments(student.id);
 	const cohortIds = enrollments.map((e) => e.cohortId);
 
-	// Fetch stats and classes in parallel
-	const [stats, classes] = await Promise.all([
+	// Prefetch announcements and fetch stats/classes in parallel
+	const queryClient = new QueryClient();
+	const [, stats, classes] = await Promise.all([
+		queryClient.prefetchQuery(announcementQueries.studentAnnouncements(student.id)),
 		getStudentStats(student.id, cohortIds),
 		getScheduleClasses(cohortIds, student.id),
 	]);
@@ -47,25 +56,27 @@ export default async function DashboardPage() {
 	const displayName = student.first_name || student.full_name || "Student";
 
 	return (
-		<div className="space-y-6">
-			{/* Welcome Header */}
-			<WelcomeHeader studentName={displayName} />
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<div className="space-y-6">
+				{/* Welcome Header */}
+				<WelcomeHeader studentName={displayName} />
 
-			{/* Stats Cards */}
-			<StatsCards stats={stats} />
+				{/* Stats Cards */}
+				<StatsCards stats={stats} />
 
-			{/* Main Content Grid */}
-			<div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-				{/* Main Column - Schedule */}
-				<div className="space-y-6">
-					<ScheduleSection classes={classes} />
-				</div>
+				{/* Main Content Grid */}
+				<div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+					{/* Main Column - Schedule */}
+					<div className="space-y-6">
+						<ScheduleSection classes={classes} />
+					</div>
 
-				{/* Right Sidebar - Announcements */}
-				<div className="space-y-6">
-					<AnnouncementsPreviewCard />
+					{/* Right Sidebar - Announcements */}
+					<div className="space-y-6">
+						<AnnouncementsPreviewCard studentId={student.id} />
+					</div>
 				</div>
 			</div>
-		</div>
+		</HydrationBoundary>
 	);
 }

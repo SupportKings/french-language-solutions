@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 import { Pin } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { AnnouncementWithDetails } from "../queries";
 
 interface PinnedSidebarProps {
@@ -17,6 +18,8 @@ function PinnedItem({
 }: {
 	announcement: AnnouncementWithDetails;
 }) {
+	const router = useRouter();
+
 	const initials = announcement.author
 		? announcement.author.name
 				.split(" ")
@@ -27,6 +30,13 @@ function PinnedItem({
 		: "A";
 
 	const authorName = announcement.author ? announcement.author.name : "Unknown";
+
+	const handleCohortClick = (e: React.MouseEvent) => {
+		e.stopPropagation(); // Prevent triggering the button click
+		if (announcement.scope === "cohort" && announcement.cohort_id) {
+			router.push(`/admin/cohorts/${announcement.cohort_id}`);
+		}
+	};
 
 	// Extract text preview from JSON content if possible
 	let contentPreview = announcement.content;
@@ -80,8 +90,9 @@ function PinnedItem({
 					"text-[10px] font-medium",
 					announcement.scope === "school_wide"
 						? "bg-primary/10 text-primary border-primary/20"
-						: "bg-accent/15 text-foreground border-accent/25"
+						: "bg-accent/15 text-foreground border-accent/25 cursor-pointer hover:bg-accent/30 transition-colors"
 				)}
+				onClick={announcement.scope === "cohort" ? handleCohortClick : undefined}
 			>
 				{announcement.scope === "school_wide"
 					? "School-wide"

@@ -1,20 +1,26 @@
 "use client";
 
+import Link from "next/link";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import type { Announcement } from "@/features/shared/types";
+import type { StudentAnnouncement } from "../queries/getStudentAnnouncements";
 
-import { formatDistanceToNow, parseISO } from "date-fns";
 import { MoreHorizontal, Pin } from "lucide-react";
 
 interface PinnedSidebarProps {
-	announcements: Announcement[];
+	announcements: StudentAnnouncement[];
+	studentId: string;
 }
 
-function PinnedItem({ announcement }: { announcement: Announcement }) {
+function PinnedItem({
+	announcement,
+}: {
+	announcement: StudentAnnouncement;
+}) {
 	const initials = announcement.author.name
 		.split(" ")
 		.map((n: string) => n[0])
@@ -56,14 +62,22 @@ function PinnedItem({ announcement }: { announcement: Announcement }) {
 			</p>
 
 			{/* View link */}
-			<Button variant="link" size="sm" className="h-auto p-0 text-xs">
-				View post →
+			<Button
+				variant="link"
+				size="sm"
+				className="h-auto p-0 text-xs"
+				asChild
+			>
+				<Link href={`/announcements/${announcement.id}`}>View post →</Link>
 			</Button>
 		</div>
 	);
 }
 
-export function PinnedSidebar({ announcements }: PinnedSidebarProps) {
+export function PinnedSidebar({
+	announcements,
+	studentId,
+}: PinnedSidebarProps) {
 	const pinnedAnnouncements = announcements.filter((a) => a.isPinned);
 
 	if (pinnedAnnouncements.length === 0) {

@@ -49,11 +49,11 @@ export async function getStudentAnnouncements(
 		.select(
 			`
       *,
-      author:teachers!announcements_author_id_fkey(
+      author:user!announcements_author_id_fkey(
         id,
-        first_name,
-        last_name,
-        email
+        name,
+        email,
+        image
       ),
       cohort:cohorts!announcements_cohort_id_fkey(
         id,
@@ -106,11 +106,9 @@ export async function getStudentAnnouncements(
 		content: announcement.content,
 		author: {
 			id: announcement.author?.id || "",
-			name: announcement.author
-				? `${announcement.author.first_name} ${announcement.author.last_name}`
-				: "Unknown",
+			name: announcement.author?.name || "Unknown",
 			role: "teacher" as const,
-			avatar: undefined,
+			avatar: announcement.author?.image || undefined,
 		},
 		scope: announcement.scope,
 		cohortId: announcement.cohort_id || undefined,
