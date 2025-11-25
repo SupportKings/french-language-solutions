@@ -2,9 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import { parseISO } from "date-fns";
-import { Bell, Calendar, SlidersHorizontal } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -21,6 +18,9 @@ import {
 	PinnedSidebar,
 } from "@/features/announcements/components";
 import { mockAnnouncements } from "@/features/shared/data/mock-data";
+
+import { parseISO } from "date-fns";
+import { Bell, Calendar, SlidersHorizontal } from "lucide-react";
 
 type SortOption = "newest" | "oldest";
 
@@ -82,7 +82,9 @@ export default function AnnouncementsPage() {
 							<DropdownMenuItem onClick={() => setSelectedCategory("all")}>
 								All Announcements
 							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => setSelectedCategory("school_wide")}>
+							<DropdownMenuItem
+								onClick={() => setSelectedCategory("school_wide")}
+							>
 								School-wide
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => setSelectedCategory("cohort")}>

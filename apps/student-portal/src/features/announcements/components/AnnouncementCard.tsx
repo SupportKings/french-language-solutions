@@ -1,15 +1,16 @@
 "use client";
 
-import { formatDistanceToNow, parseISO, format } from "date-fns";
-import { MessageCircle, MoreHorizontal, Pin, Share2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 import type { Announcement } from "@/features/shared/types";
+
+import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { MessageCircle, MoreHorizontal, Pin, Share2 } from "lucide-react";
 
 interface AnnouncementCardProps {
 	announcement: Announcement;
@@ -26,13 +27,16 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
 		addSuffix: false,
 	});
 
-	const formattedDate = format(parseISO(announcement.createdAt), "MMM d, h:mm a");
+	const formattedDate = format(
+		parseISO(announcement.createdAt),
+		"MMM d, h:mm a",
+	);
 
 	return (
 		<Card
 			className={cn(
 				"transition-all duration-200",
-				!announcement.isRead && "border-l-4 border-l-secondary"
+				!announcement.isRead && "border-l-4 border-l-secondary",
 			)}
 		>
 			<CardContent className="pt-6">
@@ -91,11 +95,19 @@ export function AnnouncementCard({ announcement }: AnnouncementCardProps) {
 				{/* Footer */}
 				<div className="mt-4 flex items-center justify-between border-t pt-4">
 					<div className="flex items-center gap-4">
-						<Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+						<Button
+							variant="ghost"
+							size="sm"
+							className="gap-2 text-muted-foreground"
+						>
 							<MessageCircle className="h-4 w-4" />
 							Comment
 						</Button>
-						<Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+						<Button
+							variant="ghost"
+							size="sm"
+							className="gap-2 text-muted-foreground"
+						>
 							<Share2 className="h-4 w-4" />
 							Share
 						</Button>

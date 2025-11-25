@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+
+import { RichTextEditor } from "@/components/rich-text-editor/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, Edit2, X, Save } from "lucide-react";
-import { RichTextEditor } from "@/components/rich-text-editor/RichTextEditor";
+
+import { Edit2, FileText, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface InternalNotesProps {
@@ -49,7 +51,7 @@ export function InternalNotes({
 			(!content.content || content.content.length === 0));
 
 	return (
-		<Card className="overflow-hidden bg-card/95 backdrop-blur-sm border-border/50 rounded-2xl shadow-md">
+		<Card className="overflow-hidden rounded-2xl border-border/50 bg-card/95 shadow-md backdrop-blur-sm">
 			<div className="border-b bg-muted/30 px-6 py-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">

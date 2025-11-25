@@ -2,70 +2,59 @@
 
 import Link from "next/link";
 
-import { formatDistanceToNow, parseISO } from "date-fns";
-import { ArrowRight, Bell, Megaphone, Pin } from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { mockAnnouncements } from "@/features/shared/data/mock-data";
 import type { Announcement } from "@/features/shared/types";
 
-function AnnouncementRow({ announcement }: { announcement: Announcement }) {
-	const initials = announcement.author.name
-		.split(" ")
-		.map((n: string) => n[0])
-		.join("")
-		.slice(0, 2);
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { ArrowRight, Bell, Pin } from "lucide-react";
 
+function AnnouncementItem({
+	announcement,
+	isUnread,
+}: {
+	announcement: Announcement;
+	isUnread: boolean;
+}) {
 	const timeAgo = formatDistanceToNow(parseISO(announcement.createdAt), {
 		addSuffix: true,
 	});
 
 	return (
-		<div
-			className={`group flex gap-3 rounded-lg border p-3 transition-all duration-200 hover:border-primary/30 hover:bg-accent/50 ${
-				!announcement.isRead
-					? "border-l-2 border-l-secondary bg-secondary/5"
-					: "border-border/50 bg-muted/30"
-			}`}
+		<Link
+			href={`/announcements/${announcement.id}`}
+			className="group -mx-3 block rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50"
 		>
-			{/* Avatar */}
-			<Avatar className="h-8 w-8 shrink-0">
-				<AvatarImage src={announcement.author.avatar} />
-				<AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-					{initials}
-				</AvatarFallback>
-			</Avatar>
-
-			{/* Content */}
-			<div className="min-w-0 flex-1">
-				<div className="flex items-center gap-2">
-					<p className="truncate font-medium text-sm">{announcement.title}</p>
-					{announcement.isPinned && (
-						<Pin className="h-3 w-3 shrink-0 rotate-45 text-secondary" />
-					)}
+			<div className="flex items-start gap-2">
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center gap-1.5">
+						<p
+							className={`truncate text-sm ${isUnread ? "font-semibold text-foreground" : "font-medium text-foreground/80"}`}
+						>
+							{announcement.title}
+						</p>
+						{announcement.isPinned && (
+							<Pin className="h-3 w-3 shrink-0 rotate-45 text-secondary" />
+						)}
+					</div>
+					<p className="mt-0.5 text-muted-foreground text-xs">
+						{announcement.author.name} · {timeAgo}
+					</p>
 				</div>
-				<div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-					<span>{announcement.author.name}</span>
-					<span>·</span>
-					<span>{timeAgo}</span>
-				</div>
+				{isUnread && (
+					<div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-secondary" />
+				)}
 			</div>
-
-			{/* Unread dot */}
-			{!announcement.isRead && (
-				<div className="flex h-2 w-2 shrink-0 self-center rounded-full bg-secondary" />
-			)}
-		</div>
+		</Link>
 	);
 }
 
 export function AnnouncementsPreviewCard() {
-	const unreadCount = mockAnnouncements.filter((a) => !a.isRead).length;
-	const sortedAnnouncements = [...mockAnnouncements]
+	// Separate and sort announcements
+	const unreadAnnouncements = [...mockAnnouncements]
+		.filter((a) => !a.isRead)
 		.sort((a, b) => {
 			if (a.isPinned && !b.isPinned) return -1;
 			if (!a.isPinned && b.isPinned) return 1;
@@ -73,41 +62,92 @@ export function AnnouncementsPreviewCard() {
 		})
 		.slice(0, 3);
 
+	const readAnnouncements = [...mockAnnouncements]
+		.filter((a) => a.isRead)
+		.sort((a, b) => {
+			if (a.isPinned && !b.isPinned) return -1;
+			if (!a.isPinned && b.isPinned) return 1;
+			return parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime();
+		})
+		.slice(0, 3);
+
+	const unreadCount = mockAnnouncements.filter((a) => !a.isRead).length;
+	const hasAnnouncements =
+		unreadAnnouncements.length > 0 || readAnnouncements.length > 0;
+
 	return (
 		<Card>
-			<CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-				<div className="flex items-center gap-3">
-					<div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
-						<Megaphone className="h-4 w-4 text-secondary" />
+			<CardHeader className="pb-3">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<CardTitle className="text-base">Announcements</CardTitle>
 						{unreadCount > 0 && (
-							<span className="-top-1 -right-1 absolute flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] text-secondary-foreground font-bold">
+							<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 font-bold text-[10px] text-secondary-foreground">
 								{unreadCount}
 							</span>
 						)}
 					</div>
-					<CardTitle className="text-base">Announcements</CardTitle>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-7 gap-1 text-muted-foreground text-xs hover:text-foreground"
+						asChild
+					>
+						<Link href="/announcements">
+							View all
+							<ArrowRight className="h-3 w-3" />
+						</Link>
+					</Button>
 				</div>
-				<Button variant="ghost" size="sm" className="gap-1 text-xs" asChild>
-					<Link href="/announcements">
-						View all
-						<ArrowRight className="h-3 w-3" />
-					</Link>
-				</Button>
 			</CardHeader>
-			<CardContent className="space-y-2">
-				{mockAnnouncements.length === 0 ? (
-					<div className="flex flex-col items-center justify-center py-6 text-center">
-						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-							<Bell className="h-5 w-5 text-muted-foreground" />
+			<CardContent className="pt-0">
+				{!hasAnnouncements ? (
+					<div className="flex flex-col items-center justify-center py-8 text-center">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+							<Bell className="h-6 w-6 text-muted-foreground" />
 						</div>
 						<p className="mt-3 text-muted-foreground text-sm">
-							No announcements
+							No announcements yet
 						</p>
 					</div>
 				) : (
-					sortedAnnouncements.map((announcement) => (
-						<AnnouncementRow key={announcement.id} announcement={announcement} />
-					))
+					<div className="space-y-4">
+						{/* Unread Section */}
+						{unreadAnnouncements.length > 0 && (
+							<div>
+								<p className="mb-1 font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
+									New
+								</p>
+								<div className="divide-y divide-border/50">
+									{unreadAnnouncements.map((announcement) => (
+										<AnnouncementItem
+											key={announcement.id}
+											announcement={announcement}
+											isUnread
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{/* Read Section */}
+						{readAnnouncements.length > 0 && (
+							<div>
+								<p className="mb-1 font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
+									Read
+								</p>
+								<div className="divide-y divide-border/50">
+									{readAnnouncements.map((announcement) => (
+										<AnnouncementItem
+											key={announcement.id}
+											announcement={announcement}
+											isUnread={false}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+					</div>
 				)}
 			</CardContent>
 		</Card>

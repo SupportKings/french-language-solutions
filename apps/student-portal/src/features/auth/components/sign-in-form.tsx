@@ -33,11 +33,15 @@ interface SignInFormProps {
 }
 
 const errorMessages: Record<string, string> = {
-	access_revoked: "Your portal access has been revoked. Please contact support.",
+	access_revoked:
+		"Your portal access has been revoked. Please contact support.",
 	not_a_student: "This account is not registered as a student.",
 };
 
-export function SignInForm({ redirectTo = "/dashboard", error }: SignInFormProps) {
+export function SignInForm({
+	redirectTo = "/dashboard",
+	error,
+}: SignInFormProps) {
 	const [step, setStep] = useState<"email" | "otp">("email");
 	const [email, setEmail] = useState("");
 	const [otp, setOtp] = useState("");

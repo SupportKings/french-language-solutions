@@ -2,9 +2,6 @@
 
 import Link from "next/link";
 
-import { format, isToday, isTomorrow, parseISO } from "date-fns";
-import { ArrowRight, Calendar, Clock, ExternalLink, Video } from "lucide-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { mockClasses } from "@/features/shared/data/mock-data";
 import type { ClassSession } from "@/features/shared/types";
+
+import { format, isToday, isTomorrow, parseISO } from "date-fns";
+import { ArrowRight, Calendar, Clock, ExternalLink, Video } from "lucide-react";
+
+// Format class label as "Group - A2" or "Private - B1"
+function formatClassLabel(classItem: ClassSession): string {
+	const formatLabel =
+		classItem.format === "group"
+			? "Group"
+			: classItem.format === "private"
+				? "Private"
+				: "Hybrid";
+	return `${formatLabel} - ${classItem.level}`;
+}
 
 function getDateLabel(dateString: string): string {
 	const date = parseISO(dateString);
@@ -21,7 +32,7 @@ function getDateLabel(dateString: string): string {
 }
 
 function groupClassesByDate(
-	classes: ClassSession[]
+	classes: ClassSession[],
 ): Map<string, ClassSession[]> {
 	const grouped = new Map<string, ClassSession[]>();
 
@@ -52,7 +63,9 @@ function ClassItemRow({ classItem }: { classItem: ClassSession }) {
 			{/* Info */}
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-2">
-					<p className="truncate font-medium text-sm">{classItem.cohortName}</p>
+					<p className="truncate font-medium text-sm">
+						{formatClassLabel(classItem)}
+					</p>
 					{classItem.status === "in_progress" && (
 						<Badge variant="success" className="shrink-0 text-[10px]">
 							Live
@@ -77,7 +90,12 @@ function ClassItemRow({ classItem }: { classItem: ClassSession }) {
 
 			{/* Join button */}
 			{classItem.meetingLink && (
-				<Button variant="outline" size="sm" className="shrink-0 gap-1.5" asChild>
+				<Button
+					variant="outline"
+					size="sm"
+					className="shrink-0 gap-1.5"
+					asChild
+				>
 					<a
 						href={classItem.meetingLink}
 						target="_blank"
@@ -128,7 +146,7 @@ export function UpcomingClassesCard() {
 				) : (
 					Array.from(groupedClasses.entries()).map(([dateLabel, classes]) => (
 						<div key={dateLabel} className="space-y-2">
-							<p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+							<p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
 								{dateLabel}
 							</p>
 							<div className="space-y-2">

@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/queries/getUser";
-
 import { createClient } from "@/lib/supabase/server";
 
 import { PageHeader, StudentSidebar } from "@/components/layout";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function AuthenticatedLayout({
 	children,

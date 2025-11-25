@@ -6,11 +6,19 @@ export interface Teacher {
 	avatar?: string;
 }
 
+export interface AttendanceRecord {
+	id: string;
+	status: string;
+	homeworkCompleted: boolean | null;
+	homeworkCompletedAt: string | null;
+	notes: string | null;
+}
+
 export interface ClassSession {
 	id: string;
 	cohortId: string;
-	cohortName: string;
-	courseName: string;
+	format: "group" | "private" | "hybrid";
+	level: string;
 	startTime: string;
 	endTime: string;
 	teacher: Teacher;
@@ -18,6 +26,7 @@ export interface ClassSession {
 	status: "scheduled" | "in_progress" | "completed" | "cancelled";
 	notes?: string;
 	location?: "online" | "in_person";
+	attendanceRecord?: AttendanceRecord;
 }
 
 export interface Announcement {

@@ -33,7 +33,6 @@ import { languageLevelQueries } from "@/features/language-levels/queries/languag
 
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { useQueryState } from "nuqs";
 import {
 	Calendar,
 	CheckCircle,
@@ -49,6 +48,7 @@ import {
 	User,
 	XCircle,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 const resultColors = {
@@ -209,7 +209,7 @@ export function AssessmentsTable({
 				if (filter.type === "date" && filter.values) {
 					return {
 						...filter,
-						values: filter.values.map((v: any) => v ? new Date(v) : v),
+						values: filter.values.map((v: any) => (v ? new Date(v) : v)),
 					};
 				}
 				return filter;
@@ -279,16 +279,18 @@ export function AssessmentsTable({
 						return `${year}-${month}-${day}`;
 					})()
 				: undefined,
-			date_to: (dateFilter?.values?.[1] || (dateFilter?.values?.length === 1 && dateFilter?.values?.[0]))
-				? (() => {
-						// Use second value if exists, otherwise use first value for single-date operators
-						const d = new Date(dateFilter.values[1] || dateFilter.values[0]);
-						const year = d.getFullYear();
-						const month = String(d.getMonth() + 1).padStart(2, "0");
-						const day = String(d.getDate()).padStart(2, "0");
-						return `${year}-${month}-${day}`;
-					})()
-				: undefined,
+			date_to:
+				dateFilter?.values?.[1] ||
+				(dateFilter?.values?.length === 1 && dateFilter?.values?.[0])
+					? (() => {
+							// Use second value if exists, otherwise use first value for single-date operators
+							const d = new Date(dateFilter.values[1] || dateFilter.values[0]);
+							const year = d.getFullYear();
+							const month = String(d.getMonth() + 1).padStart(2, "0");
+							const day = String(d.getDate()).padStart(2, "0");
+							return `${year}-${month}-${day}`;
+						})()
+					: undefined,
 			scheduled_date_operator: dateFilter?.operator,
 		};
 	}, [filters]);
@@ -335,7 +337,10 @@ export function AssessmentsTable({
 			if (filterQuery.has_teacher) {
 				filterQuery.has_teacher.forEach((v) => params.append("has_teacher", v));
 				if (filterQuery.has_teacher_operator) {
-					params.append("has_teacher_operator", filterQuery.has_teacher_operator);
+					params.append(
+						"has_teacher_operator",
+						filterQuery.has_teacher_operator,
+					);
 				}
 			}
 			if (filterQuery.scheduled_status) {
@@ -343,7 +348,10 @@ export function AssessmentsTable({
 					params.append("scheduled_status", v),
 				);
 				if (filterQuery.scheduled_status_operator) {
-					params.append("scheduled_status_operator", filterQuery.scheduled_status_operator);
+					params.append(
+						"scheduled_status_operator",
+						filterQuery.scheduled_status_operator,
+					);
 				}
 			}
 			if (filterQuery.is_paid_operator) {

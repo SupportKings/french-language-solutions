@@ -34,7 +34,6 @@ import {
 import { useSequences } from "@/features/sequences/queries/sequences.queries";
 
 import { format } from "date-fns";
-import { useQueryState } from "nuqs";
 import {
 	AlertCircle,
 	CheckCircle,
@@ -50,6 +49,7 @@ import {
 	User,
 	XCircle,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import {
 	useAutomatedFollowUps,
 	useDeleteAutomatedFollowUp,
@@ -115,107 +115,107 @@ const getColumnConfigurations = (
 	] as const;
 
 export function AutomatedFollowUpsTable() {
-  const router = useRouter();
+	const router = useRouter();
 
-  // Track if this is the first render to avoid resetting page on initial load
-  const isInitialMount = useRef(true);
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
 
-  // URL state management for pagination and search
-  const [pageState, setPageState] = useQueryState("page", {
-    parse: (value) => Number.parseInt(value) || 1,
-    serialize: (value) => value.toString(),
-    defaultValue: 1,
-  });
-  const page = pageState ?? 1;
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
+	});
+	const page = pageState ?? 1;
 
-  const [searchQuery, setSearchQuery] = useQueryState("search", {
-    defaultValue: "",
-  });
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
+	});
 
-  // Store filters in URL as JSON
-  const [filtersParam, setFiltersParam] = useQueryState("filters", {
-    defaultValue: "",
-    parse: (value) => value,
-    serialize: (value) => value,
-  });
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
 
-  const [followUpToDelete, setFollowUpToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+	const [followUpToDelete, setFollowUpToDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const deleteFollowUp = useDeleteAutomatedFollowUp();
 
-  // Fetch sequences for filters
-  const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({
-    page: 1,
-    limit: 100,
-  });
-  const sequences = sequencesData?.data || [];
+	// Fetch sequences for filters
+	const { data: sequencesData, isLoading: isLoadingSequences } = useSequences({
+		page: 1,
+		limit: 100,
+	});
+	const sequences = sequencesData?.data || [];
 
-  // Parse initial filters from URL
-  const initialFilters = useMemo(() => {
-    if (!filtersParam) return [];
-    try {
-      const parsed = JSON.parse(decodeURIComponent(filtersParam));
-      return parsed;
-    } catch {
-      return [];
-    }
-  }, [filtersParam]);
+	// Parse initial filters from URL
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			return parsed;
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
 
-  // Data table filters hook - use dynamic columns
-  const { columns, filters, actions, strategy } = useDataTableFilters({
-    strategy: "server" as const,
-    data: [], // Empty for server-side filtering
-    columnsConfig: getColumnConfigurations(sequences, isLoadingSequences),
-    defaultFilters: initialFilters,
-  });
+	// Data table filters hook - use dynamic columns
+	const { columns, filters, actions, strategy } = useDataTableFilters({
+		strategy: "server" as const,
+		data: [], // Empty for server-side filtering
+		columnsConfig: getColumnConfigurations(sequences, isLoadingSequences),
+		defaultFilters: initialFilters,
+	});
 
-  // Sync filters to URL whenever they change
-  useEffect(() => {
-    if (filters.length === 0) {
-      setFiltersParam(null);
-    } else {
-      const serialized = encodeURIComponent(JSON.stringify(filters));
-      setFiltersParam(serialized);
-    }
-  }, [filters, setFiltersParam]);
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
 
-  // Convert filters to query params - support multiple values with operators
-  const filterQuery = useMemo(() => {
-    const statusFilter = filters.find((f) => f.columnId === "status");
-    const sequenceFilter = filters.find((f) => f.columnId === "sequence_id");
+	// Convert filters to query params - support multiple values with operators
+	const filterQuery = useMemo(() => {
+		const statusFilter = filters.find((f) => f.columnId === "status");
+		const sequenceFilter = filters.find((f) => f.columnId === "sequence_id");
 
-    return {
-      status: statusFilter?.values?.length
-        ? (statusFilter.values as any)
-        : undefined,
-      status_operator: statusFilter?.operator,
-      sequence_id: sequenceFilter?.values?.length
-        ? (sequenceFilter.values as any)
-        : undefined,
-      sequence_id_operator: sequenceFilter?.operator,
-    };
-  }, [filters]);
+		return {
+			status: statusFilter?.values?.length
+				? (statusFilter.values as any)
+				: undefined,
+			status_operator: statusFilter?.operator,
+			sequence_id: sequenceFilter?.values?.length
+				? (sequenceFilter.values as any)
+				: undefined,
+			sequence_id_operator: sequenceFilter?.operator,
+		};
+	}, [filters]);
 
-  // Reset page when filters or search change (but not on initial mount)
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    setPageState(1);
-  }, [filterQuery, searchQuery, setPageState]);
+	// Reset page when filters or search change (but not on initial mount)
+	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
+		setPageState(1);
+	}, [filterQuery, searchQuery, setPageState]);
 
-  // Build query with URL state
-  const finalQuery = useMemo(
-    () => ({
-      page,
-      limit: 20,
-      search: searchQuery || "",
-      ...filterQuery,
-    }),
-    [page, searchQuery, filterQuery]
-  );
+	// Build query with URL state
+	const finalQuery = useMemo(
+		() => ({
+			page,
+			limit: 20,
+			search: searchQuery || "",
+			...filterQuery,
+		}),
+		[page, searchQuery, filterQuery],
+	);
 
 	const { data, isLoading, error } = useAutomatedFollowUps(finalQuery);
 
@@ -242,26 +242,26 @@ export function AutomatedFollowUpsTable() {
 		);
 	}
 
-  return (
-    <div className="space-y-4">
-      {/* Table with integrated search, filters and actions */}
-      <div className="rounded-md border">
-        {/* Combined header with search, filters, and add button */}
-        <div className="space-y-2 border-b bg-muted/30 px-4 py-2">
-          {/* Search bar and action button */}
-          <div className="flex items-center gap-3">
-            <div className="relative max-w-sm flex-1">
-              <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by student name..."
-                value={searchQuery || ""}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value || null);
-                  setPageState(1); // Reset to first page on search
-                }}
-                className="h-9 bg-muted/50 pl-9"
-              />
-            </div>
+	return (
+		<div className="space-y-4">
+			{/* Table with integrated search, filters and actions */}
+			<div className="rounded-md border">
+				{/* Combined header with search, filters, and add button */}
+				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
+					{/* Search bar and action button */}
+					<div className="flex items-center gap-3">
+						<div className="relative max-w-sm flex-1">
+							<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
+							<Input
+								placeholder="Search by student name..."
+								value={searchQuery || ""}
+								onChange={(e) => {
+									setSearchQuery(e.target.value || null);
+									setPageState(1); // Reset to first page on search
+								}}
+								className="h-9 bg-muted/50 pl-9"
+							/>
+						</div>
 
 						<div className="ml-auto">
 							<Link href="/admin/automation/automated-follow-ups/new">
@@ -477,44 +477,44 @@ export function AutomatedFollowUpsTable() {
 					</TableBody>
 				</Table>
 
-        {data && data.meta?.totalPages > 1 && (
-          <div className="flex items-center justify-between border-border/50 border-t p-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <span className="font-medium text-primary">
-                Total: {data.meta.total || 0}
-              </span>
-              <span>•</span>
-              <span>
-                Page {data.meta.page} of {data.meta.totalPages}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setPageState(page - 1);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                disabled={page === 1}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setPageState(page + 1);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                disabled={page === data.meta.totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+				{data && data.meta?.totalPages > 1 && (
+					<div className="flex items-center justify-between border-border/50 border-t p-4">
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<span className="font-medium text-primary">
+								Total: {data.meta.total || 0}
+							</span>
+							<span>•</span>
+							<span>
+								Page {data.meta.page} of {data.meta.totalPages}
+							</span>
+						</div>
+						<div className="flex gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => {
+									setPageState(page - 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
+								disabled={page === 1}
+							>
+								Previous
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => {
+									setPageState(page + 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
+								disabled={page === data.meta.totalPages}
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				)}
+			</div>
 
 			<DeleteConfirmationDialog
 				open={!!followUpToDelete}

@@ -1,9 +1,13 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { cn } from "@/lib/utils";
+
+import { Button } from "@/components/ui/button";
+
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
 	Bold,
 	Italic,
@@ -14,8 +18,6 @@ import {
 	Strikethrough,
 	Undo,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface RichTextEditorProps {
 	content: any;
@@ -75,10 +77,7 @@ export function RichTextEditor({
 						size="sm"
 						onClick={() => editor.chain().focus().toggleBold().run()}
 						disabled={!editor.can().chain().focus().toggleBold().run()}
-						className={cn(
-							"h-8 w-8 p-0",
-							editor.isActive("bold") && "bg-muted",
-						)}
+						className={cn("h-8 w-8 p-0", editor.isActive("bold") && "bg-muted")}
 					>
 						<Bold className="h-4 w-4" />
 					</Button>

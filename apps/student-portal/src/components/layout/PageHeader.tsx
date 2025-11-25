@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 
-import { Bell } from "lucide-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+
+import { Bell } from "lucide-react";
 
 interface PageHeaderProps {
 	student: {
@@ -70,7 +70,7 @@ export function PageHeader({ student, unreadCount = 2 }: PageHeaderProps) {
 				<Button variant="ghost" size="icon" className="relative">
 					<Bell className="h-5 w-5" />
 					{unreadCount > 0 && (
-						<span className="-top-0.5 -right-0.5 absolute flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] text-secondary-foreground font-bold">
+						<span className="-top-0.5 -right-0.5 absolute flex h-4 w-4 items-center justify-center rounded-full bg-secondary font-bold text-[10px] text-secondary-foreground">
 							{unreadCount}
 						</span>
 					)}

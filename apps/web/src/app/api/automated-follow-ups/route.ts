@@ -36,13 +36,12 @@ export async function GET(request: NextRequest) {
 		const status = searchParams.getAll("status");
 		const status_operator = searchParams.get("status_operator") || "is any of";
 		const sequenceIds = searchParams.getAll("sequence_id");
-		const sequence_id_operator = searchParams.get("sequence_id_operator") || "is any of";
+		const sequence_id_operator =
+			searchParams.get("sequence_id_operator") || "is any of";
 		const studentId = searchParams.get("student_id");
 
 		// Determine if we need in-memory filtering for operators
-		const needsInMemoryFiltering =
-			status.length > 0 ||
-			sequenceIds.length > 0;
+		const needsInMemoryFiltering = status.length > 0 || sequenceIds.length > 0;
 
 		// Build the query
 		let query = supabase.from("automated_follow_ups").select(
@@ -123,12 +122,18 @@ export async function GET(request: NextRequest) {
 		// Sequence ID filter with operator
 		if (sequenceIds.length > 0) {
 			filteredData = filteredData.filter((followUp: any) =>
-				applyOptionFilter(followUp.sequence_id, sequenceIds, sequence_id_operator),
+				applyOptionFilter(
+					followUp.sequence_id,
+					sequenceIds,
+					sequence_id_operator,
+				),
 			);
 		}
 
 		// Apply pagination to filtered data
-		const total = needsInMemoryFiltering ? filteredData.length : (totalCount || 0);
+		const total = needsInMemoryFiltering
+			? filteredData.length
+			: totalCount || 0;
 		const start = (page - 1) * limit;
 		const paginatedData = needsInMemoryFiltering
 			? filteredData.slice(start, start + limit)

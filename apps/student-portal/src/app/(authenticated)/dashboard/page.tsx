@@ -1,17 +1,20 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/queries/getUser";
-
 import { createClient } from "@/lib/supabase/server";
 
 import {
 	AnnouncementsPreviewCard,
-	MiniCalendar,
 	ScheduleSection,
 	StatsCards,
-	TodayWorkplan,
 	WelcomeHeader,
 } from "@/features/dashboard/components";
+import {
+	getStudentEnrollments,
+	getStudentStats,
+} from "@/features/dashboard/queries";
+import { getScheduleClasses } from "@/features/schedule/queries";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function DashboardPage() {
 	const session = await getUser();
@@ -27,7 +30,21 @@ export default async function DashboardPage() {
 		.eq("user_id", session.user.id)
 		.single();
 
-	const displayName = student?.first_name || student?.full_name || "Student";
+	if (!student) {
+		redirect("/");
+	}
+
+	// Fetch enrollments to get cohort IDs
+	const enrollments = await getStudentEnrollments(student.id);
+	const cohortIds = enrollments.map((e) => e.cohortId);
+
+	// Fetch stats and classes in parallel
+	const [stats, classes] = await Promise.all([
+		getStudentStats(student.id, cohortIds),
+		getScheduleClasses(cohortIds, student.id),
+	]);
+
+	const displayName = student.first_name || student.full_name || "Student";
 
 	return (
 		<div className="space-y-6">
@@ -35,19 +52,17 @@ export default async function DashboardPage() {
 			<WelcomeHeader studentName={displayName} />
 
 			{/* Stats Cards */}
-			<StatsCards />
+			<StatsCards stats={stats} />
 
 			{/* Main Content Grid */}
 			<div className="grid gap-6 xl:grid-cols-[1fr_320px]">
 				{/* Main Column - Schedule */}
 				<div className="space-y-6">
-					<ScheduleSection />
+					<ScheduleSection classes={classes} />
 				</div>
 
-				{/* Right Sidebar - Calendar, Workplan, Announcements */}
+				{/* Right Sidebar - Announcements */}
 				<div className="space-y-6">
-					<MiniCalendar />
-					<TodayWorkplan />
 					<AnnouncementsPreviewCard />
 				</div>
 			</div>

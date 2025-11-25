@@ -2,77 +2,35 @@
 
 import { useState } from "react";
 
-import { CalendarDays, List } from "lucide-react";
+import { ScheduleCalendarView } from "@/features/schedule/components";
+import type { ClassSession } from "@/features/shared/types";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+type CalendarViewMode = "week" | "month";
 
-import {
-	ScheduleCalendarView,
-	ScheduleListView,
-} from "@/features/schedule/components";
+interface ScheduleSectionProps {
+	classes: ClassSession[];
+}
 
-type ViewMode = "list" | "calendar";
-type FilterMode = "upcoming" | "past";
-
-export function ScheduleSection() {
-	const [viewMode, setViewMode] = useState<ViewMode>("list");
-	const [filterMode, setFilterMode] = useState<FilterMode>("upcoming");
+export function ScheduleSection({ classes }: ScheduleSectionProps) {
+	const [calendarViewMode, setCalendarViewMode] =
+		useState<CalendarViewMode>("month");
 
 	return (
-		<Card>
-			<CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-				<CardTitle className="text-xl font-bold">Schedule</CardTitle>
+		<div className="space-y-6">
+			{/* Header Section */}
+			<div>
+				<h2 className="font-bold text-2xl tracking-tight">My Schedule</h2>
+				<p className="mt-1 text-muted-foreground text-sm">
+					View and manage your upcoming and past classes
+				</p>
+			</div>
 
-				<div className="flex items-center gap-3">
-					{/* Filter Tabs (for list view) */}
-					{viewMode === "list" && (
-						<Tabs
-							value={filterMode}
-							onValueChange={(v) => setFilterMode(v as FilterMode)}
-						>
-							<TabsList className="h-9">
-								<TabsTrigger value="upcoming" className="text-sm px-4">
-									Upcoming
-								</TabsTrigger>
-								<TabsTrigger value="past" className="text-sm px-4">
-									Past
-								</TabsTrigger>
-							</TabsList>
-						</Tabs>
-					)}
-
-					{/* View Mode Toggle */}
-					<div className="flex items-center rounded-lg border bg-muted/30 p-0.5">
-						<Button
-							variant={viewMode === "list" ? "secondary" : "ghost"}
-							size="sm"
-							className="h-8 gap-2 px-3"
-							onClick={() => setViewMode("list")}
-						>
-							<List className="h-4 w-4" />
-							<span className="hidden sm:inline">List</span>
-						</Button>
-						<Button
-							variant={viewMode === "calendar" ? "secondary" : "ghost"}
-							size="sm"
-							className="h-8 gap-2 px-3"
-							onClick={() => setViewMode("calendar")}
-						>
-							<CalendarDays className="h-4 w-4" />
-							<span className="hidden sm:inline">Calendar</span>
-						</Button>
-					</div>
-				</div>
-			</CardHeader>
-			<CardContent>
-				{viewMode === "list" ? (
-					<ScheduleListView filter={filterMode} />
-				) : (
-					<ScheduleCalendarView view="week" />
-				)}
-			</CardContent>
-		</Card>
+			{/* Content */}
+			<ScheduleCalendarView
+				classes={classes}
+				view={calendarViewMode}
+				onViewChange={setCalendarViewMode}
+			/>
+		</div>
 	);
 }

@@ -1,7 +1,7 @@
-export { WelcomeHeader } from "./WelcomeHeader";
+export { AnnouncementsPreviewCard } from "./AnnouncementsPreviewCard";
+export { MiniCalendar } from "./MiniCalendar";
+export { ScheduleSection } from "./ScheduleSection";
 export { StatsCards } from "./StatsCards";
 export { TodayWorkplan } from "./TodayWorkplan";
-export { MiniCalendar } from "./MiniCalendar";
 export { UpcomingClassesCard } from "./UpcomingClassesCard";
-export { AnnouncementsPreviewCard } from "./AnnouncementsPreviewCard";
-export { ScheduleSection } from "./ScheduleSection";
+export { WelcomeHeader } from "./WelcomeHeader";

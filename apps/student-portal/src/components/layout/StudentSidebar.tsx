@@ -3,9 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -19,7 +28,14 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 
-import { Home, Megaphone, Settings } from "lucide-react";
+import {
+	ChevronsUpDown,
+	Home,
+	LogOut,
+	Megaphone,
+	Settings,
+	User,
+} from "lucide-react";
 
 interface StudentSidebarProps {
 	student: {
@@ -66,7 +82,7 @@ export function StudentSidebar({ student }: StudentSidebarProps) {
 
 	return (
 		<Sidebar collapsible="icon" className="border-r-0">
-			<SidebarHeader className="border-b border-sidebar-border">
+			<SidebarHeader className="border-sidebar-border border-b">
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton
@@ -78,7 +94,7 @@ export function StudentSidebar({ student }: StudentSidebarProps) {
 							</div>
 							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-semibold">Student Portal</span>
-								<span className="truncate text-xs text-muted-foreground">
+								<span className="truncate text-muted-foreground text-xs">
 									French Language Solutions
 								</span>
 							</div>
@@ -104,7 +120,7 @@ export function StudentSidebar({ student }: StudentSidebarProps) {
 												<item.icon className="size-4" />
 												<span>{item.title}</span>
 												{item.badge && (
-													<span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-secondary-foreground">
+													<span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-secondary font-bold text-[10px] text-secondary-foreground">
 														{item.badge}
 													</span>
 												)}
@@ -118,13 +134,17 @@ export function StudentSidebar({ student }: StudentSidebarProps) {
 				</SidebarGroup>
 			</SidebarContent>
 
-			<SidebarFooter className="border-t border-sidebar-border">
+			<SidebarFooter className="border-sidebar-border border-t">
 				<SidebarMenu>
 					{bottomNavItems.map((item) => {
 						const isActive = pathname === item.url;
 						return (
 							<SidebarMenuItem key={item.title}>
-								<SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+								<SidebarMenuButton
+									asChild
+									isActive={isActive}
+									tooltip={item.title}
+								>
 									<Link href={item.url}>
 										<item.icon className="size-4" />
 										<span>{item.title}</span>
@@ -134,23 +154,88 @@ export function StudentSidebar({ student }: StudentSidebarProps) {
 						);
 					})}
 					<SidebarMenuItem>
-						<SidebarMenuButton
-							className="group-data-[collapsible=icon]:justify-center"
-							tooltip="Profile"
-						>
-							<Avatar className="size-6">
-								<AvatarImage src={student.avatar} />
-								<AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-									{initials}
-								</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{student.fullName}</span>
-								<span className="truncate text-xs text-muted-foreground">
-									{student.email}
-								</span>
-							</div>
-						</SidebarMenuButton>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<SidebarMenuButton
+									size="lg"
+									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+								>
+									<Avatar className="h-8 w-8 rounded-lg">
+										<AvatarImage src={student.avatar} alt={student.fullName} />
+										<AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs">
+											{initials}
+										</AvatarFallback>
+									</Avatar>
+									<div className="grid flex-1 text-left text-sm leading-tight">
+										<span className="truncate font-semibold">
+											{student.fullName}
+										</span>
+										<span className="truncate text-muted-foreground text-xs">
+											{student.email}
+										</span>
+									</div>
+									<ChevronsUpDown className="ml-auto size-4" />
+								</SidebarMenuButton>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+								side="bottom"
+								align="end"
+								sideOffset={4}
+							>
+								<DropdownMenuLabel className="p-0 font-normal">
+									<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+										<Avatar className="h-8 w-8 rounded-lg">
+											<AvatarImage
+												src={student.avatar}
+												alt={student.fullName}
+											/>
+											<AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs">
+												{initials}
+											</AvatarFallback>
+										</Avatar>
+										<div className="grid flex-1 text-left text-sm leading-tight">
+											<span className="truncate font-semibold">
+												{student.fullName}
+											</span>
+											<span className="truncate text-muted-foreground text-xs">
+												{student.email}
+											</span>
+										</div>
+									</div>
+								</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								<DropdownMenuGroup>
+									<DropdownMenuItem asChild>
+										<Link href="/settings">
+											<User className="mr-2 size-4" />
+											Profile
+										</Link>
+									</DropdownMenuItem>
+									<DropdownMenuItem asChild>
+										<Link href="/settings">
+											<Settings className="mr-2 size-4" />
+											Settings
+										</Link>
+									</DropdownMenuItem>
+								</DropdownMenuGroup>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={() => {
+										authClient.signOut({
+											fetchOptions: {
+												onSuccess: () => {
+													window.location.href = "/";
+												},
+											},
+										});
+									}}
+								>
+									<LogOut className="mr-2 size-4" />
+									Log out
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarFooter>

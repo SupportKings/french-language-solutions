@@ -31,9 +31,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { useProducts } from "@/features/products/queries/useProducts";
+import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
+
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { useQueryState } from "nuqs";
 import {
 	BarChart3,
 	Building,
@@ -51,10 +53,8 @@ import {
 	User,
 	Users,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
-
-import { useProducts } from "@/features/products/queries/useProducts";
-import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
 
 const statusColors = {
 	declined_contract: "destructive",
@@ -212,7 +212,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 				if (filter.type === "date" && filter.values) {
 					return {
 						...filter,
-						values: filter.values.map((v: any) => v ? new Date(v) : v),
+						values: filter.values.map((v: any) => (v ? new Date(v) : v)),
 					};
 				}
 				return filter;
@@ -244,10 +244,14 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 	const filterQuery = useMemo(() => {
 		const statusFilter = filters.find((f) => f.columnId === "status");
 		const productFilter = filters.find((f) => f.columnId === "product");
-		const cohortNicknameFilter = filters.find((f) => f.columnId === "cohort_nickname");
+		const cohortNicknameFilter = filters.find(
+			(f) => f.columnId === "cohort_nickname",
+		);
 		const teacherFilter = filters.find((f) => f.columnId === "teacher");
 		const dateFilter = filters.find((f) => f.columnId === "created_at");
-		const completionFilter = filters.find((f) => f.columnId === "completion_percentage");
+		const completionFilter = filters.find(
+			(f) => f.columnId === "completion_percentage",
+		);
 
 		// Date filter values are stored as [from, to] for ranges or [date] for single dates
 		const dateValues = dateFilter?.values || [];
@@ -367,11 +371,15 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 		return {
 			status: statusFilter?.values?.length ? statusFilter.values : undefined,
 			status_operator: statusFilter?.operator,
-			productIds: productFilter?.values?.length ? productFilter.values : undefined,
+			productIds: productFilter?.values?.length
+				? productFilter.values
+				: undefined,
 			productIds_operator: productFilter?.operator,
 			cohortNickname: cohortNicknameFilter?.values?.[0] || undefined,
 			cohortNickname_operator: cohortNicknameFilter?.operator,
-			teacherIds: teacherFilter?.values?.length ? teacherFilter.values : undefined,
+			teacherIds: teacherFilter?.values?.length
+				? teacherFilter.values
+				: undefined,
 			teacherIds_operator: teacherFilter?.operator,
 			dateFrom,
 			dateTo,
@@ -429,7 +437,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			if (filterQuery.cohortNickname) {
 				params.append("cohortNickname", filterQuery.cohortNickname);
 				if (filterQuery.cohortNickname_operator) {
-					params.append("cohortNickname_operator", filterQuery.cohortNickname_operator);
+					params.append(
+						"cohortNickname_operator",
+						filterQuery.cohortNickname_operator,
+					);
 				}
 			}
 
@@ -456,17 +467,35 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			}
 
 			// Add completion percentage filters
-			if (filterQuery.completionMin !== null && filterQuery.completionMin !== undefined) {
+			if (
+				filterQuery.completionMin !== null &&
+				filterQuery.completionMin !== undefined
+			) {
 				params.append("completionMin", filterQuery.completionMin.toString());
 			}
-			if (filterQuery.completionMax !== null && filterQuery.completionMax !== undefined) {
+			if (
+				filterQuery.completionMax !== null &&
+				filterQuery.completionMax !== undefined
+			) {
 				params.append("completionMax", filterQuery.completionMax.toString());
 			}
-			if (filterQuery.completionExact !== null && filterQuery.completionExact !== undefined) {
-				params.append("completionExact", filterQuery.completionExact.toString());
+			if (
+				filterQuery.completionExact !== null &&
+				filterQuery.completionExact !== undefined
+			) {
+				params.append(
+					"completionExact",
+					filterQuery.completionExact.toString(),
+				);
 			}
-			if (filterQuery.completionExclude !== null && filterQuery.completionExclude !== undefined) {
-				params.append("completionExclude", filterQuery.completionExclude.toString());
+			if (
+				filterQuery.completionExclude !== null &&
+				filterQuery.completionExclude !== undefined
+			) {
+				params.append(
+					"completionExclude",
+					filterQuery.completionExclude.toString(),
+				);
 			}
 			if (filterQuery.completionOperator) {
 				params.append("completionOperator", filterQuery.completionOperator);
@@ -693,8 +722,7 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 																		variant="secondary"
 																		className="text-xs"
 																	>
-																		{dayAbbrev}{" "}
-																		{formatTime(session.start_time)}
+																		{dayAbbrev} {formatTime(session.start_time)}
 																	</Badge>
 																);
 															},
@@ -712,7 +740,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 													.filter(Boolean) // Remove null/undefined
 													.filter(
 														(teacher: any, index: number, self: any[]) =>
-															teacher && self.findIndex((t: any) => t?.id === teacher?.id) === index,
+															teacher &&
+															self.findIndex(
+																(t: any) => t?.id === teacher?.id,
+															) === index,
 													) // Get unique teachers
 													.map((teacher: any) => (
 														<LinkedRecordBadge

@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/queries/getUser";
-
 import { createClient } from "@/lib/supabase/server";
+
+import { getUser } from "@/queries/getUser";
 
 export default async function ProfilePage() {
 	const session = await getUser();

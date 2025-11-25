@@ -283,9 +283,8 @@ export async function filterStudentsByAccess(
 	// Filter students who have enrollments in teacher's cohorts
 	return students.filter((student) => {
 		const enrollments = student.enrollments || [];
-		return enrollments.some(
-			(enrollment: any) =>
-				teacherCohortIds.includes(enrollment.cohort_id),
+		return enrollments.some((enrollment: any) =>
+			teacherCohortIds.includes(enrollment.cohort_id),
 		);
 	});
 }

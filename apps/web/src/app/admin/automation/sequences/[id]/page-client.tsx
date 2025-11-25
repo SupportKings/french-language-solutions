@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
 import {
@@ -18,6 +17,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

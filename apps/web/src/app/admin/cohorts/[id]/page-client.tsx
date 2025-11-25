@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { formatDate } from "@/lib/date-utils";
+
 import { extractGoogleDriveFolderId } from "@/utils/google-drive";
-import { BackButton } from "@/components/ui/back-button";
+
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -20,6 +22,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +40,6 @@ import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance
 import { CohortClasses } from "@/features/cohorts/components/CohortClasses";
 import { CohortEnrollments } from "@/features/cohorts/components/CohortEnrollments";
 import { WeeklySessionModal } from "@/features/cohorts/components/WeeklySessionModal";
-import { InternalNotes } from "@/components/internal-notes/InternalNotes";
 import {
 	useCohort,
 	useCohortWithSessions,

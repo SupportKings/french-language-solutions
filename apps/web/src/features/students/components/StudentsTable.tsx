@@ -242,7 +242,7 @@ export function StudentsTable({
 				if (filter.type === "date" && filter.values) {
 					return {
 						...filter,
-						values: filter.values.map((v: any) => v ? new Date(v) : v),
+						values: filter.values.map((v: any) => (v ? new Date(v) : v)),
 					};
 				}
 				return filter;

@@ -22,8 +22,8 @@ export const mockClasses: ClassSession[] = [
 	{
 		id: "class-1",
 		cohortId: "cohort-1",
-		cohortName: "A2 Morning French",
-		courseName: "Conversational French",
+		format: "group",
+		level: "A2",
 		startTime: addHours(today, 10).toISOString(), // Today at 10am
 		endTime: addHours(today, 11.5).toISOString(),
 		teacher: {
@@ -38,8 +38,8 @@ export const mockClasses: ClassSession[] = [
 	{
 		id: "class-2",
 		cohortId: "cohort-2",
-		cohortName: "B1 Conversation Club",
-		courseName: "Advanced Conversation",
+		format: "group",
+		level: "B1",
 		startTime: addHours(today, 14).toISOString(), // Today at 2pm
 		endTime: addHours(today, 15.5).toISOString(),
 		teacher: {
@@ -53,8 +53,8 @@ export const mockClasses: ClassSession[] = [
 	{
 		id: "class-3",
 		cohortId: "cohort-1",
-		cohortName: "A2 Morning French",
-		courseName: "Conversational French",
+		format: "group",
+		level: "A2",
 		startTime: addHours(addDays(today, 1), 10).toISOString(), // Tomorrow 10am
 		endTime: addHours(addDays(today, 1), 11.5).toISOString(),
 		teacher: {
@@ -68,8 +68,8 @@ export const mockClasses: ClassSession[] = [
 	{
 		id: "class-4",
 		cohortId: "cohort-2",
-		cohortName: "B1 Conversation Club",
-		courseName: "Advanced Conversation",
+		format: "group",
+		level: "B1",
 		startTime: addHours(addDays(today, 2), 14).toISOString(), // Day after tomorrow
 		endTime: addHours(addDays(today, 2), 15.5).toISOString(),
 		teacher: {
@@ -83,8 +83,8 @@ export const mockClasses: ClassSession[] = [
 	{
 		id: "class-5",
 		cohortId: "cohort-1",
-		cohortName: "A2 Morning French",
-		courseName: "Conversational French",
+		format: "group",
+		level: "A2",
 		startTime: addHours(addDays(today, 3), 10).toISOString(),
 		endTime: addHours(addDays(today, 3), 11.5).toISOString(),
 		teacher: {
@@ -98,8 +98,8 @@ export const mockClasses: ClassSession[] = [
 	{
 		id: "class-6",
 		cohortId: "cohort-1",
-		cohortName: "A2 Morning French",
-		courseName: "Conversational French",
+		format: "group",
+		level: "A2",
 		startTime: addHours(addDays(today, -2), 10).toISOString(), // 2 days ago
 		endTime: addHours(addDays(today, -2), 11.5).toISOString(),
 		teacher: {

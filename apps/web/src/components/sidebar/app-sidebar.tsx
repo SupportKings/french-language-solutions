@@ -212,6 +212,10 @@ export function AppSidebar({
 							title: "All Cohorts",
 							url: "/admin/cohorts",
 						},
+						{
+							title: "Announcements",
+							url: "/admin/announcements",
+						},
 					],
 				});
 			}

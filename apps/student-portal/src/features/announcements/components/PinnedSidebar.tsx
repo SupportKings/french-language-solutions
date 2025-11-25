@@ -1,14 +1,14 @@
 "use client";
 
-import { formatDistanceToNow, parseISO } from "date-fns";
-import { MoreHorizontal, Pin } from "lucide-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import type { Announcement } from "@/features/shared/types";
+
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { MoreHorizontal, Pin } from "lucide-react";
 
 interface PinnedSidebarProps {
 	announcements: Announcement[];
@@ -30,7 +30,9 @@ function PinnedItem({ announcement }: { announcement: Announcement }) {
 						<AvatarImage src={announcement.author.avatar} />
 						<AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
 					</Avatar>
-					<span className="font-medium text-sm">{announcement.author.name}</span>
+					<span className="font-medium text-sm">
+						{announcement.author.name}
+					</span>
 				</div>
 				<Badge variant="outline" className="gap-1 text-[10px]">
 					<Pin className="h-2.5 w-2.5 rotate-45" />

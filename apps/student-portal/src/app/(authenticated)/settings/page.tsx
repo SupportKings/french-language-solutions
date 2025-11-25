@@ -1,16 +1,23 @@
 import { redirect } from "next/navigation";
 
-import { Settings, User, Bell, Shield } from "lucide-react";
-
-import { getUser } from "@/queries/getUser";
 import { createClient } from "@/lib/supabase/server";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+
+import { getUser } from "@/queries/getUser";
+
+import { Bell, Settings, Shield, User } from "lucide-react";
 
 export default async function SettingsPage() {
 	const session = await getUser();
@@ -22,7 +29,9 @@ export default async function SettingsPage() {
 	const supabase = await createClient();
 	const { data: student } = await supabase
 		.from("students")
-		.select("id, full_name, first_name, last_name, email, mobile_phone_number, city")
+		.select(
+			"id, full_name, first_name, last_name, email, mobile_phone_number, city",
+		)
 		.eq("user_id", session.user.id)
 		.single();
 
@@ -140,7 +149,9 @@ export default async function SettingsPage() {
 						</div>
 						<div>
 							<CardTitle>Notifications</CardTitle>
-							<CardDescription>Manage your notification preferences</CardDescription>
+							<CardDescription>
+								Manage your notification preferences
+							</CardDescription>
 						</div>
 					</div>
 				</CardHeader>

@@ -65,7 +65,9 @@ export function StudentPortalAccessDialog({
 				if (result.data?.success) {
 					toast.success(result.data.message);
 					setOpen(false);
-					queryClient.invalidateQueries({ queryKey: studentsKeys.detail(studentId) });
+					queryClient.invalidateQueries({
+						queryKey: studentsKeys.detail(studentId),
+					});
 				}
 			},
 			onError: ({ error }) => {
@@ -86,7 +88,9 @@ export function StudentPortalAccessDialog({
 					toast.success(result.data.message);
 					setOpen(false);
 					setRevokeReason("");
-					queryClient.invalidateQueries({ queryKey: studentsKeys.detail(studentId) });
+					queryClient.invalidateQueries({
+						queryKey: studentsKeys.detail(studentId),
+					});
 				}
 			},
 			onError: ({ error }) => {
@@ -178,7 +182,7 @@ export function StudentPortalAccessDialog({
 							Email Address
 						</Label>
 						<div className="relative">
-							<Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+							<Mail className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								id="email"
 								type="email"
@@ -256,8 +260,8 @@ export function StudentPortalAccessDialog({
 					<span>Revoke Portal Access</span>
 				</DialogTitle>
 				<DialogDescription>
-					This will prevent <strong>{studentName}</strong> from logging into
-					the student portal. You can restore access at any time.
+					This will prevent <strong>{studentName}</strong> from logging into the
+					student portal. You can restore access at any time.
 				</DialogDescription>
 			</DialogHeader>
 
@@ -334,8 +338,8 @@ export function StudentPortalAccessDialog({
 					<span>Restore Portal Access</span>
 				</DialogTitle>
 				<DialogDescription>
-					Restore <strong>{studentName}</strong>'s access to the student
-					portal. They will be able to log in again immediately.
+					Restore <strong>{studentName}</strong>'s access to the student portal.
+					They will be able to log in again immediately.
 				</DialogDescription>
 			</DialogHeader>
 

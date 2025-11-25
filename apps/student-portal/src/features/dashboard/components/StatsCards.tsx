@@ -1,87 +1,77 @@
 "use client";
 
+import type { StudentStats } from "@/features/shared/types";
+
 import { BookOpen, Calendar, CheckCircle, TrendingUp } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+interface StatsCardsProps {
+	stats: StudentStats;
+}
 
-import { mockStudentStats } from "@/features/shared/data/mock-data";
-
-export function StatsCards() {
-	const stats = mockStudentStats;
-
+export function StatsCards({ stats }: StatsCardsProps) {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			{/* Attendance Rate */}
-			<Card className="bg-gradient-to-br from-blue-500/15 to-blue-500/5 border-blue-200/50 hover:shadow-md transition-shadow">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-muted-foreground text-sm">Attendance</p>
-							<p className="font-bold text-2xl text-blue-700">{stats.attendanceRate}%</p>
-						</div>
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/15">
-							<CheckCircle className="h-6 w-6 text-blue-600" />
-						</div>
+		<div className="rounded-xl border bg-card p-4">
+			<div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+				{/* Attendance */}
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+						<CheckCircle className="h-5 w-5 text-blue-600" />
 					</div>
-					<Progress value={stats.attendanceRate} className="mt-4 h-1.5 [&>div]:bg-blue-500" />
-				</CardContent>
-			</Card>
+					<div className="min-w-0">
+						<p className="text-muted-foreground text-xs">Attendance</p>
+						<p className="font-bold text-blue-700 text-lg leading-tight">
+							{stats.attendanceRate}%
+						</p>
+					</div>
+				</div>
 
-			{/* Completion Rate */}
-			<Card className="bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 border-emerald-200/50 hover:shadow-md transition-shadow">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-muted-foreground text-sm">Completion</p>
-							<p className="font-bold text-2xl text-emerald-700">{stats.completionRate}%</p>
-						</div>
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15">
-							<TrendingUp className="h-6 w-6 text-emerald-600" />
+				{/* Progress */}
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
+						<TrendingUp className="h-5 w-5 text-emerald-600" />
+					</div>
+					<div className="min-w-0">
+						<p className="text-muted-foreground text-xs">Course Progress</p>
+						<div className="flex items-baseline gap-1">
+							<span className="font-bold text-emerald-700 text-lg leading-tight">
+								{stats.completedClasses}
+							</span>
+							<span className="text-muted-foreground text-xs">
+								/ {stats.totalClasses} classes
+							</span>
 						</div>
 					</div>
-					<Progress
-						value={stats.completionRate}
-						className="mt-4 h-1.5 [&>div]:bg-emerald-500"
-					/>
-				</CardContent>
-			</Card>
+				</div>
 
-			{/* Current Level */}
-			<Card className="bg-gradient-to-br from-amber-500/15 to-amber-500/5 border-amber-200/50 hover:shadow-md transition-shadow">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-muted-foreground text-sm">Current Level</p>
-							<p className="font-bold text-2xl text-amber-700">{stats.currentLevel}</p>
-						</div>
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/15">
-							<BookOpen className="h-6 w-6 text-amber-600" />
-						</div>
+				{/* Current Level */}
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
+						<BookOpen className="h-5 w-5 text-amber-600" />
 					</div>
-					<p className="mt-4 text-muted-foreground text-xs">
-						{stats.completedClasses} of {stats.totalClasses} classes completed
-					</p>
-				</CardContent>
-			</Card>
+					<div className="min-w-0">
+						<p className="text-muted-foreground text-xs">Current Level</p>
+						<p className="font-bold text-amber-700 text-lg leading-tight">
+							{stats.currentLevel}
+						</p>
+					</div>
+				</div>
 
-			{/* Upcoming Classes */}
-			<Card className="bg-gradient-to-br from-rose-500/15 to-rose-500/5 border-rose-200/50 hover:shadow-md transition-shadow">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-muted-foreground text-sm">Upcoming</p>
-							<p className="font-bold text-2xl text-rose-700">{stats.upcomingClasses}</p>
-						</div>
-						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/15">
-							<Calendar className="h-6 w-6 text-rose-600" />
+				{/* Upcoming */}
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+						<Calendar className="h-5 w-5 text-secondary" />
+					</div>
+					<div className="min-w-0">
+						<p className="text-muted-foreground text-xs">This Week</p>
+						<div className="flex items-baseline gap-1">
+							<span className="font-bold text-lg text-secondary leading-tight">
+								{stats.upcomingClasses}
+							</span>
+							<span className="text-muted-foreground text-xs">classes</span>
 						</div>
 					</div>
-					<p className="mt-4 text-muted-foreground text-xs">
-						Classes scheduled this week
-					</p>
-				</CardContent>
-			</Card>
+				</div>
+			</div>
 		</div>
 	);
 }

@@ -341,7 +341,7 @@ export class FollowUpService {
 		}
 
 		// Check if there's a next message
-		const nextMessage = await this.findTemplateMessageByStep(followUpId,1);
+		const nextMessage = await this.findTemplateMessageByStep(followUpId, 1);
 		const now = new Date().toISOString();
 
 		if (nextMessage) {
@@ -571,7 +571,10 @@ export class FollowUpService {
 						.single();
 
 					// Get the next message to send its ID
-					const nextMessage = await this.findTemplateMessageByStep(followUp.id,0);
+					const nextMessage = await this.findTemplateMessageByStep(
+						followUp.id,
+						0,
+					);
 					if (!nextMessage) {
 						console.error(`No next message found for follow-up ${followUp.id}`);
 						results.push({
@@ -944,7 +947,8 @@ export class FollowUpService {
 							`[FollowUp] ✓ Successfully created follow-up ${followUpResult.data?.follow_up_id} for student ${student.id}`,
 						);
 					} else {
-						console.log(`[FollowUp] ✗ Failed to create follow-up for student ${student.id}: ${followUpResult.error} (${followUpResult.code})`,
+						console.log(
+							`[FollowUp] ✗ Failed to create follow-up for student ${student.id}: ${followUpResult.error} (${followUpResult.code})`,
 						);
 					}
 

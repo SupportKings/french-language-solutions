@@ -21,7 +21,10 @@ const restoreSchema = z.object({
 	action: z.literal("restore"),
 });
 
-const inputSchema = z.discriminatedUnion("action", [revokeSchema, restoreSchema]);
+const inputSchema = z.discriminatedUnion("action", [
+	revokeSchema,
+	restoreSchema,
+]);
 
 export const toggleStudentAccess = actionClient
 	.inputSchema(inputSchema)

@@ -1,11 +1,11 @@
 "use client";
 
-import { format, isToday, parseISO } from "date-fns";
-import { BookOpen, Calendar, ClipboardCheck } from "lucide-react";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { mockWorkplanItems } from "@/features/shared/data/mock-data";
+
+import { format, isToday, parseISO } from "date-fns";
+import { BookOpen, Calendar, ClipboardCheck } from "lucide-react";
 
 const iconMap = {
 	class: Calendar,
@@ -21,7 +21,7 @@ const colorMap = {
 
 export function TodayWorkplan() {
 	const todayItems = mockWorkplanItems.filter((item) =>
-		isToday(parseISO(item.dueDate))
+		isToday(parseISO(item.dueDate)),
 	);
 
 	return (
@@ -29,7 +29,7 @@ export function TodayWorkplan() {
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center gap-2 text-base">
 					<span>Today's Focus</span>
-					<span className="text-muted-foreground text-sm font-normal">
+					<span className="font-normal text-muted-foreground text-sm">
 						{format(new Date(), "MMM d")}
 					</span>
 				</CardTitle>

@@ -36,18 +36,19 @@ export const StudentInviteEmail = ({
 				<Section style={banner}>
 					<Text style={bannerEmoji}>🎉</Text>
 					<Heading style={bannerHeading}>Bienvenue!</Heading>
-					<Text style={bannerSubtext}>Welcome to your French learning journey</Text>
+					<Text style={bannerSubtext}>
+						Welcome to your French learning journey
+					</Text>
 				</Section>
 
 				{/* Main Content */}
 				<Section style={content}>
-					<Text style={greeting}>
-						Bonjour {studentName}! 👋
-					</Text>
+					<Text style={greeting}>Bonjour {studentName}! 👋</Text>
 
 					<Text style={text}>
 						Great news! {inviterName ? `${inviterName} from ` : ""}
-						<strong>{companyName}</strong> has set up your student portal account.
+						<strong>{companyName}</strong> has set up your student portal
+						account.
 					</Text>
 
 					<Text style={text}>
@@ -55,7 +56,9 @@ export const StudentInviteEmail = ({
 					</Text>
 
 					<Section style={featureList}>
-						<Text style={featureItem}>📅 View your upcoming class sessions</Text>
+						<Text style={featureItem}>
+							📅 View your upcoming class sessions
+						</Text>
 						<Text style={featureItem}>📈 Track your learning progress</Text>
 						<Text style={featureItem}>👤 Manage your profile</Text>
 					</Section>
@@ -66,9 +69,7 @@ export const StudentInviteEmail = ({
 						</Button>
 					</Section>
 
-					<Text style={linkText}>
-						Or copy this link into your browser:
-					</Text>
+					<Text style={linkText}>Or copy this link into your browser:</Text>
 					<Text style={urlText}>
 						<Link href={inviteUrl} style={link}>
 							{inviteUrl}
@@ -81,14 +82,11 @@ export const StudentInviteEmail = ({
 				{/* Footer */}
 				<Section style={footer}>
 					<Text style={footerText}>
-						Need help? Just reply to this email and we'll be happy to assist you.
+						Need help? Just reply to this email and we'll be happy to assist
+						you.
 					</Text>
-					<Text style={footerNote}>
-						À bientôt! 🇫🇷
-					</Text>
-					<Text style={footerCompany}>
-						{companyName}
-					</Text>
+					<Text style={footerNote}>À bientôt! 🇫🇷</Text>
+					<Text style={footerCompany}>{companyName}</Text>
 				</Section>
 			</Container>
 		</Body>

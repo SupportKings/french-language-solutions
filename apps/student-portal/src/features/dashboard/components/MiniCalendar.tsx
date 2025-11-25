@@ -2,10 +2,18 @@
 
 import { useMemo, useState } from "react";
 
+import { cn } from "@/lib/utils";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { mockClasses } from "@/features/shared/data/mock-data";
+
 import {
 	addMonths,
 	eachDayOfInterval,
 	endOfMonth,
+	endOfWeek,
 	format,
 	isSameDay,
 	isSameMonth,
@@ -13,15 +21,8 @@ import {
 	parseISO,
 	startOfMonth,
 	startOfWeek,
-	endOfWeek,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-
-import { mockClasses } from "@/features/shared/data/mock-data";
 
 export function MiniCalendar() {
 	const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -54,7 +55,7 @@ export function MiniCalendar() {
 						>
 							<ChevronLeft className="h-4 w-4" />
 						</Button>
-						<span className="min-w-[100px] text-center text-sm font-medium">
+						<span className="min-w-[100px] text-center font-medium text-sm">
 							{format(currentMonth, "MMMM yyyy")}
 						</span>
 						<Button
@@ -74,7 +75,7 @@ export function MiniCalendar() {
 					{["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
 						<div
 							key={`${day}-${i}`}
-							className="text-center text-muted-foreground text-xs font-medium"
+							className="text-center font-medium text-muted-foreground text-xs"
 						>
 							{day}
 						</div>
@@ -96,9 +97,10 @@ export function MiniCalendar() {
 									"relative flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors",
 									!isCurrentMonth && "text-muted-foreground/40",
 									isCurrentMonth && "text-foreground",
-									isTodayDate && "bg-primary text-primary-foreground font-semibold",
+									isTodayDate &&
+										"bg-primary font-semibold text-primary-foreground",
 									!isTodayDate && hasClassOnDay && "bg-primary/10 font-medium",
-									!isTodayDate && !hasClassOnDay && "hover:bg-muted"
+									!isTodayDate && !hasClassOnDay && "hover:bg-muted",
 								)}
 							>
 								{format(day, "d")}
@@ -111,7 +113,7 @@ export function MiniCalendar() {
 				</div>
 
 				{/* Legend */}
-				<div className="mt-4 flex items-center gap-4 border-t pt-3 text-xs text-muted-foreground">
+				<div className="mt-4 flex items-center gap-4 border-t pt-3 text-muted-foreground text-xs">
 					<div className="flex items-center gap-1.5">
 						<span className="h-2 w-2 rounded-full bg-primary" />
 						<span>Today</span>

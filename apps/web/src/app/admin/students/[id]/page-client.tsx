@@ -7,9 +7,10 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,9 +23,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { InternalNotes } from "@/components/internal-notes/InternalNotes";
-
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
+import { studentsApi } from "@/features/students/api/students.api";
 import { StudentAssessments } from "@/features/students/components/StudentAssessments";
 import { StudentAttendance } from "@/features/students/components/StudentAttendance";
 import {
@@ -33,11 +34,9 @@ import {
 } from "@/features/students/components/StudentDetailsClient";
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
-import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
-import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
+import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { studentsKeys } from "@/features/students/queries/students.queries";
-import { studentsApi } from "@/features/students/api/students.api";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -212,7 +211,9 @@ export default function StudentDetailsClient({
 			if (!response.ok) throw new Error("Failed to update");
 
 			// Invalidate query to refetch updated data
-			await queryClient.invalidateQueries({ queryKey: studentsKeys.detail(student.id) });
+			await queryClient.invalidateQueries({
+				queryKey: studentsKeys.detail(student.id),
+			});
 			toast.success("Changes saved successfully");
 		} catch (error) {
 			toast.error("Failed to save changes");
@@ -299,7 +300,9 @@ export default function StudentDetailsClient({
 											variant={student.user?.banned ? "destructive" : "success"}
 											className="h-4 px-1.5 text-[10px]"
 										>
-											{student.user?.banned ? "Access Revoked" : "Portal Access"}
+											{student.user?.banned
+												? "Access Revoked"
+												: "Portal Access"}
 										</Badge>
 									)}
 								</div>
@@ -640,7 +643,6 @@ export default function StudentDetailsClient({
 										</div>
 									</div>
 								</div>
-
 							</div>
 						</div>
 					)}
@@ -848,7 +850,9 @@ export default function StudentDetailsClient({
 							internalNotes: content,
 						});
 						// Invalidate query to refetch updated data
-						await queryClient.invalidateQueries({ queryKey: studentsKeys.detail(student.id) });
+						await queryClient.invalidateQueries({
+							queryKey: studentsKeys.detail(student.id),
+						});
 					}}
 					canEdit={canEditStudent}
 					entityType="student"

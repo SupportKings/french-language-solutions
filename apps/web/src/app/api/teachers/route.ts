@@ -41,29 +41,38 @@ export async function GET(request: NextRequest) {
 
 		// Filters - handle multiple values with operators
 		const onboardingStatus = searchParams.getAll("onboarding_status");
-		const onboarding_status_operator = searchParams.get("onboarding_status_operator") || "is any of";
+		const onboarding_status_operator =
+			searchParams.get("onboarding_status_operator") || "is any of";
 		const role = searchParams.getAll("role");
 		const role_operator = searchParams.get("role_operator") || "is any of";
 		const contractType = searchParams.getAll("contract_type");
-		const contract_type_operator = searchParams.get("contract_type_operator") || "is any of";
+		const contract_type_operator =
+			searchParams.get("contract_type_operator") || "is any of";
 		const availableForBooking = searchParams.get("available_for_booking");
-		const available_for_booking_operator = searchParams.get("available_for_booking_operator") || "is any of";
+		const available_for_booking_operator =
+			searchParams.get("available_for_booking_operator") || "is any of";
 		const qualifiedForUnder16 = searchParams.get("qualified_for_under_16");
-		const qualified_for_under_16_operator = searchParams.get("qualified_for_under_16_operator") || "is any of";
+		const qualified_for_under_16_operator =
+			searchParams.get("qualified_for_under_16_operator") || "is any of";
 		const availableForOnlineClasses = searchParams.get(
 			"available_for_online_classes",
 		);
-		const available_for_online_classes_operator = searchParams.get("available_for_online_classes_operator") || "is any of";
+		const available_for_online_classes_operator =
+			searchParams.get("available_for_online_classes_operator") || "is any of";
 		const availableForInPersonClasses = searchParams.get(
 			"available_for_in_person_classes",
 		);
-		const available_for_in_person_classes_operator = searchParams.get("available_for_in_person_classes_operator") || "is any of";
+		const available_for_in_person_classes_operator =
+			searchParams.get("available_for_in_person_classes_operator") ||
+			"is any of";
 		const daysAvailableOnline = searchParams.getAll("days_available_online");
-		const days_available_online_operator = searchParams.get("days_available_online_operator") || "is any of";
+		const days_available_online_operator =
+			searchParams.get("days_available_online_operator") || "is any of";
 		const daysAvailableInPerson = searchParams.getAll(
 			"days_available_in_person",
 		);
-		const days_available_in_person_operator = searchParams.get("days_available_in_person_operator") || "is any of";
+		const days_available_in_person_operator =
+			searchParams.get("days_available_in_person_operator") || "is any of";
 
 		// Determine if we need in-memory filtering for operators
 		const needsInMemoryFiltering =
@@ -138,7 +147,11 @@ export async function GET(request: NextRequest) {
 		// Onboarding status filter with operator
 		if (onboardingStatus.length > 0) {
 			filteredData = filteredData.filter((teacher: any) =>
-				applyOptionFilter(teacher.onboarding_status, onboardingStatus, onboarding_status_operator),
+				applyOptionFilter(
+					teacher.onboarding_status,
+					onboardingStatus,
+					onboarding_status_operator,
+				),
 			);
 		}
 
@@ -165,7 +178,11 @@ export async function GET(request: NextRequest) {
 		// Contract type filter with operator
 		if (contractType.length > 0) {
 			filteredData = filteredData.filter((teacher: any) =>
-				applyOptionFilter(teacher.contract_type, contractType, contract_type_operator),
+				applyOptionFilter(
+					teacher.contract_type,
+					contractType,
+					contract_type_operator,
+				),
 			);
 		}
 
@@ -173,7 +190,11 @@ export async function GET(request: NextRequest) {
 		if (availableForBooking !== null && availableForBooking !== undefined) {
 			const bookingValues = [availableForBooking];
 			filteredData = filteredData.filter((teacher: any) =>
-				applyOptionFilter(String(teacher.available_for_booking), bookingValues, available_for_booking_operator),
+				applyOptionFilter(
+					String(teacher.available_for_booking),
+					bookingValues,
+					available_for_booking_operator,
+				),
 			);
 		}
 
@@ -181,23 +202,41 @@ export async function GET(request: NextRequest) {
 		if (qualifiedForUnder16 !== null && qualifiedForUnder16 !== undefined) {
 			const under16Values = [qualifiedForUnder16];
 			filteredData = filteredData.filter((teacher: any) =>
-				applyOptionFilter(String(teacher.qualified_for_under_16), under16Values, qualified_for_under_16_operator),
+				applyOptionFilter(
+					String(teacher.qualified_for_under_16),
+					under16Values,
+					qualified_for_under_16_operator,
+				),
 			);
 		}
 
 		// Available for online classes filter with operator
-		if (availableForOnlineClasses !== null && availableForOnlineClasses !== undefined) {
+		if (
+			availableForOnlineClasses !== null &&
+			availableForOnlineClasses !== undefined
+		) {
 			const onlineValues = [availableForOnlineClasses];
 			filteredData = filteredData.filter((teacher: any) =>
-				applyOptionFilter(String(teacher.available_for_online_classes), onlineValues, available_for_online_classes_operator),
+				applyOptionFilter(
+					String(teacher.available_for_online_classes),
+					onlineValues,
+					available_for_online_classes_operator,
+				),
 			);
 		}
 
 		// Available for in-person classes filter with operator
-		if (availableForInPersonClasses !== null && availableForInPersonClasses !== undefined) {
+		if (
+			availableForInPersonClasses !== null &&
+			availableForInPersonClasses !== undefined
+		) {
 			const inPersonValues = [availableForInPersonClasses];
 			filteredData = filteredData.filter((teacher: any) =>
-				applyOptionFilter(String(teacher.available_for_in_person_classes), inPersonValues, available_for_in_person_classes_operator),
+				applyOptionFilter(
+					String(teacher.available_for_in_person_classes),
+					inPersonValues,
+					available_for_in_person_classes_operator,
+				),
 			);
 		}
 
@@ -205,7 +244,9 @@ export async function GET(request: NextRequest) {
 		if (daysAvailableOnline.length > 0) {
 			filteredData = filteredData.filter((teacher: any) => {
 				const teacherDays = teacher.days_available_online || [];
-				const hasAnyDay = daysAvailableOnline.some(day => teacherDays.includes(day));
+				const hasAnyDay = daysAvailableOnline.some((day) =>
+					teacherDays.includes(day),
+				);
 
 				switch (days_available_online_operator) {
 					case "is any of":
@@ -222,7 +263,9 @@ export async function GET(request: NextRequest) {
 		if (daysAvailableInPerson.length > 0) {
 			filteredData = filteredData.filter((teacher: any) => {
 				const teacherDays = teacher.days_available_in_person || [];
-				const hasAnyDay = daysAvailableInPerson.some(day => teacherDays.includes(day));
+				const hasAnyDay = daysAvailableInPerson.some((day) =>
+					teacherDays.includes(day),
+				);
 
 				switch (days_available_in_person_operator) {
 					case "is any of":
@@ -281,7 +324,7 @@ export async function GET(request: NextRequest) {
 			active_cohorts_count: countsByTeacher.get(teacher.id) ?? 0,
 		}));
 		// Calculate pagination metadata
-		const actualTotal = needsInMemoryFiltering ? total : (count || 0);
+		const actualTotal = needsInMemoryFiltering ? total : count || 0;
 		const totalPages = Math.ceil(actualTotal / limit);
 
 		return NextResponse.json({

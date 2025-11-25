@@ -1,4 +1,4 @@
-import type * as React from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,9 +10,29 @@ function Dialog({ ...props }: React.ComponentProps<typeof BaseDialog.Root>) {
 }
 
 function DialogTrigger({
+	asChild,
+	children,
 	...props
-}: React.ComponentProps<typeof BaseDialog.Trigger>) {
-	return <BaseDialog.Trigger data-slot="dialog-trigger" {...props} />;
+}: React.ComponentProps<typeof BaseDialog.Trigger> & { asChild?: boolean }) {
+	if (asChild && React.isValidElement(children)) {
+		return (
+			<BaseDialog.Trigger
+				data-slot="dialog-trigger"
+				render={(triggerProps, state) => {
+					return React.cloneElement(children, {
+						...triggerProps,
+						...children.props,
+					});
+				}}
+				{...props}
+			/>
+		);
+	}
+	return (
+		<BaseDialog.Trigger data-slot="dialog-trigger" {...props}>
+			{children}
+		</BaseDialog.Trigger>
+	);
 }
 
 function DialogPortal({

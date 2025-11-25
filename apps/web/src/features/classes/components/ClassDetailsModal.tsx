@@ -109,7 +109,11 @@ export function ClassDetailsModal({
 
 	// Auto-populate current_level_id when status is "completed" and editing mode is active
 	useEffect(() => {
-		if (editing && formData.status === "completed" && classItem?.cohort?.current_level_id) {
+		if (
+			editing &&
+			formData.status === "completed" &&
+			classItem?.cohort?.current_level_id
+		) {
 			// Always sync with cohort's current level when entering edit mode for completed classes
 			if (!formData.current_level_id) {
 				setFormData((prev) => ({
@@ -118,7 +122,12 @@ export function ClassDetailsModal({
 				}));
 			}
 		}
-	}, [editing, formData.status, formData.current_level_id, classItem?.cohort?.current_level_id]);
+	}, [
+		editing,
+		formData.status,
+		formData.current_level_id,
+		classItem?.cohort?.current_level_id,
+	]);
 
 	// Reset editing state when modal closes
 	useEffect(() => {
@@ -132,7 +141,9 @@ export function ClassDetailsModal({
 
 		// Validate: Internal Notes required when status is completed
 		if (formData.status === "completed" && !formData.notes?.trim()) {
-			toast.error("Internal Notes are required when status is set to Completed");
+			toast.error(
+				"Internal Notes are required when status is set to Completed",
+			);
 			return;
 		}
 
@@ -216,7 +227,8 @@ export function ClassDetailsModal({
 			setEditing(false);
 		} catch (error) {
 			console.error("Error updating class:", error);
-			const errorMessage = error instanceof Error ? error.message : "Failed to update class";
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to update class";
 			toast.error(errorMessage);
 		} finally {
 			setSaving(false);
@@ -271,9 +283,7 @@ export function ClassDetailsModal({
 			<DialogContent className="sm:max-w-[600px]">
 				<DialogHeader>
 					<DialogTitle>Class Details</DialogTitle>
-					<DialogDescription>
-						View and edit class information
-					</DialogDescription>
+					<DialogDescription>View and edit class information</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">
@@ -460,11 +470,7 @@ export function ClassDetailsModal({
 						Close
 					</Button>
 					{editing ? (
-						<Button
-							onClick={saveChanges}
-							disabled={saving}
-							className="order-2"
-						>
+						<Button onClick={saveChanges} disabled={saving} className="order-2">
 							{saving ? (
 								<>Saving...</>
 							) : (
