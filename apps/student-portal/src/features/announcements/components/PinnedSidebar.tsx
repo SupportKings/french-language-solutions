@@ -7,20 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import type { StudentAnnouncement } from "../queries/getStudentAnnouncements";
-
 import { MoreHorizontal, Pin } from "lucide-react";
+import type { StudentAnnouncement } from "../queries/getStudentAnnouncements";
 
 interface PinnedSidebarProps {
 	announcements: StudentAnnouncement[];
 	studentId: string;
 }
 
-function PinnedItem({
-	announcement,
-}: {
-	announcement: StudentAnnouncement;
-}) {
+function PinnedItem({ announcement }: { announcement: StudentAnnouncement }) {
 	const initials = announcement.author.name
 		.split(" ")
 		.map((n: string) => n[0])
@@ -62,12 +57,7 @@ function PinnedItem({
 			</p>
 
 			{/* View link */}
-			<Button
-				variant="link"
-				size="sm"
-				className="h-auto p-0 text-xs"
-				asChild
-			>
+			<Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
 				<Link href={`/announcements/${announcement.id}`}>View post →</Link>
 			</Button>
 		</div>

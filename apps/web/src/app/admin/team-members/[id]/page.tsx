@@ -5,6 +5,8 @@ import { getApiUrl } from "@/lib/api-utils";
 
 import { getTeacherUser } from "@/features/teachers/actions/getTeacherUser";
 
+import { getUser } from "@/queries/getUser";
+
 import TeacherDetailsClient from "./page-client";
 
 async function getTeacher(id: string) {
@@ -44,5 +46,14 @@ export default async function TeamMemberDetailPage({
 		userDetails,
 	};
 
-	return <TeacherDetailsClient teacher={teacherWithUser} />;
+	// Get current user session to check permissions
+	const session = await getUser();
+	const canAccessProducts = session?.user?.role === "admin";
+
+	return (
+		<TeacherDetailsClient
+			teacher={teacherWithUser}
+			canAccessProducts={canAccessProducts}
+		/>
+	);
 }

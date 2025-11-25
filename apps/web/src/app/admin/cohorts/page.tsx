@@ -54,9 +54,12 @@ export default async function ClassesPage({
 		console.error("❌ Server prefetch failed:", error);
 	}
 
+	// Check if user can access product configuration
+	const canAccessProducts = session.user.role === "admin";
+
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<ClassesPageClient />
+			<ClassesPageClient canAccessProducts={canAccessProducts} />
 		</HydrationBoundary>
 	);
 }

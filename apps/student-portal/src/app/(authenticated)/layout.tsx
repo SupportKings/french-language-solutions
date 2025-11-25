@@ -55,7 +55,10 @@ export default async function AuthenticatedLayout({
 
 	return (
 		<SidebarProvider>
-			<StudentSidebar student={studentData} unreadAnnouncementCount={unreadCount} />
+			<StudentSidebar
+				student={studentData}
+				unreadAnnouncementCount={unreadCount}
+			/>
 			<SidebarInset>
 				<PageHeader student={studentData} unreadCount={unreadCount} />
 				<main className="flex-1 overflow-auto">

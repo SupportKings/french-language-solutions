@@ -145,7 +145,9 @@ export const createAnnouncement = actionClient
 					// Map students to recipients with their email and name
 					const recipients = uniqueStudents
 						.map((student) => {
-							const user = student.user_id ? userMap.get(student.user_id) : null;
+							const user = student.user_id
+								? userMap.get(student.user_id)
+								: null;
 							if (!user?.email) return null;
 							return {
 								email: user.email,

@@ -39,6 +39,7 @@ interface CohortsTableProps {
 	})[];
 	isLoading: boolean;
 	hideWrapper?: boolean;
+	canAccessProducts?: boolean;
 }
 
 interface CohortWithStats extends Cohort {
@@ -110,6 +111,7 @@ export function CohortsTable({
 	cohorts,
 	isLoading,
 	hideWrapper = false,
+	canAccessProducts = false,
 }: CohortsTableProps) {
 	console.log(
 		"📊 CohortsTable received cohorts:",
@@ -288,6 +290,7 @@ export function CohortsTable({
 															? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
 															: "Product")
 													}
+													disabled={!canAccessProducts}
 												/>
 											</>
 										) : (
@@ -311,6 +314,7 @@ export function CohortsTable({
 														? `${cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)} Course`
 														: "Product")
 												}
+												disabled={!canAccessProducts}
 											/>
 										)}
 									</div>

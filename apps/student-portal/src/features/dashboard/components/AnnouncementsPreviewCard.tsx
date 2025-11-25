@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import type { StudentAnnouncement } from "@/features/announcements/queries/getStudentAnnouncements";
 import { useStudentAnnouncements } from "@/features/announcements/queries";
+import type { StudentAnnouncement } from "@/features/announcements/queries/getStudentAnnouncements";
 
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { ArrowRight, Bell, Pin } from "lucide-react";

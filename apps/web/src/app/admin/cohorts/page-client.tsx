@@ -147,8 +147,13 @@ const cohortColumns = [
 	},
 ];
 
-export function ClassesPageClient() {
-	console.log("🔥 ClassesPageClient component mounted");
+interface ClassesPageClientProps {
+	canAccessProducts?: boolean;
+}
+
+export function ClassesPageClient({
+	canAccessProducts = false,
+}: ClassesPageClientProps = {}) {
 	const router = useRouter();
 
 	// Track if this is the first render to avoid resetting page on initial load
@@ -506,6 +511,7 @@ export function ClassesPageClient() {
 					cohorts={data?.data || []}
 					isLoading={isLoading && !isPlaceholderData}
 					hideWrapper={true}
+					canAccessProducts={canAccessProducts}
 				/>
 			</div>
 

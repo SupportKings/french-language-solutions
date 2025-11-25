@@ -83,9 +83,7 @@ export async function getReadStatsList(announcementId: string) {
 	}
 
 	// Create a map of user ban status
-	const userBanMap = new Map(
-		(usersData || []).map((u) => [u.id, u.banned]),
-	);
+	const userBanMap = new Map((usersData || []).map((u) => [u.id, u.banned]));
 
 	// Get all reads for this announcement
 	const { data: reads, error: readsError } = await supabase

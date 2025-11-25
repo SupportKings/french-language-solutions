@@ -1,27 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { cn } from "@/lib/utils";
-import { useIntersectionObserver } from "@uidotdev/usehooks";
 
 import { RichTextEditor } from "@/components/rich-text-editor/RichTextEditor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-import type { StudentAnnouncement } from "../queries/getStudentAnnouncements";
-import { markAnnouncementAsRead } from "../actions/markAsRead";
-import { announcementKeys } from "../queries";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { useIntersectionObserver } from "@uidotdev/usehooks";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 import {
 	ChevronLeft,
@@ -33,6 +26,9 @@ import {
 	VideoIcon,
 	X,
 } from "lucide-react";
+import { markAnnouncementAsRead } from "../actions/markAsRead";
+import { announcementKeys } from "../queries";
+import type { StudentAnnouncement } from "../queries/getStudentAnnouncements";
 
 interface AnnouncementCardProps {
 	announcement: StudentAnnouncement;
@@ -79,11 +75,7 @@ export function AnnouncementCard({
 
 	// Mark as read when card enters viewport
 	useEffect(() => {
-		if (
-			entry?.isIntersecting &&
-			!announcement.isRead &&
-			!hasMarkedAsRead
-		) {
+		if (entry?.isIntersecting && !announcement.isRead && !hasMarkedAsRead) {
 			setHasMarkedAsRead(true);
 
 			// Update cache optimistically
@@ -199,13 +191,13 @@ export function AnnouncementCard({
 					</h3>
 
 					{/* Content Preview */}
-					<div className="mt-2 text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none">
+					<div className="prose prose-sm mt-2 max-w-none text-muted-foreground text-sm leading-relaxed">
 						{parsedContent ? (
 							<RichTextEditor
 								content={parsedContent}
 								onChange={() => {}}
 								editable={false}
-								className="border-0 bg-transparent p-0 [&_.ProseMirror]:p-0 [&_.ProseMirror]:min-h-0 line-clamp-3"
+								className="line-clamp-3 border-0 bg-transparent p-0 [&_.ProseMirror]:min-h-0 [&_.ProseMirror]:p-0"
 							/>
 						) : (
 							<div className="line-clamp-3 whitespace-pre-line">
@@ -235,7 +227,7 @@ export function AnnouncementCard({
 										e.stopPropagation();
 										openLightbox(index);
 									}}
-									className={`relative overflow-hidden rounded-lg border border-border/50 hover:border-primary/30 transition-all cursor-pointer group ${
+									className={`group relative cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30 ${
 										imageAttachments.length === 1
 											? "aspect-video"
 											: imageAttachments.length === 3
@@ -248,10 +240,10 @@ export function AnnouncementCard({
 									<img
 										src={attachment.url}
 										alt={attachment.name}
-										className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+										className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
 									/>
 									{imageAttachments.length > 1 && (
-										<div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+										<div className="absolute right-2 bottom-2 rounded bg-black/60 px-2 py-1 text-white text-xs">
 											{index + 1}/{imageAttachments.length}
 										</div>
 									)}
@@ -276,7 +268,9 @@ export function AnnouncementCard({
 										{getFileIcon(attachment.type)}
 									</div>
 									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-sm">{attachment.name}</p>
+										<p className="truncate font-medium text-sm">
+											{attachment.name}
+										</p>
 									</div>
 								</a>
 							))}
@@ -298,15 +292,15 @@ export function AnnouncementCard({
 			{/* Image Lightbox */}
 			{imageAttachments.length > 0 && (
 				<Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-					<DialogContent className="max-w-5xl p-0 bg-black/95 border-0">
+					<DialogContent className="max-w-5xl border-0 bg-black/95 p-0">
 						<DialogTitle className="sr-only">
 							Image {currentImageIndex + 1} of {imageAttachments.length}
 						</DialogTitle>
-						<div className="relative flex items-center justify-center min-h-[400px] max-h-[90vh]">
+						<div className="relative flex max-h-[90vh] min-h-[400px] items-center justify-center">
 							{/* Close Button */}
 							<button
 								onClick={() => setLightboxOpen(false)}
-								className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+								className="absolute top-4 right-4 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
 								type="button"
 							>
 								<X className="h-5 w-5" />
@@ -314,7 +308,7 @@ export function AnnouncementCard({
 
 							{/* Image Counter */}
 							{imageAttachments.length > 1 && (
-								<div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full bg-black/50 text-white text-sm">
+								<div className="absolute top-4 left-4 z-10 rounded-full bg-black/50 px-3 py-1.5 text-sm text-white">
 									{currentImageIndex + 1} / {imageAttachments.length}
 								</div>
 							)}
@@ -323,7 +317,7 @@ export function AnnouncementCard({
 							{imageAttachments.length > 1 && (
 								<button
 									onClick={previousImage}
-									className="absolute left-4 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+									className="absolute left-4 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
 									type="button"
 								>
 									<ChevronLeft className="h-6 w-6" />
@@ -343,7 +337,7 @@ export function AnnouncementCard({
 							{imageAttachments.length > 1 && (
 								<button
 									onClick={nextImage}
-									className="absolute right-4 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+									className="absolute right-4 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
 									type="button"
 								>
 									<ChevronRight className="h-6 w-6" />

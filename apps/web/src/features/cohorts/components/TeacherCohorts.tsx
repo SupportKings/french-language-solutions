@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { formatDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ import {
 interface TeacherCohortsProps {
 	teacherId: string;
 	teacherName: string;
+	canAccessProducts?: boolean;
 }
 
 interface CohortWithStats {
@@ -119,7 +121,9 @@ const formatLevel = (level: any) => {
 export function TeacherCohorts({
 	teacherId,
 	teacherName,
+	canAccessProducts = false,
 }: TeacherCohortsProps) {
+	const router = useRouter();
 	const [page, setPage] = useState(1);
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 	const [cohortsWithStats, setCohortsWithStats] = useState<CohortWithStats[]>(
@@ -373,9 +377,7 @@ export function TeacherCohorts({
 									<TableRow
 										key={cohort.id}
 										className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
-										onClick={() =>
-											(window.location.href = `/admin/cohorts/${cohort.id}`)
-										}
+										onClick={() => router.push(`/admin/cohorts/${cohort.id}`)}
 									>
 										{/* Cohort Name & Product */}
 										<TableCell className="max-w-[200px]">
@@ -402,6 +404,7 @@ export function TeacherCohorts({
 															}
 															icon={BookOpen}
 															className="text-xs"
+															disabled={!canAccessProducts}
 														/>
 													</>
 												) : (
@@ -419,6 +422,7 @@ export function TeacherCohorts({
 														}
 														icon={BookOpen}
 														className="text-xs"
+														disabled={!canAccessProducts}
 													/>
 												)}
 											</div>

@@ -32,10 +32,7 @@ export class CohortService {
 	 * Calculate duration in minutes between start and end time
 	 * Times are in format "HH:mm:ss"
 	 */
-	private calculateDurationMinutes(
-		startTime: string,
-		endTime: string,
-	): number {
+	private calculateDurationMinutes(startTime: string, endTime: string): number {
 		const [startHours, startMinutes] = startTime.split(":").map(Number);
 		const [endHours, endMinutes] = endTime.split(":").map(Number);
 

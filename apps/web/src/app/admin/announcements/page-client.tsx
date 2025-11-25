@@ -114,134 +114,135 @@ export function AnnouncementsPageClient() {
 					</div>
 				</div>
 
-			{/* Main Content - Feed */}
-			<div className="space-y-4">
-				{/* Mobile Category Filter */}
-				<div className="flex items-center justify-between lg:hidden">
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="gap-2">
-								<SlidersHorizontal className="h-4 w-4" />
-								Filter
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="start">
-							<DropdownMenuLabel>Category</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem onClick={() => setSelectedCategory("all")}>
-								All Announcements
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => setSelectedCategory("school_wide")}
-							>
-								School-wide
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => setSelectedCategory("cohort")}>
-								Cohort Updates
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+				{/* Main Content - Feed */}
+				<div className="space-y-4">
+					{/* Mobile Category Filter */}
+					<div className="flex items-center justify-between lg:hidden">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" className="gap-2">
+									<SlidersHorizontal className="h-4 w-4" />
+									Filter
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="start">
+								<DropdownMenuLabel>Category</DropdownMenuLabel>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={() => setSelectedCategory("all")}>
+									All Announcements
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => setSelectedCategory("school_wide")}
+								>
+									School-wide
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setSelectedCategory("cohort")}>
+									Cohort Updates
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="gap-2">
-								<Calendar className="h-4 w-4" />
-								Sort
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => setSortBy("newest")}>
-								Newest first
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => setSortBy("oldest")}>
-								Oldest first
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" className="gap-2">
+									<Calendar className="h-4 w-4" />
+									Sort
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem onClick={() => setSortBy("newest")}>
+									Newest first
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setSortBy("oldest")}>
+									Oldest first
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 
-					<CreateAnnouncementDialog
-						trigger={
-							<Button className="gap-2">
-								<Plus className="h-4 w-4" />
-								Create
-							</Button>
-						}
-					/>
-				</div>
-
-				{/* Sort Options - Desktop */}
-				<div className="hidden items-center justify-between lg:flex">
-					<p className="text-sm text-muted-foreground">
-						{filteredAnnouncements.length} announcement{filteredAnnouncements.length !== 1 ? "s" : ""}
-					</p>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="sm" className="gap-2">
-								<Calendar className="h-4 w-4" />
-								{sortBy === "newest" ? "Newest first" : "Oldest first"}
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => setSortBy("newest")}>
-								Newest first
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => setSortBy("oldest")}>
-								Oldest first
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-
-				{/* Announcements List */}
-				{isLoading ? (
-					<div className="flex items-center justify-center py-12">
-						<div className="text-muted-foreground">
-							Loading announcements...
-						</div>
+						<CreateAnnouncementDialog
+							trigger={
+								<Button className="gap-2">
+									<Plus className="h-4 w-4" />
+									Create
+								</Button>
+							}
+						/>
 					</div>
-				) : filteredAnnouncements.length === 0 ? (
-					<div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-lg border border-dashed">
-						<div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-							<Bell className="h-8 w-8 text-muted-foreground" />
-						</div>
-						<h3 className="mt-4 font-semibold text-lg">No announcements</h3>
-						<p className="mt-2 text-sm text-muted-foreground max-w-sm">
-							{selectedCategory === "all"
-								? "Create your first announcement to get started"
-								: "There are no announcements in this category"}
+
+					{/* Sort Options - Desktop */}
+					<div className="hidden items-center justify-between lg:flex">
+						<p className="text-muted-foreground text-sm">
+							{filteredAnnouncements.length} announcement
+							{filteredAnnouncements.length !== 1 ? "s" : ""}
 						</p>
-						{selectedCategory === "all" && (
-							<CreateAnnouncementDialog
-								trigger={
-									<Button className="mt-6 gap-2">
-										<Plus className="h-4 w-4" />
-										Create Your First Announcement
-									</Button>
-								}
-							/>
-						)}
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="sm" className="gap-2">
+									<Calendar className="h-4 w-4" />
+									{sortBy === "newest" ? "Newest first" : "Oldest first"}
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem onClick={() => setSortBy("newest")}>
+									Newest first
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setSortBy("oldest")}>
+									Oldest first
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
-				) : (
-					<div className="space-y-4 max-w-3xl mx-auto">
-						{filteredAnnouncements.map((announcement) => (
-							<AnnouncementCard
-								key={announcement.id}
-								announcement={announcement}
-								onViewStats={(id) => setSelectedAnnouncementId(id)}
-								onEdit={(id) => {
-									toast.info("Edit functionality coming soon");
-								}}
-							/>
-						))}
-					</div>
-				)}
-			</div>
 
-			{/* Read Stats Dialog */}
-			<ReadStatsDialog
-				announcementId={selectedAnnouncementId}
-				onClose={() => setSelectedAnnouncementId(null)}
-			/>
+					{/* Announcements List */}
+					{isLoading ? (
+						<div className="flex items-center justify-center py-12">
+							<div className="text-muted-foreground">
+								Loading announcements...
+							</div>
+						</div>
+					) : filteredAnnouncements.length === 0 ? (
+						<div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-card py-16 text-center">
+							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+								<Bell className="h-8 w-8 text-muted-foreground" />
+							</div>
+							<h3 className="mt-4 font-semibold text-lg">No announcements</h3>
+							<p className="mt-2 max-w-sm text-muted-foreground text-sm">
+								{selectedCategory === "all"
+									? "Create your first announcement to get started"
+									: "There are no announcements in this category"}
+							</p>
+							{selectedCategory === "all" && (
+								<CreateAnnouncementDialog
+									trigger={
+										<Button className="mt-6 gap-2">
+											<Plus className="h-4 w-4" />
+											Create Your First Announcement
+										</Button>
+									}
+								/>
+							)}
+						</div>
+					) : (
+						<div className="mx-auto max-w-3xl space-y-4">
+							{filteredAnnouncements.map((announcement) => (
+								<AnnouncementCard
+									key={announcement.id}
+									announcement={announcement}
+									onViewStats={(id) => setSelectedAnnouncementId(id)}
+									onEdit={(id) => {
+										toast.info("Edit functionality coming soon");
+									}}
+								/>
+							))}
+						</div>
+					)}
+				</div>
+
+				{/* Read Stats Dialog */}
+				<ReadStatsDialog
+					announcementId={selectedAnnouncementId}
+					onClose={() => setSelectedAnnouncementId(null)}
+				/>
 			</div>
 		</div>
 	);

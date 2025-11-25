@@ -36,8 +36,8 @@ export function CategorySidebar({
 }: CategorySidebarProps) {
 	return (
 		<Card className="overflow-hidden">
-			<CardHeader className="pb-2 px-4 pt-4">
-				<CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+			<CardHeader className="px-4 pt-4 pb-2">
+				<CardTitle className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">
 					Category
 				</CardTitle>
 			</CardHeader>
@@ -51,10 +51,10 @@ export function CategorySidebar({
 							key={category.id}
 							variant="ghost"
 							className={cn(
-								"w-full justify-start gap-2.5 h-10 px-3 rounded-lg transition-all duration-150",
+								"h-10 w-full justify-start gap-2.5 rounded-lg px-3 transition-all duration-150",
 								isSelected
-									? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground shadow-sm font-semibold"
-									: "text-muted-foreground hover:text-foreground hover:bg-accent/50 font-medium",
+									? "bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary hover:text-primary-foreground"
+									: "font-medium text-muted-foreground hover:bg-accent/50 hover:text-foreground",
 							)}
 							onClick={() => onCategoryChange(category.id)}
 						>
@@ -62,7 +62,7 @@ export function CategorySidebar({
 							<span className="flex-1 text-left text-sm">{category.label}</span>
 							<span
 								className={cn(
-									"flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
+									"flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 font-semibold text-xs",
 									isSelected
 										? "bg-primary-foreground/20 text-primary-foreground"
 										: "bg-muted text-muted-foreground",

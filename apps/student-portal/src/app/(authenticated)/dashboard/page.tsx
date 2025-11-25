@@ -1,13 +1,8 @@
 import { redirect } from "next/navigation";
 
-import {
-	HydrationBoundary,
-	QueryClient,
-	dehydrate,
-} from "@tanstack/react-query";
-
 import { createClient } from "@/lib/supabase/server";
 
+import { announcementQueries } from "@/features/announcements/queries";
 import {
 	AnnouncementsPreviewCard,
 	ScheduleSection,
@@ -19,9 +14,14 @@ import {
 	getStudentStats,
 } from "@/features/dashboard/queries";
 import { getScheduleClasses } from "@/features/schedule/queries";
-import { announcementQueries } from "@/features/announcements/queries";
 
 import { getUser } from "@/queries/getUser";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
 
 export default async function DashboardPage() {
 	const session = await getUser();
@@ -48,7 +48,9 @@ export default async function DashboardPage() {
 	// Prefetch announcements and fetch stats/classes in parallel
 	const queryClient = new QueryClient();
 	const [, stats, classes] = await Promise.all([
-		queryClient.prefetchQuery(announcementQueries.studentAnnouncements(student.id)),
+		queryClient.prefetchQuery(
+			announcementQueries.studentAnnouncements(student.id),
+		),
 		getStudentStats(student.id, cohortIds),
 		getScheduleClasses(cohortIds, student.id),
 	]);

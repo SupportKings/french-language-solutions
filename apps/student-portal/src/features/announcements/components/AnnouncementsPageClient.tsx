@@ -12,13 +12,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { AnnouncementCard } from "./AnnouncementCard";
-import { CategorySidebar } from "./CategorySidebar";
-
-import { useStudentAnnouncements } from "../queries";
-
 import { parseISO } from "date-fns";
 import { Bell, Calendar, SlidersHorizontal } from "lucide-react";
+import { useStudentAnnouncements } from "../queries";
+import { AnnouncementCard } from "./AnnouncementCard";
+import { CategorySidebar } from "./CategorySidebar";
 
 type SortOption = "newest" | "oldest";
 
@@ -168,7 +166,7 @@ export function AnnouncementsPageClient({
 						</p>
 					</div>
 				) : (
-					<div className="max-w-3xl space-y-4 mx-auto">
+					<div className="mx-auto max-w-3xl space-y-4">
 						{filteredAnnouncements.map((announcement) => (
 							<AnnouncementCard
 								key={announcement.id}

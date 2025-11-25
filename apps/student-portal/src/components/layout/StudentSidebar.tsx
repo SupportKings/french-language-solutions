@@ -55,8 +55,15 @@ const bottomNavItems = [
 	},
 ];
 
-export function StudentSidebar({ student, unreadAnnouncementCount }: StudentSidebarProps) {
-	console.log("unreadAnnouncementCount:", unreadAnnouncementCount, typeof unreadAnnouncementCount);
+export function StudentSidebar({
+	student,
+	unreadAnnouncementCount,
+}: StudentSidebarProps) {
+	console.log(
+		"unreadAnnouncementCount:",
+		unreadAnnouncementCount,
+		typeof unreadAnnouncementCount,
+	);
 
 	const navItems = [
 		{

@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import {
-	type StudentAnnouncement,
 	getStudentAnnouncements,
+	type StudentAnnouncement,
 } from "./getStudentAnnouncements";
 
 export const announcementKeys = {

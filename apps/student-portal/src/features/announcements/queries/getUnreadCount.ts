@@ -19,7 +19,9 @@ export async function getUnreadAnnouncementCount(
 		.select("id", { count: "exact", head: false });
 
 	if (cohortIds.length > 0) {
-		query = query.or(`scope.eq.school_wide,cohort_id.in.(${cohortIds.join(",")})`);
+		query = query.or(
+			`scope.eq.school_wide,cohort_id.in.(${cohortIds.join(",")})`,
+		);
 	} else {
 		query = query.eq("scope", "school_wide");
 	}

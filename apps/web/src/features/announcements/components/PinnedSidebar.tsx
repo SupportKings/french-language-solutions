@@ -1,12 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 import { Pin } from "lucide-react";
-import { useRouter } from "next/navigation";
 import type { AnnouncementWithDetails } from "../queries";
 
 interface PinnedSidebarProps {
@@ -58,23 +60,25 @@ function PinnedItem({
 	return (
 		<button
 			type="button"
-			className="w-full text-left space-y-2 rounded-lg border border-border/50 bg-card p-3 hover:bg-accent/5 hover:border-primary/30 transition-all duration-200 group"
+			className="group w-full space-y-2 rounded-lg border border-border/50 bg-card p-3 text-left transition-all duration-200 hover:border-primary/30 hover:bg-accent/5"
 		>
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<Avatar className="h-6 w-6">
-						<AvatarFallback className="text-[10px] bg-primary/10 text-primary font-semibold">
+						<AvatarFallback className="bg-primary/10 font-semibold text-[10px] text-primary">
 							{initials}
 						</AvatarFallback>
 					</Avatar>
-					<span className="font-semibold text-sm text-foreground">{authorName}</span>
+					<span className="font-semibold text-foreground text-sm">
+						{authorName}
+					</span>
 				</div>
-				<Pin className="h-3 w-3 text-secondary rotate-45" />
+				<Pin className="h-3 w-3 rotate-45 text-secondary" />
 			</div>
 
 			{/* Title */}
-			<h4 className="font-semibold text-sm text-foreground line-clamp-2 leading-tight">
+			<h4 className="line-clamp-2 font-semibold text-foreground text-sm leading-tight">
 				{announcement.title}
 			</h4>
 
@@ -87,12 +91,14 @@ function PinnedItem({
 			<Badge
 				variant="secondary"
 				className={cn(
-					"text-[10px] font-medium",
+					"font-medium text-[10px]",
 					announcement.scope === "school_wide"
-						? "bg-primary/10 text-primary border-primary/20"
-						: "bg-accent/15 text-foreground border-accent/25 cursor-pointer hover:bg-accent/30 transition-colors"
+						? "border-primary/20 bg-primary/10 text-primary"
+						: "cursor-pointer border-accent/25 bg-accent/15 text-foreground transition-colors hover:bg-accent/30",
 				)}
-				onClick={announcement.scope === "cohort" ? handleCohortClick : undefined}
+				onClick={
+					announcement.scope === "cohort" ? handleCohortClick : undefined
+				}
 			>
 				{announcement.scope === "school_wide"
 					? "School-wide"
@@ -107,10 +113,10 @@ export function PinnedSidebar({ announcements }: PinnedSidebarProps) {
 
 	return (
 		<Card className="overflow-hidden">
-			<CardHeader className="pb-2 px-4 pt-4">
+			<CardHeader className="px-4 pt-4 pb-2">
 				<div className="flex items-center justify-between">
-					<CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-						<Pin className="h-3.5 w-3.5 text-secondary rotate-45" />
+					<CardTitle className="flex items-center gap-2 font-semibold text-muted-foreground text-sm uppercase tracking-wide">
+						<Pin className="h-3.5 w-3.5 rotate-45 text-secondary" />
 						Pinned
 					</CardTitle>
 				</div>
@@ -119,12 +125,12 @@ export function PinnedSidebar({ announcements }: PinnedSidebarProps) {
 				{pinnedAnnouncements.length === 0 ? (
 					<div className="flex flex-col items-center justify-center py-8 text-center">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-							<Pin className="h-6 w-6 text-muted-foreground rotate-45" />
+							<Pin className="h-6 w-6 rotate-45 text-muted-foreground" />
 						</div>
-						<p className="mt-3 text-xs text-muted-foreground">
+						<p className="mt-3 text-muted-foreground text-xs">
 							No pinned announcements yet
 						</p>
-						<p className="mt-1 text-xs text-muted-foreground/60">
+						<p className="mt-1 text-muted-foreground/60 text-xs">
 							Pin important announcements to show them here
 						</p>
 					</div>

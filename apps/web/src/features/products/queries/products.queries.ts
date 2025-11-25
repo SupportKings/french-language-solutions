@@ -4,8 +4,8 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import type { Product } from "../schemas/product.schema";
 import { getAllProducts } from "../actions/getAllProducts";
+import type { Product } from "../schemas/product.schema";
 
 // Query keys
 export const productKeys = {

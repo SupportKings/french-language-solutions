@@ -83,10 +83,12 @@ const bonusTermsLabels = {
 
 interface TeacherDetailsClientProps {
 	teacher: any;
+	canAccessProducts?: boolean;
 }
 
 export default function TeacherDetailsClient({
 	teacher: initialTeacher,
+	canAccessProducts = false,
 }: TeacherDetailsClientProps) {
 	const router = useRouter();
 	const [teacher, setTeacher] = useState(initialTeacher);
@@ -1126,7 +1128,11 @@ export default function TeacherDetailsClient({
 							</p>
 						</div>
 						<div className="p-4">
-							<TeacherCohorts teacherId={teacher.id} teacherName={fullName} />
+							<TeacherCohorts
+								teacherId={teacher.id}
+								teacherName={fullName}
+								canAccessProducts={canAccessProducts}
+							/>
 						</div>
 					</div>
 				)}

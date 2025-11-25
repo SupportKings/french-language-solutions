@@ -1,8 +1,4 @@
-import {
-	HydrationBoundary,
-	QueryClient,
-	dehydrate,
-} from "@tanstack/react-query";
+import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,7 +6,12 @@ import { AnnouncementsPageClient } from "@/features/announcements/components";
 import { announcementQueries } from "@/features/announcements/queries";
 
 import { getUser } from "@/queries/getUser";
-import { redirect } from "next/navigation";
+
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
 
 export default async function AnnouncementsPage() {
 	const session = await getUser();
