@@ -74,6 +74,22 @@ export class CohortService {
 	}
 
 	/**
+	 * Filter enrollments to only include active students
+	 * Active students have enrollment status: paid, welcome_package_sent, transitioning, or offboarding
+	 */
+	private getActiveEnrollments(enrollments: CohortWithDetails["enrollments"]) {
+		const activeStatuses = [
+			"paid",
+			"welcome_package_sent",
+			"transitioning",
+			"offboarding",
+		];
+		return enrollments.filter((enrollment) =>
+			activeStatuses.includes(enrollment.status),
+		);
+	}
+
+	/**
 	 * Gets the next occurrence of a specific weekday from a given date
 	 */
 	private getNextWeekday(startDate: Date, targetDay: string): Date {
@@ -148,6 +164,9 @@ export class CohortService {
 		// Get product info for event summary
 		const productName = cohort.product.display_name;
 
+		// Get only active enrollments
+		const activeEnrollments = this.getActiveEnrollments(cohort.enrollments);
+
 		// Prepare sessions array for Google Calendar
 		const sessions: WeeklySessionForCalendar[] = cohort.weekly_sessions.map(
 			(session) => {
@@ -195,25 +214,37 @@ export class CohortService {
 						true, // Add period for teacher
 					);
 
-					// Get the first enrolled student for private class
-					const student = cohort.enrollments[0]?.student;
-					if (!student || !student.first_name || !student.last_name) {
+					// Get the first active enrolled student for private class
+					if (activeEnrollments.length === 0) {
+						const allStatuses = cohort.enrollments
+							.map((e) => e.status)
+							.join(", ");
 						throw new Error(
-							`No student found or incomplete student data for private class cohort ${cohort.id}`,
+							`No active students in private class cohort ${cohort.id}. Total enrollments: ${cohort.enrollments.length}, Statuses: [${allStatuses}]. Active statuses must be: paid, welcome_package_sent, transitioning, or offboarding.`,
 						);
 					}
 
-					const formattedStudent = this.formatNameWithInitial(
-						student.first_name,
-						student.last_name,
-						false, // No period for student
-					);
+					const student = activeEnrollments[0]?.student;
+					if (!student || !student.first_name) {
+						throw new Error(
+							`Incomplete student data for private class cohort ${cohort.id}. Student must have at least a first_name. Current data - first_name: ${student?.first_name || "missing"}, last_name: ${student?.last_name || "missing"}`,
+						);
+					}
+
+					// Format student name - if no last name, just use first name
+					const formattedStudent = student.last_name
+						? this.formatNameWithInitial(
+								student.first_name,
+								student.last_name,
+								false, // No period for student
+							)
+						: student.first_name;
 
 					eventSummary = `FLS CP ${formattedStudent} – ${formattedTeacher} – ${formattedDuration}`;
 				} else {
 					// Group Classes: FLS CG[# of Students] – [Class Length]
 					// Example: FLS CG2 – 1 hr
-					const numberOfStudents = cohort.enrollments.length;
+					const numberOfStudents = activeEnrollments.length;
 					eventSummary = `FLS CG${numberOfStudents} – ${formattedDuration}`;
 				}
 
