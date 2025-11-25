@@ -62,9 +62,11 @@ function applyDateFilter(
 			// Default behavior for backward compatibility
 			if (fromDate && toDate) {
 				return itemDate >= fromDate && itemDate <= toDate;
-			} else if (fromDate) {
+			}
+			if (fromDate) {
 				return itemDate >= fromDate;
-			} else if (toDate) {
+			}
+			if (toDate) {
 				return itemDate <= toDate;
 			}
 			return true;
@@ -87,14 +89,18 @@ export async function GET(request: NextRequest) {
 		const status = searchParams.getAll("status"); // Support multiple statuses
 		const status_operator = searchParams.get("status_operator") || "is any of";
 		const productIds = searchParams.getAll("productId"); // Support multiple products
-		const productIds_operator = searchParams.get("productIds_operator") || "is any of";
+		const productIds_operator =
+			searchParams.get("productIds_operator") || "is any of";
 		const cohortNickname = searchParams.get("cohortNickname") || "";
-		const cohortNickname_operator = searchParams.get("cohortNickname_operator") || "contains";
+		const cohortNickname_operator =
+			searchParams.get("cohortNickname_operator") || "contains";
 		const teacherIds = searchParams.getAll("teacherId"); // Support multiple teachers
-		const teacherIds_operator = searchParams.get("teacherIds_operator") || "is any of";
+		const teacherIds_operator =
+			searchParams.get("teacherIds_operator") || "is any of";
 		const dateFrom = searchParams.get("dateFrom") || "";
 		const dateTo = searchParams.get("dateTo") || "";
-		const created_at_operator = searchParams.get("created_at_operator") || "is between";
+		const created_at_operator =
+			searchParams.get("created_at_operator") || "is between";
 		const studentId = searchParams.get("studentId") || "";
 		const cohortId = searchParams.get("cohortId") || "";
 		const sortBy = searchParams.get("sortBy") || "created_at";
@@ -213,23 +219,39 @@ export async function GET(request: NextRequest) {
 		// Apply completion_percentage filters based on operator
 		if (completionExact !== null && completionExact !== "") {
 			// Exact match: completion_percentage = value
-			query = query.eq("completion_percentage", Number.parseFloat(completionExact));
+			query = query.eq(
+				"completion_percentage",
+				Number.parseFloat(completionExact),
+			);
 		} else if (completionExclude !== null && completionExclude !== "") {
 			// Not equal: completion_percentage != value
-			query = query.neq("completion_percentage", Number.parseFloat(completionExclude));
-		} else if (completionOperator === "is not between" && completionMin !== null && completionMax !== null) {
+			query = query.neq(
+				"completion_percentage",
+				Number.parseFloat(completionExclude),
+			);
+		} else if (
+			completionOperator === "is not between" &&
+			completionMin !== null &&
+			completionMax !== null
+		) {
 			// Not between: completion_percentage < min OR completion_percentage > max
 			query = query.or(
-				`completion_percentage.lt.${Number.parseFloat(completionMin)},completion_percentage.gt.${Number.parseFloat(completionMax)}`
+				`completion_percentage.lt.${Number.parseFloat(completionMin)},completion_percentage.gt.${Number.parseFloat(completionMax)}`,
 			);
 		} else {
 			// Range-based filters (greater than, less than, between, etc.)
 			if (completionMin !== null && completionMin !== "") {
-				query = query.gte("completion_percentage", Number.parseFloat(completionMin));
+				query = query.gte(
+					"completion_percentage",
+					Number.parseFloat(completionMin),
+				);
 			}
 
 			if (completionMax !== null && completionMax !== "") {
-				query = query.lte("completion_percentage", Number.parseFloat(completionMax));
+				query = query.lte(
+					"completion_percentage",
+					Number.parseFloat(completionMax),
+				);
 			}
 		}
 
@@ -275,7 +297,11 @@ export async function GET(request: NextRequest) {
 		// Product filter with operator
 		if (productIds.length > 0) {
 			filteredData = filteredData.filter((enrollment: any) =>
-				applyOptionFilter(enrollment.cohorts?.product_id, productIds, productIds_operator),
+				applyOptionFilter(
+					enrollment.cohorts?.product_id,
+					productIds,
+					productIds_operator,
+				),
 			);
 		}
 
@@ -307,7 +333,7 @@ export async function GET(request: NextRequest) {
 
 				// Check if any of the enrollment's teachers match the filter
 				const hasMatch = enrollmentTeacherIds.some((teacherId: string) =>
-					teacherIds.includes(teacherId)
+					teacherIds.includes(teacherId),
 				);
 
 				switch (teacherIds_operator) {
@@ -330,7 +356,12 @@ export async function GET(request: NextRequest) {
 				const fromDateObj = dateFrom ? new Date(dateFrom) : null;
 				const toDateObj = dateTo ? new Date(dateTo) : null;
 
-				return applyDateFilter(itemDate, fromDateObj, toDateObj, created_at_operator);
+				return applyDateFilter(
+					itemDate,
+					fromDateObj,
+					toDateObj,
+					created_at_operator,
+				);
 			});
 		}
 
@@ -347,8 +378,10 @@ export async function GET(request: NextRequest) {
 			pagination: {
 				page,
 				limit,
-				total: needsInMemoryFiltering ? total : (count || 0),
-				totalPages: Math.ceil((needsInMemoryFiltering ? total : (count || 0)) / limit),
+				total: needsInMemoryFiltering ? total : count || 0,
+				totalPages: Math.ceil(
+					(needsInMemoryFiltering ? total : count || 0) / limit,
+				),
 			},
 		});
 	} catch (error) {

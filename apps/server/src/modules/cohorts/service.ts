@@ -124,8 +124,8 @@ export class CohortService {
 				// Create ISO datetime strings without timezone conversion
 				// Just combine the date with the exact times from the database
 				const year = firstEventDate.getFullYear();
-				const month = String(firstEventDate.getMonth() + 1).padStart(2, '0');
-				const day = String(firstEventDate.getDate()).padStart(2, '0');
+				const month = String(firstEventDate.getMonth() + 1).padStart(2, "0");
+				const day = String(firstEventDate.getDate()).padStart(2, "0");
 				const dateStr = `${year}-${month}-${day}`;
 
 				const firstEventStart = `${dateStr}T${session.start_time}`;
@@ -368,7 +368,9 @@ export class CohortService {
 			"saturday",
 		];
 		const tomorrowDay = days[dayIndex];
-		console.log(`[Auto-Create Classes] Today in Canada: ${nowInCanada.toISOString()}, Tomorrow: ${tomorrow.toISOString()}, Day: ${tomorrowDay}`);
+		console.log(
+			`[Auto-Create Classes] Today in Canada: ${nowInCanada.toISOString()}, Tomorrow: ${tomorrow.toISOString()}, Day: ${tomorrowDay}`,
+		);
 		return tomorrowDay;
 	}
 
@@ -379,9 +381,7 @@ export class CohortService {
 	async getTomorrowsCohorts(): Promise<
 		Array<{
 			cohort: CohortWithDetails;
-			tomorrowSessions: Array<
-				CohortWithDetails["weekly_sessions"][number]
-			>;
+			tomorrowSessions: Array<CohortWithDetails["weekly_sessions"][number]>;
 		}>
 	> {
 		const tomorrowDay = this.getTomorrowDayOfWeek();
@@ -389,7 +389,7 @@ export class CohortService {
 		// Get tomorrow's date in Canadian timezone for filtering
 		const nowInCanada = toZonedTime(new Date(), CANADIAN_TIMEZONE);
 		const tomorrow = addDays(nowInCanada, 1);
-		const tomorrowDate = tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+		const tomorrowDate = tomorrow.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
 		// Fetch all active cohorts with weekly sessions
 		const { data: cohorts, error } = await supabase
@@ -415,7 +415,9 @@ export class CohortService {
 			return [];
 		}
 
-		console.log(`[Auto-Create Classes] Found ${cohorts.length} active cohorts (setup_finalized=true, status!=class_ended)`);
+		console.log(
+			`[Auto-Create Classes] Found ${cohorts.length} active cohorts (setup_finalized=true, status!=class_ended)`,
+		);
 
 		// Filter cohorts that have sessions matching tomorrow's day
 		const result = cohorts
@@ -434,12 +436,12 @@ export class CohortService {
 			})
 			.filter(Boolean) as Array<{
 			cohort: CohortWithDetails;
-			tomorrowSessions: Array<
-				CohortWithDetails["weekly_sessions"][number]
-			>;
+			tomorrowSessions: Array<CohortWithDetails["weekly_sessions"][number]>;
 		}>;
 
-		console.log(`[Auto-Create Classes] ${result.length} cohorts have sessions scheduled for ${tomorrowDay}`);
+		console.log(
+			`[Auto-Create Classes] ${result.length} cohorts have sessions scheduled for ${tomorrowDay}`,
+		);
 		return result;
 	}
 
@@ -458,7 +460,9 @@ export class CohortService {
 			const tomorrowsCohorts = await this.getTomorrowsCohorts();
 
 			if (tomorrowsCohorts.length === 0) {
-				console.log("[Auto-Create Classes] No cohorts found with sessions for tomorrow");
+				console.log(
+					"[Auto-Create Classes] No cohorts found with sessions for tomorrow",
+				);
 				return {
 					success: true,
 					message: "No cohorts with sessions scheduled for tomorrow",
@@ -482,14 +486,16 @@ export class CohortService {
 
 			// Prepare all class records
 			for (const { cohort, tomorrowSessions } of tomorrowsCohorts) {
-				console.log(`[Auto-Create Classes] Processing cohort ${cohort.id} (${cohort.nickname || 'unnamed'}) with ${tomorrowSessions.length} sessions`);
+				console.log(
+					`[Auto-Create Classes] Processing cohort ${cohort.id} (${cohort.nickname || "unnamed"}) with ${tomorrowSessions.length} sessions`,
+				);
 
 				for (const session of tomorrowSessions) {
 					// Create datetime for tomorrow with session times
 					// Get YYYY-MM-DD format for tomorrow
 					const year = tomorrow.getFullYear();
-					const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
-					const day = String(tomorrow.getDate()).padStart(2, '0');
+					const month = String(tomorrow.getMonth() + 1).padStart(2, "0");
+					const day = String(tomorrow.getDate()).padStart(2, "0");
 					const tomorrowDateStr = `${year}-${month}-${day}`;
 
 					// Combine date with session times (format: "HH:mm:ss")
@@ -497,7 +503,9 @@ export class CohortService {
 					const startTimeStr = `${tomorrowDateStr}T${session.start_time!}`;
 					const endTimeStr = `${tomorrowDateStr}T${session.end_time!}`;
 
-					console.log(`[Auto-Create Classes]   - Session ${session.id}: ${startTimeStr} to ${endTimeStr}, teacher: ${session.teacher_id}`);
+					console.log(
+						`[Auto-Create Classes]   - Session ${session.id}: ${startTimeStr} to ${endTimeStr}, teacher: ${session.teacher_id}`,
+					);
 
 					classesToCreate.push({
 						cohort_id: cohort.id,
@@ -511,7 +519,9 @@ export class CohortService {
 				}
 			}
 
-			console.log(`[Auto-Create Classes] Inserting ${classesToCreate.length} classes into database...`);
+			console.log(
+				`[Auto-Create Classes] Inserting ${classesToCreate.length} classes into database...`,
+			);
 
 			// Bulk insert all classes
 			const { data: createdClasses, error } = await supabase
@@ -528,7 +538,9 @@ export class CohortService {
 				};
 			}
 
-			console.log(`[Auto-Create Classes] ✓ Successfully created ${createdClasses?.length || 0} classes`);
+			console.log(
+				`[Auto-Create Classes] ✓ Successfully created ${createdClasses?.length || 0} classes`,
+			);
 
 			// Create attendance records for each class
 			const attendanceRecords: Array<{
@@ -540,19 +552,25 @@ export class CohortService {
 			}> = [];
 
 			// Map class IDs back to their cohorts for attendance creation
-			const classIdToCohortMap = new Map<string, { cohortId: string; students: string[] }>();
+			const classIdToCohortMap = new Map<
+				string,
+				{ cohortId: string; students: string[] }
+			>();
 
 			// Build map of class ID to cohort and its enrolled students
 			for (let i = 0; i < tomorrowsCohorts.length; i++) {
 				const { cohort } = tomorrowsCohorts[i];
 				const enrolledStudents = cohort.enrollments
-					.filter((enrollment: any) =>
-						enrollment.status === "paid" || enrollment.status === "welcome_package_sent"
+					.filter(
+						(enrollment: any) =>
+							enrollment.status === "paid" ||
+							enrollment.status === "welcome_package_sent",
 					)
 					.map((enrollment: any) => enrollment.student_id);
 
 				// Find all classes created for this cohort
-				const cohortClasses = createdClasses?.filter(c => c.cohort_id === cohort.id) || [];
+				const cohortClasses =
+					createdClasses?.filter((c) => c.cohort_id === cohort.id) || [];
 
 				for (const classRecord of cohortClasses) {
 					classIdToCohortMap.set(classRecord.id, {
@@ -561,7 +579,9 @@ export class CohortService {
 					});
 				}
 
-				console.log(`[Auto-Create Classes] Cohort ${cohort.id}: ${enrolledStudents.length} enrolled students (paid/welcome_package_sent)`);
+				console.log(
+					`[Auto-Create Classes] Cohort ${cohort.id}: ${enrolledStudents.length} enrolled students (paid/welcome_package_sent)`,
+				);
 			}
 
 			// Create attendance records for all students in all classes
@@ -577,7 +597,9 @@ export class CohortService {
 				}
 			}
 
-			console.log(`[Auto-Create Classes] Creating ${attendanceRecords.length} attendance records...`);
+			console.log(
+				`[Auto-Create Classes] Creating ${attendanceRecords.length} attendance records...`,
+			);
 
 			// Bulk insert attendance records
 			if (attendanceRecords.length > 0) {
@@ -586,7 +608,10 @@ export class CohortService {
 					.insert(attendanceRecords);
 
 				if (attendanceError) {
-					console.error("[Auto-Create Classes] Error creating attendance records:", attendanceError);
+					console.error(
+						"[Auto-Create Classes] Error creating attendance records:",
+						attendanceError,
+					);
 					return {
 						success: false,
 						message: `Classes created but failed to create attendance records: ${attendanceError.message}`,
@@ -594,7 +619,9 @@ export class CohortService {
 					};
 				}
 
-				console.log(`[Auto-Create Classes] ✓ Successfully created ${attendanceRecords.length} attendance records`);
+				console.log(
+					`[Auto-Create Classes] ✓ Successfully created ${attendanceRecords.length} attendance records`,
+				);
 			}
 
 			return {

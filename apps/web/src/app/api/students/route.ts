@@ -67,9 +67,11 @@ function applyDateFilter(
 			// Default behavior for backward compatibility
 			if (fromDate && toDate) {
 				return itemDate >= fromDate && itemDate <= toDate;
-			} else if (fromDate) {
+			}
+			if (fromDate) {
 				return itemDate >= fromDate;
-			} else if (toDate) {
+			}
+			if (toDate) {
 				return itemDate <= toDate;
 			}
 			return true;
@@ -93,24 +95,33 @@ export async function GET(request: NextRequest) {
 		const desired_starting_language_level_id = searchParams.getAll(
 			"desired_starting_language_level_id",
 		);
-		const desired_starting_language_level_id_operator = searchParams.get("desired_starting_language_level_id_operator") || "is any of";
+		const desired_starting_language_level_id_operator =
+			searchParams.get("desired_starting_language_level_id_operator") ||
+			"is any of";
 		const initial_channel = searchParams.getAll("initial_channel");
-		const initial_channel_operator = searchParams.get("initial_channel_operator") || "is any of";
+		const initial_channel_operator =
+			searchParams.get("initial_channel_operator") || "is any of";
 		const communication_channel = searchParams.getAll("communication_channel");
-		const communication_channel_operator = searchParams.get("communication_channel_operator") || "is any of";
+		const communication_channel_operator =
+			searchParams.get("communication_channel_operator") || "is any of";
 		const enrollmentStatus = searchParams.getAll("enrollment_status");
-		const enrollment_status_operator = searchParams.get("enrollment_status_operator") || "is any of";
+		const enrollment_status_operator =
+			searchParams.get("enrollment_status_operator") || "is any of";
 		const is_full_beginner = searchParams.getAll("is_full_beginner");
-		const is_full_beginner_operator = searchParams.get("is_full_beginner_operator") || "is any of";
+		const is_full_beginner_operator =
+			searchParams.get("is_full_beginner_operator") || "is any of";
 		const added_to_email_newsletter = searchParams.getAll(
 			"added_to_email_newsletter",
 		);
-		const added_to_email_newsletter_operator = searchParams.get("added_to_email_newsletter_operator") || "is any of";
+		const added_to_email_newsletter_operator =
+			searchParams.get("added_to_email_newsletter_operator") || "is any of";
 		const is_under_16 = searchParams.getAll("is_under_16");
-		const is_under_16_operator = searchParams.get("is_under_16_operator") || "is any of";
+		const is_under_16_operator =
+			searchParams.get("is_under_16_operator") || "is any of";
 		const dateFrom = searchParams.get("dateFrom") || "";
 		const dateTo = searchParams.get("dateTo") || "";
-		const created_at_operator = searchParams.get("created_at_operator") || "is between";
+		const created_at_operator =
+			searchParams.get("created_at_operator") || "is between";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -283,7 +294,11 @@ export async function GET(request: NextRequest) {
 		// Enrollment status filter - apply with operator support
 		if (enrollmentStatus.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				applyOptionFilter(student.enrollment_status, enrollmentStatus, enrollment_status_operator),
+				applyOptionFilter(
+					student.enrollment_status,
+					enrollmentStatus,
+					enrollment_status_operator,
+				),
 			);
 		}
 
@@ -301,33 +316,53 @@ export async function GET(request: NextRequest) {
 		// Initial channel filter - apply with operator support
 		if (initial_channel.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				applyOptionFilter(student.initial_channel, initial_channel, initial_channel_operator),
+				applyOptionFilter(
+					student.initial_channel,
+					initial_channel,
+					initial_channel_operator,
+				),
 			);
 		}
 
 		// Communication channel filter - apply with operator support
 		if (communication_channel.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				applyOptionFilter(student.communication_channel, communication_channel, communication_channel_operator),
+				applyOptionFilter(
+					student.communication_channel,
+					communication_channel,
+					communication_channel_operator,
+				),
 			);
 		}
 
 		// Boolean filters - apply with operator support
 		if (is_full_beginner.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				applyOptionFilter(student.is_full_beginner, is_full_beginner, is_full_beginner_operator),
+				applyOptionFilter(
+					student.is_full_beginner,
+					is_full_beginner,
+					is_full_beginner_operator,
+				),
 			);
 		}
 
 		if (added_to_email_newsletter.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				applyOptionFilter(student.added_to_email_newsletter, added_to_email_newsletter, added_to_email_newsletter_operator),
+				applyOptionFilter(
+					student.added_to_email_newsletter,
+					added_to_email_newsletter,
+					added_to_email_newsletter_operator,
+				),
 			);
 		}
 
 		if (is_under_16.length > 0) {
 			filteredData = filteredData.filter((student) =>
-				applyOptionFilter(student.is_under_16, is_under_16, is_under_16_operator),
+				applyOptionFilter(
+					student.is_under_16,
+					is_under_16,
+					is_under_16_operator,
+				),
 			);
 		}
 
@@ -338,7 +373,12 @@ export async function GET(request: NextRequest) {
 				const fromDateObj = dateFrom ? new Date(dateFrom) : null;
 				const toDateObj = dateTo ? new Date(dateTo) : null;
 
-				return applyDateFilter(itemDate, fromDateObj, toDateObj, created_at_operator);
+				return applyDateFilter(
+					itemDate,
+					fromDateObj,
+					toDateObj,
+					created_at_operator,
+				);
 			});
 		}
 

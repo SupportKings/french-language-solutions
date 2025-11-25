@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQueryState } from "nuqs";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,7 @@ import {
 	Trash,
 	Users,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { useDeleteSequence, useSequences } from "../queries/sequences.queries";
 import type { SequenceQuery } from "../schemas/sequence.schema";

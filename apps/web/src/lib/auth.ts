@@ -47,6 +47,9 @@ export const auth = betterAuth({
 		enabled: true,
 		disableSignUp: true,
 	},
+	advanced: {
+		cookiePrefix: "fls-admin",
+	},
 	hooks: {
 		after: createAuthMiddleware(async (ctx) => {
 			const userId = ctx.context.session?.user.id;

@@ -23,7 +23,9 @@
  * extractGoogleDriveFolderId("")
  * // Returns: null
  */
-export function extractGoogleDriveFolderId(input: string | null | undefined): string | null {
+export function extractGoogleDriveFolderId(
+	input: string | null | undefined,
+): string | null {
 	if (!input) return null;
 
 	const trimmed = input.trim();
@@ -57,7 +59,9 @@ export function extractGoogleDriveFolderId(input: string | null | undefined): st
  * getGoogleDriveFolderUrl("abc123")
  * // Returns: "https://drive.google.com/drive/folders/abc123"
  */
-export function getGoogleDriveFolderUrl(folderId: string | null | undefined): string | null {
+export function getGoogleDriveFolderUrl(
+	folderId: string | null | undefined,
+): string | null {
 	if (!folderId) return null;
 
 	const trimmed = folderId.trim();

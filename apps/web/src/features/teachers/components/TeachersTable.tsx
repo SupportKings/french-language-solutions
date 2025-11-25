@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQueryState } from "nuqs";
 
 import {
 	DataTableFilter,
@@ -46,6 +45,7 @@ import {
 	UserCheck,
 	Video,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { useDeleteTeacher, useTeachers } from "../queries/teachers.queries";
 import type { TeacherQuery } from "../schemas/teacher.schema";
@@ -317,14 +317,17 @@ export function TeachersTable({ hideTitle = false }: TeachersTableProps) {
 	}, [filterQuery, searchQuery, setPageState]);
 
 	// Build effective query with URL state and filters
-	const effectiveQuery = useMemo(() => ({
-		page,
-		limit,
-		sortBy: "created_at" as const,
-		sortOrder: "desc" as const,
-		...filterQuery,
-		search: searchQuery || undefined,
-	}), [page, limit, filterQuery, searchQuery]);
+	const effectiveQuery = useMemo(
+		() => ({
+			page,
+			limit,
+			sortBy: "created_at" as const,
+			sortOrder: "desc" as const,
+			...filterQuery,
+			search: searchQuery || undefined,
+		}),
+		[page, limit, filterQuery, searchQuery],
+	);
 
 	const { data, isLoading, error } = useTeachers(effectiveQuery);
 	const deleteTeacher = useDeleteTeacher();

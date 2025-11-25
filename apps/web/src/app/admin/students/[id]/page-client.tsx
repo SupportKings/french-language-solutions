@@ -7,9 +7,10 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,9 +23,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { InternalNotes } from "@/components/internal-notes/InternalNotes";
-
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
+import { studentsApi } from "@/features/students/api/students.api";
 import { StudentAssessments } from "@/features/students/components/StudentAssessments";
 import { StudentAttendance } from "@/features/students/components/StudentAttendance";
 import {
@@ -33,10 +34,11 @@ import {
 } from "@/features/students/components/StudentDetailsClient";
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
+import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
-import { updateStudentInternalNotes } from "@/features/students/actions/updateInternalNotes";
+import { studentsKeys } from "@/features/students/queries/students.queries";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
 	Baby,
@@ -45,7 +47,6 @@ import {
 	ChevronRight,
 	ClipboardCheck,
 	Clock,
-	CreditCard,
 	GraduationCap,
 	Hand,
 	Mail,
@@ -107,17 +108,24 @@ export default function StudentDetailsClient({
 
 	const router = useRouter();
 	const pathname = usePathname();
-	const [student, setStudent] = useState(initialStudent);
+	const queryClient = useQueryClient();
+
+	// Use React Query with initialData for automatic refetching on invalidation
+	const { data: student } = useQuery({
+		queryKey: studentsKeys.detail(initialStudent.id),
+		queryFn: () => studentsApi.getById(initialStudent.id),
+		initialData: initialStudent,
+	});
+
 	// Local state for edited values
 	const [editedStudent, setEditedStudent] = useState<any>(initialStudent);
 
-	// Update the student when data changes
+	// Update edited student when student data changes
 	useEffect(() => {
-		if (initialStudent) {
-			setStudent(initialStudent);
-			setEditedStudent(initialStudent);
+		if (student) {
+			setEditedStudent(student);
 		}
-	}, [initialStudent]);
+	}, [student]);
 
 	// Fetch language levels
 	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
@@ -202,9 +210,10 @@ export default function StudentDetailsClient({
 
 			if (!response.ok) throw new Error("Failed to update");
 
-			const updated = await response.json();
-			setStudent(updated);
-			setEditedStudent(updated);
+			// Invalidate query to refetch updated data
+			await queryClient.invalidateQueries({
+				queryKey: studentsKeys.detail(student.id),
+			});
 			toast.success("Changes saved successfully");
 		} catch (error) {
 			toast.error("Failed to save changes");
@@ -273,8 +282,8 @@ export default function StudentDetailsClient({
 							</div>
 							<div>
 								<h1 className="font-semibold text-xl">{student.full_name}</h1>
-								{enrollmentStatus && (
-									<div className="mt-0.5 flex items-center gap-2">
+								<div className="mt-0.5 flex items-center gap-2">
+									{enrollmentStatus && (
 										<Badge
 											variant={
 												(ENROLLMENT_STATUS_COLORS as any)[enrollmentStatus] ||
@@ -285,26 +294,48 @@ export default function StudentDetailsClient({
 											{(ENROLLMENT_STATUS_LABELS as any)[enrollmentStatus] ||
 												enrollmentStatus}
 										</Badge>
-									</div>
-								)}
+									)}
+									{student.user_id && (
+										<Badge
+											variant={student.user?.banned ? "destructive" : "success"}
+											className="h-4 px-1.5 text-[10px]"
+										>
+											{student.user?.banned
+												? "Access Revoked"
+												: "Portal Access"}
+										</Badge>
+									)}
+								</div>
 							</div>
 						</div>
 
-						{canDeleteStudent && (
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="outline" size="sm">
-										<MoreVertical className="h-3.5 w-3.5" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-56">
-									<DropdownMenuItem className="text-destructive">
-										<Trash2 className="mr-2 h-3.5 w-3.5" />
-										Delete Student
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						)}
+						<div className="flex items-center gap-2">
+							{canEditStudent && (
+								<StudentPortalAccessDialog
+									studentId={student.id}
+									studentEmail={student.email}
+									studentName={student.full_name}
+									userId={student.user_id}
+									isBanned={student.user?.banned ?? false}
+								/>
+							)}
+
+							{canDeleteStudent && (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button variant="outline" size="sm">
+											<MoreVertical className="h-3.5 w-3.5" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="end" className="w-56">
+										<DropdownMenuItem className="text-destructive">
+											<Trash2 className="mr-2 h-3.5 w-3.5" />
+											Delete Student
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -612,32 +643,6 @@ export default function StudentDetailsClient({
 										</div>
 									</div>
 								</div>
-
-								{/* External Integrations - Read only */}
-								{(student.stripe_customer_id ||
-									student.convertkit_id ||
-									student.openphone_contact_id) && (
-									<div className="mt-6 space-y-4">
-										<h3 className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-											Integrations
-										</h3>
-										<div className="space-y-3">
-											{student.stripe_customer_id && (
-												<div className="flex items-start gap-3">
-													<CreditCard className="mt-0.5 h-4 w-4 text-muted-foreground" />
-													<div className="flex-1 space-y-0.5">
-														<p className="text-muted-foreground text-xs">
-															Stripe:
-														</p>
-														<code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-															{student.stripe_customer_id.slice(0, 14)}...
-														</code>
-													</div>
-												</div>
-											)}
-										</div>
-									</div>
-								)}
 							</div>
 						</div>
 					)}
@@ -844,10 +849,9 @@ export default function StudentDetailsClient({
 							studentId: student.id,
 							internalNotes: content,
 						});
-						// Update local state
-						setStudent({
-							...student,
-							internal_notes: content,
+						// Invalidate query to refetch updated data
+						await queryClient.invalidateQueries({
+							queryKey: studentsKeys.detail(student.id),
 						});
 					}}
 					canEdit={canEditStudent}

@@ -66,17 +66,28 @@ function applyDateFilter(
 			return itemDateNormalized <= fromDateNormalized;
 		case "is between":
 			if (!fromDateNormalized || !toDateNormalized) return true;
-			return itemDateNormalized >= fromDateNormalized && itemDateNormalized <= toDateNormalized;
+			return (
+				itemDateNormalized >= fromDateNormalized &&
+				itemDateNormalized <= toDateNormalized
+			);
 		case "is not between":
 			if (!fromDateNormalized || !toDateNormalized) return true;
-			return itemDateNormalized < fromDateNormalized || itemDateNormalized > toDateNormalized;
+			return (
+				itemDateNormalized < fromDateNormalized ||
+				itemDateNormalized > toDateNormalized
+			);
 		default:
 			// Default behavior for backward compatibility
 			if (fromDateNormalized && toDateNormalized) {
-				return itemDateNormalized >= fromDateNormalized && itemDateNormalized <= toDateNormalized;
-			} else if (fromDateNormalized) {
+				return (
+					itemDateNormalized >= fromDateNormalized &&
+					itemDateNormalized <= toDateNormalized
+				);
+			}
+			if (fromDateNormalized) {
 				return itemDateNormalized >= fromDateNormalized;
-			} else if (toDateNormalized) {
+			}
+			if (toDateNormalized) {
 				return itemDateNormalized <= toDateNormalized;
 			}
 			return true;
@@ -96,17 +107,22 @@ export async function GET(request: NextRequest) {
 		const results = searchParams.getAll("result");
 		const result_operator = searchParams.get("result_operator") || "is any of";
 		const levelIds = searchParams.getAll("level_id");
-		const level_id_operator = searchParams.get("level_id_operator") || "is any of";
+		const level_id_operator =
+			searchParams.get("level_id_operator") || "is any of";
 		const studentId = searchParams.get("studentId") || "";
 		const isPaid = searchParams.get("is_paid") || "";
-		const is_paid_operator = searchParams.get("is_paid_operator") || "is any of";
+		const is_paid_operator =
+			searchParams.get("is_paid_operator") || "is any of";
 		const hasTeachers = searchParams.getAll("has_teacher");
-		const has_teacher_operator = searchParams.get("has_teacher_operator") || "is any of";
+		const has_teacher_operator =
+			searchParams.get("has_teacher_operator") || "is any of";
 		const scheduledStatuses = searchParams.getAll("scheduled_status");
-		const scheduled_status_operator = searchParams.get("scheduled_status_operator") || "is any of";
+		const scheduled_status_operator =
+			searchParams.get("scheduled_status_operator") || "is any of";
 		const dateFrom = searchParams.get("date_from") || "";
 		const dateTo = searchParams.get("date_to") || "";
-		const scheduled_date_operator = searchParams.get("scheduled_date_operator") || "is between";
+		const scheduled_date_operator =
+			searchParams.get("scheduled_date_operator") || "is between";
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -259,16 +275,26 @@ export async function GET(request: NextRequest) {
 		if (isPaid !== "") {
 			const paidValues = [isPaid];
 			filteredData = filteredData.filter((assessment: any) =>
-				applyOptionFilter(String(assessment.is_paid), paidValues, is_paid_operator),
+				applyOptionFilter(
+					String(assessment.is_paid),
+					paidValues,
+					is_paid_operator,
+				),
 			);
 		}
 
 		// Teacher assignment filter with operator
 		if (hasTeachers.length > 0) {
 			filteredData = filteredData.filter((assessment: any) => {
-				const hasTeacher = !!(assessment.interview_held_by || assessment.level_checked_by);
+				const hasTeacher = !!(
+					assessment.interview_held_by || assessment.level_checked_by
+				);
 				const teacherStatus = hasTeacher ? "assigned" : "unassigned";
-				return applyOptionFilter(teacherStatus, hasTeachers, has_teacher_operator);
+				return applyOptionFilter(
+					teacherStatus,
+					hasTeachers,
+					has_teacher_operator,
+				);
 			});
 		}
 
@@ -276,7 +302,9 @@ export async function GET(request: NextRequest) {
 		if (scheduledStatuses.length > 0) {
 			filteredData = filteredData.filter((assessment: any) => {
 				const now = new Date();
-				const scheduledFor = assessment.scheduled_for ? new Date(assessment.scheduled_for) : null;
+				const scheduledFor = assessment.scheduled_for
+					? new Date(assessment.scheduled_for)
+					: null;
 
 				let status = "not_scheduled";
 				if (scheduledFor) {
@@ -287,18 +315,29 @@ export async function GET(request: NextRequest) {
 					}
 				}
 
-				return applyOptionFilter(status, scheduledStatuses, scheduled_status_operator);
+				return applyOptionFilter(
+					status,
+					scheduledStatuses,
+					scheduled_status_operator,
+				);
 			});
 		}
 
 		// Date filters with operator support for scheduled_for
 		if (dateFrom || dateTo) {
 			filteredData = filteredData.filter((assessment: any) => {
-				const scheduledDate = assessment.scheduled_for ? new Date(assessment.scheduled_for) : null;
+				const scheduledDate = assessment.scheduled_for
+					? new Date(assessment.scheduled_for)
+					: null;
 				const fromDateObj = dateFrom ? new Date(dateFrom) : null;
 				const toDateObj = dateTo ? new Date(dateTo) : null;
 
-				return applyDateFilter(scheduledDate, fromDateObj, toDateObj, scheduled_date_operator);
+				return applyDateFilter(
+					scheduledDate,
+					fromDateObj,
+					toDateObj,
+					scheduled_date_operator,
+				);
 			});
 		}
 
@@ -315,8 +354,10 @@ export async function GET(request: NextRequest) {
 			pagination: {
 				page,
 				limit,
-				total: needsInMemoryFiltering ? total : (count || 0),
-				totalPages: Math.ceil((needsInMemoryFiltering ? total : (count || 0)) / limit),
+				total: needsInMemoryFiltering ? total : count || 0,
+				totalPages: Math.ceil(
+					(needsInMemoryFiltering ? total : count || 0) / limit,
+				),
 			},
 		});
 	} catch (error) {

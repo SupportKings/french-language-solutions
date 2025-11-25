@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 
 import type { Database } from "@/utils/supabase/database.types";
 
-import { BackButton } from "@/components/ui/back-button";
 import { EditableSection } from "@/components/inline-edit/EditableSection";
 import { InlineEditField } from "@/components/inline-edit/InlineEditField";
+// Import internal notes component
+import { InternalNotes } from "@/components/internal-notes/InternalNotes";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,8 +50,6 @@ import {
 } from "../types/checklist.types";
 // Import checklist component
 import { ChecklistSection } from "./ChecklistSection";
-// Import internal notes component
-import { InternalNotes } from "@/components/internal-notes/InternalNotes";
 
 type EnrollmentStatus = Database["public"]["Enums"]["enrollment_status"];
 

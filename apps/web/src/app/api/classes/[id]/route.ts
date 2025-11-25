@@ -139,7 +139,9 @@ export async function PATCH(
 		// Validate: Internal Notes required when status is completed
 		if (body.status === "completed" && (!body.notes || !body.notes.trim())) {
 			return NextResponse.json(
-				{ error: "Internal Notes are required when status is set to Completed" },
+				{
+					error: "Internal Notes are required when status is set to Completed",
+				},
 				{ status: 400 },
 			);
 		}

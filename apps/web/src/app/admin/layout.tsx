@@ -8,6 +8,9 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import { getUser } from "@/queries/getUser";
 
+// Allowed roles for admin portal
+const ALLOWED_ROLES = ["admin", "teacher"];
+
 export default async function AdminLayout({
 	children,
 }: {
@@ -19,8 +22,14 @@ export default async function AdminLayout({
 		redirect("/");
 	}
 
-	// Get user's role and permissions
-	const userRole = session.user.role || "teacher";
+	// Get user's role and verify they have access to admin portal
+	const userRole = session.user.role || "";
+
+	// Reject users without admin/teacher role (e.g., students)
+	if (!ALLOWED_ROLES.includes(userRole)) {
+		redirect("/?error=unauthorized");
+	}
+
 	const rolePermissions = rolesMap[userRole as keyof typeof rolesMap];
 	const rawPermissions = rolePermissions?.statements || {};
 

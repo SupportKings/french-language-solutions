@@ -22,10 +22,9 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
+import { cohortsKeys } from "@/features/cohorts/queries/cohorts.queries";
 import { EnrollmentCreateModal } from "@/features/enrollments/components/EnrollmentCreateModal";
 import { EnrollmentDetailsModal } from "@/features/enrollments/components/EnrollmentDetailsModal";
-
-import { cohortsKeys } from "@/features/cohorts/queries/cohorts.queries";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {

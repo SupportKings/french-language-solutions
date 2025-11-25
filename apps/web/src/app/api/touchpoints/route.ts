@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search");
 		const channel = searchParams.getAll("channel");
-		const channel_operator = searchParams.get("channel_operator") || "is any of";
+		const channel_operator =
+			searchParams.get("channel_operator") || "is any of";
 		const type = searchParams.getAll("type");
 		const type_operator = searchParams.get("type_operator") || "is any of";
 		const source = searchParams.getAll("source");
@@ -42,9 +43,7 @@ export async function GET(request: NextRequest) {
 
 		// Determine if we need in-memory filtering for operators
 		const needsInMemoryFiltering =
-			channel.length > 0 ||
-			type.length > 0 ||
-			source.length > 0;
+			channel.length > 0 || type.length > 0 || source.length > 0;
 
 		// Build the query
 		let query = supabase.from("touchpoints").select(
@@ -135,7 +134,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Apply pagination to filtered data
-		const total = needsInMemoryFiltering ? filteredData.length : (totalCount || 0);
+		const total = needsInMemoryFiltering
+			? filteredData.length
+			: totalCount || 0;
 		const start = (page - 1) * limit;
 		const paginatedData = needsInMemoryFiltering
 			? filteredData.slice(start, start + limit)

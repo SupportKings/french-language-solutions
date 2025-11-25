@@ -201,7 +201,7 @@ export function ClassesPageClient() {
 				if (filter.type === "date" && filter.values) {
 					return {
 						...filter,
-						values: filter.values.map((v: any) => v ? new Date(v) : v),
+						values: filter.values.map((v: any) => (v ? new Date(v) : v)),
 					};
 				}
 				return filter;
@@ -387,7 +387,10 @@ export function ClassesPageClient() {
 			query.cohort_status = filterParams.cohort_status as CohortStatus[];
 			query.cohort_status_operator = filterParams.cohort_status_operator;
 		}
-		if (filterParams.setup_finalized && filterParams.setup_finalized.length > 0) {
+		if (
+			filterParams.setup_finalized &&
+			filterParams.setup_finalized.length > 0
+		) {
 			query.setup_finalized = filterParams.setup_finalized as string[];
 			query.setup_finalized_operator = filterParams.setup_finalized_operator;
 		}
