@@ -34,7 +34,7 @@ import {
 import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
 import {
 	productQueries,
-	useProducts,
+	useAllProducts,
 } from "@/features/products/queries/products.queries";
 import {
 	teachersQueries,
@@ -185,11 +185,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	});
 	const teachers = teachersData?.data || [];
 
-	// Fetch products
-	const { data: productsData, isLoading: productsLoading } = useProducts();
-	const products = Array.isArray(productsData)
-		? productsData
-		: productsData?.data || [];
+	// Fetch all products (unpaginated for dropdown)
+	const { data: products = [], isLoading: productsLoading } = useAllProducts();
 
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),

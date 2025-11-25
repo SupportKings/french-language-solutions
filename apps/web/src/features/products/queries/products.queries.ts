@@ -5,12 +5,14 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import type { Product } from "../schemas/product.schema";
+import { getAllProducts } from "../actions/getAllProducts";
 
 // Query keys
 export const productKeys = {
 	all: ["products"] as const,
 	lists: () => [...productKeys.all, "list"] as const,
 	list: (filters?: any) => [...productKeys.lists(), filters] as const,
+	allProducts: () => [...productKeys.all, "all"] as const,
 	details: () => [...productKeys.all, "detail"] as const,
 	detail: (id: string) => [...productKeys.details(), id] as const,
 };
@@ -35,15 +37,26 @@ export const productQueries = {
 			return response.json();
 		},
 	}),
+	all: () => ({
+		queryKey: productKeys.allProducts(),
+		queryFn: async () => {
+			return await getAllProducts();
+		},
+	}),
 	detail: (id: string) => ({
 		queryKey: productKeys.detail(id),
 		queryFn: () => fetchProduct(id),
 	}),
 };
 
-// Hook to fetch products list
+// Hook to fetch products list (paginated)
 export const useProducts = (filters?: any) => {
 	return useQuery(productQueries.list(filters));
+};
+
+// Hook to fetch all products (unpaginated, for dropdowns/pickers)
+export const useAllProducts = () => {
+	return useQuery(productQueries.all());
 };
 
 // Fetch a single product
