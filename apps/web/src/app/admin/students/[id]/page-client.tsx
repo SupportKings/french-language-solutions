@@ -35,6 +35,7 @@ import {
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
 import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
+import { StudentStatsCards } from "@/features/students/components/StudentStatsCards";
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { studentsKeys } from "@/features/students/queries/students.queries";
 
@@ -647,6 +648,9 @@ export default function StudentDetailsClient({
 						</div>
 					)}
 				</EditableSection>
+
+				{/* Student Stats Cards */}
+				<StudentStatsCards studentId={student.id} />
 
 				{/* Academic & Progress Tabs */}
 				<div className="mt-6">
