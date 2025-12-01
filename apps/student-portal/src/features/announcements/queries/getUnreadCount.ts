@@ -7,16 +7,18 @@ export async function getUnreadAnnouncementCount(
 
 	// Get student's cohort enrollments
 	const { data: enrollments } = await supabase
-		.from("student_cohort_enrollment")
+		.from("enrollments")
 		.select("cohort_id")
-		.eq("student_id", studentId);
+		.eq("student_id", studentId)
+		.in("status", ["paid", "welcome_package_sent", "transitioning", "offboarding"]);
 
 	const cohortIds = enrollments?.map((e) => e.cohort_id).filter(Boolean) || [];
 
 	// Fetch announcements (school-wide OR in student's cohorts)
 	let query = supabase
 		.from("announcements")
-		.select("id", { count: "exact", head: false });
+		.select("id", { count: "exact", head: false })
+		.is("deleted_at", null);
 
 	if (cohortIds.length > 0) {
 		query = query.or(

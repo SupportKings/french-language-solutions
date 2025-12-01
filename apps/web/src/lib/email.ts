@@ -21,8 +21,7 @@ export async function sendAnnouncementNotification({
 	recipientName,
 	announcementTitle,
 	announcementUrl = process.env.STUDENT_PORTAL_URL ||
-		process.env.NEXT_PUBLIC_APP_URL ||
-		"https://student.frenchlanguagesolutions.com",
+		"https://fls-student-portal.vercel.app",
 }: SendAnnouncementNotificationParams) {
 	try {
 		const emailResponse = await resend.emails.send({

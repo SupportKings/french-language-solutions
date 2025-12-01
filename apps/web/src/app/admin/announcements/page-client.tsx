@@ -18,6 +18,7 @@ import {
 	AnnouncementCard,
 	CategorySidebar,
 	CreateAnnouncementDialog,
+	EditAnnouncementDialog,
 	ReadStatsDialog,
 } from "@/features/announcements/components";
 import { announcementsQueries } from "@/features/announcements/queries/announcements.queries";
@@ -30,12 +31,19 @@ import { toast } from "sonner";
 type AnnouncementScope = Database["public"]["Enums"]["announcement_scope"];
 type SortOption = "newest" | "oldest";
 
-export function AnnouncementsPageClient() {
+interface AnnouncementsPageClientProps {
+	userId: string;
+}
+
+export function AnnouncementsPageClient({ userId }: AnnouncementsPageClientProps) {
 	const [selectedCategory, setSelectedCategory] = useState<
 		"all" | AnnouncementScope
 	>("all");
 	const [sortBy, setSortBy] = useState<SortOption>("newest");
 	const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<
+		string | null
+	>(null);
+	const [editingAnnouncementId, setEditingAnnouncementId] = useState<
 		string | null
 	>(null);
 
@@ -229,9 +237,11 @@ export function AnnouncementsPageClient() {
 									key={announcement.id}
 									announcement={announcement}
 									onViewStats={(id) => setSelectedAnnouncementId(id)}
-									onEdit={(id) => {
-										toast.info("Edit functionality coming soon");
-									}}
+									onEdit={
+										announcement.author?.id === userId
+											? (id) => setEditingAnnouncementId(id)
+											: undefined
+									}
 								/>
 							))}
 						</div>
@@ -242,6 +252,19 @@ export function AnnouncementsPageClient() {
 				<ReadStatsDialog
 					announcementId={selectedAnnouncementId}
 					onClose={() => setSelectedAnnouncementId(null)}
+				/>
+
+				{/* Edit Announcement Dialog */}
+				<EditAnnouncementDialog
+					announcement={
+						editingAnnouncementId
+							? allAnnouncements.find((a) => a.id === editingAnnouncementId) || null
+							: null
+					}
+					open={!!editingAnnouncementId}
+					onOpenChange={(open) => {
+						if (!open) setEditingAnnouncementId(null);
+					}}
 				/>
 			</div>
 		</div>
