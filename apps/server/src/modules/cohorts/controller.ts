@@ -6,6 +6,10 @@ const finalizeSetupSchema = z.object({
 	cohort_id: z.string().uuid(),
 });
 
+const createClassesFromEventsSchema = z.object({
+	events: z.array(z.string()).min(1, "At least one event is required"),
+});
+
 export class CohortController {
 	private cohortService: CohortService;
 
@@ -149,6 +153,62 @@ export class CohortController {
 				{
 					success: false,
 					error: "Failed to create classes",
+					message: errorMessage,
+				},
+				500,
+			);
+		}
+	}
+
+	/**
+	 * Create classes from calendar event data
+	 * POST /api/cohorts/create-classes-from-events
+	 *
+	 * Request body:
+	 * {
+	 *   "events": [
+	 *     "{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\"}",
+	 *     "{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\"}"
+	 *   ]
+	 * }
+	 */
+	async createClassesFromEvents(c: Context) {
+		try {
+			const body = await c.req.json();
+			const validatedData = createClassesFromEventsSchema.parse(body);
+
+			const result = await this.cohortService.createClassesFromCalendarEvents(
+				validatedData.events,
+			);
+
+			return c.json({
+				success: result.success,
+				message: result.message,
+				classesCreated: result.classesCreated,
+				attendanceRecordsCreated: result.attendanceRecordsCreated,
+			});
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				return c.json(
+					{
+						success: false,
+						error: "Validation error",
+						details: error.issues.map((issue) => ({
+							field: issue.path.join("."),
+							message: issue.message,
+						})),
+					},
+					400,
+				);
+			}
+
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error occurred";
+
+			return c.json(
+				{
+					success: false,
+					error: "Failed to create classes from events",
 					message: errorMessage,
 				},
 				500,

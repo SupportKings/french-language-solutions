@@ -1,10 +1,17 @@
 import { addDays } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { supabase } from "../../lib/supabase";
+import {
+	createClassesWithAttendance,
+	type ClassToCreate,
+} from "../../lib/utils/class-creation-helper";
+import { getBaseEventId } from "../../lib/utils/calendar-event-parser";
 import { triggerWebhook } from "../../lib/webhooks";
 import type {
+	CalendarEventPayload,
 	CohortWithDetails,
 	MakeWebhookPayload,
+	MatchedCalendarEvent,
 	WeeklySessionForCalendar,
 } from "./types";
 
@@ -743,5 +750,229 @@ export class CohortService {
 				classesCreated: 0,
 			};
 		}
+	}
+
+	/**
+	 * Create class records from calendar event data
+	 * Used by external integrations (Make.com, Google Calendar webhooks)
+	 *
+	 * @param calendarEvents - Array of stringified JSON objects with event data
+	 * @returns Result with success status and counts of created records
+	 */
+	async createClassesFromCalendarEvents(
+		calendarEvents: string[],
+	): Promise<{
+		success: boolean;
+		message: string;
+		classesCreated: number;
+		attendanceRecordsCreated: number;
+	}> {
+		try {
+			console.log(
+				`[Create Classes from Events] Processing ${calendarEvents.length} events...`,
+			);
+
+			// Step 1: Parse and validate events
+			const parsedEvents = this.parseCalendarEventPayloads(calendarEvents);
+			console.log(
+				`[Create Classes from Events] Parsed ${parsedEvents.length} valid events`,
+			);
+
+			// Step 2: Deduplicate by base event ID (keep first occurrence)
+			const uniqueEvents = this.deduplicateEventsByBaseId(parsedEvents);
+			console.log(
+				`[Create Classes from Events] ${uniqueEvents.length} unique events after deduplication`,
+			);
+
+			// Step 3: Match events to weekly sessions
+			const matchedEvents = await this.matchEventsToSessions(uniqueEvents);
+			console.log(
+				`[Create Classes from Events] Matched ${matchedEvents.length} events to sessions`,
+			);
+
+			if (matchedEvents.length === 0) {
+				return {
+					success: true,
+					message: "No matching sessions found for provided events",
+					classesCreated: 0,
+					attendanceRecordsCreated: 0,
+				};
+			}
+
+			// Step 4: Prepare class records
+			const classesToCreate = this.prepareClassesFromEvents(matchedEvents);
+
+			// Step 5: Create classes with attendance using shared helper
+			return await createClassesWithAttendance(classesToCreate);
+		} catch (error) {
+			console.error("[Create Classes from Events] Unexpected error:", error);
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error occurred";
+			return {
+				success: false,
+				message: errorMessage,
+				classesCreated: 0,
+				attendanceRecordsCreated: 0,
+			};
+		}
+	}
+
+	/**
+	 * Parse and validate incoming calendar event strings
+	 */
+	private parseCalendarEventPayloads(
+		events: string[],
+	): CalendarEventPayload[] {
+		const parsed: CalendarEventPayload[] = [];
+
+		for (let i = 0; i < events.length; i++) {
+			try {
+				const event = JSON.parse(events[i]);
+
+				// Validate required fields
+				if (!event.event_id || !event.start || !event.end) {
+					console.warn(
+						`[Create Classes from Events] Skipping event ${i}: missing required fields`,
+					);
+					continue;
+				}
+
+				// Validate date formats
+				if (Number.isNaN(Date.parse(event.start)) || Number.isNaN(Date.parse(event.end))) {
+					console.warn(
+						`[Create Classes from Events] Skipping event ${i}: invalid date format`,
+					);
+					continue;
+				}
+
+				parsed.push({
+					event_id: event.event_id,
+					start: event.start,
+					end: event.end,
+				});
+			} catch (error) {
+				console.warn(
+					`[Create Classes from Events] Failed to parse event ${i}:`,
+					error,
+				);
+				continue;
+			}
+		}
+
+		return parsed;
+	}
+
+	/**
+	 * Deduplicate events by base event ID
+	 * If multiple events have same base ID, keeps only the first occurrence
+	 */
+	private deduplicateEventsByBaseId(
+		events: CalendarEventPayload[],
+	): CalendarEventPayload[] {
+		const seenBaseIds = new Set<string>();
+		const unique: CalendarEventPayload[] = [];
+
+		for (const event of events) {
+			const baseId = getBaseEventId(event.event_id);
+
+			if (!seenBaseIds.has(baseId)) {
+				seenBaseIds.add(baseId);
+				unique.push(event);
+			}
+		}
+
+		return unique;
+	}
+
+	/**
+	 * Match calendar events to weekly sessions by google_calendar_event_id
+	 * Also validates that cohorts are active (setup_finalized=true, status!=class_ended)
+	 */
+	private async matchEventsToSessions(
+		events: CalendarEventPayload[],
+	): Promise<MatchedCalendarEvent[]> {
+		// Extract base event IDs
+		const baseEventIds = events.map((e) => getBaseEventId(e.event_id));
+
+		// Fetch matching weekly sessions with cohort information
+		const { data: sessions, error } = await supabase
+			.from("weekly_sessions")
+			.select(
+				`
+      id,
+      cohort_id,
+      teacher_id,
+      google_calendar_event_id,
+      calendar_event_url,
+      cohorts!inner(
+        id,
+        setup_finalized,
+        cohort_status
+      )
+    `,
+			)
+			.in("google_calendar_event_id", baseEventIds);
+
+		if (error) {
+			console.error(
+				"[Create Classes from Events] Error fetching sessions:",
+				error,
+			);
+			throw new Error(`Failed to fetch sessions: ${error.message}`);
+		}
+
+		// Match events to sessions and validate cohort status
+		const matched: MatchedCalendarEvent[] = [];
+
+		for (const event of events) {
+			const baseEventId = getBaseEventId(event.event_id);
+			const session = sessions?.find(
+				(s) => s.google_calendar_event_id === baseEventId,
+			);
+
+			if (!session) {
+				console.warn(
+					`[Create Classes from Events] No session found for event ${event.event_id} (base: ${baseEventId})`,
+				);
+				continue;
+			}
+
+			// Validate cohort status
+			const cohort = (session as any).cohorts;
+			if (!cohort.setup_finalized) {
+				console.warn(
+					`[Create Classes from Events] Skipping event ${event.event_id}: cohort ${session.cohort_id} setup not finalized`,
+				);
+				continue;
+			}
+
+			if (cohort.cohort_status === "class_ended") {
+				console.warn(
+					`[Create Classes from Events] Skipping event ${event.event_id}: cohort ${session.cohort_id} status is class_ended`,
+				);
+				continue;
+			}
+
+			matched.push({ event, session });
+		}
+
+		return matched;
+	}
+
+	/**
+	 * Convert matched events to class records ready for insertion
+	 */
+	private prepareClassesFromEvents(
+		matchedEvents: MatchedCalendarEvent[],
+	): ClassToCreate[] {
+		return matchedEvents.map(({ event, session }) => ({
+			cohort_id: session.cohort_id,
+			teacher_id: session.teacher_id,
+			start_time: event.start,
+			end_time: event.end,
+			google_calendar_event_id: event.event_id,
+			meeting_link: session.calendar_event_url,
+			status: "scheduled" as const,
+		}));
 	}
 }
