@@ -166,9 +166,7 @@ export class CohortController {
 	 */
 	async createClassesFromEvents(c: Context) {
 		try {
-			const body = await c.req.json();
-
-			// Check if events is a string (stringified array) or already an array
+			let body: any;
 			let eventsData: Array<{
 				id: string;
 				start: string;
@@ -176,31 +174,60 @@ export class CohortController {
 				hangoutLink?: string | null;
 			}>;
 
-			if (typeof body.events === "string") {
-				// Parse the stringified array
-				try {
+			// Try to parse as JSON first
+			try {
+				body = await c.req.json();
+
+				// Check if events is a string (stringified array) or already an array
+				if (typeof body.events === "string") {
+					// Parse the stringified array
 					eventsData = JSON.parse(body.events);
+				} else if (Array.isArray(body.events)) {
+					eventsData = body.events;
+				} else {
+					return c.json(
+						{
+							success: false,
+							error: "Invalid request format",
+							message: "events must be an array or stringified array",
+						},
+						400,
+					);
+				}
+			} catch (jsonError) {
+				// If JSON parsing fails, try to parse as text (for malformed JSON from Make.com)
+				console.log("JSON parsing failed, trying text parsing:", jsonError);
+				const rawBody = await c.req.text();
+
+				// Extract the events array string manually
+				const eventsMatch = rawBody.match(/"events"\s*:\s*"(\[.*\])"/s);
+
+				if (!eventsMatch || !eventsMatch[1]) {
+					return c.json(
+						{
+							success: false,
+							error: "Invalid request format",
+							message: "Could not parse request body",
+						},
+						400,
+					);
+				}
+
+				// Unescape the string and parse it
+				const eventsArrayString = eventsMatch[1].replace(/\\"/g, '"');
+
+				try {
+					eventsData = JSON.parse(eventsArrayString);
 				} catch (parseError) {
 					return c.json(
 						{
 							success: false,
 							error: "Invalid events format",
-							message: "Could not parse stringified events array",
+							message: "Could not parse events array",
 						},
 						400,
 					);
 				}
-			} else if (Array.isArray(body.events)) {
-				eventsData = body.events;
-			} else {
-				return c.json(
-					{
-						success: false,
-						error: "Invalid request format",
-						message: "events must be an array or stringified array",
-					},
-					400,
-				);
 			}
 
 			// Convert the event objects to stringified format expected by the service
