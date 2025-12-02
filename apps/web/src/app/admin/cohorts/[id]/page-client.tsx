@@ -1315,7 +1315,6 @@ export function CohortDetailPageClient({
 							cohortId={cohortId}
 							cohortFormat={cohort?.products?.format}
 							cohortRoom={cohort?.room}
-							cohortStartDate={cohort?.start_date}
 							onViewAttendance={handleViewAttendance}
 						/>
 					</TabsContent>
