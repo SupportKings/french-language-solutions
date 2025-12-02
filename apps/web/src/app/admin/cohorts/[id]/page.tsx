@@ -57,7 +57,11 @@ export default async function CohortDetailPage({
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<CohortDetailPageClient cohortId={id} permissions={permissions} />
+			<CohortDetailPageClient
+				cohortId={id}
+				permissions={permissions}
+				currentUserId={session.user.id}
+			/>
 		</HydrationBoundary>
 	);
 }

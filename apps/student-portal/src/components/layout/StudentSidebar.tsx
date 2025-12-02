@@ -33,6 +33,7 @@ import {
 	Home,
 	LogOut,
 	Megaphone,
+	MessageCircle,
 	Settings,
 	User,
 } from "lucide-react";
@@ -77,6 +78,12 @@ export function StudentSidebar({
 			url: "/announcements",
 			icon: Megaphone,
 			badge: unreadAnnouncementCount,
+		},
+		{
+			title: "Chats",
+			url: "/chats",
+			icon: MessageCircle,
+			badge: undefined as number | undefined,
 		},
 	];
 	const pathname = usePathname();

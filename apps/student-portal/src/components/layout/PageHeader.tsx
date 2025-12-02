@@ -44,6 +44,10 @@ export function PageHeader({ student, unreadCount }: PageHeaderProps) {
 				.slice(0, 2)
 				.toUpperCase()
 		: "ST";
+	
+	if(pathname.includes("/chats")) {
+		return <></>
+	}
 
 	return (
 		<header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur transition-[width,height] ease-linear supports-[backdrop-filter]:bg-background/60">
