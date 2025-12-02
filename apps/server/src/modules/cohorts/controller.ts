@@ -174,45 +174,48 @@ export class CohortController {
 	 */
 	async createClassesFromEvents(c: Context) {
 		try {
-			// Get raw text body first since Make.com sends malformed JSON
-			const rawBody = await c.req.text();
+			const body = await c.req.json();
 
-			// Extract the events array string manually
-			// The format from Make.com is: {"events":"[\"...\",\"...\"]"}
-			// We need to extract everything between the first [ and last ]
-			const eventsMatch = rawBody.match(/"events"\s*:\s*"(\[.*\])"/);
+			// Check if events is a string (stringified array) or already an array
+			let eventsData: Array<{ id: string; start: string; end: string }>;
 
-			if (!eventsMatch || !eventsMatch[1]) {
+			if (typeof body.events === "string") {
+				// Parse the stringified array
+				try {
+					eventsData = JSON.parse(body.events);
+				} catch (parseError) {
+					return c.json(
+						{
+							success: false,
+							error: "Invalid events format",
+							message: "Could not parse stringified events array",
+						},
+						400,
+					);
+				}
+			} else if (Array.isArray(body.events)) {
+				eventsData = body.events;
+			} else {
 				return c.json(
 					{
 						success: false,
 						error: "Invalid request format",
-						message: "Could not find events array in request body",
+						message: "events must be an array or stringified array",
 					},
 					400,
 				);
 			}
 
-			// The matched string is the array with escaped quotes
-			// We need to unescape it and parse it
-			const eventsArrayString = eventsMatch[1]
-				.replace(/\\"/g, '"') // Unescape quotes
-				.replace(/\\n/g, "") // Remove escaped newlines if any
-				.replace(/\\\\/g, "\\"); // Unescape backslashes
-
-			let eventsArray: string[];
-			try {
-				eventsArray = JSON.parse(eventsArrayString);
-			} catch (parseError) {
-				return c.json(
-					{
-						success: false,
-						error: "Invalid events format",
-						message: "Could not parse events array",
-					},
-					400,
-				);
-			}
+			// Convert the event objects to stringified format expected by the service
+			// Service expects: ["{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\"}"]
+			// Make.com sends: [{"id":"...","start":"...","end":"..."}]
+			const eventsArray = eventsData.map((event) =>
+				JSON.stringify({
+					event_id: event.id,
+					start: event.start,
+					end: event.end,
+				}),
+			);
 
 			// Validate with Zod
 			const validatedData = createClassesFromEventsSchema.parse({
