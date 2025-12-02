@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
-import { PageHeader, StudentSidebar } from "@/components/layout";
+import { MainContent, PageHeader, StudentSidebar } from "@/components/layout";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import { getUnreadAnnouncementCount } from "@/features/announcements/queries/getUnreadCount";
@@ -61,11 +61,7 @@ export default async function AuthenticatedLayout({
 			/>
 			<SidebarInset>
 				<PageHeader student={studentData} unreadCount={unreadCount} />
-				<main className="flex-1 overflow-auto">
-					<div className="container max-w-screen-xl py-6 lg:py-8">
-						{children}
-					</div>
-				</main>
+				<MainContent>{children}</MainContent>
 			</SidebarInset>
 		</SidebarProvider>
 	);
