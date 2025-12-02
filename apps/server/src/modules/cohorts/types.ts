@@ -52,6 +52,7 @@ export interface CalendarEventPayload {
 	event_id: string; // Google Calendar event ID (may include recurrence suffix)
 	start: string; // ISO datetime (UTC)
 	end: string; // ISO datetime (UTC)
+	hangout_link?: string | null; // Google Meet link (optional)
 }
 
 /**

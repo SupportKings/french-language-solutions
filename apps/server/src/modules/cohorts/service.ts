@@ -972,6 +972,7 @@ export class CohortService {
 			end_time: event.end,
 			google_calendar_event_id: event.event_id,
 			meeting_link: session.calendar_event_url,
+			hangout_link: event.hangout_link || null,
 			status: "scheduled" as const,
 		}));
 	}

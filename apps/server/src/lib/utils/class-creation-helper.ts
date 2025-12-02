@@ -7,6 +7,7 @@ export interface ClassToCreate {
 	end_time: string; // ISO datetime
 	google_calendar_event_id: string | null;
 	meeting_link: string | null;
+	hangout_link: string | null;
 	status: "scheduled";
 }
 

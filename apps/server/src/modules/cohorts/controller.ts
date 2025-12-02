@@ -163,21 +163,18 @@ export class CohortController {
 	/**
 	 * Create classes from calendar event data
 	 * POST /api/cohorts/create-classes-from-events
-	 *
-	 * Request body:
-	 * {
-	 *   "events": [
-	 *     "{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\"}",
-	 *     "{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\"}"
-	 *   ]
-	 * }
 	 */
 	async createClassesFromEvents(c: Context) {
 		try {
 			const body = await c.req.json();
 
 			// Check if events is a string (stringified array) or already an array
-			let eventsData: Array<{ id: string; start: string; end: string }>;
+			let eventsData: Array<{
+				id: string;
+				start: string;
+				end: string;
+				hangoutLink?: string | null;
+			}>;
 
 			if (typeof body.events === "string") {
 				// Parse the stringified array
@@ -207,13 +204,14 @@ export class CohortController {
 			}
 
 			// Convert the event objects to stringified format expected by the service
-			// Service expects: ["{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\"}"]
-			// Make.com sends: [{"id":"...","start":"...","end":"..."}]
+			// Service expects: ["{\"event_id\":\"...\",\"start\":\"...\",\"end\":\"...\",\"hangout_link\":\"...\"}"]
+			// Make.com sends: [{"id":"...","start":"...","end":"...","hangoutLink":"..."}]
 			const eventsArray = eventsData.map((event) =>
 				JSON.stringify({
 					event_id: event.id,
 					start: event.start,
 					end: event.end,
+					hangout_link: event.hangoutLink || null,
 				}),
 			);
 
