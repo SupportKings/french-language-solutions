@@ -2,6 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
+import path from "path";
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const pageInfo: Record<string, { title: string; description?: string }> = {
@@ -204,6 +206,10 @@ export function PageHeader() {
 				info = { title: "Admin" };
 			}
 		}
+	}
+
+	if (pathname.includes("/admin/chats")) {
+		return <></>;
 	}
 
 	return (

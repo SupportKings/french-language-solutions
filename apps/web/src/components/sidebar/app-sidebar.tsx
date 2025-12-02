@@ -220,6 +220,15 @@ export function AppSidebar({
 				});
 			}
 
+			// Chats - only show if user has access to cohorts
+			if (canAccessCohorts) {
+				navItems.push({
+					title: "Chats",
+					url: "/admin/chats",
+					icon: "MessageCircle",
+				});
+			}
+
 			// Team Members - only show if user has access to teachers
 			if (canAccessTeachers) {
 				navItems.push({

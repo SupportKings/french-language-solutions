@@ -1,4 +1,5 @@
 import { AnnouncementNotificationEmail } from "@workspace/emails/emails/announcement-notification";
+import { DirectMessageNotificationEmail } from "@workspace/emails/emails/direct-message-notification";
 import { Resend } from "resend";
 
 // Initialize Resend client
@@ -87,6 +88,110 @@ export async function sendAnnouncementNotificationsBatch(
 
 	console.log(
 		`[Email] Announcement notifications sent: ${successful} successful, ${failed} failed`,
+	);
+
+	if (failed > 0) {
+		const errors = results
+			.filter((r) => r.status === "rejected")
+			.map((r) => (r as PromiseRejectedResult).reason);
+		console.error("[Email] Failed emails:", errors);
+	}
+
+	return results;
+}
+
+interface SendDirectMessageNotificationParams {
+	recipientEmail: string;
+	recipientName: string;
+	senderName: string;
+	messagePreview: string;
+	conversationUrl?: string;
+}
+
+/**
+ * Send direct message notification email to a single recipient
+ * @param params - Email parameters
+ * @returns Resend API response
+ */
+export async function sendDirectMessageNotification({
+	recipientEmail,
+	recipientName,
+	senderName,
+	messagePreview,
+	conversationUrl = process.env.STUDENT_PORTAL_URL ||
+		process.env.NEXT_PUBLIC_APP_URL ||
+		"https://student.frenchlanguagesolutions.com/chats",
+}: SendDirectMessageNotificationParams) {
+	try {
+		const preferencesUrl = `${conversationUrl.replace("/chats", "")}/settings`;
+
+		const emailResponse = await resend.emails.send({
+			from: "French Language Solutions <portal@frenchlanguagesolutions.com>",
+			to: [recipientEmail],
+			subject: `New message from ${senderName}`,
+			react: DirectMessageNotificationEmail({
+				recipientName,
+				senderName,
+				messagePreview,
+				conversationUrl,
+				preferencesUrl,
+			}),
+		});
+
+		if (emailResponse.error) {
+			console.error(
+				`[Email] Failed to send direct message notification to ${recipientEmail}:`,
+				emailResponse.error,
+			);
+		}
+
+		return emailResponse;
+	} catch (error) {
+		console.error(
+			`[Email] Exception while sending direct message notification to ${recipientEmail}:`,
+			error,
+		);
+		throw error;
+	}
+}
+
+/**
+ * Send direct message notifications to multiple recipients in batch
+ * @param recipients - Array of recipient objects with email and name
+ * @param senderName - Name of the message sender
+ * @param messagePreview - Preview of the message content
+ * @param conversationUrl - URL to view the conversation
+ * @returns Array of results from all email sends
+ */
+export async function sendDirectMessageNotificationsBatch(
+	recipients: Array<{ email: string; name: string }>,
+	senderName: string,
+	messagePreview: string,
+	conversationUrl?: string,
+) {
+	console.log(
+		`[Email] Sending direct message notifications to ${recipients.length} recipients`,
+	);
+
+	// Send all emails in parallel, but don't fail if some fail
+	const results = await Promise.allSettled(
+		recipients.map((recipient) =>
+			sendDirectMessageNotification({
+				recipientEmail: recipient.email,
+				recipientName: recipient.name,
+				senderName,
+				messagePreview,
+				conversationUrl,
+			}),
+		),
+	);
+
+	// Log summary
+	const successful = results.filter((r) => r.status === "fulfilled").length;
+	const failed = results.filter((r) => r.status === "rejected").length;
+
+	console.log(
+		`[Email] Direct message notifications sent: ${successful} successful, ${failed} failed`,
 	);
 
 	if (failed > 0) {

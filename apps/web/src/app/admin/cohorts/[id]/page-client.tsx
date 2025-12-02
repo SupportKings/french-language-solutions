@@ -32,8 +32,20 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { deleteMessage } from "@/features/chats/actions/deleteMessage";
+import { editMessage } from "@/features/chats/actions/editMessage";
+import { sendMessage } from "@/features/chats/actions/sendMessage";
+import { ChatWrapper } from "@/features/chats/components/ChatWrapper";
+import { chatsKeys } from "@/features/chats/queries/chats.queries";
+import type { Message } from "@/features/chats/types";
 import { finalizeSetup } from "@/features/cohorts/actions/finalize-setup";
 import { updateCohortInternalNotes } from "@/features/cohorts/actions/updateInternalNotes";
 import { CohortAttendance } from "@/features/cohorts/components/CohortAttendance";
@@ -48,6 +60,7 @@ import {
 } from "@/features/cohorts/queries/cohorts.queries";
 import type { CohortStatus } from "@/features/cohorts/schemas/cohort.schema";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
 	Activity,
@@ -59,17 +72,20 @@ import {
 	FolderOpen,
 	GraduationCap,
 	MapPin,
+	MessageCircle,
 	MoreVertical,
 	Plus,
 	School,
 	Trash2,
 	Users,
 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 interface CohortDetailPageClientProps {
 	cohortId: string;
 	permissions: any;
+	currentUserId: string;
 }
 
 // Status options
@@ -128,6 +144,7 @@ const formatTime = (time: string) => {
 export function CohortDetailPageClient({
 	cohortId,
 	permissions,
+	currentUserId,
 }: CohortDetailPageClientProps) {
 	// Check permissions
 	const canAddSession = permissions?.cohorts?.includes("add_session");
@@ -151,6 +168,10 @@ export function CohortDetailPageClient({
 		string | undefined
 	>(undefined);
 	const [activeTab, setActiveTab] = useState("enrollments");
+
+	// Chat drawer state
+	const [isChatOpen, setIsChatOpen] = useState(false);
+	const queryClient = useQueryClient();
 
 	// Enrollment progress state
 	const [enrollmentData, setEnrollmentData] = useState<{
@@ -399,6 +420,108 @@ export function CohortDetailPageClient({
 	const handleViewAttendance = (classId: string) => {
 		setAttendanceClassId(classId);
 		setActiveTab("attendance");
+	};
+
+	// Chat message handlers
+	const { execute: executeSend } = useAction(sendMessage, {
+		onSuccess: () => {},
+		onError: ({ error }) => {
+			toast.error(error.serverError || "Failed to send message");
+		},
+	});
+
+	const handleSendMessage = async (
+		content: string | null,
+		attachments?: import("@/features/chats/types").AttachmentMetadata[],
+	) => {
+		if (!cohort?.id) return;
+
+		const optimisticId = `optimistic-${Date.now()}`;
+		const optimisticMessage: Message = {
+			id: optimisticId,
+			content,
+			userId: currentUserId,
+			cohortId: cohort.id,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			editedAt: null,
+			deletedAt: null,
+			user: {
+				id: currentUserId,
+				name: "You",
+				email: "",
+			},
+			attachments: [],
+		};
+
+		// Immediately add to cache for infinite query
+		queryClient.setQueryData(chatsKeys.messages(cohort.id), (old: any) => {
+			if (!old?.pages) return old;
+
+			const newPages = [...old.pages];
+			if (newPages.length > 0) {
+				// Add to the first page (most recent messages)
+				newPages[0] = {
+					...newPages[0],
+					messages: [...newPages[0].messages, optimisticMessage],
+				};
+			}
+
+			return {
+				...old,
+				pages: newPages,
+			};
+		});
+
+		await executeSend({
+			cohortId: cohort.id,
+			content: content || undefined,
+			attachments,
+		});
+	};
+
+	const { execute: executeEdit } = useAction(editMessage, {
+		onSuccess: () => {
+			toast.success("Message edited");
+			if (cohort?.id) {
+				queryClient.invalidateQueries({
+					queryKey: chatsKeys.messages(cohort.id),
+				});
+			}
+		},
+		onError: ({ error }) => {
+			toast.error(error.serverError || "Failed to edit message");
+		},
+	});
+
+	const handleEditMessage = async (
+		messageId: string,
+		content: string | null,
+		attachmentsToRemove?: string[],
+		attachmentsToAdd?: import("@/features/chats/types").AttachmentMetadata[],
+	) => {
+		await executeEdit({
+			messageId,
+			content: content || undefined,
+			attachmentsToRemove,
+			attachmentsToAdd,
+		});
+	};
+
+	const { execute: executeDelete } = useAction(deleteMessage, {
+		onSuccess: () => {
+			toast.success("Message deleted");
+			queryClient.invalidateQueries({
+				queryKey: chatsKeys.messages(cohortId),
+			});
+		},
+		onError: ({ error }) => {
+			toast.error(error.serverError || "Failed to delete message");
+		},
+	});
+
+	const handleDeleteMessage = async (messageId: string) => {
+		await executeDelete({ messageId });
 	};
 
 	// Show loading skeleton while loading
@@ -661,6 +784,17 @@ export function CohortDetailPageClient({
 						</div>
 
 						<div className="flex items-center gap-2">
+							{/* Chat Button */}
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setIsChatOpen(true)}
+								className="gap-2"
+							>
+								<MessageCircle className="h-4 w-4" />
+								Chat
+							</Button>
+
 							{canEditCohort && (
 								<>
 									{!cohort.setup_finalized ? (
@@ -1468,6 +1602,29 @@ export function CohortDetailPageClient({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Chat Drawer */}
+			<Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+				<SheetContent className="flex w-full flex-col p-0 sm:max-w-2xl">
+					<SheetHeader className="border-b px-6 py-4">
+						<SheetTitle className="flex items-center gap-2">
+							<MessageCircle className="h-5 w-5" />
+							{cohortName} Chat
+						</SheetTitle>
+					</SheetHeader>
+
+					<div className="flex-1 overflow-hidden">
+						<ChatWrapper
+							cohortId={cohort.id}
+							cohortName={cohortName}
+							currentUserId={currentUserId}
+							onSendMessage={handleSendMessage}
+							onEditMessage={handleEditMessage}
+							onDeleteMessage={handleDeleteMessage}
+						/>
+					</div>
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }
