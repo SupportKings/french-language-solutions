@@ -849,6 +849,7 @@ export class CohortService {
 					event_id: event.event_id,
 					start: event.start,
 					end: event.end,
+					hangout_link: event.hangout_link || null,
 				});
 			} catch (error) {
 				console.warn(
