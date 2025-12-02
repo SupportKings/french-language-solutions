@@ -37,10 +37,10 @@ export function ChatNotificationSettings({
 	}, [initialEmailEnabled, open]);
 
 	const { execute, isPending } = useAction(updateChatNotificationPreferences, {
-		onSuccess: ({ data }) => {
+		onSuccess: ({ data }: any) => {
 			if (data) {
 				toast.success("Notification preferences updated");
-				onPreferencesUpdated?.(data.emailNotificationsEnabled);
+				onPreferencesUpdated?.(data?.emailNotificationsEnabled);
 				onOpenChange(false);
 			}
 		},

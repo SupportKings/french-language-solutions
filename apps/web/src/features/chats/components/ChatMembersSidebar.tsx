@@ -232,7 +232,7 @@ export function ChatMembersSidebar({
 	}
 
 	// Transform conversation data to match cohort data structure
-	const displayData =
+	const displayData: any =
 		conversationId && conversationData
 			? (() => {
 					const mapped = conversationData.participants.map((p: any) => ({
@@ -260,7 +260,7 @@ export function ChatMembersSidebar({
 			: data;
 
 	// Empty State
-	if (!displayData || displayData.totalCount === 0) {
+	if (!displayData || displayData?.totalCount === 0) {
 		return (
 			<div
 				className={cn(

@@ -148,7 +148,7 @@ export async function getDirectConversations({
 		};
 	});
 
-	const conversations = await Promise.all(conversationsPromises);
+	const conversations: any = await Promise.all(conversationsPromises);
 
 	return {
 		conversations,
