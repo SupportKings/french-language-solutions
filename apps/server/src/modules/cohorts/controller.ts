@@ -174,25 +174,50 @@ export class CohortController {
 	 */
 	async createClassesFromEvents(c: Context) {
 		try {
-			const body = await c.req.json();
+			// Get raw text body first since Make.com sends malformed JSON
+			const rawBody = await c.req.text();
 
-			// Handle case where Make.com sends events as stringified array
-			if (typeof body.events === "string") {
-				try {
-					body.events = JSON.parse(body.events);
-				} catch (parseError) {
-					return c.json(
-						{
-							success: false,
-							error: "Invalid events format",
-							message: "Could not parse stringified events array",
-						},
-						400,
-					);
-				}
+			// Extract the events array string manually
+			// The format from Make.com is: {"events":"[\"...\",\"...\"]"}
+			// We need to extract everything between the first [ and last ]
+			const eventsMatch = rawBody.match(/"events"\s*:\s*"(\[.*\])"/);
+
+			if (!eventsMatch || !eventsMatch[1]) {
+				return c.json(
+					{
+						success: false,
+						error: "Invalid request format",
+						message: "Could not find events array in request body",
+					},
+					400,
+				);
 			}
 
-			const validatedData = createClassesFromEventsSchema.parse(body);
+			// The matched string is the array with escaped quotes
+			// We need to unescape it and parse it
+			const eventsArrayString = eventsMatch[1]
+				.replace(/\\"/g, '"') // Unescape quotes
+				.replace(/\\n/g, "") // Remove escaped newlines if any
+				.replace(/\\\\/g, "\\"); // Unescape backslashes
+
+			let eventsArray: string[];
+			try {
+				eventsArray = JSON.parse(eventsArrayString);
+			} catch (parseError) {
+				return c.json(
+					{
+						success: false,
+						error: "Invalid events format",
+						message: "Could not parse events array",
+					},
+					400,
+				);
+			}
+
+			// Validate with Zod
+			const validatedData = createClassesFromEventsSchema.parse({
+				events: eventsArray,
+			});
 
 			const result = await this.cohortService.createClassesFromCalendarEvents(
 				validatedData.events,
