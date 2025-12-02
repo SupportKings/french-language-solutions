@@ -175,6 +175,23 @@ export class CohortController {
 	async createClassesFromEvents(c: Context) {
 		try {
 			const body = await c.req.json();
+
+			// Handle case where Make.com sends events as stringified array
+			if (typeof body.events === "string") {
+				try {
+					body.events = JSON.parse(body.events);
+				} catch (parseError) {
+					return c.json(
+						{
+							success: false,
+							error: "Invalid events format",
+							message: "Could not parse stringified events array",
+						},
+						400,
+					);
+				}
+			}
+
 			const validatedData = createClassesFromEventsSchema.parse(body);
 
 			const result = await this.cohortService.createClassesFromCalendarEvents(
