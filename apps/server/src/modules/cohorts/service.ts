@@ -962,19 +962,41 @@ export class CohortService {
 
 	/**
 	 * Convert matched events to class records ready for insertion
+	 * Converts UTC times from events to Canadian Eastern Time before storing
 	 */
 	private prepareClassesFromEvents(
 		matchedEvents: MatchedCalendarEvent[],
 	): ClassToCreate[] {
-		return matchedEvents.map(({ event, session }) => ({
-			cohort_id: session.cohort_id,
-			teacher_id: session.teacher_id,
-			start_time: event.start,
-			end_time: event.end,
-			google_calendar_event_id: event.event_id,
-			meeting_link: session.calendar_event_url,
-			hangout_link: event.hangout_link || null,
-			status: "scheduled" as const,
-		}));
+		return matchedEvents.map(({ event, session }) => {
+			// Convert UTC times to Canadian Eastern Time
+			const utcStartTime = new Date(event.start);
+			const utcEndTime = new Date(event.end);
+
+			// Convert to Canadian timezone
+			const canadianStartTime = toZonedTime(utcStartTime, CANADIAN_TIMEZONE);
+			const canadianEndTime = toZonedTime(utcEndTime, CANADIAN_TIMEZONE);
+
+			// Format as ISO string without timezone info (database will store as-is)
+			// Format: YYYY-MM-DDTHH:mm:ss
+			const startTimeStr = canadianStartTime.toISOString().slice(0, 19);
+			const endTimeStr = canadianEndTime.toISOString().slice(0, 19);
+
+			console.log(
+				`[Create Classes from Events] Converting times for event ${event.event_id}:`,
+			);
+			console.log(`  UTC: ${event.start} -> Canadian: ${startTimeStr}`);
+			console.log(`  UTC: ${event.end} -> Canadian: ${endTimeStr}`);
+
+			return {
+				cohort_id: session.cohort_id,
+				teacher_id: session.teacher_id,
+				start_time: startTimeStr,
+				end_time: endTimeStr,
+				google_calendar_event_id: event.event_id,
+				meeting_link: session.calendar_event_url,
+				hangout_link: event.hangout_link || null,
+				status: "scheduled" as const,
+			};
+		});
 	}
 }
