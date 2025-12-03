@@ -21,7 +21,6 @@ export interface StudentEnrollment {
 	status: string;
 	cohort: {
 		id: string;
-		nickname: string | null;
 		currentLevelId: string | null;
 		currentLevel: {
 			code: string;
@@ -53,7 +52,6 @@ export async function getStudentEnrollments(
 			status,
 			cohorts!inner (
 				id,
-				nickname,
 				current_level_id,
 				language_levels!cohorts_current_level_id_language_levels_id_fk (
 					code,
@@ -81,7 +79,6 @@ export async function getStudentEnrollments(
 		status: enrollment.status,
 		cohort: {
 			id: (enrollment.cohorts as any)?.id,
-			nickname: (enrollment.cohorts as any)?.nickname,
 			currentLevelId: (enrollment.cohorts as any)?.current_level_id,
 			currentLevel: (enrollment.cohorts as any)?.language_levels
 				? {

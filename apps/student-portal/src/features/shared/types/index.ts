@@ -23,6 +23,7 @@ export interface ClassSession {
 	endTime: string;
 	teacher: Teacher;
 	meetingLink?: string;
+	hangoutLink?: string;
 	status: "scheduled" | "in_progress" | "completed" | "cancelled";
 	notes?: string;
 	location?: "online" | "in_person";

@@ -26,6 +26,7 @@ export async function getScheduleClasses(
 			end_time,
 			status,
 			meeting_link,
+			hangout_link,
 			notes,
 			teachers!classes_teacher_id_teachers_id_fk (
 				id,
@@ -95,6 +96,7 @@ export async function getScheduleClasses(
 				avatar: teacher?.user?.image || undefined,
 			},
 			meetingLink: classItem.meeting_link || undefined,
+			hangoutLink: classItem.hangout_link || undefined,
 			status: classItem.status as ClassSession["status"],
 			notes: classItem.notes || undefined,
 			location:

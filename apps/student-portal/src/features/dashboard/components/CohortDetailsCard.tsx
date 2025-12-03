@@ -91,17 +91,15 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 
 					{/* Content */}
 					<div className="space-y-2">
-						<h3 className="font-medium text-[15px] tracking-tight text-foreground">
-							{cohort.nickname || cohort.product?.displayName || "My French Class"}
-							<span className="ml-2 text-xs font-normal text-muted-foreground">
-								{cohort.product?.format &&
+						<h3 className="font-medium text-lg tracking-tight text-foreground">
+						{cohort.product?.format &&
 									cohort.product.format.charAt(0).toUpperCase() +
-										cohort.product.format.slice(1)}
+										cohort.product.format.slice(1)} Class
 								{cohort.product?.format && cohort.product?.location && " • "}
 								{cohort.product?.location &&
 									cohort.product.location.charAt(0).toUpperCase() +
 										cohort.product.location.slice(1).replace("_", " ")}
-							</span>
+						
 						</h3>
 
 						{/* Progress */}
