@@ -40,16 +40,14 @@ export async function getCohortMembers({
 		if (!teachersMap.has(teacher.id)) {
 			teachersMap.set(teacher.id, {
 				id: teacher.id,
-				userId: teacher.user_id || "",
+				userId: teacher.user_id,
 				name: fullName || teacher.email || null,
 				email: teacher.email || "",
 				role: "teacher" as const,
 			});
 		}
 	});
-	const teachers = Array.from(teachersMap.values()).sort((a, b) =>
-		(a.name || "").localeCompare(b.name || ""),
-	);
+	const teachers = Array.from(teachersMap.values());
 
 	// Fetch students via enrollments (active only)
 	const { data: studentsData, error: studentsError } = await supabase
@@ -84,7 +82,7 @@ export async function getCohortMembers({
 		if (!studentsMap.has(student.id)) {
 			studentsMap.set(student.id, {
 				id: student.id,
-				userId: student.user_id || "",
+				userId: student.user_id,
 				name: student.full_name || student.email || null,
 				email: student.email || "",
 				role: "student" as const,
@@ -92,6 +90,36 @@ export async function getCohortMembers({
 			});
 		}
 	});
+
+	// Fetch user images for all members
+	const allUserIds = [
+		...teachers.map((t) => t.userId),
+		...Array.from(studentsMap.values()).map((s) => s.userId),
+	].filter(Boolean);
+
+	if (allUserIds.length > 0) {
+		const { data: usersData } = await supabase
+			.from("user")
+			.select("id, image")
+			.in("id", allUserIds);
+
+		const userImageMap = new Map(
+			usersData?.map((u) => [u.id, u.image]) || [],
+		);
+
+		// Add images to teachers
+		teachers.forEach((t) => {
+			t.image = userImageMap.get(t.userId) || null;
+		});
+
+		// Add images to students
+		studentsMap.forEach((s) => {
+			s.image = userImageMap.get(s.userId) || null;
+		});
+	}
+
+	// Sort after adding images
+	teachers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 	const students = Array.from(studentsMap.values()).sort((a, b) =>
 		(a.name || "").localeCompare(b.name || ""),
 	);

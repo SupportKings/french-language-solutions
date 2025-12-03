@@ -44,7 +44,8 @@ export async function getConversationParticipants({
 				id,
 				name,
 				email,
-				role
+				role,
+				image
 			)
 		`,
 		)
@@ -61,6 +62,7 @@ export async function getConversationParticipants({
 			name: p.user?.name || null,
 			email: p.user?.email || "",
 			role: p.user?.role || "student",
+			image: p.user?.image || null,
 			joinedAt: p.joined_at,
 		})) || [];
 

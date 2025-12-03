@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,7 +90,7 @@ function MemberItem({
 		: null;
 
 	const hasNoAccess = !member.userId;
-
+	console.log("Member:", member);
 	return (
 		<div
 			className={cn(
@@ -98,11 +99,12 @@ function MemberItem({
 			)}
 		>
 			{/* Avatar */}
-			<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-				<span className="font-semibold text-primary text-xs">
+			<Avatar className="h-8 w-8 shrink-0">
+				<AvatarImage src={member.image || ""} alt={member.name || "Member"} />
+				<AvatarFallback className="bg-primary/10 font-semibold text-primary text-xs">
 					{getInitials(member.name)}
-				</span>
-			</div>
+				</AvatarFallback>
+			</Avatar>
 
 			{/* Member Info + Badges */}
 			<div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
@@ -240,6 +242,7 @@ export function ChatMembersSidebar({
 						userId: p.userId,
 						name: p.name,
 						email: p.email,
+						image: p.image || null,
 						role: p.role || "student",
 					}));
 

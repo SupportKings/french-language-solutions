@@ -115,6 +115,7 @@ export interface CohortMember {
 	userId: string;
 	name: string | null;
 	email: string;
+	image?: string | null;
 	role: "teacher" | "student";
 	enrollmentStatus?:
 		| "paid"

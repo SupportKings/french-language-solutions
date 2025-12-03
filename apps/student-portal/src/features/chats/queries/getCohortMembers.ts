@@ -11,7 +11,7 @@ export async function getCohortMembers({
 }: GetCohortMembersParams): Promise<CohortMembers> {
 	const supabase = await createClient();
 
-	// Fetch teachers via weekly_sessions
+	// Fetch teachers via weekly_sessions with user image
 	const { data: teachersData, error: teachersError } = await supabase
 		.from("weekly_sessions")
 		.select(
@@ -21,7 +21,8 @@ export async function getCohortMembers({
         user_id,
         first_name,
         last_name,
-        email
+        email,
+        user:user_id(image)
       )
     `,
 		)
@@ -43,6 +44,7 @@ export async function getCohortMembers({
 				userId: teacher.user_id || "",
 				name: fullName || teacher.email || null,
 				email: teacher.email || "",
+				image: teacher.user?.image || null,
 				role: "teacher" as const,
 			});
 		}
@@ -51,7 +53,7 @@ export async function getCohortMembers({
 		(a.name || "").localeCompare(b.name || ""),
 	);
 
-	// Fetch students via enrollments (active only)
+	// Fetch students via enrollments (active only) with user image
 	const { data: studentsData, error: studentsError } = await supabase
 		.from("enrollments")
 		.select(
@@ -61,7 +63,8 @@ export async function getCohortMembers({
         id,
         user_id,
         full_name,
-        email
+        email,
+        user:user_id(image)
       )
     `,
 		)
@@ -87,6 +90,7 @@ export async function getCohortMembers({
 				userId: student.user_id || "",
 				name: student.full_name || student.email || null,
 				email: student.email || "",
+				image: student.user?.image || null,
 				role: "student" as const,
 				enrollmentStatus: item.status,
 			});

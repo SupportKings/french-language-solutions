@@ -98,11 +98,19 @@ function MemberItem({
 			)}
 		>
 			{/* Avatar */}
-			<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-				<span className="font-semibold text-primary text-xs">
-					{getInitials(member.name)}
-				</span>
-			</div>
+			{member.image ? (
+				<img
+					src={member.image}
+					alt={member.name || "User"}
+					className="h-8 w-8 shrink-0 rounded-full object-cover"
+				/>
+			) : (
+				<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+					<span className="font-semibold text-primary text-xs">
+						{getInitials(member.name)}
+					</span>
+				</div>
+			)}
 
 			{/* Member Info + Badges */}
 			<div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
@@ -246,6 +254,7 @@ export function ChatMembersSidebar({
 						userId: p.userId,
 						name: p.name,
 						email: p.email,
+						image: p.image,
 						role: p.role || "student",
 					}));
 
