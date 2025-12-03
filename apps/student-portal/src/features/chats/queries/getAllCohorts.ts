@@ -1,3 +1,4 @@
+import { requireAuth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export interface SimpleCohort {
@@ -21,22 +22,62 @@ export async function getAllCohorts({
 	limit = 20,
 	searchQuery,
 }: GetAllCohortsParams = {}) {
+	const user = await requireAuth();
 	const supabase = await createClient();
 
 	const from = (page - 1) * limit;
 	const to = from + limit - 1;
 
+	// Get student record
+	const { data: student } = await supabase
+		.from("students")
+		.select("id")
+		.eq("user_id", user.id)
+		.maybeSingle();
+
+	if (!student) {
+		// Not a student - return empty
+		return {
+			cohorts: [],
+			total: 0,
+			hasMore: false,
+		};
+	}
+
+	// Get cohorts this student is enrolled in
+	const { data: enrollments } = await supabase
+		.from("enrollments")
+		.select("cohort_id")
+		.eq("student_id", student.id)
+		.in("status", [
+			"paid",
+			"welcome_package_sent",
+			"transitioning",
+			"offboarding",
+		]);
+
+	const accessibleCohortIds = enrollments?.map((e) => e.cohort_id) || [];
+
+	// If no accessible cohorts, return empty
+	if (accessibleCohortIds.length === 0) {
+		return {
+			cohorts: [],
+			total: 0,
+			hasMore: false,
+		};
+	}
+
 	// Build query with optional search filter
-	// Only fetch cohorts that have messages by using inner join with cohort_messages
-	// Also filter to exclude deleted messages at the database level
+	// Use LEFT JOIN (!left) explicitly to include cohorts without messages
+	// Deleted messages are filtered during transformation
 	let query = supabase
 		.from("cohorts")
 		.select(
 			`
 			id,
 			nickname,
-			cohort_messages!inner (
-				messages!inner (
+			cohort_messages!left (
+				messages!left (
 					content,
 					created_at,
 					deleted_at
@@ -45,7 +86,7 @@ export async function getAllCohorts({
 		`,
 			{ count: "exact" },
 		)
-		.is("cohort_messages.messages.deleted_at", null);
+		.in("id", accessibleCohortIds);
 
 	// Apply search filter if provided
 	if (searchQuery) {
@@ -61,12 +102,13 @@ export async function getAllCohorts({
 	}
 
 	// Transform the data to include only the last message
-	// Database already filters to only include cohorts with non-deleted messages via INNER JOIN
+	// Filter out deleted messages and cohorts without any messages are included (messageCount = 0)
 	const transformedCohorts: SimpleCohort[] = (cohorts || [])
 		.map((cohort: any) => {
-			// Get all messages for this cohort and sort by date (deleted messages already filtered by database)
+			// Get all non-deleted messages for this cohort and sort by date (most recent first)
 			const messages = (cohort.cohort_messages || [])
 				.map((cm: any) => cm.messages)
+				.filter((message: any) => message && message.deleted_at === null)
 				.sort(
 					(a: any, b: any) =>
 						new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),

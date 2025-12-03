@@ -91,6 +91,8 @@ export function ChatsPageClient({
 			return lastPage?.hasMore ? pages.length + 1 : undefined;
 		},
 		initialPageParam: 1,
+		refetchOnMount: "always",
+		staleTime: 0,
 	});
 
 	const cohorts: SimpleCohort[] =

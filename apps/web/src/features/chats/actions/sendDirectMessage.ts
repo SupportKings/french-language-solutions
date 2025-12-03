@@ -1,7 +1,7 @@
 "use server";
 
 import { sendDirectMessageNotificationsBatch } from "@/lib/email";
-import { requireAuth } from "@/lib/rbac-middleware";
+import { requireAuth, isTeacher } from "@/lib/rbac-middleware";
 import { actionClient } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,6 +52,28 @@ export const sendDirectMessage = actionClient
 			throw new Error(
 				"FORBIDDEN: You don't have access to send messages in this conversation",
 			);
+		}
+
+		// Additional validation for teachers: cannot send messages to conversations with admins
+		if (await isTeacher(session)) {
+			const { data: allParticipants } = await supabase
+				.from("conversation_participants")
+				.select(
+					`
+          user:user!conversation_participants_user_id_fkey(id, role)
+        `,
+				)
+				.eq("conversation_id", input.conversationId);
+
+			const hasAdmin = allParticipants?.some(
+				(p: any) => p.user?.role === "admin",
+			);
+
+			if (hasAdmin) {
+				throw new Error(
+					"FORBIDDEN: Teachers cannot send messages to conversations with admins",
+				);
+			}
 		}
 
 		// Insert message into messages table
@@ -198,7 +220,7 @@ export const sendDirectMessage = actionClient
 
 					// Only send email if user has opted in (or preference not set and user is teacher/admin)
 					const shouldNotify =
-						(preferences?.email_notifications_enabled === true || preferences !== null);
+						(preferences?.email_notifications_enabled === true && preferences !== null);
 
 					if (shouldNotify) {
 						recipientsToNotify.push({

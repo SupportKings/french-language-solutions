@@ -92,7 +92,6 @@ export function ChatWrapper({
 			isFetchingNextPage={isFetchingNextPage}
 			onLoadMore={fetchNextPage}
 			mode="widget"
-			showHeader={false}
 			maxHeight="100%"
 			onSendMessage={onSendMessage}
 			onEditMessage={onEditMessage}

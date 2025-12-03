@@ -1,6 +1,4 @@
-// TODO: Re-enable RBAC imports after testing
-import { requireAuth } from "@/lib/rbac-middleware";
-// import { isAdmin } from "@/lib/rbac-middleware";
+import { requireAuth, isAdmin } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AccessibleCohort {
@@ -24,85 +22,63 @@ export interface AccessibleCohort {
  * - Students: cohorts they're enrolled in
  */
 export async function getAccessibleCohorts(): Promise<AccessibleCohort[]> {
-	// TODO: Re-enable authentication after testing
 	const session = await requireAuth();
 	const supabase = await createClient();
 
-	// TODO: Re-enable RBAC permissions after testing
-	// For now, just return all cohorts for testing
 	let cohortIds: string[] = [];
 
-	// Get all cohorts for testing
-	const { data: allCohorts, error: cohortsError } = await supabase
-		.from("cohorts")
-		.select("id")
-		.order("created_at", { ascending: false });
-
-	if (cohortsError) {
-		console.error("❌ Error fetching cohort IDs:", cohortsError);
-	}
-
-	cohortIds = allCohorts?.map((c) => c.id) || [];
-	console.log("🔵 Found cohort IDs:", cohortIds.length, cohortIds);
-
-	// If no cohorts found, return early
-	if (cohortIds.length === 0) {
-		console.log("⚠️ No cohorts found, returning empty array");
-		return [];
-	}
-
 	// Check if user is admin
-	// const userIsAdmin = await isAdmin(session);
+	const userIsAdmin = await isAdmin(session);
 
-	// if (userIsAdmin) {
-	// 	// Admins can access all cohorts
-	// 	const { data: allCohorts } = await supabase
-	// 		.from("cohorts")
-	// 		.select("id")
-	// 		.order("created_at", { ascending: false });
+	if (userIsAdmin) {
+		// Admins can access all cohorts
+		const { data: allCohorts } = await supabase
+			.from("cohorts")
+			.select("id")
+			.order("created_at", { ascending: false });
 
-	// 	cohortIds = allCohorts?.map((c) => c.id) || [];
-	// } else {
-	// 	// Check if teacher
-	// 	const { data: teacher } = await supabase
-	// 		.from("teachers")
-	// 		.select("id")
-	// 		.eq("user_id", session.user.id)
-	// 		.maybeSingle();
+		cohortIds = allCohorts?.map((c) => c.id) || [];
+	} else {
+		// Check if teacher
+		const { data: teacher } = await supabase
+			.from("teachers")
+			.select("id")
+			.eq("user_id", session.user.id)
+			.maybeSingle();
 
-	// 	if (teacher) {
-	// 		// Get cohorts this teacher teaches
-	// 		const { data: sessions } = await supabase
-	// 			.from("weekly_sessions")
-	// 			.select("cohort_id")
-	// 			.eq("teacher_id", teacher.id);
+		if (teacher) {
+			// Get cohorts this teacher teaches
+			const { data: sessions } = await supabase
+				.from("weekly_sessions")
+				.select("cohort_id")
+				.eq("teacher_id", teacher.id);
 
-	// 		cohortIds = sessions?.map((s) => s.cohort_id) || [];
-	// 	} else {
-	// 		// Check if student
-	// 		const { data: student } = await supabase
-	// 			.from("students")
-	// 			.select("id")
-	// 			.eq("user_id", session.user.id)
-	// 			.maybeSingle();
+			cohortIds = sessions?.map((s) => s.cohort_id) || [];
+		} else {
+			// Check if student
+			const { data: student } = await supabase
+				.from("students")
+				.select("id")
+				.eq("user_id", session.user.id)
+				.maybeSingle();
 
-	// 		if (student) {
-	// 			// Get cohorts this student is enrolled in
-	// 			const { data: enrollments } = await supabase
-	// 				.from("enrollments")
-	// 				.select("cohort_id")
-	// 				.eq("student_id", student.id)
-	// 				.in("status", [
-	// 					"paid",
-	// 					"welcome_package_sent",
-	// 					"transitioning",
-	// 					"offboarding",
-	// 				]);
+			if (student) {
+				// Get cohorts this student is enrolled in
+				const { data: enrollments } = await supabase
+					.from("enrollments")
+					.select("cohort_id")
+					.eq("student_id", student.id)
+					.in("status", [
+						"paid",
+						"welcome_package_sent",
+						"transitioning",
+						"offboarding",
+					]);
 
-	// 			cohortIds = enrollments?.map((e) => e.cohort_id) || [];
-	// 		}
-	// 	}
-	// }
+				cohortIds = enrollments?.map((e) => e.cohort_id) || [];
+			}
+		}
+	}
 
 	if (cohortIds.length === 0) {
 		return [];
@@ -178,11 +154,17 @@ export async function getAccessibleCohorts(): Promise<AccessibleCohort[]> {
 		}),
 	);
 
-	// Sort by last message time (most recent first)
+	// Sort cohorts: prioritize those with messages (most recent first), then those without
+	// - Admins: See all cohorts, with active ones (having messages) first
+	// - Teachers: See only their cohorts, with active ones (having messages) first
 	const result = cohortsWithMessages.sort((a, b) => {
+		// Both have no messages - keep original order
 		if (!a.lastMessageAt && !b.lastMessageAt) return 0;
+		// a has no messages - push to bottom
 		if (!a.lastMessageAt) return 1;
+		// b has no messages - push to bottom
 		if (!b.lastMessageAt) return -1;
+		// Both have messages - sort by most recent first
 		return (
 			new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
 		);
