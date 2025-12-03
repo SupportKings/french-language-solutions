@@ -4,6 +4,9 @@ import type { StudentStats } from "@/features/shared/types";
 
 import { endOfWeek, startOfWeek } from "date-fns";
 
+export { getCohortDetails } from "./getCohortDetails";
+export type { CohortDetails } from "./getCohortDetails";
+
 // Enrollment statuses that count as "enrolled" in a cohort
 const ENROLLED_STATUSES = [
 	"paid",

@@ -1,31 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
+import type { StudentAnnouncement } from "./getStudentAnnouncements";
 
-export interface StudentAnnouncement {
-	id: string;
-	title: string;
-	content: string;
-	author: {
-		id: string;
-		name: string;
-		role: "admin" | "teacher";
-		avatar?: string;
-	};
-	scope: "school_wide" | "cohort";
-	cohortId?: string;
-	cohortName?: string;
-	isPinned: boolean;
-	isRead: boolean;
-	createdAt: string;
-	attachments?: Array<{
-		id: string;
-		name: string;
-		url: string;
-		type: "image" | "video" | "document";
-	}>;
-}
-
-export async function getStudentAnnouncements(
+export async function getLatestAnnouncements(
 	studentId: string,
+	limit = 5,
 ): Promise<StudentAnnouncement[]> {
 	const supabase = createClient();
 
@@ -34,7 +12,7 @@ export async function getStudentAnnouncements(
 		.from("enrollments")
 		.select("cohort_id")
 		.eq("student_id", studentId)
-		.in("status", ["paid", "welcome_package_sent", "transitioning", "offboarding"]); // Active statuses
+		.in("status", ["paid", "welcome_package_sent", "transitioning", "offboarding"]);
 
 	if (enrollmentsError) {
 		console.error("Error fetching enrollments:", enrollmentsError);
@@ -43,7 +21,7 @@ export async function getStudentAnnouncements(
 
 	const cohortIds = enrollments?.map((e) => e.cohort_id).filter(Boolean) || [];
 
-	// Fetch announcements (school-wide OR in student's cohorts)
+	// Fetch latest announcements (school-wide OR in student's cohorts)
 	let query = supabase
 		.from("announcements")
 		.select(
@@ -69,8 +47,8 @@ export async function getStudentAnnouncements(
     `,
 		)
 		.is("deleted_at", null)
-		.order("is_pinned", { ascending: false })
-		.order("created_at", { ascending: false });
+		.order("created_at", { ascending: false })
+		.limit(limit);
 
 	// Filter: school-wide OR in student's cohorts
 	if (cohortIds.length > 0) {

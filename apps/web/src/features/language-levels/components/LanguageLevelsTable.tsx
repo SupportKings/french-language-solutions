@@ -70,6 +70,7 @@ export function LanguageLevelsTable() {
 		code: "",
 		display_name: "",
 		level_group: "",
+		hours: 2,
 	});
 	const [levelToDelete, setLevelToDelete] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -101,6 +102,7 @@ export function LanguageLevelsTable() {
 			code: level.code,
 			display_name: level.display_name,
 			level_group: level.level_group,
+			hours: level.hours,
 		});
 	};
 
@@ -136,6 +138,7 @@ export function LanguageLevelsTable() {
 				code: "",
 				display_name: "",
 				level_group: "",
+				hours: 2,
 			});
 		} catch (error) {
 			toast.error("Failed to create language level");
@@ -208,6 +211,7 @@ export function LanguageLevelsTable() {
 							<TableHead className="w-[120px]">Code</TableHead>
 							<TableHead>Display Name</TableHead>
 							<TableHead className="w-[120px]">Level Group</TableHead>
+							<TableHead className="w-[100px]">Hours</TableHead>
 							<TableHead>Created Date</TableHead>
 							<TableHead>Last Updated</TableHead>
 							<TableHead className="w-[100px]" />
@@ -255,6 +259,18 @@ export function LanguageLevelsTable() {
 										</SelectContent>
 									</Select>
 								</TableCell>
+								<TableCell>
+									<Input
+										type="number"
+										value={newForm.hours || ""}
+										onChange={(e) =>
+											setNewForm({ ...newForm, hours: Number.parseInt(e.target.value) || 2 })
+										}
+										placeholder="2"
+										className="h-8"
+										min="1"
+									/>
+								</TableCell>
 								<TableCell>-</TableCell>
 								<TableCell>-</TableCell>
 								<TableCell>
@@ -277,6 +293,7 @@ export function LanguageLevelsTable() {
 													code: "",
 													display_name: "",
 													level_group: "",
+													hours: 2,
 												});
 											}}
 										>
@@ -300,6 +317,9 @@ export function LanguageLevelsTable() {
 										<Skeleton className="h-5 w-16" />
 									</TableCell>
 									<TableCell>
+										<Skeleton className="h-5 w-12" />
+									</TableCell>
+									<TableCell>
 										<Skeleton className="h-5 w-24" />
 									</TableCell>
 									<TableCell>
@@ -313,7 +333,7 @@ export function LanguageLevelsTable() {
 						) : filteredLevels?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={6}
+									colSpan={7}
 									className="text-center text-muted-foreground"
 								>
 									No language levels found
@@ -368,6 +388,17 @@ export function LanguageLevelsTable() {
 												</Select>
 											</TableCell>
 											<TableCell>
+												<Input
+													type="number"
+													value={editForm.hours || ""}
+													onChange={(e) =>
+														setEditForm({ ...editForm, hours: Number.parseInt(e.target.value) || 2 })
+													}
+													className="h-8"
+													min="1"
+												/>
+											</TableCell>
+											<TableCell>
 												<p className="text-sm">
 													{format(new Date(level.created_at), "MMM d, yyyy")}
 												</p>
@@ -412,6 +443,9 @@ export function LanguageLevelsTable() {
 												<Badge variant="secondary">
 													{level.level_group.toUpperCase()}
 												</Badge>
+											</TableCell>
+											<TableCell>
+												<p className="text-sm font-medium">{level.hours}h</p>
 											</TableCell>
 											<TableCell>
 												<p className="text-sm">

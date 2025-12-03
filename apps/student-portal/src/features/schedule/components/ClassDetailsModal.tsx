@@ -15,7 +15,15 @@ import { Label } from "@/components/ui/label";
 import type { ClassSession } from "@/features/shared/types";
 
 import { format, isPast, parseISO } from "date-fns";
-import { Calendar, Check, Clock, ExternalLink, MapPin } from "lucide-react";
+import {
+	Calendar,
+	Check,
+	CheckCircle2,
+	Clock,
+	ExternalLink,
+	MapPin,
+	XCircle,
+} from "lucide-react";
 import {
 	markHomeworkComplete,
 	unmarkHomeworkComplete,
@@ -145,6 +153,35 @@ export function ClassDetailsModal({
 								</p>
 							</div>
 						</div>
+
+						{/* Attendance Status */}
+						{hasAttendanceRecord && isClassInPast && (
+							<div className="flex items-center gap-3">
+								{classSession.attendanceRecord?.status === "attended" ||
+								classSession.attendanceRecord?.status === "attended_late" ? (
+									<CheckCircle2 className="h-5 w-5 text-emerald-600" />
+								) : (
+									<XCircle className="h-5 w-5 text-red-600" />
+								)}
+								<div className="flex-1">
+									<p className="text-muted-foreground text-xs">Attendance</p>
+									<p className="font-medium">
+										{classSession.attendanceRecord?.status === "attended" && (
+											<span className="text-emerald-600">Present</span>
+										)}
+										{classSession.attendanceRecord?.status === "attended_late" && (
+											<span className="text-amber-600">Present (Late)</span>
+										)}
+										{classSession.attendanceRecord?.status === "not_attended" && (
+											<span className="text-red-600">Absent</span>
+										)}
+										{classSession.attendanceRecord?.status === "unset" && (
+											<span className="text-muted-foreground">Not marked</span>
+										)}
+									</p>
+								</div>
+							</div>
+						)}
 					</div>
 
 					{/* Meeting Link */}
