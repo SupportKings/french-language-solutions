@@ -384,6 +384,38 @@ export type Database = {
           },
         ]
       }
+      chat_notification_preferences: {
+        Row: {
+          created_at: string
+          email_notifications_enabled: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classes: {
         Row: {
           airtable_record_id: string | null
@@ -393,6 +425,7 @@ export type Database = {
           end_time: string
           google_calendar_event_id: string | null
           google_drive_folder_id: string | null
+          hangout_link: string | null
           id: string
           meeting_link: string | null
           notes: string | null
@@ -409,6 +442,7 @@ export type Database = {
           end_time: string
           google_calendar_event_id?: string | null
           google_drive_folder_id?: string | null
+          hangout_link?: string | null
           id?: string
           meeting_link?: string | null
           notes?: string | null
@@ -425,6 +459,7 @@ export type Database = {
           end_time?: string
           google_calendar_event_id?: string | null
           google_drive_folder_id?: string | null
+          hangout_link?: string | null
           id?: string
           meeting_link?: string | null
           notes?: string | null
@@ -631,6 +666,102 @@ export type Database = {
           },
         ]
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          last_message_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           airtable_created_at: string | null
@@ -754,9 +885,47 @@ export type Database = {
         }
         Relationships: []
       }
+      message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
-          content: string
+          content: string | null
           created_at: string
           deleted_at: string | null
           edited_at: string | null
@@ -765,7 +934,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          content: string
+          content?: string | null
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
@@ -774,7 +943,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          content?: string
+          content?: string | null
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
@@ -877,6 +1046,81 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reschedule_requests: {
+        Row: {
+          cohort_id: string
+          created_at: string | null
+          id: string
+          original_class_date: string
+          proposed_datetime: string
+          reason: string | null
+          status: Database["public"]["Enums"]["reschedule_request_status"]
+          student_id: string
+          teacher_notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cohort_id: string
+          created_at?: string | null
+          id?: string
+          original_class_date: string
+          proposed_datetime: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["reschedule_request_status"]
+          student_id: string
+          teacher_notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cohort_id?: string
+          created_at?: string | null
+          id?: string
+          original_class_date?: string
+          proposed_datetime?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["reschedule_request_status"]
+          student_id?: string
+          teacher_notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reschedule_requests_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "enrollment_full_view"
+            referencedColumns: ["cohort_id_ref"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "enrollment_full_view"
+            referencedColumns: ["student_id_ref"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       session: {
         Row: {
@@ -2051,6 +2295,11 @@ export type Database = {
         | "offboarded"
       product_format: "group" | "private" | "hybrid"
       product_location: "online" | "in_person" | "hybrid"
+      reschedule_request_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
       room_type: "for_one_to_one" | "medium" | "medium_plus" | "large"
       team_roles: "Teacher" | "Evaluator" | "Marketing/Admin" | "Exec"
       touchpoint_channel: "sms" | "call" | "whatsapp" | "email"
@@ -2266,6 +2515,12 @@ export const Constants = {
       ],
       product_format: ["group", "private", "hybrid"],
       product_location: ["online", "in_person", "hybrid"],
+      reschedule_request_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
       room_type: ["for_one_to_one", "medium", "medium_plus", "large"],
       team_roles: ["Teacher", "Evaluator", "Marketing/Admin", "Exec"],
       touchpoint_channel: ["sms", "call", "whatsapp", "email"],
