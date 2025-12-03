@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const schema = z.object({
 	teacherUserIds: z
-		.array(z.string().uuid())
+		.array(z.string())
 		.min(1, "At least one teacher required"),
 });
 
@@ -18,15 +18,20 @@ export const createOrGetConversationForStudent = actionClient
 		const supabase = await createClient();
 
 		// Get student record
-		const { data: student } = await supabase
+		const { data: student, error } = await supabase
 			.from("students")
 			.select("id")
 			.eq("user_id", user.id)
 			.single();
 
+		if (error) {
+			console.error("Error fetching student record:", error);
+			throw new Error("Student not found");
+		}
 		if (!student) {
 			throw new Error("Student not found");
 		}
+
 
 		// Get cohort IDs from student's enrollments
 		const { data: enrollments } = await supabase
@@ -105,24 +110,20 @@ export const createOrGetConversationForStudent = actionClient
 		// Create new conversation
 		const { data: conversation, error: convError } = await supabase
 			.from("conversations")
-			.insert({
-				student_id: student.id,
-				last_message_at: new Date().toISOString(),
-			})
+			.insert({})
 			.select("id")
 			.single();
 
 		if (convError || !conversation) {
-			throw new Error("Failed to create conversation");
+			throw new Error("Failed to create conversation" + convError?.message || "");
 		}
 
 		// Add participants (student + teachers)
 		const participants = [
-			{ conversation_id: conversation.id, user_id: user.id, role: "student" },
+			{ conversation_id: conversation.id, user_id: user.id },
 			...input.teacherUserIds.map((teacherId) => ({
 				conversation_id: conversation.id,
 				user_id: teacherId,
-				role: "teacher",
 			})),
 		];
 
