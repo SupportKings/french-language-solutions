@@ -1047,6 +1047,81 @@ export type Database = {
         }
         Relationships: []
       }
+      reschedule_requests: {
+        Row: {
+          cohort_id: string
+          created_at: string | null
+          id: string
+          original_class_date: string
+          proposed_datetime: string
+          reason: string | null
+          status: Database["public"]["Enums"]["reschedule_request_status"]
+          student_id: string
+          teacher_notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cohort_id: string
+          created_at?: string | null
+          id?: string
+          original_class_date: string
+          proposed_datetime: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["reschedule_request_status"]
+          student_id: string
+          teacher_notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cohort_id?: string
+          created_at?: string | null
+          id?: string
+          original_class_date?: string
+          proposed_datetime?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["reschedule_request_status"]
+          student_id?: string
+          teacher_notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reschedule_requests_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts_with_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "enrollment_full_view"
+            referencedColumns: ["cohort_id_ref"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "enrollment_full_view"
+            referencedColumns: ["student_id_ref"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session: {
         Row: {
           createdAt: string
@@ -2220,6 +2295,11 @@ export type Database = {
         | "offboarded"
       product_format: "group" | "private" | "hybrid"
       product_location: "online" | "in_person" | "hybrid"
+      reschedule_request_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
       room_type: "for_one_to_one" | "medium" | "medium_plus" | "large"
       team_roles: "Teacher" | "Evaluator" | "Marketing/Admin" | "Exec"
       touchpoint_channel: "sms" | "call" | "whatsapp" | "email"
@@ -2435,6 +2515,12 @@ export const Constants = {
       ],
       product_format: ["group", "private", "hybrid"],
       product_location: ["online", "in_person", "hybrid"],
+      reschedule_request_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
       room_type: ["for_one_to_one", "medium", "medium_plus", "large"],
       team_roles: ["Teacher", "Evaluator", "Marketing/Admin", "Exec"],
       touchpoint_channel: ["sms", "call", "whatsapp", "email"],

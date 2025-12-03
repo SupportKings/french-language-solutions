@@ -134,6 +134,7 @@ export function CohortDetailPageClient({
 	const canEditCohort = permissions?.cohorts?.includes("write");
 	const canEditCurrentLevelOnly =
 		permissions?.cohorts?.includes("update_current_level") && !canEditCohort;
+	const canAccessProductDetails = permissions?.products?.includes("write");
 	const router = useRouter();
 	const { data: cohortData, isLoading, error, isSuccess } = useCohort(cohortId);
 	const { data: cohortWithSessions } = useCohortWithSessions(cohortId);
@@ -1101,12 +1102,19 @@ export function CohortDetailPageClient({
 													}
 												/>
 											) : cohort.products ? (
-												<LinkedRecordBadge
-													href={`/admin/configuration/products/${cohort.products.id}`}
-													label={cohort.products.display_name}
-													icon={BookOpen}
-													className="text-xs"
-												/>
+												canAccessProductDetails ? (
+													<LinkedRecordBadge
+														href={`/admin/configuration/products/${cohort.products.id}`}
+														label={cohort.products.display_name}
+														icon={BookOpen}
+														className="text-xs"
+													/>
+												) : (
+													<Badge variant="outline" className="text-xs">
+														<BookOpen className="mr-1.5 h-3 w-3" />
+														{cohort.products.display_name}
+													</Badge>
+												)
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No product assigned

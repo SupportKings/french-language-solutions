@@ -143,7 +143,7 @@ export const createStudentUser = actionClient
 				try {
 					const inviteUrl =
 						process.env.STUDENT_PORTAL_URL ||
-						"https://student.frenchlanguagesolutions.com/";
+						"https://fls-student-portal.vercel.app";
 
 					const emailResponse = await resend.emails.send({
 						from: "French Language Solutions <portal@frenchlanguagesolutions.com>",

@@ -53,10 +53,11 @@ const data = {
 					title: "All Cohorts",
 					url: "/admin/cohorts",
 				},
-				{
-					title: "Announcements",
-					url: "/admin/announcements",
-				},
+				// TODO: Re-enable announcements later
+				// {
+				// 	title: "Announcements",
+				// 	url: "/admin/announcements",
+				// },
 			],
 		},
 		{

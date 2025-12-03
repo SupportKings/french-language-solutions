@@ -1,30 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
+import type { StudentAnnouncement } from "./getStudentAnnouncements";
 
-export interface StudentAnnouncement {
-	id: string;
-	title: string;
-	content: string;
-	author: {
-		id: string;
-		name: string;
-		role: "admin" | "teacher";
-		avatar?: string;
-	};
-	scope: "school_wide" | "cohort";
-	cohortId?: string;
-	cohortName?: string;
-	isPinned: boolean;
-	isRead: boolean;
-	createdAt: string;
-	attachments?: Array<{
-		id: string;
-		name: string;
-		url: string;
-		type: "image" | "video" | "document";
-	}>;
-}
-
-export async function getStudentAnnouncements(
+export async function getUnreadAnnouncements(
 	studentId: string,
 ): Promise<StudentAnnouncement[]> {
 	const supabase = createClient();
@@ -34,7 +11,7 @@ export async function getStudentAnnouncements(
 		.from("enrollments")
 		.select("cohort_id")
 		.eq("student_id", studentId)
-		.in("status", ["paid", "welcome_package_sent", "transitioning", "offboarding"]); // Active statuses
+		.in("status", ["paid", "welcome_package_sent", "transitioning", "offboarding"]);
 
 	if (enrollmentsError) {
 		console.error("Error fetching enrollments:", enrollmentsError);
@@ -99,28 +76,30 @@ export async function getStudentAnnouncements(
 
 	const readSet = new Set(reads?.map((r) => r.announcement_id) || []);
 
-	// Transform to StudentAnnouncement format
-	return (announcements || []).map((announcement) => ({
-		id: announcement.id,
-		title: announcement.title,
-		content: announcement.content,
-		author: {
-			id: announcement.author?.id || "",
-			name: announcement.author?.name || "Unknown",
-			role: "teacher" as const,
-			avatar: announcement.author?.image || undefined,
-		},
-		scope: announcement.scope,
-		cohortId: announcement.cohort_id || undefined,
-		cohortName: announcement.cohort?.nickname || undefined,
-		isPinned: announcement.is_pinned,
-		isRead: readSet.has(announcement.id),
-		createdAt: announcement.created_at,
-		attachments: announcement.attachments?.map((att: any) => ({
-			id: att.id,
-			name: att.file_name,
-			url: att.file_url,
-			type: att.file_type as "image" | "video" | "document",
-		})),
-	}));
+	// Transform to StudentAnnouncement format and filter unread only
+	return (announcements || [])
+		.filter((announcement) => !readSet.has(announcement.id))
+		.map((announcement) => ({
+			id: announcement.id,
+			title: announcement.title,
+			content: announcement.content,
+			author: {
+				id: announcement.author?.id || "",
+				name: announcement.author?.name || "Unknown",
+				role: "teacher" as const,
+				avatar: announcement.author?.image || undefined,
+			},
+			scope: announcement.scope,
+			cohortId: announcement.cohort_id || undefined,
+			cohortName: announcement.cohort?.nickname || undefined,
+			isPinned: announcement.is_pinned,
+			isRead: false, // All are unread
+			createdAt: announcement.created_at,
+			attachments: announcement.attachments?.map((att: any) => ({
+				id: att.id,
+				name: att.file_name,
+				url: att.file_url,
+				type: att.file_type as "image" | "video" | "document",
+			})),
+		}));
 }

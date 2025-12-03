@@ -3,13 +3,13 @@
 import { usePathname } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-import { Bell } from "lucide-react";
+import { AnnouncementsPopover } from "./AnnouncementsPopover";
 
 interface PageHeaderProps {
 	student: {
+		id: string;
 		fullName: string;
 		email: string;
 		avatar?: string;
@@ -66,15 +66,8 @@ export function PageHeader({ student, unreadCount }: PageHeaderProps) {
 			</div>
 
 			<div className="flex items-center gap-3 px-4">
-				{/* Notification bell */}
-				<Button variant="ghost" size="icon" className="relative">
-					<Bell className="h-5 w-5" />
-					{unreadCount && unreadCount > 0 && (
-						<span className="-top-0.5 -right-0.5 absolute flex h-4 w-4 items-center justify-center rounded-full bg-destructive font-bold text-[10px] text-destructive-foreground">
-							{unreadCount}
-						</span>
-					)}
-				</Button>
+				{/* Notification bell popover */}
+				<AnnouncementsPopover studentId={student.id} unreadCount={unreadCount} />
 
 				{/* Profile - visible on larger screens */}
 				<div className="hidden items-center gap-3 md:flex">

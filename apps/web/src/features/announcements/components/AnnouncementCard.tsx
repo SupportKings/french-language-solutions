@@ -215,20 +215,22 @@ export function AnnouncementCard({
 									{announcement.is_pinned ? "Unpin" : "Pin"} Announcement
 								</DropdownMenuItem>
 								{onEdit && (
-									<DropdownMenuItem onClick={() => onEdit(announcement.id)}>
-										<Pencil className="mr-2 h-4 w-4" />
-										Edit
-									</DropdownMenuItem>
-								)}
+									<>
+										<DropdownMenuItem onClick={() => onEdit(announcement.id)}>
+											<Pencil className="mr-2 h-4 w-4" />
+											Edit
+										</DropdownMenuItem>
 
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={handleDeleteClick}
-									className="text-destructive focus:text-destructive"
-								>
-									<Trash2 className="mr-2 h-4 w-4" />
-									Delete
-								</DropdownMenuItem>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											onClick={handleDeleteClick}
+											className="text-destructive focus:text-destructive"
+										>
+											<Trash2 className="mr-2 h-4 w-4" />
+											Delete
+										</DropdownMenuItem>
+									</>
+								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>
@@ -282,7 +284,7 @@ export function AnnouncementCard({
 							<div
 								className={`grid gap-2 ${
 									imageAttachments.length === 1
-										? "grid-cols-1"
+										? "grid-cols-2"
 										: imageAttachments.length === 2
 											? "grid-cols-2"
 											: imageAttachments.length === 3
@@ -297,7 +299,7 @@ export function AnnouncementCard({
 										onClick={() => openLightbox(index)}
 										className={`group relative cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30 ${
 											imageAttachments.length === 1
-												? "aspect-video"
+												? "aspect-square max-w-[200px]"
 												: imageAttachments.length === 3
 													? "aspect-square"
 													: index === 0 && imageAttachments.length > 3

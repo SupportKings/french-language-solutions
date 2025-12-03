@@ -184,6 +184,12 @@ export default function StudentDetailsClient({
 				changes.desired_starting_language_level_id =
 					editedStudent.desired_starting_language_level_id;
 			}
+			if (
+				editedStudent.goal_language_level_id !==
+				student.goal_language_level_id
+			) {
+				changes.goal_language_level_id = editedStudent.goal_language_level_id;
+			}
 			if (editedStudent.is_full_beginner !== student.is_full_beginner) {
 				changes.is_full_beginner = editedStudent.is_full_beginner;
 			}
@@ -487,6 +493,40 @@ export default function StudentDetailsClient({
 														?.display_name ||
 														student.desired_starting_language_level?.code?.toUpperCase() ||
 														"—"}
+												</Badge>
+											)}
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<Target className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Goal Level:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={editedStudent.goal_language_level_id}
+													onSave={(value) =>
+														updateEditedField("goal_language_level_id", value)
+													}
+													editing={editing}
+													type="select"
+													options={levelOptions.map((level) => ({
+														label: level.display_name,
+														value: level.id,
+													}))}
+													placeholder={
+														languageLevelsLoading
+															? "Loading levels..."
+															: "Select goal level"
+													}
+												/>
+											) : (
+												<Badge variant="outline" className="h-5 text-xs">
+													{student.goal_language_level?.display_name ||
+														student.goal_language_level?.code?.toUpperCase() ||
+														"Not set"}
 												</Badge>
 											)}
 										</div>

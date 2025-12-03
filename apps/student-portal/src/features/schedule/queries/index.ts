@@ -38,7 +38,8 @@ export async function getScheduleClasses(
 			cohorts!classes_cohort_id_cohorts_id_fk (
 				id,
 				language_levels!cohorts_current_level_id_language_levels_id_fk (
-					code
+					code,
+				display_name
 				),
 				products!cohorts_product_id_products_id_fk (
 					format,
@@ -85,7 +86,7 @@ export async function getScheduleClasses(
 			id: classItem.id,
 			cohortId: classItem.cohort_id,
 			format: (product?.format || "group") as ClassSession["format"],
-			level: level?.code || "-",
+			level: level?.display_name || level?.code || "-",
 			startTime: classItem.start_time,
 			endTime: classItem.end_time,
 			teacher: {
@@ -96,7 +97,12 @@ export async function getScheduleClasses(
 			meetingLink: classItem.meeting_link || undefined,
 			status: classItem.status as ClassSession["status"],
 			notes: classItem.notes || undefined,
-			location: product?.location === "online" ? "online" : "in_person",
+			location:
+			product?.location === "online"
+				? "online"
+				: product?.location === "in_person"
+					? "in_person"
+					: "in_person",
 			attendanceRecord: attendance
 				? {
 						id: attendance.id,
