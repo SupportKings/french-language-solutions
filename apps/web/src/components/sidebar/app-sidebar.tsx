@@ -213,6 +213,10 @@ export function AppSidebar({
 							url: "/admin/cohorts",
 						},
 						{
+							title: "Reschedule Requests",
+							url: "/admin/reschedule-requests",
+						},
+						{
 							title: "Announcements",
 							url: "/admin/announcements",
 						},

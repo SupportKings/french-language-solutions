@@ -7,7 +7,6 @@ import {
 	AnnouncementsPreviewCard,
 	CohortDetailsCard,
 	ScheduleSection,
-	StatsCards,
 	WelcomeHeader,
 } from "@/features/dashboard/components";
 import {
@@ -15,6 +14,11 @@ import {
 	getStudentEnrollments,
 	getStudentStats,
 } from "@/features/dashboard/queries";
+import { ReschedulingSection } from "@/features/rescheduling/components";
+import {
+	getPrivateEnrollment,
+	getRescheduleRequests,
+} from "@/features/rescheduling/queries";
 import { getScheduleClasses } from "@/features/schedule/queries";
 
 import { getUser } from "@/queries/getUser";
@@ -49,14 +53,17 @@ export default async function DashboardPage() {
 
 	// Prefetch announcements and fetch stats/classes/cohort details in parallel
 	const queryClient = new QueryClient();
-	const [, stats, classes, cohortDetails] = await Promise.all([
-		queryClient.prefetchQuery(
-			announcementQueries.studentAnnouncements(student.id),
-		),
-		getStudentStats(student.id, cohortIds),
-		getScheduleClasses(cohortIds, student.id),
-		getCohortDetails(student.id),
-	]);
+	const [, stats, classes, cohortDetails, privateEnrollment, rescheduleRequests] =
+		await Promise.all([
+			queryClient.prefetchQuery(
+				announcementQueries.studentAnnouncements(student.id),
+			),
+			getStudentStats(student.id, cohortIds),
+			getScheduleClasses(cohortIds, student.id),
+			getCohortDetails(student.id),
+			getPrivateEnrollment(student.id),
+			getRescheduleRequests(student.id),
+		]);
 
 	const displayName = student.first_name || student.full_name || "Student";
 
@@ -68,6 +75,14 @@ export default async function DashboardPage() {
 
 				{/* Cohort Details */}
 				{cohortDetails && <CohortDetailsCard details={cohortDetails} />}
+
+				{/* Rescheduling Section - Only for private enrollments */}
+				{privateEnrollment && (
+					<ReschedulingSection
+						enrollment={privateEnrollment}
+						requests={rescheduleRequests}
+					/>
+				)}
 
 				{/* Main Content Grid */}
 				<div className="grid gap-6 xl:grid-cols-[1fr_320px]">
