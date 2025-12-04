@@ -30,9 +30,7 @@ export const approveRescheduleRequest = actionClient
 					id,
 					first_name,
 					full_name,
-					user:user!students_user_id_fkey (
-						email
-					)
+					email
 				)
 			`,
 			)
@@ -70,12 +68,7 @@ export const approveRescheduleRequest = actionClient
 		const student = Array.isArray(request.student)
 			? request.student[0]
 			: request.student;
-		const user = student?.user
-			? Array.isArray(student.user)
-				? student.user[0]
-				: student.user
-			: null;
-		const studentEmail = user?.email;
+		const studentEmail = student?.email;
 
 		if (studentEmail) {
 			const studentName = student?.first_name || student?.full_name || "Student";

@@ -23,6 +23,9 @@ async function fetchRescheduleRequests(query: RescheduleRequestQuery) {
 	if (query.cohortId) {
 		params.set("cohort_id", query.cohortId);
 	}
+	if (query.studentId) {
+		params.set("student_id", query.studentId);
+	}
 
 	const response = await fetch(`/api/reschedule-requests?${params.toString()}`);
 

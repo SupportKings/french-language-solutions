@@ -35,6 +35,7 @@ import {
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
 import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
+import { StudentRescheduleRequests } from "@/features/students/components/StudentRescheduleRequests";
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { studentsKeys } from "@/features/students/queries/students.queries";
 
@@ -692,7 +693,7 @@ export default function StudentDetailsClient({
 				<div className="mt-6">
 					<Tabs defaultValue="enrollments" className="w-full">
 						<div className="mb-4 flex w-full items-center justify-between">
-							<TabsList className="grid w-full grid-cols-5">
+							<TabsList className="grid w-full grid-cols-6">
 								<TabsTrigger
 									value="enrollments"
 									className="flex items-center gap-2"
@@ -718,6 +719,13 @@ export default function StudentDetailsClient({
 								>
 									<Calendar className="h-3.5 w-3.5" />
 									Attendance
+								</TabsTrigger>
+								<TabsTrigger
+									value="reschedule-requests"
+									className="flex items-center gap-2"
+								>
+									<Clock className="h-3.5 w-3.5" />
+									Reschedule
 								</TabsTrigger>
 								<TabsTrigger
 									value="followups"
@@ -809,6 +817,27 @@ export default function StudentDetailsClient({
 								</CardHeader>
 								<CardContent>
 									<StudentAttendance studentId={student.id} />
+								</CardContent>
+							</Card>
+						</TabsContent>
+
+						{/* Reschedule Requests Tab */}
+						<TabsContent value="reschedule-requests" className="mt-4">
+							<Card className="bg-background">
+								<CardHeader className="pb-3">
+									<div className="flex items-center justify-between">
+										<div>
+											<CardTitle className="font-semibold text-base">
+												Reschedule Requests
+											</CardTitle>
+											<p className="mt-0.5 text-muted-foreground text-xs">
+												View and manage student's class reschedule requests
+											</p>
+										</div>
+									</div>
+								</CardHeader>
+								<CardContent>
+									<StudentRescheduleRequests studentId={student.id} />
 								</CardContent>
 							</Card>
 						</TabsContent>

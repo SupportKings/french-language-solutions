@@ -18,6 +18,7 @@ export async function GET(request: Request) {
 		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const status = searchParams.get("status");
 		const cohortId = searchParams.get("cohort_id");
+		const studentId = searchParams.get("student_id");
 
 		// Check if user is admin
 		const userIsAdmin = await isAdmin(session);
@@ -88,6 +89,11 @@ export async function GET(request: Request) {
 				});
 			}
 			query = query.eq("cohort_id", cohortId);
+		}
+
+		// Apply student filter (if provided)
+		if (studentId) {
+			query = query.eq("student_id", studentId);
 		}
 
 		// Pagination

@@ -33,6 +33,7 @@ export interface RescheduleRequest {
 export interface RescheduleRequestQuery {
 	status?: RescheduleRequestStatus;
 	cohortId?: string;
+	studentId?: string;
 	page?: number;
 	limit?: number;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { format, parseISO } from "date-fns";
 import { Calendar, CheckCircle2, Loader2, X } from "lucide-react";
@@ -90,9 +91,9 @@ export function AcceptRequestModal({
 		}
 	};
 
-	return (
+	const modalContent = (
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+			className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
 			onClick={handleBackdropClick}
 		>
 			<div className="w-full max-w-lg rounded-xl bg-background shadow-xl">
@@ -224,4 +225,8 @@ export function AcceptRequestModal({
 			</div>
 		</div>
 	);
+
+	return typeof document !== "undefined"
+		? createPortal(modalContent, document.body)
+		: null;
 }
