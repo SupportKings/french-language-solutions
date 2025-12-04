@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -20,9 +20,12 @@ interface GetMessagesResult {
  */
 export function useRealtimeMessages(cohortId: string) {
 	const queryClient = useQueryClient();
-	const supabase = createClient();
+	// Use ref to maintain stable supabase client reference
+	const supabaseRef = useRef(createClient());
 
 	useEffect(() => {
+		const supabase = supabaseRef.current;
+
 		// Subscribe to cohort_messages junction table
 		const channel = supabase
 			.channel(`cohort-chat:${cohortId}`)
@@ -41,7 +44,7 @@ export function useRealtimeMessages(cohortId: string) {
 					);
 
 					// Fetch the full message with user info and attachments
-					const { data: message } = await supabase
+					const { data: message, error } = await supabase
 						.from("messages")
 						.select(
 							`
@@ -55,7 +58,8 @@ export function useRealtimeMessages(cohortId: string) {
               user:user!messages_user_id_fkey(
                 id,
                 name,
-                email
+                email,
+                image
               ),
               message_attachments(
                 id,
@@ -69,6 +73,18 @@ export function useRealtimeMessages(cohortId: string) {
 						)
 						.eq("id", payload.new.message_id)
 						.single();
+
+					if (error) {
+						console.error(
+							"❌ Real-time: Failed to fetch message details",
+							error,
+						);
+						// Fallback: invalidate query to refetch from server
+						queryClient.invalidateQueries({
+							queryKey: chatsKeys.messages(cohortId),
+						});
+						return;
+					}
 
 					if (message) {
 						const newMessage: Message = {
@@ -209,10 +225,22 @@ export function useRealtimeMessages(cohortId: string) {
 					);
 				},
 			)
-			.subscribe();
+			.subscribe((status) => {
+				if (status === "SUBSCRIBED") {
+					console.log("✅ Real-time: Subscribed to cohort chat", cohortId);
+				} else if (status === "CLOSED") {
+					console.log("⚠️ Real-time: Subscription closed for cohort", cohortId);
+				} else if (status === "CHANNEL_ERROR") {
+					console.error("❌ Real-time: Channel error for cohort", cohortId);
+					// Fallback to polling/invalidation on error
+					queryClient.invalidateQueries({
+						queryKey: chatsKeys.messages(cohortId),
+					});
+				}
+			});
 
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [cohortId, queryClient, supabase]);
+	}, [cohortId, queryClient]);
 }

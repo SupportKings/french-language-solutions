@@ -1,7 +1,7 @@
 "use server";
 
 import { sendDirectMessageNotificationsBatch } from "@/lib/email";
-import { requireAuth, isTeacher } from "@/lib/rbac-middleware";
+import { isTeacher, requireAuth } from "@/lib/rbac-middleware";
 import { actionClient } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";
 
@@ -220,7 +220,8 @@ export const sendDirectMessage = actionClient
 
 					// Only send email if user has opted in (or preference not set and user is teacher/admin)
 					const shouldNotify =
-						(preferences?.email_notifications_enabled === true && preferences !== null);
+						preferences?.email_notifications_enabled === true &&
+						preferences !== null;
 
 					if (shouldNotify) {
 						recipientsToNotify.push({

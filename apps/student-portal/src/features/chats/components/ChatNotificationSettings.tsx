@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -12,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { updateChatNotificationPreferences } from "../actions/updateChatNotificationPreferences";
 

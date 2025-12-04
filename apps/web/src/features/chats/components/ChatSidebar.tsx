@@ -9,7 +9,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { format, isThisWeek, isToday, isYesterday } from "date-fns";
-import { Loader2, MessageCircle, Plus, Search, Settings, Users } from "lucide-react";
+import {
+	Loader2,
+	MessageCircle,
+	Plus,
+	Search,
+	Settings,
+	Users,
+} from "lucide-react";
 import type { SimpleCohort } from "../queries/getAllCohorts";
 import type { ConversationListItem } from "../types";
 
@@ -304,6 +311,16 @@ export function ChatSidebar({
 													</div>
 												)}
 											</div>
+
+											{/* Unread Badge */}
+											{cohort.unreadCount > 0 && (
+												<Badge
+													variant="default"
+													className="h-5 min-w-5 flex-shrink-0 rounded-full bg-destructive px-1.5 text-[10px]"
+												>
+													{cohort.unreadCount}
+												</Badge>
+											)}
 										</div>
 									</div>
 								))}

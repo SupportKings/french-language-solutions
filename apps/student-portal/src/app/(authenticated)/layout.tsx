@@ -6,6 +6,7 @@ import { MainContent, PageHeader, StudentSidebar } from "@/components/layout";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import { getUnreadAnnouncementCount } from "@/features/announcements/queries/getUnreadCount";
+import { getUnreadChatCount } from "@/features/chats/queries/getUnreadChatCount";
 
 import { getUser } from "@/queries/getUser";
 
@@ -43,8 +44,11 @@ export default async function AuthenticatedLayout({
 		redirect("/?error=not_a_student");
 	}
 
-	// Get unread announcement count
-	const unreadCount = await getUnreadAnnouncementCount(student.id);
+	// Get unread counts
+	const [unreadCount, unreadChatCount] = await Promise.all([
+		getUnreadAnnouncementCount(student.id),
+		getUnreadChatCount(session.user.id),
+	]);
 
 	const studentData = {
 		id: student.id,
@@ -58,6 +62,7 @@ export default async function AuthenticatedLayout({
 			<StudentSidebar
 				student={studentData}
 				unreadAnnouncementCount={unreadCount}
+				unreadChatCount={unreadChatCount}
 			/>
 			<SidebarInset>
 				<PageHeader student={studentData} unreadCount={unreadCount} />

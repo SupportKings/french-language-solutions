@@ -9,7 +9,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { format, isThisWeek, isToday, isYesterday } from "date-fns";
-import { Loader2, MessageCircle, Plus, Search, Settings, Users } from "lucide-react";
+import {
+	Loader2,
+	MessageCircle,
+	Plus,
+	Search,
+	Settings,
+	Users,
+} from "lucide-react";
 import type { SimpleCohort } from "../queries/getAllCohorts";
 import type { ConversationListItem } from "../types";
 
@@ -284,8 +291,9 @@ export function ChatSidebar({
 											<div className="min-w-0 flex-1 overflow-hidden">
 												<div className="mb-0.5 flex items-start justify-between gap-2">
 													<p className="flex-1 truncate font-medium text-sm">
-														{cohort.nickname ||
-															`Cohort ${cohort.id.slice(0, 8)}`}
+														{cohort.productLocation === "online"
+															? "Online - Group Chat"
+															: "In Person - Private Chat"}
 													</p>
 													{cohort.lastMessage && (
 														<span className="flex-shrink-0 text-muted-foreground text-xs">
@@ -304,6 +312,16 @@ export function ChatSidebar({
 													</div>
 												)}
 											</div>
+
+											{/* Unread Badge */}
+											{cohort.unreadCount > 0 && (
+												<Badge
+													variant="default"
+													className="h-5 min-w-5 flex-shrink-0 rounded-full bg-destructive px-1.5 text-[10px]"
+												>
+													{cohort.unreadCount}
+												</Badge>
+											)}
 										</div>
 									</div>
 								))}

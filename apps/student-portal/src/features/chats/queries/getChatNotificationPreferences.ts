@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 import type { ChatNotificationPreferences } from "../types";
 

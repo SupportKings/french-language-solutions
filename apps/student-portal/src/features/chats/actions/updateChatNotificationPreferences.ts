@@ -1,6 +1,6 @@
 "use server";
-import { requireAuth } from "@/lib/auth";
 
+import { requireAuth } from "@/lib/auth";
 import { actionClient } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";
 

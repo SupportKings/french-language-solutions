@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/queries/getUser";
 import { getAllUsers } from "@/features/chats/queries/getAllUsers";
 import { getChatNotificationPreferences } from "@/features/chats/queries/getChatNotificationPreferences";
+
+import { getUser } from "@/queries/getUser";
 
 import { ChatsListPageClient } from "./page-client";
 

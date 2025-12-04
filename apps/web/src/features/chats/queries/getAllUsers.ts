@@ -1,8 +1,8 @@
 import {
-	requireAuth,
+	getTeacherIdFromSession,
 	isAdmin,
 	isTeacher,
-	getTeacherIdFromSession,
+	requireAuth,
 } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
 

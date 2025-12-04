@@ -102,11 +102,13 @@ export function AppSidebar({
 	session,
 	rawPermissions,
 	isAdmin = false,
+	unreadChatCount,
 	...props
 }: React.ComponentProps<typeof Sidebar> & {
 	session: Session;
 	rawPermissions?: any;
 	isAdmin?: boolean;
+	unreadChatCount?: number;
 }) {
 	const pathname = usePathname();
 	const currentArea = pathname.includes("/dashboard/settings")
@@ -226,6 +228,7 @@ export function AppSidebar({
 					title: "Chats",
 					url: "/admin/chats",
 					icon: "MessageCircle",
+					badge: unreadChatCount,
 				});
 			}
 

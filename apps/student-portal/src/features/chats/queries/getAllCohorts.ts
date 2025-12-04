@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 export interface SimpleCohort {
 	id: string;
 	nickname: string | null;
+	productLocation: "online" | "in_person" | "hybrid";
 	messageCount: number;
+	unreadCount: number;
 	lastMessage?: {
 		content: string;
 		createdAt: string;
@@ -76,8 +78,13 @@ export async function getAllCohorts({
 			`
 			id,
 			nickname,
+			products (
+				location
+			),
 			cohort_messages!left (
+				message_id,
 				messages!left (
+					id,
 					content,
 					created_at,
 					deleted_at
@@ -101,6 +108,28 @@ export async function getAllCohorts({
 		throw new Error(`Failed to fetch cohorts: ${error.message}`);
 	}
 
+	// Collect all message IDs to check read status
+	const allMessageIds: string[] = [];
+	(cohorts || []).forEach((cohort: any) => {
+		(cohort.cohort_messages || []).forEach((cm: any) => {
+			if (cm.messages?.id && cm.messages.deleted_at === null) {
+				allMessageIds.push(cm.messages.id);
+			}
+		});
+	});
+
+	// Get read message IDs for this user
+	let readMessageIds: Set<string> = new Set();
+	if (allMessageIds.length > 0) {
+		const { data: readRecords } = await supabase
+			.from("message_reads")
+			.select("message_id")
+			.eq("user_id", user.id)
+			.in("message_id", allMessageIds);
+
+		readMessageIds = new Set(readRecords?.map((r) => r.message_id) || []);
+	}
+
 	// Transform the data to include only the last message
 	// Filter out deleted messages and cohorts without any messages are included (messageCount = 0)
 	const transformedCohorts: SimpleCohort[] = (cohorts || [])
@@ -116,10 +145,20 @@ export async function getAllCohorts({
 
 			const lastMessage = messages[0];
 
+			// Get product location (default to "in_person" if not available)
+			const productLocation = cohort.products?.location || "in_person";
+
+			// Calculate unread count for this cohort
+			const unreadCount = messages.filter(
+				(m: any) => !readMessageIds.has(m.id),
+			).length;
+
 			return {
 				id: cohort.id,
 				nickname: cohort.nickname,
+				productLocation: productLocation as "online" | "in_person" | "hybrid",
 				messageCount: messages.length,
+				unreadCount,
 				lastMessage: lastMessage
 					? {
 							content: lastMessage.content,

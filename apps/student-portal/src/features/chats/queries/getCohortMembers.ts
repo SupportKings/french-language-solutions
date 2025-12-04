@@ -11,7 +11,7 @@ export async function getCohortMembers({
 }: GetCohortMembersParams): Promise<CohortMembers> {
 	const supabase = await createClient();
 
-	// Fetch teachers via weekly_sessions with user image
+	// Fetch teachers via weekly_sessions
 	const { data: teachersData, error: teachersError } = await supabase
 		.from("weekly_sessions")
 		.select(
@@ -21,8 +21,7 @@ export async function getCohortMembers({
         user_id,
         first_name,
         last_name,
-        email,
-        user:user_id(image)
+        email
       )
     `,
 		)
@@ -30,6 +29,23 @@ export async function getCohortMembers({
 
 	if (teachersError) {
 		console.error("Error fetching teachers:", teachersError);
+	}
+
+	// Fetch teacher user images separately
+	const teacherUserIds =
+		teachersData?.map((item: any) => item.teachers?.user_id).filter(Boolean) ||
+		[];
+
+	const teacherUserImages: Record<string, string | null> = {};
+	if (teacherUserIds.length > 0) {
+		const { data: usersData } = await supabase
+			.from("user")
+			.select("id, image")
+			.in("id", teacherUserIds);
+
+		usersData?.forEach((u: any) => {
+			teacherUserImages[u.id] = u.image;
+		});
 	}
 
 	// Transform teachers data and remove duplicates
@@ -44,7 +60,7 @@ export async function getCohortMembers({
 				userId: teacher.user_id || "",
 				name: fullName || teacher.email || null,
 				email: teacher.email || "",
-				image: teacher.user?.image || null,
+				image: teacherUserImages[teacher.user_id] || null,
 				role: "teacher" as const,
 			});
 		}
@@ -53,7 +69,7 @@ export async function getCohortMembers({
 		(a.name || "").localeCompare(b.name || ""),
 	);
 
-	// Fetch students via enrollments (active only) with user image
+	// Fetch students via enrollments (active only)
 	const { data: studentsData, error: studentsError } = await supabase
 		.from("enrollments")
 		.select(
@@ -63,8 +79,7 @@ export async function getCohortMembers({
         id,
         user_id,
         full_name,
-        email,
-        user:user_id(image)
+        email
       )
     `,
 		)
@@ -80,6 +95,23 @@ export async function getCohortMembers({
 		console.error("Error fetching students:", studentsError);
 	}
 
+	// Fetch user images separately
+	const studentUserIds =
+		studentsData?.map((item: any) => item.students?.user_id).filter(Boolean) ||
+		[];
+
+	const studentUserImages: Record<string, string | null> = {};
+	if (studentUserIds.length > 0) {
+		const { data: usersData } = await supabase
+			.from("user")
+			.select("id, image")
+			.in("id", studentUserIds);
+
+		usersData?.forEach((u: any) => {
+			studentUserImages[u.id] = u.image;
+		});
+	}
+
 	// Transform students data and remove duplicates
 	const studentsMap = new Map<string, CohortMember>();
 	studentsData?.forEach((item: any) => {
@@ -90,7 +122,7 @@ export async function getCohortMembers({
 				userId: student.user_id || "",
 				name: student.full_name || student.email || null,
 				email: student.email || "",
-				image: student.user?.image || null,
+				image: studentUserImages[student.user_id] || null,
 				role: "student" as const,
 				enrollmentStatus: item.status,
 			});

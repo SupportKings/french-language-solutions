@@ -1,4 +1,4 @@
-import { requireAuth, isAdmin } from "@/lib/rbac-middleware";
+import { isAdmin, requireAuth } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AccessibleCohort {

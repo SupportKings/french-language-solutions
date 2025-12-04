@@ -46,6 +46,7 @@ interface StudentSidebarProps {
 		avatar?: string;
 	};
 	unreadAnnouncementCount?: number;
+	unreadChatCount?: number;
 }
 
 const bottomNavItems = [
@@ -59,13 +60,8 @@ const bottomNavItems = [
 export function StudentSidebar({
 	student,
 	unreadAnnouncementCount,
+	unreadChatCount,
 }: StudentSidebarProps) {
-	console.log(
-		"unreadAnnouncementCount:",
-		unreadAnnouncementCount,
-		typeof unreadAnnouncementCount,
-	);
-
 	const navItems = [
 		{
 			title: "Dashboard",
@@ -83,7 +79,7 @@ export function StudentSidebar({
 			title: "Chats",
 			url: "/chats",
 			icon: MessageCircle,
-			badge: undefined as number | undefined,
+			badge: unreadChatCount,
 		},
 	];
 	const pathname = usePathname();

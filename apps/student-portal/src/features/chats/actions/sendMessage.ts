@@ -1,6 +1,6 @@
 "use server";
-import { requireAuth } from "@/lib/auth";
 
+import { requireAuth } from "@/lib/auth";
 // TODO: Re-enable RBAC imports after testing
 import { actionClient } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";

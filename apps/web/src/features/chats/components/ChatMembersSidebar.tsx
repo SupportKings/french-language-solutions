@@ -250,9 +250,7 @@ export function ChatMembersSidebar({
 					const teachers = mapped.filter(
 						(p: any) => p.role === "teacher" || p.role === "admin",
 					);
-					const students = mapped.filter(
-						(p: any) => p.role === "student",
-					);
+					const students = mapped.filter((p: any) => p.role === "student");
 
 					return {
 						teachers,

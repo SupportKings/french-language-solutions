@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { fetchMessages } from "@/features/chats/actions/fetchMessages";
+import { markMessagesAsRead } from "@/features/chats/actions/markMessagesAsRead";
 import { Chat } from "@/features/chats/components/Chat";
 import { chatsKeys } from "@/features/chats/queries/chats.queries";
 import { useRealtimeMessages } from "@/features/chats/queries/useRealtimeMessages";
@@ -13,7 +14,8 @@ import type {
 	SendMessageHandler,
 } from "@/features/chats/types";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useAction } from "next-safe-action/hooks";
 
 interface ChatWrapperProps {
 	cohortId: string;
@@ -80,6 +82,19 @@ export function ChatWrapper({
 
 	// Subscribe to realtime updates
 	useRealtimeMessages(cohortId);
+
+	// Mark messages as read when opening cohort chat
+	const { executeAsync: executeMarkAsRead } = useAction(markMessagesAsRead);
+	const queryClient = useQueryClient();
+
+	useEffect(() => {
+		if (cohortId) {
+			executeMarkAsRead({ cohortId }).then(() => {
+				// Invalidate cohorts query to update unread badges in sidebar
+				queryClient.invalidateQueries({ queryKey: chatsKeys.cohorts() });
+			});
+		}
+	}, [cohortId, executeMarkAsRead, queryClient]);
 
 	return (
 		<Chat

@@ -1,14 +1,13 @@
 "use server";
 
 import { requireAuth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
 import { actionClient } from "@/lib/safe-action";
+import { createClient } from "@/lib/supabase/server";
+
 import { z } from "zod";
 
 const schema = z.object({
-	teacherUserIds: z
-		.array(z.string())
-		.min(1, "At least one teacher required"),
+	teacherUserIds: z.array(z.string()).min(1, "At least one teacher required"),
 });
 
 export const createOrGetConversationForStudent = actionClient
@@ -31,7 +30,6 @@ export const createOrGetConversationForStudent = actionClient
 		if (!student) {
 			throw new Error("Student not found");
 		}
-
 
 		// Get cohort IDs from student's enrollments
 		const { data: enrollments } = await supabase
@@ -115,7 +113,9 @@ export const createOrGetConversationForStudent = actionClient
 			.single();
 
 		if (convError || !conversation) {
-			throw new Error("Failed to create conversation" + convError?.message || "");
+			throw new Error(
+				"Failed to create conversation" + convError?.message || "",
+			);
 		}
 
 		// Add participants (student + teachers)

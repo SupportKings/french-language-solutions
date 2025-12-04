@@ -103,9 +103,7 @@ export async function getCohortMembers({
 			.select("id, image")
 			.in("id", allUserIds);
 
-		const userImageMap = new Map(
-			usersData?.map((u) => [u.id, u.image]) || [],
-		);
+		const userImageMap = new Map(usersData?.map((u) => [u.id, u.image]) || []);
 
 		// Add images to teachers
 		teachers.forEach((t) => {

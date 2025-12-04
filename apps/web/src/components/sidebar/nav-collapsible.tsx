@@ -5,6 +5,7 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 
 import { Link } from "@/components/fastLink";
+import { Badge } from "@/components/ui/badge";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -34,6 +35,7 @@ export function NavCollapsible({
 		url: string;
 		icon: string;
 		isActive?: boolean;
+		badge?: number;
 		items?: {
 			title: string;
 			url: string;
@@ -107,6 +109,14 @@ export function NavCollapsible({
 									<Link prefetch={true} href={item.url}>
 										<IconWrapper name={item.icon} />
 										<span>{item.title}</span>
+										{item.badge !== undefined && item.badge > 0 && (
+											<Badge
+												variant="default"
+												className="ml-auto h-5 min-w-5 rounded-full bg-destructive px-1.5 text-[10px]"
+											>
+												{item.badge}
+											</Badge>
+										)}
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

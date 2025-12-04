@@ -44,9 +44,9 @@ export function PageHeader({ student, unreadCount }: PageHeaderProps) {
 				.slice(0, 2)
 				.toUpperCase()
 		: "ST";
-	
-	if(pathname.includes("/chats")) {
-		return <></>
+
+	if (pathname.includes("/chats")) {
+		return <></>;
 	}
 
 	return (

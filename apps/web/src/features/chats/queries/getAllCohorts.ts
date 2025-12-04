@@ -1,10 +1,11 @@
-import { requireAuth, isAdmin } from "@/lib/rbac-middleware";
+import { isAdmin, requireAuth } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
 
 export interface SimpleCohort {
 	id: string;
 	nickname: string | null;
 	messageCount: number;
+	unreadCount: number;
 	lastMessage?: {
 		content: string;
 		createdAt: string;
@@ -90,22 +91,22 @@ export async function getAllCohorts({
 	// Build query with optional search filter
 	// Use LEFT JOIN (!left) explicitly to include cohorts without messages (important for admins to see all cohorts)
 	// Deleted messages are filtered during transformation
-	let query = supabase
-		.from("cohorts")
-		.select(
-			`
+	let query = supabase.from("cohorts").select(
+		`
 			id,
 			nickname,
 			cohort_messages!left (
+				message_id,
 				messages!left (
+					id,
 					content,
 					created_at,
 					deleted_at
 				)
 			)
 		`,
-			{ count: "exact" },
-		);
+		{ count: "exact" },
+	);
 
 	// Filter by accessible cohort IDs for non-admins
 	if (!userIsAdmin) {
@@ -119,14 +120,32 @@ export async function getAllCohorts({
 
 	// Fetch cohorts with their last message
 	const { data: cohorts, error, count } = await query.range(from, to);
-	console.log("🔵 Fetched cohorts with messages:", {
-		cohorts,
-		error,
-		count,
-	});
+
 	if (error) {
 		console.error("❌ Error fetching cohorts:", error);
 		throw new Error(`Failed to fetch cohorts: ${error.message}`);
+	}
+
+	// Collect all message IDs to check read status
+	const allMessageIds: string[] = [];
+	(cohorts || []).forEach((cohort: any) => {
+		(cohort.cohort_messages || []).forEach((cm: any) => {
+			if (cm.messages?.id && cm.messages.deleted_at === null) {
+				allMessageIds.push(cm.messages.id);
+			}
+		});
+	});
+
+	// Get read message IDs for this user
+	let readMessageIds: Set<string> = new Set();
+	if (allMessageIds.length > 0) {
+		const { data: readRecords } = await supabase
+			.from("message_reads")
+			.select("message_id")
+			.eq("user_id", session.user.id)
+			.in("message_id", allMessageIds);
+
+		readMessageIds = new Set(readRecords?.map((r) => r.message_id) || []);
 	}
 
 	// Transform the data to include only the last message
@@ -144,10 +163,16 @@ export async function getAllCohorts({
 
 			const lastMessage = messages[0];
 
+			// Calculate unread count for this cohort
+			const unreadCount = messages.filter(
+				(m: any) => !readMessageIds.has(m.id),
+			).length;
+
 			return {
 				id: cohort.id,
 				nickname: cohort.nickname,
 				messageCount: messages.length,
+				unreadCount,
 				lastMessage: lastMessage
 					? {
 							content: lastMessage.content,
@@ -166,7 +191,6 @@ export async function getAllCohorts({
 				new Date(a.lastMessage.createdAt).getTime()
 			);
 		});
-		console.log("🔵 Transformed cohorts:", transformedCohorts);
 	return {
 		cohorts: transformedCohorts,
 		total: count || 0,

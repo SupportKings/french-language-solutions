@@ -262,9 +262,7 @@ export function ChatMembersSidebar({
 					const teachers = mapped.filter(
 						(p: any) => p.role === "teacher" || p.role === "admin",
 					);
-					const students = mapped.filter(
-						(p: any) => p.role === "student",
-					);
+					const students = mapped.filter((p: any) => p.role === "student");
 
 					return {
 						teachers,
@@ -324,7 +322,8 @@ export function ChatMembersSidebar({
 				{teachers.length > 0 && (
 					<div className="py-2">
 						<div className="px-4 py-2 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-							{conversationId ? "Your Teachers" : "Teachers"} ({teachers.length})
+							{conversationId ? "Your Teachers" : "Teachers"} ({teachers.length}
+							)
 						</div>
 						{teachers.map((teacher: CohortMember) => (
 							<MemberItem

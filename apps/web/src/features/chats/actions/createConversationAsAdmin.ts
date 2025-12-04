@@ -1,12 +1,12 @@
 "use server";
 
-import { actionClient } from "@/lib/safe-action";
 import {
-	requireAuth,
+	getTeacherIdFromSession,
 	isAdmin,
 	isTeacher,
-	getTeacherIdFromSession,
+	requireAuth,
 } from "@/lib/rbac-middleware";
+import { actionClient } from "@/lib/safe-action";
 import { createClient } from "@/lib/supabase/server";
 
 import { z } from "zod";
@@ -73,8 +73,7 @@ export const createConversationAsAdmin = actionClient
 				]);
 
 			const accessibleStudentUserIds = new Set(
-				enrollments?.map((e: any) => e.students?.user_id).filter(Boolean) ||
-					[],
+				enrollments?.map((e: any) => e.students?.user_id).filter(Boolean) || [],
 			);
 
 			// Check all participants (except current user)

@@ -1,7 +1,9 @@
 import { requireAuth } from "@/lib/auth";
-import { ChatsPageClient } from "./page-client";
-import { getEnrolledTeachers } from "@/features/chats/queries/getEnrolledTeachers";
+
 import { getChatNotificationPreferences } from "@/features/chats/queries/getChatNotificationPreferences";
+import { getEnrolledTeachers } from "@/features/chats/queries/getEnrolledTeachers";
+
+import { ChatsPageClient } from "./page-client";
 
 export default async function ChatsPage() {
 	const user = await requireAuth();
