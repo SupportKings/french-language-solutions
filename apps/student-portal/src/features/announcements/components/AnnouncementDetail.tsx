@@ -27,6 +27,25 @@ import {
 } from "lucide-react";
 import { markAnnouncementAsRead } from "../actions/markAsRead";
 
+function formatCohortDisplayName(cohort: {
+	language_levels?: { display_name?: string } | null;
+	products?: { format?: string } | null;
+} | null): string {
+	if (!cohort) return "Unknown Class";
+
+	const level = cohort.language_levels?.display_name || "";
+	const format = cohort.products?.format
+		? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)
+		: "";
+
+	if (level && format) {
+		return `${level} • ${format} Class`;
+	}
+	if (level) return level;
+	if (format) return `${format} Class`;
+	return "Unknown Class";
+}
+
 interface AnnouncementDetailProps {
 	announcement: any;
 	studentId: string;
@@ -173,7 +192,7 @@ export function AnnouncementDetail({
 							<Badge variant="secondary" className="text-xs">
 								{announcement.scope === "school_wide"
 									? "School-wide Announcement"
-									: `Class Update: ${announcement.cohort?.nickname || "Unknown Class"}`}
+									: `Class Update: ${formatCohortDisplayName(announcement.cohort)}`}
 							</Badge>
 						</div>
 
@@ -204,31 +223,13 @@ export function AnnouncementDetail({
 								<h3 className="font-semibold text-foreground text-base">
 									Images ({imageAttachments.length})
 								</h3>
-								<div
-									className={`grid gap-2 ${
-										imageAttachments.length === 1
-											? "grid-cols-2"
-											: imageAttachments.length === 2
-												? "grid-cols-2"
-												: imageAttachments.length === 3
-													? "grid-cols-3"
-													: "grid-cols-2"
-									}`}
-								>
+								<div className="flex flex-wrap gap-2">
 									{imageAttachments.map((attachment: any, index: number) => (
 										<button
 											key={attachment.id}
 											type="button"
 											onClick={() => openLightbox(index)}
-											className={`group relative cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30 ${
-												imageAttachments.length === 1
-													? "aspect-square max-w-[200px]"
-													: imageAttachments.length === 3
-														? "aspect-square"
-														: index === 0 && imageAttachments.length > 3
-															? "col-span-2 aspect-video"
-															: "aspect-square"
-											}`}
+											className="group relative aspect-square w-[200px] cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30"
 										>
 											<img
 												src={attachment.file_url}

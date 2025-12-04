@@ -57,10 +57,11 @@ const data = {
 					title: "Reschedule Requests",
 					url: "/admin/reschedule-requests",
 				},
-				{
-					title: "Announcements",
-					url: "/admin/announcements",
-				},
+				// TODO: Re-enable announcements later
+				// {
+				// 	title: "Announcements",
+				// 	url: "/admin/announcements",
+				// },
 			],
 		},
 		{

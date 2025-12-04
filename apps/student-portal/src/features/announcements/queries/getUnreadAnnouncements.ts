@@ -1,6 +1,25 @@
 import { createClient } from "@/lib/supabase/client";
 import type { StudentAnnouncement } from "./getStudentAnnouncements";
 
+function formatCohortDisplayName(cohort: {
+	language_levels?: { display_name?: string } | null;
+	products?: { format?: string } | null;
+} | null): string | undefined {
+	if (!cohort) return undefined;
+
+	const level = cohort.language_levels?.display_name || "";
+	const format = cohort.products?.format
+		? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)
+		: "";
+
+	if (level && format) {
+		return `${level} • ${format} Class`;
+	}
+	if (level) return level;
+	if (format) return `${format} Class`;
+	return undefined;
+}
+
 export async function getUnreadAnnouncements(
 	studentId: string,
 ): Promise<StudentAnnouncement[]> {
@@ -34,7 +53,13 @@ export async function getUnreadAnnouncements(
       ),
       cohort:cohorts!announcements_cohort_id_fkey(
         id,
-        nickname
+        current_level_id,
+        language_levels!cohorts_current_level_id_language_levels_id_fk(
+          display_name
+        ),
+        products!cohorts_product_id_products_id_fk(
+          format
+        )
       ),
       attachments:announcement_attachments(
         id,
@@ -91,7 +116,7 @@ export async function getUnreadAnnouncements(
 			},
 			scope: announcement.scope,
 			cohortId: announcement.cohort_id || undefined,
-			cohortName: announcement.cohort?.nickname || undefined,
+			cohortName: formatCohortDisplayName(announcement.cohort),
 			isPinned: announcement.is_pinned,
 			isRead: false, // All are unread
 			createdAt: announcement.created_at,

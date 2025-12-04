@@ -14,7 +14,7 @@ import {
 	getStudentEnrollments,
 	getStudentStats,
 } from "@/features/dashboard/queries";
-import { ReschedulingSection } from "@/features/rescheduling/components";
+import { RescheduleRequestsSidebar } from "@/features/rescheduling/components";
 import {
 	getPrivateEnrollment,
 	getRescheduleRequests,
@@ -76,24 +76,23 @@ export default async function DashboardPage() {
 				{/* Cohort Details */}
 				{cohortDetails && <CohortDetailsCard details={cohortDetails} />}
 
-				{/* Rescheduling Section - Only for private enrollments */}
-				{privateEnrollment && (
-					<ReschedulingSection
-						enrollment={privateEnrollment}
-						requests={rescheduleRequests}
-					/>
-				)}
-
 				{/* Main Content Grid */}
-				<div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+				<div className="grid gap-6 xl:grid-cols-[1fr_380px]">
 					{/* Main Column - Schedule */}
 					<div className="space-y-6">
 						<ScheduleSection classes={classes} />
 					</div>
 
-					{/* Right Sidebar - Announcements */}
+					{/* Right Sidebar - Announcements & Rescheduling */}
 					<div className="space-y-6">
 						<AnnouncementsPreviewCard studentId={student.id} />
+						{/* Rescheduling Section - Only for private enrollments */}
+						{privateEnrollment && (
+							<RescheduleRequestsSidebar
+								enrollment={privateEnrollment}
+								requests={rescheduleRequests}
+							/>
+						)}
 					</div>
 				</div>
 			</div>

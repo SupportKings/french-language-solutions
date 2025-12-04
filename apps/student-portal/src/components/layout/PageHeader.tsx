@@ -24,7 +24,6 @@ const pageInfo: Record<string, { title: string; description?: string }> = {
 	},
 	"/announcements": {
 		title: "Announcements",
-		description: "Stay updated with the latest news",
 	},
 	"/settings": {
 		title: "Settings",

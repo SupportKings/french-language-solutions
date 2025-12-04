@@ -130,6 +130,7 @@ export const ac = createAccessControl(statement);
 // - Their assigned students (READ ONLY - cannot edit)
 // - Their assigned cohorts (can only update current_level)
 // - All assessments (READ ONLY - cannot edit)
+// - Products (READ ONLY - for filtering cohorts, cannot access product details page)
 export const teacher = ac.newRole({
 	// Students - Only assigned students (READ ONLY)
 	students: ["read_assigned"],
@@ -140,8 +141,10 @@ export const teacher = ac.newRole({
 	// Assessments - All assessments (READ ONLY)
 	assessments: ["read_all"],
 
+	// Products - READ ONLY (for filtering cohorts list, cannot access product detail pages)
+	products: ["read"],
+
 	// NO access to:
-	// - products (configuration section)
 	// - teachers (teacher management section)
 	// - enrollments (enrollment section)
 	// - system (configuration section)

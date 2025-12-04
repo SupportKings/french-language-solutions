@@ -1,387 +1,197 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
-
-// Helper function to apply option filters based on operator
-function applyOptionFilter<T>(
-	value: T | null | undefined,
-	filterValues: string[],
-	operator: string,
-): boolean {
-	if (filterValues.length === 0) return true;
-
-	const found = filterValues.includes(String(value));
-
-	switch (operator) {
-		case "is":
-		case "is any of":
-			return found;
-		case "is not":
-		case "is none of":
-			return !found;
-		default:
-			return found;
-	}
-}
-
-// Helper function to apply date filters based on operator
-function applyDateFilter(
-	itemDate: Date,
-	fromDate: Date | null,
-	toDate: Date | null,
-	operator: string,
-): boolean {
-	if (!fromDate && !toDate) return true;
-
-	switch (operator) {
-		case "is":
-			if (!fromDate) return true;
-			return itemDate.toDateString() === fromDate.toDateString();
-		case "is not":
-			if (!fromDate) return true;
-			return itemDate.toDateString() !== fromDate.toDateString();
-		case "is before":
-			if (!fromDate) return true;
-			return itemDate < fromDate;
-		case "is on or after":
-			if (!fromDate) return true;
-			return itemDate >= fromDate;
-		case "is after":
-			if (!fromDate) return true;
-			return itemDate > fromDate;
-		case "is on or before":
-			if (!fromDate) return true;
-			return itemDate <= fromDate;
-		case "is between":
-			if (!fromDate || !toDate) return true;
-			return itemDate >= fromDate && itemDate <= toDate;
-		case "is not between":
-			if (!fromDate || !toDate) return true;
-			return itemDate < fromDate || itemDate > toDate;
-		default:
-			// Default behavior for backward compatibility
-			if (fromDate && toDate) {
-				return itemDate >= fromDate && itemDate <= toDate;
-			}
-			if (fromDate) {
-				return itemDate >= fromDate;
-			}
-			if (toDate) {
-				return itemDate <= toDate;
-			}
-			return true;
-	}
-}
+import { getEnrollmentsWithFilters } from "@/features/enrollments/queries/getEnrollmentsWithFilters";
 
 // GET /api/enrollments - List all enrollments with filters
 export async function GET(request: NextRequest) {
 	try {
-		const supabase = await createClient();
 		const searchParams = request.nextUrl.searchParams;
 
-		// Get query parameters with operator support
+		// Parse pagination parameters
 		const rawPage = Number.parseInt(searchParams.get("page") || "1");
 		const rawLimit = Number.parseInt(searchParams.get("limit") || "20");
 		const page = isNaN(rawPage) ? 1 : rawPage;
 		const limit = isNaN(rawLimit) ? 20 : rawLimit;
 
+		// Parse search
 		const search = searchParams.get("search") || "";
-		const status = searchParams.getAll("status"); // Support multiple statuses
-		const status_operator = searchParams.get("status_operator") || "is any of";
-		const productIds = searchParams.getAll("productId"); // Support multiple products
-		const productIds_operator =
-			searchParams.get("productIds_operator") || "is any of";
-		const cohortNickname = searchParams.get("cohortNickname") || "";
-		const cohortNickname_operator =
-			searchParams.get("cohortNickname_operator") || "contains";
-		const teacherIds = searchParams.getAll("teacherId"); // Support multiple teachers
-		const teacherIds_operator =
-			searchParams.get("teacherIds_operator") || "is any of";
-		const dateFrom = searchParams.get("dateFrom") || "";
-		const dateTo = searchParams.get("dateTo") || "";
-		const created_at_operator =
-			searchParams.get("created_at_operator") || "is between";
-		const studentId = searchParams.get("studentId") || "";
-		const cohortId = searchParams.get("cohortId") || "";
+
+		// Parse sorting
 		const sortBy = searchParams.get("sortBy") || "created_at";
 		const sortOrder = searchParams.get("sortOrder") || "desc";
+		const sorting = [{ id: sortBy, desc: sortOrder === "desc" }];
 
-		// Get additional filter arrays
+		// Build filters array from query parameters
+		const filters: any[] = [];
+
+		// Status filter
+		const status = searchParams.getAll("status");
+		if (status.length > 0) {
+			filters.push({
+				columnId: "status",
+				values: status,
+				operator: searchParams.get("status_operator") || "is any of",
+			});
+		}
+
+		// Product filter
+		const productIds = searchParams.getAll("productId");
+		if (productIds.length > 0) {
+			filters.push({
+				columnId: "productId",
+				values: productIds,
+				operator: searchParams.get("productIds_operator") || "is any of",
+			});
+		}
+
+		// Cohort nickname filter
+		const cohortNickname = searchParams.get("cohortNickname");
+		if (cohortNickname) {
+			filters.push({
+				columnId: "cohortNickname",
+				values: [cohortNickname],
+				operator: searchParams.get("cohortNickname_operator") || "contains",
+			});
+		}
+
+		// Teacher filter
+		const teacherIds = searchParams.getAll("teacherId");
+		if (teacherIds.length > 0) {
+			filters.push({
+				columnId: "teacherId",
+				values: teacherIds,
+				operator: searchParams.get("teacherIds_operator") || "is any of",
+			});
+		}
+
+		// Date filter (created_at)
+		const dateFrom = searchParams.get("dateFrom");
+		const dateTo = searchParams.get("dateTo");
+		if (dateFrom || dateTo) {
+			filters.push({
+				columnId: "created_at",
+				values: [dateFrom, dateTo],
+				operator: searchParams.get("created_at_operator") || "is between",
+			});
+		}
+
+		// Cohort format filter
 		const cohortFormatArray = searchParams.getAll("cohort_format");
-		const cohortStatusArray = searchParams.getAll("cohort_status");
-		const startingLevelArray = searchParams.getAll("starting_level");
-		const roomTypeArray = searchParams.getAll("room_type");
+		if (cohortFormatArray.length > 0) {
+			filters.push({
+				columnId: "cohort_format",
+				values: cohortFormatArray,
+				operator: "is any of",
+			});
+		}
 
-		// Get additional query parameters for completion_percentage filter
+		// Cohort status filter
+		const cohortStatusArray = searchParams.getAll("cohort_status");
+		if (cohortStatusArray.length > 0) {
+			filters.push({
+				columnId: "cohort_status",
+				values: cohortStatusArray,
+				operator: "is any of",
+			});
+		}
+
+		// Starting level filter
+		const startingLevelArray = searchParams.getAll("starting_level");
+		if (startingLevelArray.length > 0) {
+			filters.push({
+				columnId: "starting_level",
+				values: startingLevelArray,
+				operator: "is any of",
+			});
+		}
+
+		// Room type filter
+		const roomTypeArray = searchParams.getAll("room_type");
+		if (roomTypeArray.length > 0) {
+			filters.push({
+				columnId: "room_type",
+				values: roomTypeArray,
+				operator: "is any of",
+			});
+		}
+
+		// Completion percentage filter
 		const completionMin = searchParams.get("completionMin");
 		const completionMax = searchParams.get("completionMax");
 		const completionExact = searchParams.get("completionExact");
 		const completionExclude = searchParams.get("completionExclude");
 		const completionOperator = searchParams.get("completionOperator");
 
-		// Build query - use inner join when filtering by products to exclude N/A records
-		const cohortJoin = productIds.length > 0 ? "cohorts!inner" : "cohorts";
-		let query = supabase.from("enrollments").select(
-			`
-				*,
-				students!inner(id, full_name, email),
-				${cohortJoin}(
-					id,
-					nickname,
-					starting_level_id,
-					current_level_id,
-					start_date,
-					room_type,
-					product_id,
-					cohort_status,
-					max_students,
-					products (
-						id,
-						format,
-						display_name
-					),
-					starting_level:language_levels!starting_level_id (
-						id,
-						code,
-						display_name
-					),
-					current_level:language_levels!current_level_id (
-						id,
-						code,
-						display_name
-					),
-					weekly_sessions (
-						id,
-						day_of_week,
-						start_time,
-						end_time,
-						teacher_id,
-						teachers (
-							id,
-							first_name,
-							last_name
-						)
-					)
-				)
-			`,
-			{ count: "exact" },
+		if (completionExact !== null && completionExact !== "") {
+			filters.push({
+				columnId: "completion_percentage",
+				values: [completionExact],
+				operator: "is",
+			});
+		} else if (completionExclude !== null && completionExclude !== "") {
+			filters.push({
+				columnId: "completion_percentage",
+				values: [completionExclude],
+				operator: "is not",
+			});
+		} else if (completionOperator === "is not between") {
+			if (completionMin !== null && completionMax !== null) {
+				filters.push({
+					columnId: "completion_percentage",
+					values: [completionMin, completionMax],
+					operator: "is not between",
+				});
+			}
+		} else {
+			// Range-based filters
+			if (
+				(completionMin !== null && completionMin !== "") ||
+				(completionMax !== null && completionMax !== "")
+			) {
+				filters.push({
+					columnId: "completion_percentage",
+					values: [completionMin, completionMax],
+					operator: "is between",
+				});
+			}
+		}
+
+		// Additional filters for specific student or cohort
+		const studentId = searchParams.get("studentId");
+		if (studentId) {
+			filters.push({
+				columnId: "student_id",
+				values: [studentId],
+				operator: "is",
+			});
+		}
+
+		const cohortId = searchParams.get("cohortId");
+		if (cohortId) {
+			filters.push({
+				columnId: "cohort_id",
+				values: [cohortId],
+				operator: "is",
+			});
+		}
+
+		// Call server query function
+		const { data, count } = await getEnrollmentsWithFilters(
+			filters,
+			page - 1, // Convert from 1-based to 0-based
+			limit,
+			sorting,
+			search,
 		);
 
-		// Determine if we need in-memory filtering for operators
-		const needsInMemoryFiltering =
-			status.length > 0 ||
-			productIds.length > 0 ||
-			cohortNickname ||
-			teacherIds.length > 0 ||
-			dateFrom ||
-			dateTo;
-
-		// Apply database filters only when not using operators (for performance)
-		if (!needsInMemoryFiltering) {
-			if (status.length > 0 && status_operator === "is any of") {
-				query = query.in("status", status);
-			}
-
-			if (productIds.length > 0 && productIds_operator === "is any of") {
-				// When products are selected, only show enrollments with those products
-				// This will exclude enrollments where cohort has no product (null product_id)
-				query = query.in("cohorts.product_id", productIds);
-			}
-		}
-
-		// Date filtering moved to in-memory for operator support
-
-		if (studentId) {
-			query = query.eq("student_id", studentId);
-		}
-
-		if (cohortId) {
-			query = query.eq("cohort_id", cohortId);
-		}
-
-		// Apply cohort-related filters
-		if (cohortFormatArray.length > 0) {
-			query = query.in("cohorts.products.format", cohortFormatArray);
-		}
-
-		if (cohortStatusArray.length > 0) {
-			query = query.in("cohorts.cohort_status", cohortStatusArray);
-		}
-
-		if (startingLevelArray.length > 0) {
-			query = query.in("cohorts.starting_level.code", startingLevelArray);
-		}
-
-		if (roomTypeArray.length > 0) {
-			query = query.in("cohorts.room_type", roomTypeArray);
-		}
-
-		// Apply completion_percentage filters based on operator
-		if (completionExact !== null && completionExact !== "") {
-			// Exact match: completion_percentage = value
-			query = query.eq(
-				"completion_percentage",
-				Number.parseFloat(completionExact),
-			);
-		} else if (completionExclude !== null && completionExclude !== "") {
-			// Not equal: completion_percentage != value
-			query = query.neq(
-				"completion_percentage",
-				Number.parseFloat(completionExclude),
-			);
-		} else if (
-			completionOperator === "is not between" &&
-			completionMin !== null &&
-			completionMax !== null
-		) {
-			// Not between: completion_percentage < min OR completion_percentage > max
-			query = query.or(
-				`completion_percentage.lt.${Number.parseFloat(completionMin)},completion_percentage.gt.${Number.parseFloat(completionMax)}`,
-			);
-		} else {
-			// Range-based filters (greater than, less than, between, etc.)
-			if (completionMin !== null && completionMin !== "") {
-				query = query.gte(
-					"completion_percentage",
-					Number.parseFloat(completionMin),
-				);
-			}
-
-			if (completionMax !== null && completionMax !== "") {
-				query = query.lte(
-					"completion_percentage",
-					Number.parseFloat(completionMax),
-				);
-			}
-		}
-
-		if (search) {
-			const s = search.replace(/,/g, "\\,");
-			query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%`, {
-				foreignTable: "students",
-			});
-		}
-
-		// Apply sorting
-		const orderColumn =
-			sortBy === "student_name" ? "students.full_name" : sortBy;
-		query = query.order(orderColumn, { ascending: sortOrder === "asc" });
-
-		// Only apply pagination at DB level if we don't need in-memory filtering
-		if (!needsInMemoryFiltering) {
-			const from = (page - 1) * limit;
-			const to = from + limit - 1;
-			query = query.range(from, to);
-		}
-
-		const { data, error, count } = await query;
-
-		if (error) {
-			console.error("Error fetching enrollments:", error);
-			return NextResponse.json(
-				{ error: "Failed to fetch enrollments" },
-				{ status: 500 },
-			);
-		}
-
-		// Apply in-memory filters with operator support
-		let filteredData = data || [];
-
-		// Status filter with operator
-		if (status.length > 0) {
-			filteredData = filteredData.filter((enrollment: any) =>
-				applyOptionFilter(enrollment.status, status, status_operator),
-			);
-		}
-
-		// Product filter with operator
-		if (productIds.length > 0) {
-			filteredData = filteredData.filter((enrollment: any) =>
-				applyOptionFilter(
-					enrollment.cohorts?.product_id,
-					productIds,
-					productIds_operator,
-				),
-			);
-		}
-
-		// Cohort nickname text search filter with operator
-		if (cohortNickname) {
-			filteredData = filteredData.filter((enrollment: any) => {
-				const nickname = enrollment.cohorts?.nickname?.toLowerCase() || "";
-				const searchTerm = cohortNickname.toLowerCase();
-				const matches = nickname.includes(searchTerm);
-
-				switch (cohortNickname_operator) {
-					case "contains":
-						return matches;
-					case "does not contain":
-						return !matches;
-					default:
-						return matches;
-				}
-			});
-		}
-
-		// Teacher filter with operator
-		if (teacherIds.length > 0) {
-			filteredData = filteredData.filter((enrollment: any) => {
-				const sessions = enrollment.cohorts?.weekly_sessions || [];
-				const enrollmentTeacherIds = sessions
-					.map((s: any) => s.teacher_id)
-					.filter(Boolean);
-
-				// Check if any of the enrollment's teachers match the filter
-				const hasMatch = enrollmentTeacherIds.some((teacherId: string) =>
-					teacherIds.includes(teacherId),
-				);
-
-				switch (teacherIds_operator) {
-					case "is":
-					case "is any of":
-						return hasMatch;
-					case "is not":
-					case "is none of":
-						return !hasMatch;
-					default:
-						return hasMatch;
-				}
-			});
-		}
-
-		// Date filters with operator support
-		if (dateFrom || dateTo) {
-			filteredData = filteredData.filter((enrollment: any) => {
-				const itemDate = new Date(enrollment.created_at);
-				const fromDateObj = dateFrom ? new Date(dateFrom) : null;
-				const toDateObj = dateTo ? new Date(dateTo) : null;
-
-				return applyDateFilter(
-					itemDate,
-					fromDateObj,
-					toDateObj,
-					created_at_operator,
-				);
-			});
-		}
-
-		// Apply pagination to filtered data
-		const total = filteredData.length;
-		const from = (page - 1) * limit;
-		const to = from + limit;
-		const paginatedData = needsInMemoryFiltering
-			? filteredData.slice(from, to)
-			: filteredData;
-
 		return NextResponse.json({
-			enrollments: paginatedData,
+			enrollments: data,
 			pagination: {
 				page,
 				limit,
-				total: needsInMemoryFiltering ? total : count || 0,
-				totalPages: Math.ceil(
-					(needsInMemoryFiltering ? total : count || 0) / limit,
-				),
+				total: count,
+				totalPages: Math.ceil(count / limit),
 			},
 		});
 	} catch (error) {

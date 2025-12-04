@@ -13,7 +13,6 @@ export interface CohortDetails {
 	enrollmentStatus: string;
 	cohort: {
 		id: string;
-		nickname: string | null;
 		startDate: string | null;
 		currentLevel: {
 			code: string;
@@ -67,7 +66,6 @@ export async function getCohortDetails(
 			status,
 			cohorts!inner (
 				id,
-				nickname,
 				start_date,
 				current_level_id,
 				starting_level_id,
@@ -237,7 +235,6 @@ export async function getCohortDetails(
 		enrollmentStatus: primaryEnrollment.status,
 		cohort: {
 			id: cohortData?.id,
-			nickname: cohortData?.nickname || null,
 			startDate: cohortData?.start_date || null,
 			currentLevel: currentLevel
 				? {
