@@ -208,17 +208,7 @@ export function AnnouncementCard({
 
 					{/* Image Attachments Grid */}
 					{imageAttachments.length > 0 && (
-						<div
-							className={`mt-3 grid gap-2 ${
-								imageAttachments.length === 1
-									? "grid-cols-1"
-									: imageAttachments.length === 2
-										? "grid-cols-2"
-										: imageAttachments.length === 3
-											? "grid-cols-3"
-											: "grid-cols-2"
-							}`}
-						>
+						<div className="mt-3 flex flex-wrap gap-2">
 							{imageAttachments.slice(0, 4).map((attachment, index) => (
 								<button
 									key={attachment.id}
@@ -227,15 +217,7 @@ export function AnnouncementCard({
 										e.stopPropagation();
 										openLightbox(index);
 									}}
-									className={`group relative cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30 ${
-										imageAttachments.length === 1
-											? "aspect-video"
-											: imageAttachments.length === 3
-												? "aspect-square"
-												: index === 0 && imageAttachments.length > 3
-													? "col-span-2 aspect-video"
-													: "aspect-square"
-									}`}
+									className="group relative aspect-square w-[200px] cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30"
 								>
 									<img
 										src={attachment.url}

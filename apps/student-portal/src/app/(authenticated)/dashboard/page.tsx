@@ -5,14 +5,20 @@ import { createClient } from "@/lib/supabase/server";
 import { announcementQueries } from "@/features/announcements/queries";
 import {
 	AnnouncementsPreviewCard,
+	CohortDetailsCard,
 	ScheduleSection,
-	StatsCards,
 	WelcomeHeader,
 } from "@/features/dashboard/components";
 import {
+	getCohortDetails,
 	getStudentEnrollments,
 	getStudentStats,
 } from "@/features/dashboard/queries";
+import { RescheduleRequestsSidebar } from "@/features/rescheduling/components";
+import {
+	getPrivateEnrollment,
+	getRescheduleRequests,
+} from "@/features/rescheduling/queries";
 import { getScheduleClasses } from "@/features/schedule/queries";
 
 import { getUser } from "@/queries/getUser";
@@ -45,15 +51,19 @@ export default async function DashboardPage() {
 	const enrollments = await getStudentEnrollments(student.id);
 	const cohortIds = enrollments.map((e) => e.cohortId);
 
-	// Prefetch announcements and fetch stats/classes in parallel
+	// Prefetch announcements and fetch stats/classes/cohort details in parallel
 	const queryClient = new QueryClient();
-	const [, stats, classes] = await Promise.all([
-		queryClient.prefetchQuery(
-			announcementQueries.studentAnnouncements(student.id),
-		),
-		getStudentStats(student.id, cohortIds),
-		getScheduleClasses(cohortIds, student.id),
-	]);
+	const [, stats, classes, cohortDetails, privateEnrollment, rescheduleRequests] =
+		await Promise.all([
+			queryClient.prefetchQuery(
+				announcementQueries.studentAnnouncements(student.id),
+			),
+			getStudentStats(student.id, cohortIds),
+			getScheduleClasses(cohortIds, student.id),
+			getCohortDetails(student.id),
+			getPrivateEnrollment(student.id),
+			getRescheduleRequests(student.id),
+		]);
 
 	const displayName = student.first_name || student.full_name || "Student";
 
@@ -61,21 +71,28 @@ export default async function DashboardPage() {
 		<HydrationBoundary state={dehydrate(queryClient)}>
 			<div className="space-y-6">
 				{/* Welcome Header */}
-				<WelcomeHeader studentName={displayName} />
+				<WelcomeHeader studentName={displayName} stats={stats} />
 
-				{/* Stats Cards */}
-				<StatsCards stats={stats} />
+				{/* Cohort Details */}
+				{cohortDetails && <CohortDetailsCard details={cohortDetails} />}
 
 				{/* Main Content Grid */}
-				<div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+				<div className="grid gap-6 xl:grid-cols-[1fr_380px]">
 					{/* Main Column - Schedule */}
 					<div className="space-y-6">
 						<ScheduleSection classes={classes} />
 					</div>
 
-					{/* Right Sidebar - Announcements */}
+					{/* Right Sidebar - Announcements & Rescheduling */}
 					<div className="space-y-6">
 						<AnnouncementsPreviewCard studentId={student.id} />
+						{/* Rescheduling Section - Only for private enrollments */}
+						{privateEnrollment && (
+							<RescheduleRequestsSidebar
+								enrollment={privateEnrollment}
+								requests={rescheduleRequests}
+							/>
+						)}
 					</div>
 				</div>
 			</div>

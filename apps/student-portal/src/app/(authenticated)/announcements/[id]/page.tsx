@@ -48,7 +48,13 @@ export default async function AnnouncementDetailPage({
 			),
 			cohort:cohorts!announcements_cohort_id_fkey(
 				id,
-				nickname
+				current_level_id,
+				language_levels!cohorts_current_level_id_language_levels_id_fk(
+					display_name
+				),
+				products!cohorts_product_id_products_id_fk(
+					format
+				)
 			),
 			attachments:announcement_attachments(
 				id,

@@ -61,6 +61,7 @@ export const useUpdateLanguageLevel = () => {
 					code: data.code,
 					display_name: data.display_name,
 					level_group: data.level_group,
+					hours: data.hours,
 					updated_at: new Date().toISOString(),
 				})
 				.eq("id", id)
@@ -88,6 +89,7 @@ export const useCreateLanguageLevel = () => {
 					code: data.code,
 					display_name: data.display_name,
 					level_group: data.level_group,
+					hours: data.hours || 2,
 				})
 				.select()
 				.single();

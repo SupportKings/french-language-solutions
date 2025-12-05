@@ -21,7 +21,7 @@ interface StudentInviteEmailProps {
 
 export const StudentInviteEmail = ({
 	studentName = "there",
-	inviteUrl = "https://student.frenchlanguagesolutions.com",
+	inviteUrl = "https://fls-student-portal.vercel.app",
 	companyName = "French Language Solutions",
 	inviterName,
 }: StudentInviteEmailProps) => (
@@ -95,7 +95,7 @@ export const StudentInviteEmail = ({
 
 StudentInviteEmail.PreviewProps = {
 	studentName: "Marie",
-	inviteUrl: "https://student.frenchlanguagesolutions.com",
+	inviteUrl: "https://fls-student-portal.vercel.app",
 	companyName: "French Language Solutions",
 	inviterName: "Sophie Martin",
 } as StudentInviteEmailProps;
