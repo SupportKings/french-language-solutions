@@ -216,6 +216,10 @@ export function AppSidebar({
 							title: "All Cohorts",
 							url: "/admin/cohorts",
 						},
+						{
+							title: "Reschedule Requests",
+							url: "/admin/reschedule-requests",
+						},
 						// TODO: Re-enable announcements later
 						// {
 						// 	title: "Announcements",
