@@ -244,12 +244,12 @@ export class CohortService {
 							)
 						: student.first_name;
 
-					eventSummary = `FLS CP ${formattedStudent} – ${formattedTeacher} – ${formattedDuration}`;
+					eventSummary = `FLS-CP-${formattedStudent} – ${formattedTeacher} – ${formattedDuration}`;
 				} else {
 					// Group Classes: FLS CG[# of Students] – [Class Length]
 					// Example: FLS CG2 – 1 hr
 					const numberOfStudents = activeEnrollments.length;
-					eventSummary = `FLS CG${numberOfStudents} – ${formattedDuration}`;
+					eventSummary = `FLS-CG-${numberOfStudents} – ${formattedDuration}`;
 				}
 
 				return {
