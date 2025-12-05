@@ -725,7 +725,7 @@ export default function StudentDetailsClient({
 									className="flex items-center gap-2"
 								>
 									<Clock className="h-3.5 w-3.5" />
-									Reschedule
+									Reschedule Requests
 								</TabsTrigger>
 								<TabsTrigger
 									value="followups"

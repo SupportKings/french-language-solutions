@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import Link from "next/link";
+
 import { format, parseISO } from "date-fns";
 import { Calendar, Check, Clock, Search, User, X } from "lucide-react";
 import { useQueryState } from "nuqs";
@@ -204,14 +206,17 @@ export function RescheduleRequestsTable() {
 							data?.data?.map((request) => {
 								const originalDate = parseISO(request.original_class_date);
 								const studentName =
-									request.student.first_name ||
 									request.student.full_name ||
+									request.student.first_name ||
 									"Unknown Student";
 
 								return (
 									<TableRow key={request.id}>
 										<TableCell>
-											<div className="flex items-center gap-2">
+											<Link
+												href={`/admin/students/${request.student.id}`}
+												className="flex items-center gap-2 transition-colors hover:text-primary"
+											>
 												<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
 													<User className="h-4 w-4 text-primary" />
 												</div>
@@ -221,7 +226,7 @@ export function RescheduleRequestsTable() {
 														{request.student.email || "No email"}
 													</p>
 												</div>
-											</div>
+											</Link>
 										</TableCell>
 										<TableCell>
 											<div className="flex items-center gap-2">
