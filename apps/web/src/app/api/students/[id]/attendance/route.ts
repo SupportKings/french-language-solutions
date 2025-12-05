@@ -23,6 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				),
 				cohorts (
 					id,
+					nickname,
 					products (
 						id,
 						format
@@ -124,13 +125,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				status: record.status,
 				notes: record.notes,
 				homeworkCompleted: record.homework_completed || false,
+				homeworkCompletedAt: record.homework_completed_at || null,
 				markedBy: record.marked_by,
 				markedAt: record.marked_at,
 				createdAt: record.created_at,
 				className: null, // Classes don't have names anymore
 				classStartTime: record.classes?.start_time || null,
 				cohortName: record.cohorts
-					? `${record.cohorts.products?.format === "group" ? "Group" : "Private"} - ${record.cohorts.current_level?.display_name || record.cohorts.starting_level?.display_name || "N/A"}`
+					? record.cohorts.nickname ||
+						`${record.cohorts.products?.format === "group" ? "Group" : "Private"} - ${record.cohorts.current_level?.display_name || record.cohorts.starting_level?.display_name || "N/A"}`
 					: null,
 			})) || [];
 
@@ -178,6 +181,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		}
 		if (homeworkCompleted !== undefined) {
 			updateData.homework_completed = homeworkCompleted;
+			// Set homework_completed_at timestamp when marking as completed, clear when marking as pending
+			updateData.homework_completed_at = homeworkCompleted
+				? new Date().toISOString()
+				: null;
 		}
 
 		// Update the attendance record
