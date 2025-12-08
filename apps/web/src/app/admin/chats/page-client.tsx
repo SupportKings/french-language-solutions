@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { createConversationAsAdmin } from "@/features/chats/actions/createConversationAsAdmin";
 import { deleteMessage } from "@/features/chats/actions/deleteMessage";
@@ -8,6 +8,7 @@ import { editMessage } from "@/features/chats/actions/editMessage";
 import { fetchCohorts } from "@/features/chats/actions/fetchCohorts";
 import { fetchDirectConversations } from "@/features/chats/actions/fetchDirectConversations";
 import { fetchDirectMessages } from "@/features/chats/actions/fetchDirectMessages";
+import { markDirectMessagesAsRead } from "@/features/chats/actions/markDirectMessagesAsRead";
 import { sendDirectMessage } from "@/features/chats/actions/sendDirectMessage";
 import { sendMessage } from "@/features/chats/actions/sendMessage";
 import { Chat } from "@/features/chats/components/Chat";
@@ -146,6 +147,22 @@ export function ChatsListPageClient({
 	useRealtimeDirectMessages(
 		selectedType === "conversation" && selectedId ? selectedId : "",
 	);
+
+	// Mark direct messages as read when opening a conversation
+	const { executeAsync: executeMarkDMAsRead } = useAction(
+		markDirectMessagesAsRead,
+	);
+
+	useEffect(() => {
+		if (selectedType === "conversation" && selectedId) {
+			executeMarkDMAsRead({ conversationId: selectedId }).then(() => {
+				// Invalidate conversations query to update unread badges in sidebar
+				queryClient.invalidateQueries({
+					queryKey: chatsKeys.conversationsInfinite(),
+				});
+			});
+		}
+	}, [selectedId, selectedType, executeMarkDMAsRead, queryClient]);
 
 	// Send cohort message handler
 	const { execute: executeSend } = useAction(sendMessage, {

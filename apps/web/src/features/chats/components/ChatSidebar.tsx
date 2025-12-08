@@ -248,7 +248,7 @@ export function ChatSidebar({
 												{conversation.unreadCount > 0 && (
 													<Badge
 														variant="default"
-														className="h-5 min-w-5 flex-shrink-0 rounded-full bg-primary px-1.5 text-[10px]"
+														className="h-5 min-w-5 flex-shrink-0 rounded-full bg-destructive px-1.5 text-[10px]"
 													>
 														{conversation.unreadCount}
 													</Badge>

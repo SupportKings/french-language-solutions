@@ -113,9 +113,36 @@ export async function getDirectConversations({
 			.limit(1)
 			.maybeSingle();
 
-		// Get unread count (messages created after user's last read)
-		// For MVP, we'll skip this and return 0
-		const unreadCount = 0;
+		// Get all message IDs for this conversation to calculate unread count
+		const { data: allMessages } = await supabase
+			.from("direct_messages")
+			.select("message_id, messages!inner(id, deleted_at, user_id)")
+			.eq("conversation_id", conv.id);
+
+		// Filter to non-deleted messages from other users
+		const validMessageIds = (allMessages || [])
+			.filter(
+				(dm: any) =>
+					dm.messages?.deleted_at === null && dm.messages?.user_id !== user.id,
+			)
+			.map((dm: any) => dm.message_id);
+
+		// Get already read messages for this user
+		let unreadCount = 0;
+		if (validMessageIds.length > 0) {
+			const { data: readMessages } = await supabase
+				.from("message_reads")
+				.select("message_id")
+				.eq("user_id", user.id)
+				.in("message_id", validMessageIds);
+
+			const readMessageIds = new Set(
+				readMessages?.map((r) => r.message_id) || [],
+			);
+			unreadCount = validMessageIds.filter(
+				(id: string) => !readMessageIds.has(id),
+			).length;
+		}
 
 		// Transform participants
 		const participants =
