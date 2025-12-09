@@ -220,11 +220,10 @@ export function AppSidebar({
 							title: "Reschedule Requests",
 							url: "/admin/reschedule-requests",
 						},
-						// TODO: Re-enable announcements later
-						// {
-						// 	title: "Announcements",
-						// 	url: "/admin/announcements",
-						// },
+						{
+							title: "Announcements",
+							url: "/admin/announcements",
+						},
 					],
 				});
 			}
