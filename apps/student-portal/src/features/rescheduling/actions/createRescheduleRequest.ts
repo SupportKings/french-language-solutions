@@ -118,19 +118,19 @@ export const createRescheduleRequest = actionClient
 				};
 			}
 
-			// Count pending requests in current 2-week period
+			// Count active requests in current 2-week period (all except rejected count towards the limit)
 			const periodStart = addWeeks(new Date(), -PERIOD_WEEKS);
 			const { count } = await supabase
 				.from("reschedule_requests")
 				.select("id", { count: "exact", head: true })
 				.eq("student_id", student.id)
-				.eq("status", "pending")
+				.neq("status", "rejected")
 				.gte("created_at", periodStart.toISOString());
 
 			if ((count ?? 0) >= MAX_REQUESTS_PER_PERIOD) {
 				return {
 					success: false,
-					error: `Maximum ${MAX_REQUESTS_PER_PERIOD} pending requests allowed per 2-week period`,
+					error: `Maximum ${MAX_REQUESTS_PER_PERIOD} reschedule requests allowed per 2-week period`,
 				};
 			}
 

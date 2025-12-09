@@ -1,19 +1,11 @@
-import { redirect } from "next/navigation";
-
-import { getUser } from "@/queries/getUser";
-
 export default async function StudentsLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const session = await getUser();
-	const userRole = session?.user.role || "";
-
-	// Teachers cannot access the students section
-	if (userRole === "teacher") {
-		redirect("/admin/cohorts");
-	}
+	// Permission checks are handled at the page/API level
+	// Teachers can access student detail pages (for students in their cohorts)
+	// but the sidebar still hides the students hub from teachers
 
 	return <>{children}</>;
 }

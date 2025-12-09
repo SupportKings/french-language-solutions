@@ -63,7 +63,7 @@ export function RescheduleRequestsTable() {
 	const page = pageState ?? 1;
 
 	const [statusFilter, setStatusFilter] = useQueryState("status", {
-		defaultValue: "pending",
+		defaultValue: "all",
 	});
 
 	const [searchQuery, setSearchQuery] = useQueryState("search", {
@@ -130,7 +130,7 @@ export function RescheduleRequestsTable() {
 					</div>
 
 					<Select
-						value={statusFilter || "pending"}
+						value={statusFilter || "all"}
 						onValueChange={(value) => {
 							setStatusFilter(value);
 							setPageState(1);

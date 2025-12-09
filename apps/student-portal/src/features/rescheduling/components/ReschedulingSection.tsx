@@ -45,9 +45,9 @@ export function ReschedulingSection({
 	const router = useRouter();
 	const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
-	// Count active (pending) requests
+	// Count active requests (all except rejected count towards the limit)
 	const activeRequestCount = requests.filter(
-		(r) => r.status === "pending",
+		(r) => r.status !== "rejected",
 	).length;
 	const remainingRequests = MAX_REQUESTS - activeRequestCount;
 

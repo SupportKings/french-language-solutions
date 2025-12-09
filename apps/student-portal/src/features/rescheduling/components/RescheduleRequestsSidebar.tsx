@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { format, parseISO } from "date-fns";
-import { Calendar, CalendarClock, ChevronRight, Plus } from "lucide-react";
+import { ArrowRight, Calendar, CalendarClock, ChevronRight, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,9 +46,9 @@ export function RescheduleRequestsSidebar({
 	const router = useRouter();
 	const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
-	// Count active (pending) requests
+	// Count active requests (all except rejected count towards the limit)
 	const activeRequestCount = requests.filter(
-		(r) => r.status === "pending",
+		(r) => r.status !== "rejected",
 	).length;
 	const remainingRequests = MAX_REQUESTS - activeRequestCount;
 
@@ -109,31 +109,41 @@ export function RescheduleRequestsSidebar({
 				{/* Recent Requests */}
 				{recentRequests.length > 0 ? (
 					<div className="space-y-1.5">
-						{recentRequests.map((request) => (
-							<div
-								key={request.id}
-								className="rounded-lg border border-border/50 bg-muted/30 p-2"
-							>
-								<div className="mb-1.5 flex items-center justify-between">
-									<div className="flex items-center gap-1.5">
-										<Calendar className="h-3 w-3 text-muted-foreground" />
-										<span className="text-xs">
-											{format(parseISO(request.originalClassDate), "MMM d")}
+						{recentRequests.map((request) => {
+							const originalDate = parseISO(request.originalClassDate);
+							return (
+								<div
+									key={request.id}
+									className="rounded-lg border border-border/50 bg-muted/30 p-2"
+								>
+									<div className="mb-1.5 flex items-center justify-between">
+										<span
+											className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${STATUS_STYLES[request.status]}`}
+										>
+											{STATUS_LABELS[request.status]}
 										</span>
 									</div>
-									<span
-										className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${STATUS_STYLES[request.status]}`}
-									>
-										{STATUS_LABELS[request.status]}
-									</span>
+									<div className="flex items-center gap-1.5 text-xs">
+										<Calendar className="h-3 w-3 shrink-0 text-muted-foreground" />
+										<span className="font-medium">
+											{format(originalDate, "MMM d")}
+										</span>
+										<span className="text-muted-foreground text-[10px]">
+											{format(originalDate, "h:mm a")}
+										</span>
+										<ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+										<span className="truncate font-medium text-primary">
+											{request.proposedDatetime}
+										</span>
+									</div>
+									{request.adminNotes && (
+										<p className="mt-1.5 text-[11px] text-muted-foreground line-clamp-1">
+											Teacher's Note: {request.adminNotes}
+										</p>
+									)}
 								</div>
-								{request.adminNotes && (
-									<p className="text-[11px] text-muted-foreground line-clamp-1">
-										Note: {request.adminNotes}
-									</p>
-								)}
-							</div>
-						))}
+							);
+						})}
 					</div>
 				) : (
 					<div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 py-6 text-center">
