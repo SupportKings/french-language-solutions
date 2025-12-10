@@ -19,6 +19,7 @@ export interface WeeklySessionForCalendar {
 	first_event_end_time: string; // ISO datetime string
 	day_of_week_abbreviation: string; // MO, TU, WE, TH, FR, SA, SU
 	teacher_name: string;
+	teacher_email: string | null; // Teacher's email address
 	teacher_calendar_id: string | null; // Google Calendar ID for the teacher
 	event_summary: string; // Individual summary for this session
 }

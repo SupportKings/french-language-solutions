@@ -260,6 +260,7 @@ export class CohortService {
 						session.day_of_week,
 					),
 					teacher_name: teacherName,
+					teacher_email: session.teacher.email || null,
 					teacher_calendar_id: session.teacher.google_calendar_id || null,
 					event_summary: eventSummary,
 				};
@@ -319,9 +320,10 @@ export class CohortService {
 	}
 
 	/**
-	 * Get all attendees for a cohort (students + teachers)
+	 * Get all attendees for a cohort (students only)
 	 * Returns an array of email addresses
 	 * Only includes students with 'paid' or 'welcome_package_sent' enrollment status
+	 * Note: Teacher emails are now included in each session object, not in the attendees array
 	 */
 	async getAttendees(cohortId: string): Promise<string[]> {
 		const attendees: string[] = [];
@@ -354,44 +356,10 @@ export class CohortService {
 			});
 		}
 
-		// Fetch weekly sessions with teacher data
-		const { data: sessions, error: sessionError } = await supabase
-			.from("weekly_sessions")
-			.select(`
-				id,
-				teachers!inner(
-					id,
-					email
-				)
-			`)
-			.eq("cohort_id", cohortId);
-
-		if (sessionError) {
-			console.error("Error fetching sessions:", sessionError);
-		} else if (sessions) {
-			console.log(`Found ${sessions.length} weekly sessions`);
-
-			// Collect unique teacher emails
-			const teacherEmails = new Set<string>();
-			sessions.forEach((session: any) => {
-				if (session.teachers?.email) {
-					teacherEmails.add(session.teachers.email);
-				}
-			});
-
-			console.log(`Found ${teacherEmails.size} unique teachers`);
-
-			// Add teacher emails to attendees
-			teacherEmails.forEach((email) => {
-				attendees.push(email);
-				console.log(`Added teacher email: ${email}`);
-			});
-		}
-
 		// Return unique emails
 		const uniqueAttendees = [...new Set(attendees)];
 		console.log(
-			`Total unique attendees for cohort ${cohortId}: ${uniqueAttendees.length}`,
+			`Total unique student attendees for cohort ${cohortId}: ${uniqueAttendees.length}`,
 		);
 		return uniqueAttendees;
 	}
