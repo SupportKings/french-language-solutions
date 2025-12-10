@@ -15,17 +15,19 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/form-layout/SearchableSelect";
 
 import { Check, Loader2, X } from "lucide-react";
 
 interface InlineEditFieldProps {
 	value: any;
 	onSave: (value: any) => Promise<void>;
-	type?: "text" | "textarea" | "select" | "badge" | "date";
+	type?: "text" | "textarea" | "select" | "searchable-select" | "badge" | "date";
 	options?: { label: string; value: string }[];
 	className?: string;
 	editing?: boolean;
 	placeholder?: string;
+	searchPlaceholder?: string;
 	required?: boolean;
 	variant?: any;
 }
@@ -38,6 +40,7 @@ export function InlineEditField({
 	className,
 	editing = false,
 	placeholder,
+	searchPlaceholder,
 	required = false,
 	variant,
 }: InlineEditFieldProps) {
@@ -164,6 +167,21 @@ export function InlineEditField({
 						))}
 					</SelectContent>
 				</Select>
+			)}
+
+			{type === "searchable-select" && (
+				<SearchableSelect
+					value={localValue}
+					onValueChange={(val) => {
+						setLocalValue(val);
+						onSave(val);
+					}}
+					options={options}
+					placeholder={placeholder}
+					searchPlaceholder={searchPlaceholder}
+					disabled={saving}
+					className="h-8 text-sm"
+				/>
 			)}
 
 			{type === "date" && (

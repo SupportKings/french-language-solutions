@@ -186,7 +186,7 @@ export function CohortDetailPageClient({
 		async function fetchProducts() {
 			setLoadingProducts(true);
 			try {
-				const response = await fetch("/api/products");
+				const response = await fetch("/api/products?limit=1000");
 				if (response.ok) {
 					const result = await response.json();
 					setProducts(result.data || []);
@@ -1090,7 +1090,7 @@ export function CohortDetailPageClient({
 														}
 													}}
 													editing={editing}
-													type="select"
+													type="searchable-select"
 													options={products.map((p) => ({
 														value: p.id,
 														label: p.display_name,
@@ -1100,6 +1100,7 @@ export function CohortDetailPageClient({
 															? "Loading products..."
 															: "Select product"
 													}
+													searchPlaceholder="Search products..."
 												/>
 											) : cohort.products ? (
 												canAccessProductDetails ? (
