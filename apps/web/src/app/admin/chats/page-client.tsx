@@ -324,9 +324,17 @@ export function ChatsListPageClient({
 					queryClient.invalidateQueries({
 						queryKey: chatsKeys.messages(selectedId),
 					});
+					// Invalidate cohort list to update preview
+					queryClient.invalidateQueries({
+						queryKey: chatsKeys.cohorts(),
+					});
 				} else if (selectedType === "conversation") {
 					queryClient.invalidateQueries({
 						queryKey: chatsKeys.directMessages(selectedId),
+					});
+					// Invalidate conversation list to update preview
+					queryClient.invalidateQueries({
+						queryKey: chatsKeys.conversationsInfinite(),
 					});
 				}
 			}

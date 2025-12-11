@@ -89,7 +89,7 @@ export async function getDirectConversations({
 			)
 			.eq("conversation_id", conv.id);
 
-		// Get last message for this conversation
+		// Get last message for this conversation (excluding deleted messages)
 		const { data: lastMessageData } = await supabase
 			.from("direct_messages")
 			.select(
@@ -100,6 +100,7 @@ export async function getDirectConversations({
 					id,
 					content,
 					user_id,
+					deleted_at,
 					user:user!messages_user_id_fkey(
 						id,
 						name,
@@ -109,6 +110,7 @@ export async function getDirectConversations({
 			`,
 			)
 			.eq("conversation_id", conv.id)
+			.is("messages.deleted_at", null)
 			.order("created_at", { ascending: false })
 			.limit(1)
 			.maybeSingle();
