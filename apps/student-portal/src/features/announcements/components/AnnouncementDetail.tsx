@@ -27,6 +27,25 @@ import {
 } from "lucide-react";
 import { markAnnouncementAsRead } from "../actions/markAsRead";
 
+function formatCohortDisplayName(cohort: {
+	language_levels?: { display_name?: string } | null;
+	products?: { format?: string } | null;
+} | null): string {
+	if (!cohort) return "Unknown Class";
+
+	const level = cohort.language_levels?.display_name || "";
+	const format = cohort.products?.format
+		? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)
+		: "";
+
+	if (level && format) {
+		return `${level} • ${format} Class`;
+	}
+	if (level) return level;
+	if (format) return `${format} Class`;
+	return "Unknown Class";
+}
+
 interface AnnouncementDetailProps {
 	announcement: any;
 	studentId: string;
@@ -126,11 +145,11 @@ export function AnnouncementDetail({
 
 	return (
 		<>
-			<div className="mx-auto max-w-4xl space-y-6">
+			<div className="mx-auto max-w-3xl space-y-6">
 				{/* Back Button */}
 				<Button
 					variant="ghost"
-					className="gap-2"
+					className="-ml-2 gap-2 text-sm"
 					onClick={() => router.push("/announcements")}
 				>
 					<ArrowLeft className="h-4 w-4" />
@@ -139,19 +158,19 @@ export function AnnouncementDetail({
 
 				{/* Main Content Card */}
 				<Card ref={ref as any}>
-					<CardContent className="pt-8">
+					<CardContent className="p-6 md:p-8">
 						{/* Header */}
 						<div className="flex items-start justify-between">
-							<div className="flex items-start gap-4">
-								<Avatar className="h-12 w-12">
+							<div className="flex items-start gap-3">
+								<Avatar className="h-10 w-10">
 									<AvatarImage src={announcement.author?.image} />
-									<AvatarFallback className="bg-primary/10 text-primary">
+									<AvatarFallback className="bg-primary/10 text-primary text-sm">
 										{initials}
 									</AvatarFallback>
 								</Avatar>
 								<div>
 									<div className="flex items-center gap-2">
-										<span className="font-semibold text-foreground text-lg">
+										<span className="font-semibold text-foreground text-base">
 											{authorName}
 										</span>
 										{announcement.is_pinned && (
@@ -161,7 +180,7 @@ export function AnnouncementDetail({
 											</Badge>
 										)}
 									</div>
-									<div className="mt-1 text-muted-foreground text-sm">
+									<div className="mt-0.5 text-muted-foreground text-sm">
 										{formattedDate}
 									</div>
 								</div>
@@ -169,30 +188,30 @@ export function AnnouncementDetail({
 						</div>
 
 						{/* Scope Badge */}
-						<div className="mt-6">
-							<Badge variant="secondary" className="text-sm">
+						<div className="mt-5">
+							<Badge variant="secondary" className="text-xs">
 								{announcement.scope === "school_wide"
 									? "School-wide Announcement"
-									: `Class Update: ${announcement.cohort?.nickname || "Unknown Class"}`}
+									: `Class Update: ${formatCohortDisplayName(announcement.cohort)}`}
 							</Badge>
 						</div>
 
 						{/* Title */}
-						<h1 className="mt-6 font-bold text-2xl text-foreground md:text-3xl">
+						<h1 className="mt-4 font-bold text-lg text-foreground tracking-tight md:text-xl">
 							{announcement.title}
 						</h1>
 
 						{/* Content */}
-						<div className="prose prose-blue mt-6 max-w-none text-foreground leading-relaxed">
+						<div className="prose prose-sm mt-6 max-w-none text-foreground/90 text-sm leading-relaxed">
 							{parsedContent ? (
 								<RichTextEditor
 									content={parsedContent}
 									onChange={() => {}}
 									editable={false}
-									className="border-0 bg-transparent p-0 [&_.ProseMirror]:min-h-0 [&_.ProseMirror]:p-0"
+									className="border-0 bg-transparent p-0 text-sm [&_.ProseMirror]:min-h-0 [&_.ProseMirror]:p-0 [&_.ProseMirror]:text-sm"
 								/>
 							) : (
-								<div className="whitespace-pre-line">
+								<div className="whitespace-pre-line text-sm">
 									{announcement.content}
 								</div>
 							)}
@@ -200,35 +219,17 @@ export function AnnouncementDetail({
 
 						{/* Image Attachments Grid */}
 						{imageAttachments.length > 0 && (
-							<div className="mt-8 space-y-4">
-								<h3 className="font-semibold text-foreground text-lg">
+							<div className="mt-6 space-y-3">
+								<h3 className="font-semibold text-foreground text-base">
 									Images ({imageAttachments.length})
 								</h3>
-								<div
-									className={`grid gap-2 ${
-										imageAttachments.length === 1
-											? "grid-cols-1"
-											: imageAttachments.length === 2
-												? "grid-cols-2"
-												: imageAttachments.length === 3
-													? "grid-cols-3"
-													: "grid-cols-2"
-									}`}
-								>
+								<div className="flex flex-wrap gap-2">
 									{imageAttachments.map((attachment: any, index: number) => (
 										<button
 											key={attachment.id}
 											type="button"
 											onClick={() => openLightbox(index)}
-											className={`group relative cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30 ${
-												imageAttachments.length === 1
-													? "aspect-video"
-													: imageAttachments.length === 3
-														? "aspect-square"
-														: index === 0 && imageAttachments.length > 3
-															? "col-span-2 aspect-video"
-															: "aspect-square"
-											}`}
+											className="group relative aspect-square w-[200px] cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30"
 										>
 											<img
 												src={attachment.file_url}
@@ -248,8 +249,8 @@ export function AnnouncementDetail({
 
 						{/* Non-Image Attachments */}
 						{nonImageAttachments.length > 0 && (
-							<div className="mt-8 space-y-4">
-								<h3 className="font-semibold text-foreground text-lg">
+							<div className="mt-6 space-y-3">
+								<h3 className="font-semibold text-foreground text-base">
 									Attachments ({nonImageAttachments.length})
 								</h3>
 								<div className="space-y-2">
@@ -299,8 +300,8 @@ export function AnnouncementDetail({
 
 				{/* Additional Info Card */}
 				<Card>
-					<CardContent className="p-6">
-						<div className="flex items-center justify-between text-muted-foreground text-sm">
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between text-muted-foreground text-xs">
 							<div>
 								Posted on{" "}
 								{format(parseISO(announcement.created_at), "MMMM d, yyyy")}

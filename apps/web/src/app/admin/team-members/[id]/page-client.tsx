@@ -155,6 +155,9 @@ export default function TeacherDetailsClient({
 			if (editedTeacher.mobile_phone_number !== teacher.mobile_phone_number) {
 				changes.mobile_phone_number = editedTeacher.mobile_phone_number;
 			}
+			if (editedTeacher.google_calendar_id !== teacher.google_calendar_id) {
+				changes.google_calendar_id = editedTeacher.google_calendar_id;
+			}
 			if (editedTeacher.contract_type !== teacher.contract_type) {
 				changes.contract_type = editedTeacher.contract_type;
 			}
@@ -554,6 +557,24 @@ export default function TeacherDetailsClient({
 												editing={editing}
 												type="text"
 												placeholder="Enter phone"
+											/>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Google Calendar ID:
+											</p>
+											<InlineEditField
+												value={teacher.google_calendar_id}
+												onSave={async (value) =>
+													updateEditedField("google_calendar_id", value)
+												}
+												editing={editing}
+												type="text"
+												placeholder="Enter calendar ID"
 											/>
 										</div>
 									</div>

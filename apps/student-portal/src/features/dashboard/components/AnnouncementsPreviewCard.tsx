@@ -5,7 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { useStudentAnnouncements } from "@/features/announcements/queries";
+import {
+	useLatestAnnouncements,
+	useUnreadAnnouncements,
+} from "@/features/announcements/queries";
 import type { StudentAnnouncement } from "@/features/announcements/queries/getStudentAnnouncements";
 
 import { formatDistanceToNow, parseISO } from "date-fns";
@@ -31,13 +34,13 @@ function AnnouncementItem({
 	return (
 		<Link
 			href={`/announcements/${announcement.id}`}
-			className="group -mx-3 block rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50"
+			className={`group -mx-3 block rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50 ${isUnread ? "bg-primary/5" : ""}`}
 		>
 			<div className="flex items-start gap-2">
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-1.5">
 						<p
-							className={`truncate text-sm ${isUnread ? "font-semibold text-foreground" : "font-medium text-foreground/80"}`}
+							className={`truncate text-sm ${isUnread ? "font-bold text-foreground" : "font-medium text-foreground/80"}`}
 						>
 							{announcement.title}
 						</p>
@@ -45,7 +48,7 @@ function AnnouncementItem({
 							<Pin className="h-3 w-3 shrink-0 rotate-45 text-secondary" />
 						)}
 					</div>
-					<p className="mt-0.5 text-muted-foreground text-xs">
+					<p className={`mt-0.5 text-xs ${isUnread ? "font-medium text-foreground/70" : "text-muted-foreground"}`}>
 						{announcement.author.name} · {timeAgo}
 					</p>
 				</div>
@@ -60,37 +63,18 @@ function AnnouncementItem({
 export function AnnouncementsPreviewCard({
 	studentId,
 }: AnnouncementsPreviewCardProps) {
-	const { data: announcements = [], isLoading } =
-		useStudentAnnouncements(studentId);
+	const { data: latestAnnouncements = [], isLoading } =
+		useLatestAnnouncements(studentId, 5);
+	const { data: unreadAnnouncements = [] } = useUnreadAnnouncements(studentId);
 
-	// Separate and sort announcements
-	const unreadAnnouncements = [...announcements]
-		.filter((a) => !a.isRead)
-		.sort((a, b) => {
-			if (a.isPinned && !b.isPinned) return -1;
-			if (!a.isPinned && b.isPinned) return 1;
-			return parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime();
-		})
-		.slice(0, 3);
-
-	const readAnnouncements = [...announcements]
-		.filter((a) => a.isRead)
-		.sort((a, b) => {
-			if (a.isPinned && !b.isPinned) return -1;
-			if (!a.isPinned && b.isPinned) return 1;
-			return parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime();
-		})
-		.slice(0, 3);
-
-	const unreadCount = announcements.filter((a) => !a.isRead).length;
-	const hasAnnouncements =
-		unreadAnnouncements.length > 0 || readAnnouncements.length > 0;
+	const unreadCount = unreadAnnouncements.length;
+	const hasAnnouncements = latestAnnouncements.length > 0;
 
 	if (isLoading) {
 		return (
 			<Card>
 				<CardHeader className="pb-3">
-					<CardTitle className="text-base">Announcements</CardTitle>
+					<CardTitle className="text-base">Latest Announcements</CardTitle>
 				</CardHeader>
 				<CardContent className="pt-0">
 					<div className="flex flex-col items-center justify-center py-8 text-center">
@@ -106,7 +90,7 @@ export function AnnouncementsPreviewCard({
 			<CardHeader className="pb-3">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<CardTitle className="text-base">Announcements</CardTitle>
+						<CardTitle className="text-base">Latest Announcements</CardTitle>
 						{unreadCount > 0 && (
 							<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 font-bold text-[10px] text-secondary-foreground">
 								{unreadCount}
@@ -116,7 +100,7 @@ export function AnnouncementsPreviewCard({
 					<Button
 						variant="ghost"
 						size="sm"
-						className="h-7 gap-1 text-muted-foreground text-xs hover:text-foreground"
+						className="h-7 gap-1 rounded-md px-2 text-muted-foreground text-xs transition-colors hover:bg-muted/50 hover:text-foreground"
 						asChild
 					>
 						<Link href="/announcements">
@@ -137,44 +121,15 @@ export function AnnouncementsPreviewCard({
 						</p>
 					</div>
 				) : (
-					<div className="space-y-4">
-						{/* Unread Section */}
-						{unreadAnnouncements.length > 0 && (
-							<div>
-								<p className="mb-1 font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
-									New
-								</p>
-								<div className="divide-y divide-border/50">
-									{unreadAnnouncements.map((announcement) => (
-										<AnnouncementItem
-											key={announcement.id}
-											announcement={announcement}
-											isUnread
-											studentId={studentId}
-										/>
-									))}
-								</div>
-							</div>
-						)}
-
-						{/* Read Section */}
-						{readAnnouncements.length > 0 && (
-							<div>
-								<p className="mb-1 font-medium text-[11px] text-muted-foreground uppercase tracking-wide">
-									Read
-								</p>
-								<div className="divide-y divide-border/50">
-									{readAnnouncements.map((announcement) => (
-										<AnnouncementItem
-											key={announcement.id}
-											announcement={announcement}
-											isUnread={false}
-											studentId={studentId}
-										/>
-									))}
-								</div>
-							</div>
-						)}
+					<div className="divide-y divide-border/50">
+						{latestAnnouncements.map((announcement) => (
+							<AnnouncementItem
+								key={announcement.id}
+								announcement={announcement}
+								isUnread={!announcement.isRead}
+								studentId={studentId}
+							/>
+						))}
 					</div>
 				)}
 			</CardContent>

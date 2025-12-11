@@ -21,7 +21,7 @@ interface AnnouncementNotificationEmailProps {
 export const AnnouncementNotificationEmail = ({
 	studentName = "there",
 	announcementTitle,
-	viewUrl = "https://student.frenchlanguagesolutions.com",
+	viewUrl = "https://fls-student-portal.vercel.app",
 }: AnnouncementNotificationEmailProps) => (
 	<Html>
 		<Head />
@@ -85,7 +85,7 @@ export const AnnouncementNotificationEmail = ({
 AnnouncementNotificationEmail.PreviewProps = {
 	studentName: "Marie",
 	announcementTitle: "Class Schedule Update for December",
-	viewUrl: "https://student.frenchlanguagesolutions.com/announcements",
+	viewUrl: "https://fls-student-portal.vercel.app/announcements",
 } as AnnouncementNotificationEmailProps;
 
 export default AnnouncementNotificationEmail;

@@ -24,7 +24,7 @@ export default async function AnnouncementsPage() {
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<AnnouncementsPageClient />
+			<AnnouncementsPageClient userId={session.user.id} />
 		</HydrationBoundary>
 	);
 }

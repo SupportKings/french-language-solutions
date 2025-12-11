@@ -13,6 +13,12 @@ export default async function StudentsPage() {
 		redirect("/signin");
 	}
 
+	// Teachers cannot access the students list page
+	// (they can only access individual student detail pages via cohort links)
+	if (session.user.role === "teacher") {
+		redirect("/admin/cohorts");
+	}
+
 	// Get user's role and permissions
 	const userRole = session.user.role || "teacher";
 	const rolePermissions = rolesMap[userRole as keyof typeof rolesMap];

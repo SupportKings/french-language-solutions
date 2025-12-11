@@ -140,7 +140,7 @@ export const mockAnnouncements: Announcement[] = [
 		},
 		scope: "cohort",
 		cohortId: "cohort-1",
-		cohortName: "A2 Morning French",
+		cohortName: "A2 • Group Class",
 		isPinned: false,
 		isRead: false,
 		createdAt: addDays(now, -1).toISOString(),
@@ -187,7 +187,7 @@ export const mockAnnouncements: Announcement[] = [
 		},
 		scope: "cohort",
 		cohortId: "cohort-2",
-		cohortName: "B1 Conversation Club",
+		cohortName: "B1 • Group Class",
 		isPinned: false,
 		isRead: false,
 		createdAt: addDays(now, -3).toISOString(),
@@ -212,7 +212,7 @@ export const mockWorkplanItems: WorkplanItem[] = [
 		title: "A2 Morning French",
 		subtitle: "Conversational French",
 		dueDate: addHours(today, 10).toISOString(),
-		cohortName: "A2 Morning French",
+		cohortName: "A2 • Group Class",
 		isCompleted: false,
 	},
 	{
@@ -221,7 +221,7 @@ export const mockWorkplanItems: WorkplanItem[] = [
 		title: "Chapter 5 Exercises",
 		subtitle: "Due Today at 11:00 PM",
 		dueDate: addHours(today, 23).toISOString(),
-		cohortName: "A2 Morning French",
+		cohortName: "A2 • Group Class",
 		isCompleted: false,
 	},
 	{
@@ -230,7 +230,7 @@ export const mockWorkplanItems: WorkplanItem[] = [
 		title: "B1 Conversation Club",
 		subtitle: "Advanced Conversation",
 		dueDate: addHours(today, 14).toISOString(),
-		cohortName: "B1 Conversation Club",
+		cohortName: "B1 • Group Class",
 		isCompleted: false,
 	},
 	{
@@ -239,7 +239,7 @@ export const mockWorkplanItems: WorkplanItem[] = [
 		title: "Speaking Assessment",
 		subtitle: "Scheduled for Friday",
 		dueDate: addDays(today, 4).toISOString(),
-		cohortName: "A2 Morning French",
+		cohortName: "A2 • Group Class",
 		isCompleted: false,
 	},
 ];

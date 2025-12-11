@@ -55,4 +55,29 @@ app.post("/finalize-setup", (c) => controller.finalizeSetup(c));
  */
 app.get("/create-tomorrow-classes", (c) => controller.createTomorrowClasses(c));
 
+/**
+ * POST /api/cohorts/create-classes-from-events
+ *
+ * Create class records from calendar event data
+ *
+ * Request body:
+ * {
+ *   "events": [
+ *     "{\"event_id\":\"abc123_20251203T161500Z\",\"start\":\"2025-12-03T16:15:00.000Z\",\"end\":\"2025-12-03T17:00:00.000Z\"}",
+ *     ...
+ *   ]
+ * }
+ *
+ * Returns:
+ * {
+ *   "success": true,
+ *   "message": "Successfully created 5 classes with 15 attendance records",
+ *   "classesCreated": 5,
+ *   "attendanceRecordsCreated": 15
+ * }
+ */
+app.post("/create-classes-from-events", (c) =>
+	controller.createClassesFromEvents(c),
+);
+
 export default app;

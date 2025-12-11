@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 
+import Link from "next/link";
+
 import { cn } from "@/lib/utils";
+
+import { useQueryClient } from "@tanstack/react-query";
+
+import { studentStatsKeys } from "./StudentStatsCards";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +61,7 @@ interface AttendanceRecord {
 	status: "attended" | "attended_late" | "not_attended" | "unset";
 	notes: string | null;
 	homeworkCompleted: boolean;
+	homeworkCompletedAt: string | null;
 	markedBy: string | null;
 	markedAt: string | null;
 	className: string | null;
@@ -120,6 +127,7 @@ const statusConfig = {
 };
 
 export function StudentAttendance({ studentId }: StudentAttendanceProps) {
+	const queryClient = useQueryClient();
 	const [records, setRecords] = useState<AttendanceRecord[]>([]);
 	const [stats, setStats] = useState<AttendanceStats | null>(null);
 	const [student, setStudent] = useState<StudentInfo | null>(null);
@@ -193,6 +201,10 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 
 			// Refresh data
 			await fetchAttendance();
+			// Invalidate stats query to update the stats cards
+			await queryClient.invalidateQueries({
+				queryKey: studentStatsKeys.attendance(studentId),
+			});
 			toast.success("Attendance updated successfully");
 		} catch (error) {
 			console.error("Error updating attendance:", error);
@@ -337,8 +349,9 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 							<TableHead className="w-[120px]">Date</TableHead>
 							<TableHead className="w-[100px]">Time</TableHead>
 							<TableHead className="w-[120px]">Cohort</TableHead>
-							<TableHead className="w-[100px]">Homework</TableHead>
 							<TableHead className="w-[120px]">Status</TableHead>
+							<TableHead className="w-[100px]">Homework</TableHead>
+							<TableHead className="w-[120px]">Completed At</TableHead>
 							<TableHead className="min-w-[200px]">Notes</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -368,15 +381,12 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 									<TableCell>
 										<Skeleton className="h-4 w-full" />
 									</TableCell>
-									<TableCell>
-										<Skeleton className="h-4 w-full" />
-									</TableCell>
 								</TableRow>
 							))
 						) : filteredRecords.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={6}
+									colSpan={7}
 									className="py-8 text-center text-muted-foreground"
 								>
 									No attendance records found
@@ -413,43 +423,19 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 
 										{/* Cohort */}
 										<TableCell>
-											<div className="text-sm">{record.cohortName || "—"}</div>
+											{record.cohortId ? (
+												<Link
+													href={`/admin/cohorts/${record.cohortId}`}
+													className="text-sm text-primary hover:underline"
+												>
+													{record.cohortName || "View Cohort"}
+												</Link>
+											) : (
+												<span className="text-muted-foreground text-sm">—</span>
+											)}
 										</TableCell>
 
-										{/* Homework */}
-										<TableCell>
-											<Select
-												value={
-													record.homeworkCompleted ? "completed" : "pending"
-												}
-												onValueChange={(value) => {
-													updateAttendance(record.id, {
-														homeworkCompleted: value === "completed",
-													});
-												}}
-												disabled={isUpdating}
-											>
-												<SelectTrigger className="h-9 w-[150px]">
-													<SelectValue />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="completed">
-														<div className="flex items-center gap-2">
-															<CheckCircle className="h-3.5 w-3.5 text-green-600" />
-															Completed
-														</div>
-													</SelectItem>
-													<SelectItem value="pending">
-														<div className="flex items-center gap-2">
-															<Clock className="h-3.5 w-3.5 text-amber-600" />
-															Pending
-														</div>
-													</SelectItem>
-												</SelectContent>
-											</Select>
-										</TableCell>
-
-										{/* Attendance */}
+										{/* Status */}
 										<TableCell>
 											<Select
 												value={record.status}
@@ -488,6 +474,53 @@ export function StudentAttendance({ studentId }: StudentAttendanceProps) {
 													</SelectItem>
 												</SelectContent>
 											</Select>
+										</TableCell>
+
+										{/* Homework */}
+										<TableCell>
+											<Select
+												value={
+													record.homeworkCompleted ? "completed" : "pending"
+												}
+												onValueChange={(value) => {
+													updateAttendance(record.id, {
+														homeworkCompleted: value === "completed",
+													});
+												}}
+												disabled={isUpdating}
+											>
+												<SelectTrigger className="h-9 w-[130px]">
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="completed">
+														<div className="flex items-center gap-2">
+															<CheckCircle className="h-3.5 w-3.5 text-green-600" />
+															Completed
+														</div>
+													</SelectItem>
+													<SelectItem value="pending">
+														<div className="flex items-center gap-2">
+															<Clock className="h-3.5 w-3.5 text-amber-600" />
+															Pending
+														</div>
+													</SelectItem>
+												</SelectContent>
+											</Select>
+										</TableCell>
+
+										{/* Homework Completed At */}
+										<TableCell>
+											{record.homeworkCompletedAt ? (
+												<div className="text-sm">
+													<div>{format(new Date(record.homeworkCompletedAt), "MMM d")}</div>
+													<div className="text-muted-foreground text-xs">
+														{format(new Date(record.homeworkCompletedAt), "h:mm a")}
+													</div>
+												</div>
+											) : (
+												<span className="text-muted-foreground text-xs">—</span>
+											)}
 										</TableCell>
 
 										{/* Notes */}

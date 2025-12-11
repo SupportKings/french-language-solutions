@@ -1,5 +1,7 @@
 import { AnnouncementNotificationEmail } from "@workspace/emails/emails/announcement-notification";
 import { DirectMessageNotificationEmail } from "@workspace/emails/emails/direct-message-notification";
+import { RescheduleApprovedEmail } from "@workspace/emails/emails/reschedule-approved";
+import { RescheduleDeclinedEmail } from "@workspace/emails/emails/reschedule-declined";
 import { Resend } from "resend";
 
 // Initialize Resend client
@@ -22,8 +24,7 @@ export async function sendAnnouncementNotification({
 	recipientName,
 	announcementTitle,
 	announcementUrl = process.env.STUDENT_PORTAL_URL ||
-		process.env.NEXT_PUBLIC_APP_URL ||
-		"https://student.frenchlanguagesolutions.com",
+		"https://fls-student-portal.vercel.app",
 }: SendAnnouncementNotificationParams) {
 	try {
 		const emailResponse = await resend.emails.send({
@@ -98,6 +99,108 @@ export async function sendAnnouncementNotificationsBatch(
 	}
 
 	return results;
+}
+
+interface SendRescheduleApprovedParams {
+	recipientEmail: string;
+	studentName: string;
+	originalClassDate: string;
+	originalClassTime: string;
+	proposedDatetime: string;
+	teacherNotes?: string;
+}
+
+/**
+ * Send reschedule approved notification email
+ */
+export async function sendRescheduleApprovedEmail({
+	recipientEmail,
+	studentName,
+	originalClassDate,
+	originalClassTime,
+	proposedDatetime,
+	teacherNotes,
+}: SendRescheduleApprovedParams) {
+	try {
+		const emailResponse = await resend.emails.send({
+			from: "French Language Solutions <portal@frenchlanguagesolutions.com>",
+			to: [recipientEmail],
+			subject: "Reschedule Request Approved",
+			react: RescheduleApprovedEmail({
+				studentName,
+				originalClassDate,
+				originalClassTime,
+				proposedDatetime,
+				teacherNotes,
+			}),
+		});
+
+		if (emailResponse.error) {
+			console.error(
+				`[Email] Failed to send reschedule approved email to ${recipientEmail}:`,
+				emailResponse.error,
+			);
+		}
+
+		return emailResponse;
+	} catch (error) {
+		console.error(
+			`[Email] Exception while sending reschedule approved email to ${recipientEmail}:`,
+			error,
+		);
+		throw error;
+	}
+}
+
+interface SendRescheduleDeclinedParams {
+	recipientEmail: string;
+	studentName: string;
+	originalClassDate: string;
+	originalClassTime: string;
+	proposedDatetime: string;
+	teacherNotes?: string;
+}
+
+/**
+ * Send reschedule declined notification email
+ */
+export async function sendRescheduleDeclinedEmail({
+	recipientEmail,
+	studentName,
+	originalClassDate,
+	originalClassTime,
+	proposedDatetime,
+	teacherNotes,
+}: SendRescheduleDeclinedParams) {
+	try {
+		const emailResponse = await resend.emails.send({
+			from: "French Language Solutions <portal@frenchlanguagesolutions.com>",
+			to: [recipientEmail],
+			subject: "Reschedule Request Declined",
+			react: RescheduleDeclinedEmail({
+				studentName,
+				originalClassDate,
+				originalClassTime,
+				proposedDatetime,
+				teacherNotes,
+			}),
+		});
+
+		if (emailResponse.error) {
+			console.error(
+				`[Email] Failed to send reschedule declined email to ${recipientEmail}:`,
+				emailResponse.error,
+			);
+		}
+
+		return emailResponse;
+	} catch (error) {
+		console.error(
+			`[Email] Exception while sending reschedule declined email to ${recipientEmail}:`,
+			error,
+		);
+		throw error;
+	}
 }
 
 interface SendDirectMessageNotificationParams {

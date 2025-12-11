@@ -35,6 +35,8 @@ import {
 import { StudentEnrollments } from "@/features/students/components/StudentEnrollments";
 import { StudentFollowUps } from "@/features/students/components/StudentFollowUps";
 import { StudentPortalAccessDialog } from "@/features/students/components/StudentInviteDialog";
+import { StudentRescheduleRequests } from "@/features/students/components/StudentRescheduleRequests";
+import { StudentStatsCards } from "@/features/students/components/StudentStatsCards";
 import { StudentTouchpoints } from "@/features/students/components/StudentTouchpoints";
 import { studentsKeys } from "@/features/students/queries/students.queries";
 
@@ -183,6 +185,12 @@ export default function StudentDetailsClient({
 			) {
 				changes.desired_starting_language_level_id =
 					editedStudent.desired_starting_language_level_id;
+			}
+			if (
+				editedStudent.goal_language_level_id !==
+				student.goal_language_level_id
+			) {
+				changes.goal_language_level_id = editedStudent.goal_language_level_id;
 			}
 			if (editedStudent.is_full_beginner !== student.is_full_beginner) {
 				changes.is_full_beginner = editedStudent.is_full_beginner;
@@ -493,6 +501,40 @@ export default function StudentDetailsClient({
 									</div>
 
 									<div className="flex items-start gap-3">
+										<Target className="mt-0.5 h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 space-y-0.5">
+											<p className="text-muted-foreground text-xs">
+												Goal Level:
+											</p>
+											{editing ? (
+												<InlineEditField
+													value={editedStudent.goal_language_level_id}
+													onSave={(value) =>
+														updateEditedField("goal_language_level_id", value)
+													}
+													editing={editing}
+													type="select"
+													options={levelOptions.map((level) => ({
+														label: level.display_name,
+														value: level.id,
+													}))}
+													placeholder={
+														languageLevelsLoading
+															? "Loading levels..."
+															: "Select goal level"
+													}
+												/>
+											) : (
+												<Badge variant="outline" className="h-5 text-xs">
+													{student.goal_language_level?.display_name ||
+														student.goal_language_level?.code?.toUpperCase() ||
+														"Not set"}
+												</Badge>
+											)}
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
 										<UserCircle className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
 											<p className="text-muted-foreground text-xs">
@@ -648,11 +690,14 @@ export default function StudentDetailsClient({
 					)}
 				</EditableSection>
 
+				{/* Student Stats Cards */}
+				<StudentStatsCards studentId={student.id} />
+
 				{/* Academic & Progress Tabs */}
 				<div className="mt-6">
 					<Tabs defaultValue="enrollments" className="w-full">
 						<div className="mb-4 flex w-full items-center justify-between">
-							<TabsList className="grid w-full grid-cols-5">
+							<TabsList className="grid w-full grid-cols-6">
 								<TabsTrigger
 									value="enrollments"
 									className="flex items-center gap-2"
@@ -678,6 +723,13 @@ export default function StudentDetailsClient({
 								>
 									<Calendar className="h-3.5 w-3.5" />
 									Attendance
+								</TabsTrigger>
+								<TabsTrigger
+									value="reschedule-requests"
+									className="flex items-center gap-2"
+								>
+									<Clock className="h-3.5 w-3.5" />
+									Reschedule Requests
 								</TabsTrigger>
 								<TabsTrigger
 									value="followups"
@@ -769,6 +821,27 @@ export default function StudentDetailsClient({
 								</CardHeader>
 								<CardContent>
 									<StudentAttendance studentId={student.id} />
+								</CardContent>
+							</Card>
+						</TabsContent>
+
+						{/* Reschedule Requests Tab */}
+						<TabsContent value="reschedule-requests" className="mt-4">
+							<Card className="bg-background">
+								<CardHeader className="pb-3">
+									<div className="flex items-center justify-between">
+										<div>
+											<CardTitle className="font-semibold text-base">
+												Reschedule Requests
+											</CardTitle>
+											<p className="mt-0.5 text-muted-foreground text-xs">
+												View and manage student's class reschedule requests
+											</p>
+										</div>
+									</div>
+								</CardHeader>
+								<CardContent>
+									<StudentRescheduleRequests studentId={student.id} />
 								</CardContent>
 							</Card>
 						</TabsContent>

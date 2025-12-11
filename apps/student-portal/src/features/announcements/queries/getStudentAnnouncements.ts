@@ -1,5 +1,24 @@
 import { createClient } from "@/lib/supabase/client";
 
+function formatCohortDisplayName(cohort: {
+	language_levels?: { display_name?: string } | null;
+	products?: { format?: string } | null;
+} | null): string | undefined {
+	if (!cohort) return undefined;
+
+	const level = cohort.language_levels?.display_name || "";
+	const format = cohort.products?.format
+		? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)
+		: "";
+
+	if (level && format) {
+		return `${level} • ${format} Class`;
+	}
+	if (level) return level;
+	if (format) return `${format} Class`;
+	return undefined;
+}
+
 export interface StudentAnnouncement {
 	id: string;
 	title: string;
@@ -34,7 +53,7 @@ export async function getStudentAnnouncements(
 		.from("enrollments")
 		.select("cohort_id")
 		.eq("student_id", studentId)
-		.in("status", ["paid", "welcome_package_sent"]); // Active statuses
+		.in("status", ["paid", "welcome_package_sent", "transitioning", "offboarding"]); // Active statuses
 
 	if (enrollmentsError) {
 		console.error("Error fetching enrollments:", enrollmentsError);
@@ -57,7 +76,13 @@ export async function getStudentAnnouncements(
       ),
       cohort:cohorts!announcements_cohort_id_fkey(
         id,
-        nickname
+        current_level_id,
+        language_levels!cohorts_current_level_id_language_levels_id_fk(
+          display_name
+        ),
+        products!cohorts_product_id_products_id_fk(
+          format
+        )
       ),
       attachments:announcement_attachments(
         id,
@@ -112,7 +137,7 @@ export async function getStudentAnnouncements(
 		},
 		scope: announcement.scope,
 		cohortId: announcement.cohort_id || undefined,
-		cohortName: announcement.cohort?.nickname || undefined,
+		cohortName: formatCohortDisplayName(announcement.cohort),
 		isPinned: announcement.is_pinned,
 		isRead: readSet.has(announcement.id),
 		createdAt: announcement.created_at,

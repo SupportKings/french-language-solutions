@@ -43,12 +43,12 @@ function formatClassLabel(classItem: ClassSession): string {
 	return `${formatLabel} - ${classItem.level}`;
 }
 
-// Get class status colors based on attendance and homework
+// Get class status colors based on homework completion
 function getClassStatusColors(classItem: ClassSession) {
 	const hasAttendance = !!classItem.attendanceRecord;
 
+	// No attendance record - default blue (no coloring)
 	if (!hasAttendance) {
-		// No attendance record - gray/default
 		return {
 			bg: "bg-blue-50",
 			border: "border-blue-200",
@@ -58,33 +58,10 @@ function getClassStatusColors(classItem: ClassSession) {
 		};
 	}
 
-	const status = classItem.attendanceRecord?.status;
 	const homeworkDone = classItem.attendanceRecord?.homeworkCompleted;
 
-	// Explicitly marked as not attended - red
-	if (status === "not_attended") {
-		return {
-			bg: "bg-red-50",
-			border: "border-red-300",
-			hoverBg: "hover:bg-red-100",
-			hoverBorder: "hover:border-red-400",
-			dot: "bg-red-500",
-		};
-	}
-
-	// Attended (or attended_late) but no homework - yellow/amber
-	if ((status === "attended" || status === "attended_late") && !homeworkDone) {
-		return {
-			bg: "bg-amber-50",
-			border: "border-amber-300",
-			hoverBg: "hover:bg-amber-100",
-			hoverBorder: "hover:border-amber-400",
-			dot: "bg-amber-500",
-		};
-	}
-
-	// Attended and homework done - green
-	if ((status === "attended" || status === "attended_late") && homeworkDone) {
+	// Homework completed - green
+	if (homeworkDone) {
 		return {
 			bg: "bg-green-50",
 			border: "border-green-300",
@@ -94,13 +71,13 @@ function getClassStatusColors(classItem: ClassSession) {
 		};
 	}
 
-	// Default (e.g., status is "unset") - gray/default
+	// Has attendance record but homework not completed - amber/warning
 	return {
-		bg: "bg-blue-50",
-		border: "border-blue-200",
-		hoverBg: "hover:bg-blue-100",
-		hoverBorder: "hover:border-blue-300",
-		dot: null,
+		bg: "bg-amber-50",
+		border: "border-amber-300",
+		hoverBg: "hover:bg-amber-100",
+		hoverBorder: "hover:border-amber-400",
+		dot: "bg-amber-500",
 	};
 }
 

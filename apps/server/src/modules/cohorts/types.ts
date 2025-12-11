@@ -19,6 +19,7 @@ export interface WeeklySessionForCalendar {
 	first_event_end_time: string; // ISO datetime string
 	day_of_week_abbreviation: string; // MO, TU, WE, TH, FR, SA, SU
 	teacher_name: string;
+	teacher_email: string | null; // Teacher's email address
 	teacher_calendar_id: string | null; // Google Calendar ID for the teacher
 	event_summary: string; // Individual summary for this session
 }
@@ -43,4 +44,33 @@ export interface CohortWithDetails extends Cohort {
 			student: Student;
 		}
 	>;
+}
+
+/**
+ * Calendar event from external system (Google Calendar, Make.com)
+ */
+export interface CalendarEventPayload {
+	event_id: string; // Google Calendar event ID (may include recurrence suffix)
+	start: string; // ISO datetime (UTC)
+	end: string; // ISO datetime (UTC)
+	hangout_link?: string | null; // Google Meet link (optional)
+}
+
+/**
+ * Weekly session data needed for class creation
+ */
+export interface WeeklySessionData {
+	id: string;
+	cohort_id: string;
+	teacher_id: string | null;
+	google_calendar_event_id: string | null;
+	calendar_event_url: string | null;
+}
+
+/**
+ * Calendar event matched with its weekly session
+ */
+export interface MatchedCalendarEvent {
+	event: CalendarEventPayload;
+	session: WeeklySessionData;
 }

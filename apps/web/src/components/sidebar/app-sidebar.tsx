@@ -168,8 +168,12 @@ export function AppSidebar({
 
 		// Admin navigation for admin area
 		if (isAdmin || currentArea === "admin") {
-			// Students Hub - only show if user has access
-			if (canAccessStudents || canAccessEnrollments || canAccessAssessments) {
+			// Students Hub - only show if user has access (hidden for teachers)
+			const isTeacher = userRole === "teacher";
+			if (
+				!isTeacher &&
+				(canAccessStudents || canAccessEnrollments || canAccessAssessments)
+			) {
 				const studentHubItems = [];
 
 				if (canAccessStudents) {
@@ -213,6 +217,10 @@ export function AppSidebar({
 						{
 							title: "All Cohorts",
 							url: "/admin/cohorts",
+						},
+						{
+							title: "Reschedule Requests",
+							url: "/admin/reschedule-requests",
 						},
 						{
 							title: "Announcements",

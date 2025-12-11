@@ -21,6 +21,7 @@ export const studentSchema = z.object({
 	last_name: z.string().nullable(), // Generated column
 	email: z.string().email("Invalid email address").nullable(),
 	desired_starting_language_level_id: z.string().uuid().nullable(),
+	goal_language_level_id: z.string().uuid().nullable(),
 	mobile_phone_number: z.string().nullable(),
 	city: z.string().nullable(),
 	website_quiz_submission_date: z.string().nullable(), // Date as string from DB

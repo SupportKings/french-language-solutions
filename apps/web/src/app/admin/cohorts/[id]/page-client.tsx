@@ -151,6 +151,7 @@ export function CohortDetailPageClient({
 	const canEditCohort = permissions?.cohorts?.includes("write");
 	const canEditCurrentLevelOnly =
 		permissions?.cohorts?.includes("update_current_level") && !canEditCohort;
+	const canAccessProductDetails = permissions?.products?.includes("write");
 	const router = useRouter();
 	const { data: cohortData, isLoading, error, isSuccess } = useCohort(cohortId);
 	const { data: cohortWithSessions } = useCohortWithSessions(cohortId);
@@ -206,7 +207,7 @@ export function CohortDetailPageClient({
 		async function fetchProducts() {
 			setLoadingProducts(true);
 			try {
-				const response = await fetch("/api/products");
+				const response = await fetch("/api/products?limit=1000");
 				if (response.ok) {
 					const result = await response.json();
 					setProducts(result.data || []);
@@ -1223,7 +1224,7 @@ export function CohortDetailPageClient({
 														}
 													}}
 													editing={editing}
-													type="select"
+													type="searchable-select"
 													options={products.map((p) => ({
 														value: p.id,
 														label: p.display_name,
@@ -1233,14 +1234,22 @@ export function CohortDetailPageClient({
 															? "Loading products..."
 															: "Select product"
 													}
+													searchPlaceholder="Search products..."
 												/>
 											) : cohort.products ? (
-												<LinkedRecordBadge
-													href={`/admin/configuration/products/${cohort.products.id}`}
-													label={cohort.products.display_name}
-													icon={BookOpen}
-													className="text-xs"
-												/>
+												canAccessProductDetails ? (
+													<LinkedRecordBadge
+														href={`/admin/configuration/products/${cohort.products.id}`}
+														label={cohort.products.display_name}
+														icon={BookOpen}
+														className="text-xs"
+													/>
+												) : (
+													<Badge variant="outline" className="text-xs">
+														<BookOpen className="mr-1.5 h-3 w-3" />
+														{cohort.products.display_name}
+													</Badge>
+												)
 											) : (
 												<span className="text-muted-foreground text-sm">
 													No product assigned
@@ -1449,7 +1458,6 @@ export function CohortDetailPageClient({
 							cohortId={cohortId}
 							cohortFormat={cohort?.products?.format}
 							cohortRoom={cohort?.room}
-							cohortStartDate={cohort?.start_date}
 							onViewAttendance={handleViewAttendance}
 						/>
 					</TabsContent>

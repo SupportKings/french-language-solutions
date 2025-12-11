@@ -15,7 +15,16 @@ import { Label } from "@/components/ui/label";
 import type { ClassSession } from "@/features/shared/types";
 
 import { format, isPast, parseISO } from "date-fns";
-import { Calendar, Check, Clock, ExternalLink, MapPin } from "lucide-react";
+import {
+	BookOpen,
+	Calendar,
+	CheckCircle2,
+	Clock,
+	ExternalLink,
+	MapPin,
+	Video,
+	XCircle,
+} from "lucide-react";
 import {
 	markHomeworkComplete,
 	unmarkHomeworkComplete,
@@ -37,13 +46,28 @@ function formatClassLabel(classItem: ClassSession): string {
 	return `${formatLabel} - ${classItem.level}`;
 }
 
+function formatLocation(location: string | null | undefined): string {
+	if (!location) return "Online";
+	// Convert snake_case or similar to proper title case
+	return location
+		.replace(/_/g, " ")
+		.replace(/-/g, " ")
+		.split(" ")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join(" ");
+}
+
 export function ClassDetailsModal({
 	classSession,
 	open,
 	onOpenChange,
 }: ClassDetailsModalProps) {
 	const [isPending, startTransition] = useTransition();
-	const [optimisticHomeworkDone, setOptimisticHomeworkDone] = useState(false);
+	// null means "use server value", boolean means "override with this value"
+	const [optimisticHomework, setOptimisticHomework] = useState<{
+		completed: boolean;
+		completedAt: string | null;
+	} | null>(null);
 
 	if (!classSession) return null;
 
@@ -51,12 +75,16 @@ export function ClassDetailsModal({
 	const endTime = parseISO(classSession.endTime);
 	const isClassInPast = isPast(endTime);
 	const hasAttendanceRecord = !!classSession.attendanceRecord;
+
+	// Use optimistic value if set, otherwise fall back to server value
 	const homeworkCompleted =
-		optimisticHomeworkDone ||
-		classSession.attendanceRecord?.homeworkCompleted ||
-		false;
+		optimisticHomework !== null
+			? optimisticHomework.completed
+			: (classSession.attendanceRecord?.homeworkCompleted ?? false);
 	const homeworkCompletedAt =
-		classSession.attendanceRecord?.homeworkCompletedAt;
+		optimisticHomework !== null
+			? optimisticHomework.completedAt
+			: classSession.attendanceRecord?.homeworkCompletedAt;
 
 	const initials = classSession.teacher.name
 		.split(" ")
@@ -67,7 +95,10 @@ export function ClassDetailsModal({
 		if (!classSession.attendanceRecord) return;
 
 		// Optimistic update
-		setOptimisticHomeworkDone(checked);
+		setOptimisticHomework({
+			completed: checked,
+			completedAt: checked ? new Date().toISOString() : null,
+		});
 
 		startTransition(async () => {
 			if (checked) {
@@ -76,15 +107,22 @@ export function ClassDetailsModal({
 				);
 				if (!result.success) {
 					// Revert on error
-					setOptimisticHomeworkDone(false);
+					setOptimisticHomework({
+						completed: false,
+						completedAt: null,
+					});
 				}
 			} else {
 				const result = await unmarkHomeworkComplete(
 					classSession.attendanceRecord!.id,
 				);
 				if (!result.success) {
-					// Revert on error
-					setOptimisticHomeworkDone(true);
+					// Revert on error - restore previous server state
+					setOptimisticHomework({
+						completed: true,
+						completedAt:
+							classSession.attendanceRecord?.homeworkCompletedAt ?? null,
+					});
 				}
 			}
 		});
@@ -92,82 +130,140 @@ export function ClassDetailsModal({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[480px]">
-				{/* Header with class type */}
-				<DialogHeader className="space-y-1 pb-6">
-					<DialogTitle className="font-bold text-2xl">
-						{formatClassLabel(classSession)}
-					</DialogTitle>
-					<div className="flex items-center gap-2 text-muted-foreground text-sm">
-						<Calendar className="h-4 w-4" />
-						<span>{format(startTime, "EEEE, MMMM d, yyyy")}</span>
-					</div>
-				</DialogHeader>
+			<DialogContent className="gap-0 p-0 sm:max-w-[480px]">
+				{/* Header Section */}
+				<div className="border-b bg-muted/30 px-6 py-5">
+					<DialogHeader className="space-y-1.5">
+						<DialogTitle className="font-bold text-xl tracking-tight">
+							{formatClassLabel(classSession)}
+						</DialogTitle>
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<Calendar className="h-4 w-4" />
+							<span>{format(startTime, "EEEE, MMMM d, yyyy")}</span>
+						</div>
+					</DialogHeader>
+				</div>
 
-				<div className="space-y-6">
-					{/* Teacher - Simple row */}
+				<div className="p-6">
+					{/* Teacher Section */}
 					<div className="flex items-center gap-4">
-						<Avatar className="h-12 w-12">
+						<Avatar className="h-12 w-12 ring-2 ring-primary/10">
 							<AvatarImage src={classSession.teacher.avatar} />
 							<AvatarFallback className="bg-primary/10 font-semibold text-primary">
 								{initials}
 							</AvatarFallback>
 						</Avatar>
 						<div className="flex-1">
-							<p className="text-muted-foreground text-xs">Teacher</p>
-							<p className="font-semibold text-base">
-								{classSession.teacher.name}
+							<p className="text-muted-foreground text-xs uppercase tracking-wide">
+								Teacher
 							</p>
+							<p className="font-semibold">{classSession.teacher.name}</p>
 						</div>
 					</div>
 
-					{/* Divider */}
-					<div className="border-t" />
-
-					{/* Time & Location - Simple rows */}
-					<div className="space-y-4">
-						<div className="flex items-center gap-3">
-							<Clock className="h-5 w-5 text-muted-foreground" />
-							<div className="flex-1">
-								<p className="text-muted-foreground text-xs">Time</p>
-								<p className="font-medium">
-									{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
-								</p>
+					{/* Class Details Section */}
+					<div className="mt-6 rounded-xl border bg-muted/20 p-4">
+						<div className="grid gap-4">
+							{/* Time */}
+							<div className="flex items-center gap-3">
+								<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
+									<Clock className="h-4 w-4 text-muted-foreground" />
+								</div>
+								<div className="flex-1">
+									<p className="text-muted-foreground text-xs">Time</p>
+									<p className="font-medium">
+										{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
+									</p>
+								</div>
 							</div>
-						</div>
 
-						<div className="flex items-center gap-3">
-							<MapPin className="h-5 w-5 text-muted-foreground" />
-							<div className="flex-1">
-								<p className="text-muted-foreground text-xs">Location</p>
-								<p className="font-medium capitalize">
-									{classSession.location || "Online"}
-								</p>
+							{/* Location */}
+							<div className="flex items-center gap-3">
+								<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
+									<MapPin className="h-4 w-4 text-muted-foreground" />
+								</div>
+								<div className="flex-1">
+									<p className="text-muted-foreground text-xs">Location</p>
+									<p className="font-medium">
+										{formatLocation(classSession.location)}
+									</p>
+								</div>
 							</div>
+
+							{/* Attendance Status */}
+							{hasAttendanceRecord && isClassInPast && (
+								<div className="flex items-center gap-3">
+									<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
+										{classSession.attendanceRecord?.status === "attended" ||
+										classSession.attendanceRecord?.status === "attended_late" ? (
+											<CheckCircle2 className="h-4 w-4 text-emerald-600" />
+										) : (
+											<XCircle className="h-4 w-4 text-destructive" />
+										)}
+									</div>
+									<div className="flex-1">
+										<p className="text-muted-foreground text-xs">Attendance</p>
+										<p className="font-medium">
+											{classSession.attendanceRecord?.status === "attended" && (
+												<span className="text-emerald-600">Present</span>
+											)}
+											{classSession.attendanceRecord?.status ===
+												"attended_late" && (
+												<span className="text-amber-600">Present (Late)</span>
+											)}
+											{classSession.attendanceRecord?.status ===
+												"not_attended" && (
+												<span className="text-destructive">Absent</span>
+											)}
+											{classSession.attendanceRecord?.status === "unset" && (
+												<span className="text-muted-foreground">Not marked</span>
+											)}
+										</p>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 
-					{/* Meeting Link */}
-					{classSession.meetingLink && (
-						<>
-							<div className="border-t" />
-							<a
-								href={classSession.meetingLink}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="flex items-center justify-center gap-2 font-medium text-primary text-sm transition-colors hover:text-primary/80"
-							>
-								<ExternalLink className="h-4 w-4" />
-								<span>View in Google Calendar</span>
-							</a>
-						</>
+					{/* Meeting Links */}
+					{(classSession.meetingLink || classSession.hangoutLink) && (
+						<div className="mt-4 flex gap-2">
+							{classSession.meetingLink && (
+								<a
+									href={classSession.meetingLink}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex flex-1 items-center justify-center gap-2 rounded-lg border bg-background py-2.5 font-medium text-primary text-sm transition-all hover:bg-muted/50"
+								>
+									<ExternalLink className="h-4 w-4" />
+									<span>View in Google Calendar</span>
+								</a>
+							)}
+							{classSession.hangoutLink && (
+								<a
+									href={classSession.hangoutLink}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex flex-1 items-center justify-center gap-2 rounded-lg border bg-background py-2.5 font-medium text-primary text-sm transition-all hover:bg-muted/50"
+								>
+									<Video className="h-4 w-4" />
+									<span>Open Google Meet</span>
+								</a>
+							)}
+						</div>
 					)}
 
 					{/* Homework Section */}
 					{hasAttendanceRecord && isClassInPast && (
-						<>
-							<div className="border-t" />
-							<div className="space-y-3">
+						<div className="mt-6 rounded-xl border bg-muted/20 p-4">
+							<div className="flex items-center gap-3">
+								<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
+									<BookOpen className="h-4 w-4 text-muted-foreground" />
+								</div>
+								<p className="font-medium text-sm">Homework</p>
+							</div>
+
+							<div className="mt-4 space-y-2 rounded-lg border bg-background p-3">
 								<div className="flex items-center gap-3">
 									<Checkbox
 										id="homework"
@@ -178,15 +274,12 @@ export function ClassDetailsModal({
 									/>
 									<Label
 										htmlFor="homework"
-										className="flex-1 cursor-pointer font-medium text-sm"
+										className="cursor-pointer font-medium text-sm"
 									>
 										I completed my homework
 									</Label>
-									{homeworkCompleted && (
-										<Check className="h-5 w-5 text-green-600" />
-									)}
 								</div>
-								{homeworkCompletedAt && (
+								{homeworkCompletedAt && homeworkCompleted && (
 									<p className="pl-8 text-muted-foreground text-xs">
 										Completed on{" "}
 										{format(
@@ -196,7 +289,7 @@ export function ClassDetailsModal({
 									</p>
 								)}
 							</div>
-						</>
+						</div>
 					)}
 				</div>
 			</DialogContent>
