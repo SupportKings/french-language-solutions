@@ -35,6 +35,7 @@ import {
 	Home,
 	LogOut,
 	Megaphone,
+	MessageCircle,
 	Settings,
 	User,
 } from "lucide-react";
@@ -47,6 +48,7 @@ interface StudentSidebarProps {
 		avatar?: string;
 	};
 	unreadAnnouncementCount?: number;
+	unreadChatCount?: number;
 }
 
 const bottomNavItems = [
@@ -60,6 +62,7 @@ const bottomNavItems = [
 export function StudentSidebar({
 	student,
 	unreadAnnouncementCount,
+	unreadChatCount,
 }: StudentSidebarProps) {
 	const { state } = useSidebar();
 	const isCollapsed = state === "collapsed";
@@ -76,6 +79,12 @@ export function StudentSidebar({
 			url: "/announcements",
 			icon: Megaphone,
 			badge: unreadAnnouncementCount,
+		},
+		{
+			title: "Chats",
+			url: "/chats",
+			icon: MessageCircle,
+			badge: unreadChatCount,
 		},
 	];
 	const pathname = usePathname();

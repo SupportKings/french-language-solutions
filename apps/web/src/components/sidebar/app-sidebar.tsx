@@ -102,11 +102,13 @@ export function AppSidebar({
 	session,
 	rawPermissions,
 	isAdmin = false,
+	unreadChatCount,
 	...props
 }: React.ComponentProps<typeof Sidebar> & {
 	session: Session;
 	rawPermissions?: any;
 	isAdmin?: boolean;
+	unreadChatCount?: number;
 }) {
 	const pathname = usePathname();
 	const currentArea = pathname.includes("/dashboard/settings")
@@ -225,6 +227,16 @@ export function AppSidebar({
 							url: "/admin/announcements",
 						},
 					],
+				});
+			}
+
+			// Chats - only show if user has access to cohorts
+			if (canAccessCohorts) {
+				navItems.push({
+					title: "Chats",
+					url: "/admin/chats",
+					icon: "MessageCircle",
+					badge: unreadChatCount,
 				});
 			}
 

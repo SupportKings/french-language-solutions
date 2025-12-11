@@ -58,3 +58,17 @@ export const auth = betterAuth({
 		nextCookies(),
 	],
 });
+
+export async function requireAuth() {
+	const { headers } = await import("next/headers");
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session?.user) {
+		const { redirect } = await import("next/navigation");
+		redirect("/");
+	}
+
+	return session!.user;
+}
