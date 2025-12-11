@@ -37,68 +37,6 @@ export const sendMessage = actionClient
 		const session = await requireAuth();
 		const supabase = await createClient();
 
-		// TODO: Re-enable RBAC permissions after testing
-		// Check if user has access to this cohort
-		// const userIsAdmin = await isAdmin(session);
-
-		// if (!userIsAdmin) {
-		// 	// Check if teacher
-		// 	const { data: teacher } = await supabase
-		// 		.from("teachers")
-		// 		.select("id")
-		// 		.eq("user_id", session.user.id)
-		// 		.maybeSingle();
-
-		// 	if (teacher) {
-		// 		// Verify teacher teaches this cohort
-		// 		const { data: weeklySession } = await supabase
-		// 			.from("weekly_sessions")
-		// 			.select("id")
-		// 			.eq("teacher_id", teacher.id)
-		// 			.eq("cohort_id", input.cohortId)
-		// 			.maybeSingle();
-
-		// 		if (!weeklySession) {
-		// 			throw new Error(
-		// 				"FORBIDDEN: You don't have access to send messages in this cohort",
-		// 			);
-		// 		}
-		// 	} else {
-		// 		// Check if student
-		// 		const { data: student } = await supabase
-		// 			.from("students")
-		// 			.select("id")
-		// 			.eq("user_id", session.user.id)
-		// 			.maybeSingle();
-
-		// 		if (!student) {
-		// 			throw new Error(
-		// 				"FORBIDDEN: You don't have access to send messages in this cohort",
-		// 			);
-		// 		}
-
-		// 		// Verify student is enrolled in this cohort
-		// 		const { data: enrollment } = await supabase
-		// 			.from("enrollments")
-		// 			.select("id")
-		// 			.eq("student_id", student.id)
-		// 			.eq("cohort_id", input.cohortId)
-		// 			.in("status", [
-		// 				"paid",
-		// 				"welcome_package_sent",
-		// 				"transitioning",
-		// 				"offboarding",
-		// 			])
-		// 			.maybeSingle();
-
-		// 		if (!enrollment) {
-		// 			throw new Error(
-		// 				"FORBIDDEN: You don't have access to send messages in this cohort",
-		// 			);
-		// 		}
-		// 	}
-		// }
-
 		// Insert message into messages table
 		console.log("🔵 Attempting to create message:", {
 			user_id: session.user.id,

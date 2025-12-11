@@ -27,68 +27,7 @@ export async function getMessages({
 	page = 1,
 	limit = 10,
 }: GetMessagesParams): Promise<GetMessagesResult> {
-	// TODO: Re-enable authentication after testing
-	// const session = await requireAuth();
 	const supabase = await createClient();
-
-	// TODO: Re-enable RBAC permissions after testing
-	// Check if user is admin (admins can access all chats)
-	// const userIsAdmin = await isAdmin(session);
-
-	// if (!userIsAdmin) {
-	// 	// For non-admins, verify they have access to this cohort
-	// 	// Check if teacher
-	// 	const { data: teacher } = await supabase
-	// 		.from("teachers")
-	// 		.select("id")
-	// 		.eq("user_id", session.user.id)
-	// 		.maybeSingle();
-
-	// 	if (teacher) {
-	// 		// Verify teacher teaches this cohort
-	// 		const { data: weeklySession } = await supabase
-	// 			.from("weekly_sessions")
-	// 			.select("id")
-	// 			.eq("teacher_id", teacher.id)
-	// 			.eq("cohort_id", cohortId)
-	// 			.maybeSingle();
-
-	// 		if (!weeklySession) {
-	// 			throw new Error("FORBIDDEN: You don't have access to this cohort chat");
-	// 		}
-	// 	} else {
-	// 		// Check if student
-	// 		const { data: student } = await supabase
-	// 			.from("students")
-	// 			.select("id")
-	// 			.eq("user_id", session.user.id)
-	// 			.maybeSingle();
-
-	// 		if (student) {
-	// 			// Verify student is enrolled in this cohort
-	// 			const { data: enrollment } = await supabase
-	// 				.from("enrollments")
-	// 				.select("id")
-	// 				.eq("student_id", student.id)
-	// 				.eq("cohort_id", cohortId)
-	// 				.in("status", [
-	// 					"paid",
-	// 					"welcome_package_sent",
-	// 					"transitioning",
-	// 					"offboarding",
-	// 				])
-	// 				.maybeSingle();
-
-	// 			if (!enrollment) {
-	// 				throw new Error(
-	// 					"FORBIDDEN: You don't have access to this cohort chat",
-	// 				);
-	// 			}
-	// 		} else {
-	// 			throw new Error("FORBIDDEN: You don't have access to this cohort chat");
-	// 		}
-	// 	}
-	// }
 
 	// Calculate pagination
 	const from = (page - 1) * limit;

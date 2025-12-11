@@ -29,6 +29,7 @@ export async function getCohortMembers({
 
 	if (teachersError) {
 		console.error("Error fetching teachers:", teachersError);
+		throw new Error(`Failed to fetch teachers: ${teachersError.message}`);
 	}
 
 	// Fetch teacher user images separately

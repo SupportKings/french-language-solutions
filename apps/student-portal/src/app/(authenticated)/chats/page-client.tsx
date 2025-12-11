@@ -175,8 +175,12 @@ export function ChatsPageClient({
 		onSuccess: () => {
 			// Message will be updated via realtime subscription
 		},
-		onError: ({ error }) => {
+		onError: ({ error, input }) => {
 			toast.error(error.serverError || "Failed to send message");
+			// Rollback optimistic update
+			queryClient.invalidateQueries({
+				queryKey: chatsKeys.messages(input.cohortId),
+			});
 		},
 	});
 
@@ -185,8 +189,12 @@ export function ChatsPageClient({
 		onSuccess: () => {
 			// Message will be updated via realtime subscription
 		},
-		onError: ({ error }) => {
+		onError: ({ error, input }) => {
 			toast.error(error.serverError || "Failed to send message");
+			// Rollback optimistic update
+			queryClient.invalidateQueries({
+				queryKey: chatsKeys.directMessages(input.conversationId),
+			});
 		},
 	});
 

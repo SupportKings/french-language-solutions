@@ -90,7 +90,7 @@ function MemberItem({
 		: null;
 
 	const hasNoAccess = !member.userId;
-	console.log("Member:", member);
+
 	return (
 		<div
 			className={cn(
