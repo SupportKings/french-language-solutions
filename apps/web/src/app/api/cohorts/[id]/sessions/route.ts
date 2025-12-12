@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
 	request: Request,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -45,15 +46,12 @@ export async function GET(
 			console.error("Error fetching cohort with sessions:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch cohort with sessions" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		if (!cohort) {
-			return NextResponse.json(
-				{ error: "Cohort not found" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: "Cohort not found" }, { status: 404 });
 		}
 
 		return NextResponse.json(cohort);
@@ -61,14 +59,14 @@ export async function GET(
 		console.error("Error in cohort sessions GET:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
 
 export async function POST(
 	request: Request,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id: cohortId } = await params;
@@ -77,11 +75,11 @@ export async function POST(
 
 		// Validate required fields
 		const { teacher_id, day_of_week, start_time, end_time } = body;
-		
+
 		if (!teacher_id || !day_of_week || !start_time || !end_time) {
 			return NextResponse.json(
 				{ error: "Missing required fields" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -103,7 +101,7 @@ export async function POST(
 			console.error("Error creating weekly session:", error);
 			return NextResponse.json(
 				{ error: "Failed to create weekly session" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -112,7 +110,7 @@ export async function POST(
 		console.error("Error in weekly session POST:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

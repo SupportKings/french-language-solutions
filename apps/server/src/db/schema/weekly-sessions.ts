@@ -1,16 +1,12 @@
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-	time,
-} from "drizzle-orm/pg-core";
-import { dayOfWeekEnum } from "./enums";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { cohorts } from "./cohorts";
+import { dayOfWeekEnum } from "./enums";
 import { teachers } from "./teachers";
 
 export const weeklySessions = pgTable("weekly_sessions", {
 	id: uuid("id").primaryKey().defaultRandom(),
+	airtableRecordId: text("airtable_record_id"),
+	airtableCreatedAt: timestamp("airtable_created_at"),
 	cohortId: uuid("cohort_id")
 		.notNull()
 		.references(() => cohorts.id),
@@ -18,9 +14,9 @@ export const weeklySessions = pgTable("weekly_sessions", {
 		.notNull()
 		.references(() => teachers.id),
 	dayOfWeek: dayOfWeekEnum("day_of_week").notNull(),
-	startTime: time("start_time").notNull(), // HH:MM format
-	endTime: time("end_time").notNull(), // HH:MM format
+	startTime: text("start_time").notNull(),
+	endTime: text("end_time").notNull(),
 	googleCalendarEventId: text("google_calendar_event_id"),
-	createdAt: timestamp("created_at").notNull().defaultNow(),
+	createdAt: timestamp("created_at").notNull(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

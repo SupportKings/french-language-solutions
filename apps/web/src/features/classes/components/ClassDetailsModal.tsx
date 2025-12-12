@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import { SearchableSelect } from "@/components/form-layout/SearchableSelect";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -9,10 +13,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
 	Select,
@@ -21,20 +22,24 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { EditableSection } from "@/components/inline-edit/EditableSection";
-import { InlineEditField } from "@/components/inline-edit/InlineEditField";
-import { 
-	Calendar, 
-	Clock, 
-	Users, 
-	Video, 
-	FolderOpen,
-	Save,
-	Edit2,
-	CheckCircle2,
-	ExternalLink
-} from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+
+import { cohortsKeys } from "@/features/cohorts/queries/cohorts.queries";
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import {
+	AlertCircle,
+	Calendar,
+	CheckCircle2,
+	Clock,
+	Edit2,
+	ExternalLink,
+	GraduationCap,
+	Users,
+	Video,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface ClassDetails {
@@ -45,9 +50,7 @@ interface ClassDetails {
 	status: "scheduled" | "in_progress" | "completed" | "cancelled";
 	meeting_link?: string;
 	notes?: string;
-	current_enrollment?: number;
 	attendance_count?: number;
-	google_drive_folder_id?: string;
 	teacher_id?: string;
 	teacher?: {
 		id: string;
@@ -58,6 +61,11 @@ interface ClassDetails {
 		id: string;
 		format: "online" | "in-person" | "hybrid";
 		room?: string;
+		current_level_id?: string;
+		current_level?: {
+			id: string;
+			display_name: string;
+		};
 	};
 }
 
@@ -76,19 +84,50 @@ export function ClassDetailsModal({
 }: ClassDetailsModalProps) {
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
-	const [formData, setFormData] = useState<Partial<ClassDetails>>({});
+	const [formData, setFormData] = useState<
+		Partial<ClassDetails> & { current_level_id?: string }
+	>({});
 
-	// Initialize form data when class changes
+	const queryClient = useQueryClient();
+
+	// Fetch language levels
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
+		languageLevelQueries.list(),
+	);
+
+	// Initialize form data when class changes or when modal opens
 	useEffect(() => {
-		if (classItem) {
+		if (classItem && open) {
 			setFormData({
 				status: classItem.status,
 				meeting_link: classItem.meeting_link || "",
 				notes: classItem.notes || "",
-				google_drive_folder_id: classItem.google_drive_folder_id || "",
+				current_level_id: classItem.cohort?.current_level_id || "",
 			});
 		}
-	}, [classItem]);
+	}, [classItem, open]);
+
+	// Auto-populate current_level_id when status is "completed" and editing mode is active
+	useEffect(() => {
+		if (
+			editing &&
+			formData.status === "completed" &&
+			classItem?.cohort?.current_level_id
+		) {
+			// Always sync with cohort's current level when entering edit mode for completed classes
+			if (!formData.current_level_id) {
+				setFormData((prev) => ({
+					...prev,
+					current_level_id: classItem.cohort?.current_level_id || "",
+				}));
+			}
+		}
+	}, [
+		editing,
+		formData.status,
+		formData.current_level_id,
+		classItem?.cohort?.current_level_id,
+	]);
 
 	// Reset editing state when modal closes
 	useEffect(() => {
@@ -97,27 +136,100 @@ export function ClassDetailsModal({
 		}
 	}, [open]);
 
-	const updateField = async (field: string, value: any) => {
+	const saveChanges = async () => {
 		if (!classItem) return;
+
+		// Validate: Internal Notes required when status is completed
+		if (formData.status === "completed" && !formData.notes?.trim()) {
+			toast.error(
+				"Internal Notes are required when status is set to Completed",
+			);
+			return;
+		}
 
 		setSaving(true);
 		try {
+			// Update class details
 			const response = await fetch(`/api/classes/${classItem.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ [field]: value || null }),
+				body: JSON.stringify({
+					status: formData.status || null,
+					meeting_link: formData.meeting_link || null,
+					notes: formData.notes || null,
+				}),
 			});
 
-			if (!response.ok) throw new Error("Failed to update class");
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || "Failed to update class");
+			}
 
 			const updated = await response.json();
-			onUpdate(updated);
-			setFormData({ ...formData, [field]: value });
+
+			// Update cohort current level if status is completed and level changed
+			if (
+				formData.status === "completed" &&
+				formData.current_level_id &&
+				formData.current_level_id !== classItem.cohort?.current_level_id
+			) {
+				const cohortResponse = await fetch(
+					`/api/cohorts/${classItem.cohort_id}`,
+					{
+						method: "PATCH",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							current_level_id: formData.current_level_id,
+						}),
+					},
+				);
+
+				if (!cohortResponse.ok) {
+					throw new Error("Failed to update cohort level");
+				}
+
+				// Invalidate cohort queries to refresh data immediately
+				await Promise.all([
+					queryClient.invalidateQueries({
+						queryKey: cohortsKeys.detail(classItem.cohort_id),
+					}),
+					queryClient.invalidateQueries({
+						queryKey: cohortsKeys.all,
+					}),
+					// Also invalidate classes list to update the cohort level displayed with classes
+					queryClient.invalidateQueries({
+						queryKey: ["cohorts", classItem.cohort_id, "classes"],
+					}),
+				]);
+
+				// Build nextCohort with updated level information
+				const selectedLevel = languageLevels?.find(
+					(level) => level.id === formData.current_level_id,
+				);
+
+				const nextCohort = {
+					...classItem.cohort,
+					current_level_id: formData.current_level_id,
+					current_level: selectedLevel
+						? {
+								id: selectedLevel.id,
+								display_name: selectedLevel.display_name,
+							}
+						: undefined,
+				};
+
+				// Call onUpdate with the refreshed cohort level
+				onUpdate({ ...updated, cohort: nextCohort });
+			} else {
+				onUpdate(updated);
+			}
 			toast.success("Class updated successfully");
+			setEditing(false);
 		} catch (error) {
 			console.error("Error updating class:", error);
-			toast.error("Failed to update class");
-			throw error;
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to update class";
+			toast.error(errorMessage);
 		} finally {
 			setSaving(false);
 		}
@@ -134,7 +246,7 @@ export function ClassDetailsModal({
 	const classDate = new Date(classItem.start_time);
 	const startTime = new Date(classItem.start_time);
 	const endTime = new Date(classItem.end_time);
-	
+
 	// Generate a display name for the class based on its date
 	const displayName = `Class - ${format(classDate, "EEEE, MMM d")}`;
 
@@ -144,19 +256,24 @@ export function ClassDetailsModal({
 		completed: "bg-green-500/10 text-green-700 border-green-200",
 		cancelled: "bg-red-500/10 text-red-700 border-red-200",
 	};
-	const statusColor = statusColors[classItem.status] || "bg-gray-500/10 text-gray-700 border-gray-200";
+	const statusColor =
+		statusColors[classItem.status] ||
+		"bg-gray-500/10 text-gray-700 border-gray-200";
 
 	// Calculate duration
 	const duration = (() => {
 		const start = classItem.start_time.split("T")[1]?.split(":");
 		const end = classItem.end_time.split("T")[1]?.split(":");
 		if (start && end) {
-			const startMinutes = parseInt(start[0]) * 60 + parseInt(start[1]);
-			const endMinutes = parseInt(end[0]) * 60 + parseInt(end[1]);
+			const startMinutes =
+				Number.parseInt(start[0]) * 60 + Number.parseInt(start[1]);
+			const endMinutes = Number.parseInt(end[0]) * 60 + Number.parseInt(end[1]);
 			const diff = endMinutes - startMinutes;
 			const hours = Math.floor(diff / 60);
 			const minutes = diff % 60;
-			return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}` : `${minutes}m`;
+			return hours > 0
+				? `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}`
+				: `${minutes}m`;
 		}
 		return "";
 	})();
@@ -165,43 +282,20 @@ export function ClassDetailsModal({
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-[600px]">
 				<DialogHeader>
-					<div className="flex items-center justify-between">
-						<div>
-							<DialogTitle>Class Details</DialogTitle>
-							<DialogDescription>
-								View and edit class information
-							</DialogDescription>
-						</div>
-						<Button
-							variant={editing ? "default" : "outline"}
-							size="sm"
-							onClick={() => setEditing(!editing)}
-						>
-							{editing ? (
-								<>
-									<CheckCircle2 className="h-4 w-4 mr-2" />
-									Done Editing
-								</>
-							) : (
-								<>
-									<Edit2 className="h-4 w-4 mr-2" />
-									Edit Details
-								</>
-							)}
-						</Button>
-					</div>
+					<DialogTitle>Class Details</DialogTitle>
+					<DialogDescription>View and edit class information</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">
 					{/* Class Header */}
-					<div className="rounded-lg bg-muted/30 p-4 space-y-3">
+					<div className="space-y-3 rounded-lg bg-muted/30 p-4">
 						<div className="flex items-start gap-3">
-							<div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 								<Calendar className="h-5 w-5 text-primary" />
 							</div>
 							<div className="flex-1">
 								<h3 className="font-semibold text-lg">{displayName}</h3>
-								<div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+								<div className="mt-1 flex items-center gap-3 text-muted-foreground text-sm">
 									<div className="flex items-center gap-1">
 										<Calendar className="h-3 w-3" />
 										<span>{format(classDate, "EEEE, MMM d, yyyy")}</span>
@@ -209,7 +303,8 @@ export function ClassDetailsModal({
 									<div className="flex items-center gap-1">
 										<Clock className="h-3 w-3" />
 										<span>
-											{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
+											{format(startTime, "h:mm a")} -{" "}
+											{format(endTime, "h:mm a")}
 										</span>
 									</div>
 									{duration && (
@@ -226,9 +321,11 @@ export function ClassDetailsModal({
 					<div className="space-y-2">
 						<Label>Status</Label>
 						{editing ? (
-							<Select 
+							<Select
 								value={formData.status || classItem.status}
-								onValueChange={(value) => updateField("status", value)}
+								onValueChange={(value) =>
+									setFormData({ ...formData, status: value as any })
+								}
 							>
 								<SelectTrigger>
 									<SelectValue />
@@ -242,17 +339,50 @@ export function ClassDetailsModal({
 							</Select>
 						) : (
 							<Badge variant="outline" className={`${statusColor}`}>
-								{classItem.status?.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+								{classItem.status
+									?.replace(/_/g, " ")
+									.replace(/\b\w/g, (l) => l.toUpperCase())}
 							</Badge>
 						)}
 					</div>
+
+					{/* Current Level - Only show in edit mode when status is completed */}
+					{editing && formData.status === "completed" ? (
+						<div className="space-y-2">
+							<Label>Current Level</Label>
+							<p className="text-muted-foreground text-xs">
+								Update the cohort's current level to accurately track student
+								progress after completing this class
+							</p>
+							<SearchableSelect
+								placeholder={
+									languageLevelsLoading
+										? "Loading levels..."
+										: "Select current level"
+								}
+								searchPlaceholder="Type to search levels..."
+								value={formData.current_level_id || ""}
+								onValueChange={(value) =>
+									setFormData((prev) => ({ ...prev, current_level_id: value }))
+								}
+								options={
+									languageLevels?.map((level) => ({
+										label: level.display_name,
+										value: level.id,
+									})) || []
+								}
+								showOnlyOnSearch={true}
+								disabled={languageLevelsLoading}
+							/>
+						</div>
+					) : null}
 
 					{/* Teacher */}
 					{classItem.teacher && (
 						<div className="space-y-2">
 							<Label>Teacher</Label>
 							<div className="flex items-center gap-2">
-								<div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
 									<Users className="h-4 w-4 text-primary" />
 								</div>
 								<span className="text-sm">
@@ -268,8 +398,9 @@ export function ClassDetailsModal({
 						{editing ? (
 							<Input
 								value={formData.meeting_link || ""}
-								onChange={(e) => setFormData({ ...formData, meeting_link: e.target.value })}
-								onBlur={() => updateField("meeting_link", formData.meeting_link)}
+								onChange={(e) =>
+									setFormData({ ...formData, meeting_link: e.target.value })
+								}
 								placeholder="https://..."
 								type="url"
 							/>
@@ -278,88 +409,87 @@ export function ClassDetailsModal({
 								href={classItem.meeting_link}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="flex items-center gap-2 text-sm text-primary hover:underline"
+								className="flex items-center gap-2 text-primary text-sm hover:underline"
 							>
 								<Video className="h-4 w-4" />
 								<span>Join Meeting</span>
 								<ExternalLink className="h-3 w-3" />
 							</a>
 						) : (
-							<span className="text-sm text-muted-foreground">No meeting link</span>
+							<span className="text-muted-foreground text-sm">
+								No meeting link
+							</span>
 						)}
 					</div>
 
-					{/* Notes */}
+					{/* Internal Notes */}
 					<div className="space-y-2">
-						<Label>Notes</Label>
+						<Label>
+							Internal Notes
+							{editing && formData.status === "completed" && (
+								<span className="ml-1 text-red-500">*</span>
+							)}
+						</Label>
+						{editing && formData.status === "completed" && (
+							<p className="text-muted-foreground text-xs">
+								Required when status is set to Completed
+							</p>
+						)}
 						{editing ? (
 							<Textarea
 								value={formData.notes || ""}
-								onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-								onBlur={() => updateField("notes", formData.notes)}
-								placeholder="Add class notes..."
+								onChange={(e) =>
+									setFormData({ ...formData, notes: e.target.value })
+								}
+								placeholder="Add internal notes..."
 								rows={3}
 							/>
 						) : classItem.notes ? (
-							<p className="text-sm text-muted-foreground">{classItem.notes}</p>
+							<p className="text-muted-foreground text-sm">{classItem.notes}</p>
 						) : (
-							<span className="text-sm text-muted-foreground">No notes</span>
-						)}
-					</div>
-
-					{/* Enrollment Info */}
-					{(classItem.attendance_count !== undefined || classItem.current_enrollment !== undefined) && (
-						<div className="space-y-2">
-							<Label>Attendance</Label>
-							<div className="flex items-center gap-2 text-sm">
-								<Users className="h-4 w-4 text-muted-foreground" />
-								<span>{classItem.attendance_count ?? classItem.current_enrollment ?? 0} students attended</span>
-							</div>
-						</div>
-					)}
-
-					{/* Google Drive */}
-					<div className="space-y-2">
-						<Label>Google Drive Folder</Label>
-						{editing ? (
-							<div className="space-y-2">
-								<Input
-									value={formData.google_drive_folder_id || ""}
-									onChange={(e) => setFormData({ ...formData, google_drive_folder_id: e.target.value })}
-									onBlur={() => updateField("google_drive_folder_id", formData.google_drive_folder_id)}
-									placeholder="Google Drive folder ID"
-								/>
-								<p className="text-xs text-muted-foreground">
-									Enter the folder ID from the Google Drive URL (the part after /folders/)
-								</p>
-							</div>
-						) : classItem.google_drive_folder_id ? (
-							<a
-								href={`https://drive.google.com/drive/folders/${classItem.google_drive_folder_id}`}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-							>
-								<FolderOpen className="h-4 w-4" />
-								<span>Open Google Drive Folder</span>
-								<ExternalLink className="h-3 w-3" />
-							</a>
-						) : (
-							<span className="text-sm text-muted-foreground">No folder linked</span>
+							<span className="text-muted-foreground text-sm">
+								No internal notes
+							</span>
 						)}
 					</div>
 
 					{/* System Info */}
-					<div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+					<div className="space-y-1 border-t pt-2 text-muted-foreground text-xs">
 						<div>Class ID: {classItem.id.slice(0, 8)}</div>
 						<div>Cohort ID: {classItem.cohort_id.slice(0, 8)}</div>
 					</div>
 				</div>
 
-				<DialogFooter>
-					<Button variant="outline" onClick={handleClose}>
+				<DialogFooter className="flex items-center justify-between gap-3 sm:justify-between">
+					<Button
+						variant="outline"
+						onClick={handleClose}
+						disabled={saving}
+						className="order-1"
+					>
 						Close
 					</Button>
+					{editing ? (
+						<Button onClick={saveChanges} disabled={saving} className="order-2">
+							{saving ? (
+								<>Saving...</>
+							) : (
+								<>
+									<CheckCircle2 className="mr-2 h-4 w-4" />
+									Done Editing
+								</>
+							)}
+						</Button>
+					) : (
+						<Button
+							variant="outline"
+							onClick={() => setEditing(true)}
+							className="order-2"
+						>
+							<Edit2 className="mr-2 h-4 w-4" />
+							Edit Details
+						</Button>
+					)}
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

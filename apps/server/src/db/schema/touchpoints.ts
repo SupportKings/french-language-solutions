@@ -1,12 +1,6 @@
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-	pgEnum,
-} from "drizzle-orm/pg-core";
-import { students } from "./students";
+import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { automatedFollowUps } from "./automated-follow-ups";
+import { students } from "./students";
 
 // Enum for communication channels
 export const touchpointChannelEnum = pgEnum("touchpoint_channel", [
@@ -42,8 +36,9 @@ export const touchpoints = pgTable("touchpoints", {
 	message: text("message").notNull(),
 	source: touchpointSourceEnum("source").notNull().default("manual"),
 	// Optional link to automated follow-up if this touchpoint is part of an automated sequence
-	automatedFollowUpId: uuid("automated_follow_up_id")
-		.references(() => automatedFollowUps.id),
+	automatedFollowUpId: uuid("automated_follow_up_id").references(
+		() => automatedFollowUps.id,
+	),
 	// Metadata for external sources
 	externalId: text("external_id"), // ID from external system (OpenPhone, Gmail, etc.)
 	externalMetadata: text("external_metadata"), // JSON string for additional data from external sources

@@ -1,0 +1,380 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { RichTextEditor } from "@/components/rich-text-editor/RichTextEditor";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+
+import { useIntersectionObserver } from "@uidotdev/usehooks";
+import { format, parseISO } from "date-fns";
+import {
+	ArrowLeft,
+	ChevronLeft,
+	ChevronRight,
+	Download,
+	FileText,
+	Image as ImageIcon,
+	Pin,
+	Video,
+	X,
+} from "lucide-react";
+import { markAnnouncementAsRead } from "../actions/markAsRead";
+
+function formatCohortDisplayName(cohort: {
+	language_levels?: { display_name?: string } | null;
+	products?: { format?: string } | null;
+} | null): string {
+	if (!cohort) return "Unknown Class";
+
+	const level = cohort.language_levels?.display_name || "";
+	const format = cohort.products?.format
+		? cohort.products.format.charAt(0).toUpperCase() + cohort.products.format.slice(1)
+		: "";
+
+	if (level && format) {
+		return `${level} • ${format} Class`;
+	}
+	if (level) return level;
+	if (format) return `${format} Class`;
+	return "Unknown Class";
+}
+
+interface AnnouncementDetailProps {
+	announcement: any;
+	studentId: string;
+	isRead: boolean;
+}
+
+export function AnnouncementDetail({
+	announcement,
+	studentId,
+	isRead,
+}: AnnouncementDetailProps) {
+	const router = useRouter();
+	const [lightboxOpen, setLightboxOpen] = useState(false);
+	const [currentImageIndex, setCurrentImageIndex] = useState(0);
+	const [hasMarkedAsRead, setHasMarkedAsRead] = useState(false);
+
+	// Intersection observer to detect when content enters viewport
+	const [ref, entry] = useIntersectionObserver({
+		threshold: 0.3, // Trigger when 30% of content is visible
+		root: null,
+		rootMargin: "0px",
+	});
+
+	useEffect(() => {
+		// Mark as read when content enters viewport
+		if (entry?.isIntersecting && !isRead && !hasMarkedAsRead) {
+			setHasMarkedAsRead(true);
+			markAnnouncementAsRead(announcement.id, studentId);
+		}
+	}, [
+		entry?.isIntersecting,
+		isRead,
+		hasMarkedAsRead,
+		announcement.id,
+		studentId,
+	]);
+
+	const authorName =
+		announcement.author?.name ||
+		`${announcement.author?.first_name || ""} ${announcement.author?.last_name || ""}`.trim() ||
+		"Unknown";
+	const initials = authorName
+		.split(" ")
+		.map((n: string) => n[0])
+		.join("")
+		.slice(0, 2);
+
+	const formattedDate = format(
+		parseISO(announcement.created_at),
+		"MMMM d, yyyy 'at' h:mm a",
+	);
+
+	// Get all image attachments
+	const imageAttachments =
+		announcement.attachments?.filter((a: any) =>
+			a.file_type.startsWith("image"),
+		) || [];
+	const nonImageAttachments =
+		announcement.attachments?.filter(
+			(a: any) => !a.file_type.startsWith("image"),
+		) || [];
+
+	const getFileIcon = (fileType: string) => {
+		if (fileType.startsWith("image")) return ImageIcon;
+		if (fileType.startsWith("video")) return Video;
+		return FileText;
+	};
+
+	const formatFileSize = (bytes: number) => {
+		if (bytes < 1024) return `${bytes} B`;
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+	};
+
+	const openLightbox = (index: number) => {
+		setCurrentImageIndex(index);
+		setLightboxOpen(true);
+	};
+
+	const nextImage = () => {
+		setCurrentImageIndex((prev) => (prev + 1) % imageAttachments.length);
+	};
+
+	const previousImage = () => {
+		setCurrentImageIndex(
+			(prev) => (prev - 1 + imageAttachments.length) % imageAttachments.length,
+		);
+	};
+
+	// Parse content from JSON string
+	let parsedContent;
+	try {
+		parsedContent = JSON.parse(announcement.content);
+	} catch {
+		parsedContent = null;
+	}
+
+	return (
+		<>
+			<div className="mx-auto max-w-3xl space-y-6">
+				{/* Back Button */}
+				<Button
+					variant="ghost"
+					className="-ml-2 gap-2 text-sm"
+					onClick={() => router.push("/announcements")}
+				>
+					<ArrowLeft className="h-4 w-4" />
+					Back to Announcements
+				</Button>
+
+				{/* Main Content Card */}
+				<Card ref={ref as any}>
+					<CardContent className="p-6 md:p-8">
+						{/* Header */}
+						<div className="flex items-start justify-between">
+							<div className="flex items-start gap-3">
+								<Avatar className="h-10 w-10">
+									<AvatarImage src={announcement.author?.image} />
+									<AvatarFallback className="bg-primary/10 text-primary text-sm">
+										{initials}
+									</AvatarFallback>
+								</Avatar>
+								<div>
+									<div className="flex items-center gap-2">
+										<span className="font-semibold text-foreground text-base">
+											{authorName}
+										</span>
+										{announcement.is_pinned && (
+											<Badge variant="outline" className="gap-1 text-xs">
+												<Pin className="h-3 w-3 rotate-45" />
+												Pinned
+											</Badge>
+										)}
+									</div>
+									<div className="mt-0.5 text-muted-foreground text-sm">
+										{formattedDate}
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Scope Badge */}
+						<div className="mt-5">
+							<Badge variant="secondary" className="text-xs">
+								{announcement.scope === "school_wide"
+									? "School-wide Announcement"
+									: `Class Update: ${formatCohortDisplayName(announcement.cohort)}`}
+							</Badge>
+						</div>
+
+						{/* Title */}
+						<h1 className="mt-4 font-bold text-lg text-foreground tracking-tight md:text-xl">
+							{announcement.title}
+						</h1>
+
+						{/* Content */}
+						<div className="prose prose-sm mt-6 max-w-none text-foreground/90 text-sm leading-relaxed">
+							{parsedContent ? (
+								<RichTextEditor
+									content={parsedContent}
+									onChange={() => {}}
+									editable={false}
+									className="border-0 bg-transparent p-0 text-sm [&_.ProseMirror]:min-h-0 [&_.ProseMirror]:p-0 [&_.ProseMirror]:text-sm"
+								/>
+							) : (
+								<div className="whitespace-pre-line text-sm">
+									{announcement.content}
+								</div>
+							)}
+						</div>
+
+						{/* Image Attachments Grid */}
+						{imageAttachments.length > 0 && (
+							<div className="mt-6 space-y-3">
+								<h3 className="font-semibold text-foreground text-base">
+									Images ({imageAttachments.length})
+								</h3>
+								<div className="flex flex-wrap gap-2">
+									{imageAttachments.map((attachment: any, index: number) => (
+										<button
+											key={attachment.id}
+											type="button"
+											onClick={() => openLightbox(index)}
+											className="group relative aspect-square w-[200px] cursor-pointer overflow-hidden rounded-lg border border-border/50 transition-all hover:border-primary/30"
+										>
+											<img
+												src={attachment.file_url}
+												alt={attachment.file_name}
+												className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+											/>
+											{imageAttachments.length > 1 && (
+												<div className="absolute right-2 bottom-2 rounded bg-black/60 px-2 py-1 text-white text-xs">
+													{index + 1}/{imageAttachments.length}
+												</div>
+											)}
+										</button>
+									))}
+								</div>
+							</div>
+						)}
+
+						{/* Non-Image Attachments */}
+						{nonImageAttachments.length > 0 && (
+							<div className="mt-6 space-y-3">
+								<h3 className="font-semibold text-foreground text-base">
+									Attachments ({nonImageAttachments.length})
+								</h3>
+								<div className="space-y-2">
+									{nonImageAttachments.map((attachment: any) => {
+										const FileIcon = getFileIcon(attachment.file_type);
+										return (
+											<Card key={attachment.id}>
+												<CardContent className="flex items-center justify-between p-4">
+													<div className="flex items-center gap-3">
+														<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+															<FileIcon className="h-5 w-5 text-muted-foreground" />
+														</div>
+														<div>
+															<p className="font-medium text-sm">
+																{attachment.file_name}
+															</p>
+															<p className="text-muted-foreground text-xs">
+																{formatFileSize(attachment.file_size)}
+															</p>
+														</div>
+													</div>
+													<Button
+														size="sm"
+														variant="outline"
+														asChild
+														className="gap-2"
+													>
+														<a
+															href={attachment.file_url}
+															target="_blank"
+															rel="noopener noreferrer"
+															download
+														>
+															<Download className="h-4 w-4" />
+															Download
+														</a>
+													</Button>
+												</CardContent>
+											</Card>
+										);
+									})}
+								</div>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+
+				{/* Additional Info Card */}
+				<Card>
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between text-muted-foreground text-xs">
+							<div>
+								Posted on{" "}
+								{format(parseISO(announcement.created_at), "MMMM d, yyyy")}
+							</div>
+							{announcement.updated_at !== announcement.created_at && (
+								<div>
+									Last updated{" "}
+									{format(parseISO(announcement.updated_at), "MMM d, yyyy")}
+								</div>
+							)}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Image Lightbox */}
+			{imageAttachments.length > 0 && (
+				<Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+					<DialogContent className="max-w-5xl border-0 bg-black/95 p-0">
+						<DialogTitle className="sr-only">
+							Image {currentImageIndex + 1} of {imageAttachments.length}
+						</DialogTitle>
+						<div className="relative flex max-h-[90vh] min-h-[400px] items-center justify-center">
+							{/* Close Button */}
+							<button
+								onClick={() => setLightboxOpen(false)}
+								className="absolute top-4 right-4 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
+								type="button"
+							>
+								<X className="h-5 w-5" />
+							</button>
+
+							{/* Image Counter */}
+							{imageAttachments.length > 1 && (
+								<div className="absolute top-4 left-4 z-10 rounded-full bg-black/50 px-3 py-1.5 text-sm text-white">
+									{currentImageIndex + 1} / {imageAttachments.length}
+								</div>
+							)}
+
+							{/* Previous Button */}
+							{imageAttachments.length > 1 && (
+								<button
+									onClick={previousImage}
+									className="absolute left-4 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
+									type="button"
+								>
+									<ChevronLeft className="h-6 w-6" />
+								</button>
+							)}
+
+							{/* Image */}
+							{imageAttachments[currentImageIndex] && (
+								<img
+									src={imageAttachments[currentImageIndex].file_url}
+									alt={imageAttachments[currentImageIndex].file_name}
+									className="max-h-[90vh] w-auto object-contain"
+								/>
+							)}
+
+							{/* Next Button */}
+							{imageAttachments.length > 1 && (
+								<button
+									onClick={nextImage}
+									className="absolute right-4 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
+									type="button"
+								>
+									<ChevronRight className="h-6 w-6" />
+								</button>
+							)}
+						</div>
+					</DialogContent>
+				</Dialog>
+			)}
+		</>
+	);
+}

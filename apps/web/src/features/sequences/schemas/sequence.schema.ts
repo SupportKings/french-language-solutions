@@ -15,14 +15,15 @@ export const sequenceSchema = z.object({
 	id: z.string().uuid(),
 	display_name: z.string(),
 	subject: z.string(),
-	first_follow_up_delay_minutes: z.number(),
 	created_at: z.string(),
 	updated_at: z.string(),
 	// Relations
 	template_follow_up_messages: z.array(sequenceMessageSchema).optional(),
-	_count: z.object({
-		automated_follow_ups: z.number(),
-	}).optional(),
+	_count: z
+		.object({
+			automated_follow_ups: z.number(),
+		})
+		.optional(),
 });
 
 export type Sequence = z.infer<typeof sequenceSchema>;
@@ -35,3 +36,16 @@ export const sequenceQuerySchema = z.object({
 });
 
 export type SequenceQuery = z.infer<typeof sequenceQuerySchema>;
+
+export const createSequenceSchema = z.object({
+	display_name: z
+		.string()
+		.min(1, "Name is required")
+		.max(100, "Name is too long"),
+	subject: z
+		.string()
+		.min(1, "Subject is required")
+		.max(200, "Subject is too long"),
+});
+
+export type CreateSequence = z.infer<typeof createSequenceSchema>;

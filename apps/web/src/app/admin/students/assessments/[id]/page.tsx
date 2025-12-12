@@ -1,46 +1,71 @@
-import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { AssessmentDetailsClient } from "@/features/assessments/components/AssessmentDetailsClient";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 
-interface AssessmentPageProps {
+import { getApiUrl } from "@/lib/api-utils";
+import { rolesMap } from "@/lib/permissions";
+
+import { AccessDenied } from "@/components/ui/access-denied";
+
+import { getUser } from "@/queries/getUser";
+
+import AssessmentDetailsClient from "./page-client";
+
+interface PageProps {
 	params: Promise<{ id: string }>;
 }
 
-export default async function AssessmentDetailsPage({ params }: AssessmentPageProps) {
+async function getAssessment(id: string) {
+	// For server-side fetching in Next.js App Router, we need to construct the full URL
+	const response = await fetch(getApiUrl(`/api/assessments/${id}`), {
+		cache: "no-store",
+		headers: {
+			"Content-Type": "application/json",
+			cookie: (await headers()).get("cookie") ?? "",
+		},
+	});
+
+	if (!response.ok) {
+		// Return both data and status
+		return { data: null, status: response.status };
+	}
+
+	const data = await response.json();
+	return { data, status: 200 };
+}
+
+export default async function AssessmentDetailsPage({ params }: PageProps) {
 	const { id } = await params;
-	const supabase = await createClient();
+	const session = await getUser();
 
-	// Fetch assessment with all related data
-	const { data: assessment, error } = await supabase
-		.from("student_assessments")
-		.select(`
-			*,
-			students(
-				id,
-				full_name,
-				email,
-				mobile_phone_number,
-				city
-			),
-			interview_held_by:teachers!interview_held_by(
-				id,
-				first_name,
-				last_name,
-				email
-			),
-			level_checked_by:teachers!level_checked_by(
-				id,
-				first_name,
-				last_name,
-				email
-			)
-		`)
-		.eq("id", id)
-		.single();
+	if (!session) {
+		redirect("/signin");
+	}
 
-	if (error || !assessment) {
+	// Get user's role and permissions
+	const userRole = session.user.role || "teacher";
+	const rolePermissions = rolesMap[userRole as keyof typeof rolesMap];
+	const permissions = rolePermissions?.statements || {};
+
+	const result = await getAssessment(id);
+
+	// Handle different error cases
+	if (!result.data) {
+		if (result.status === 403) {
+			return (
+				<AccessDenied
+					message="You don't have permission to view this assessment."
+					backLink="/admin/students/assessments"
+					backLinkText="Back to Assessments List"
+				/>
+			);
+		}
 		notFound();
 	}
 
-	return <AssessmentDetailsClient assessment={assessment} />;
+	return (
+		<AssessmentDetailsClient
+			assessment={result.data}
+			permissions={permissions}
+		/>
+	);
 }

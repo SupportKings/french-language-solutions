@@ -10,25 +10,7 @@ export const initialChannelEnum = z.enum([
 	"assessment",
 ]);
 
-export const communicationChannelEnum = z.enum([
-	"sms_email",
-	"email",
-	"sms",
-]);
-
-export const languageLevelEnum = z.enum([
-	"a1",
-	"a1_plus",
-	"a2",
-	"a2_plus",
-	"b1",
-	"b1_plus",
-	"b2",
-	"b2_plus",
-	"c1",
-	"c1_plus",
-	"c2",
-]);
+export const communicationChannelEnum = z.enum(["sms_email", "email", "sms"]);
 
 // Student schema matching Supabase database exactly
 export const studentSchema = z.object({
@@ -38,7 +20,8 @@ export const studentSchema = z.object({
 	first_name: z.string().nullable(), // Generated column
 	last_name: z.string().nullable(), // Generated column
 	email: z.string().email("Invalid email address").nullable(),
-	desired_starting_language_level: languageLevelEnum.nullable(),
+	desired_starting_language_level_id: z.string().uuid().nullable(),
+	goal_language_level_id: z.string().uuid().nullable(),
 	mobile_phone_number: z.string().nullable(),
 	city: z.string().nullable(),
 	website_quiz_submission_date: z.string().nullable(), // Date as string from DB
@@ -55,6 +38,7 @@ export const studentSchema = z.object({
 	subjective_deadline_for_student: z.string().nullable(), // Date as string from DB
 	purpose_to_learn: z.string().nullable(),
 	airtable_record_id: z.string().nullable(),
+	airtable_created_at: z.string().nullable(), // Airtable creation date
 	created_at: z.string(), // Timestamp as string from DB
 	updated_at: z.string(), // Timestamp as string from DB
 	deleted_at: z.string().nullable(), // Timestamp as string from DB
@@ -69,6 +53,7 @@ export const createStudentSchema = studentSchema.omit({
 	updated_at: true,
 	deleted_at: true,
 	airtable_record_id: true,
+	airtable_created_at: true,
 	user_id: true,
 	convertkit_id: true,
 	openphone_contact_id: true,
@@ -84,7 +69,7 @@ export const studentQuerySchema = z.object({
 	page: z.number().min(1).default(1),
 	limit: z.number().min(1).max(100).default(20),
 	search: z.string().optional(),
-	desired_starting_language_level: languageLevelEnum.optional(),
+	desired_starting_language_level_id: z.string().uuid().optional(),
 	initial_channel: initialChannelEnum.optional(),
 	sortBy: z.enum(["created_at", "full_name", "email"]).default("created_at"),
 	sortOrder: z.enum(["asc", "desc"]).default("desc"),

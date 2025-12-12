@@ -8,11 +8,7 @@ export const classStatusEnum = z.enum([
 	"cancelled",
 ]);
 
-export const classModeEnum = z.enum([
-	"online",
-	"in_person",
-	"hybrid",
-]);
+export const classModeEnum = z.enum(["online", "in_person", "hybrid"]);
 
 // Base class schema for forms
 export const classFormSchema = z.object({
@@ -25,12 +21,20 @@ export const classFormSchema = z.object({
 	mode: classModeEnum,
 	google_calendar_event_id: z.string().optional().nullable(),
 	room: z.string().optional().nullable(),
-	meeting_link: z.string().url("Invalid URL").optional().nullable().or(z.literal("")),
-	google_drive_folder_id: z.string().optional().nullable(),
+	meeting_link: z
+		.string()
+		.url("Invalid URL")
+		.optional()
+		.nullable()
+		.or(z.literal("")),
 	materials: z.string().optional().nullable(),
 	max_students: z.number().int().positive("Must be a positive number"),
-	current_enrollment: z.number().int().min(0, "Cannot be negative"),
-	teacher_id: z.string().uuid("Invalid teacher ID").optional().nullable().or(z.literal("")),
+	teacher_id: z
+		.string()
+		.uuid("Invalid teacher ID")
+		.optional()
+		.nullable()
+		.or(z.literal("")),
 	is_active: z.boolean(),
 	notes: z.string().optional().nullable(),
 });

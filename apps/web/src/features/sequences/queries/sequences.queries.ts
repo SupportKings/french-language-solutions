@@ -1,5 +1,10 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { SequenceQuery } from "../schemas/sequence.schema";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import type { CreateSequence, SequenceQuery } from "../schemas/sequence.schema";
 
 export const sequencesQueries = {
 	all: () => ["sequences"] as const,
@@ -38,9 +43,30 @@ export function useSequence(id: string) {
 	return useQuery(sequencesQueries.detail(id));
 }
 
+export function useCreateSequence() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (data: CreateSequence) => {
+			const response = await fetch("/api/sequences", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			});
+			if (!response.ok) throw new Error("Failed to create sequence");
+			return response.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: sequencesQueries.lists() });
+		},
+	});
+}
+
 export function useDeleteSequence() {
 	const queryClient = useQueryClient();
-	
+
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const response = await fetch(`/api/sequences/${id}`, {

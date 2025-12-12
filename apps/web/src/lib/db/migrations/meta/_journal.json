@@ -1,55 +1,55 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1755586493389,
-      "tag": "0000_loose_typhoid_mary",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1755590109336,
-      "tag": "0001_sharp_tigra",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1755590523806,
-      "tag": "0002_outstanding_doorman",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1755645587487,
-      "tag": "0003_early_emma_frost",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1755646503553,
-      "tag": "0004_naive_sentry",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1755646779891,
-      "tag": "0005_spotty_spectrum",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1755648152399,
-      "tag": "0006_complete_mindworm",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1755586493389,
+			"tag": "0000_loose_typhoid_mary",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1755590109336,
+			"tag": "0001_sharp_tigra",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1755590523806,
+			"tag": "0002_outstanding_doorman",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1755645587487,
+			"tag": "0003_early_emma_frost",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1755646503553,
+			"tag": "0004_naive_sentry",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1755646779891,
+			"tag": "0005_spotty_spectrum",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1755648152399,
+			"tag": "0006_complete_mindworm",
+			"breakpoints": true
+		}
+	]
 }

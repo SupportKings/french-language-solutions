@@ -20,7 +20,7 @@ export async function sendOTP(data: z.infer<typeof OTPInput>) {
 		const validatedData = OTPInput.parse(data);
 
 		const { error } = await resend.emails.send({
-			from: "French Language Solutions <onboarding@resend.dev>",
+			from: "French Language Solutions <portal@frenchlanguagesolutions.com>",
 			to: [validatedData.email],
 			subject:
 				validatedData.type === "email-verification"

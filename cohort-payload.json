@@ -1,0 +1,41 @@
+{
+	"cohort_id": "550e8400-e29b-41d4-a716-446655440000",
+	"event_summary": "French Beginner Level 1 - Online",
+	"location": "Online",
+	"sessions": [
+		{
+			"session_id": "ws-123e4567-e89b-12d3-a456-426614174001",
+			"first_event_start_time": "2024-01-15T09:00:00.000Z",
+			"first_event_end_time": "2024-01-15T10:30:00.000Z",
+			"day_of_week_abbreviation": "MO",
+			"teacher_name": "Marie Dubois",
+			"teacher_calendar_id": "marie.dubois@frenchlanguagesolutions.com",
+			"event_summary": "French Beginner Level 1 - Online: Monday / Marie Dubois"
+		},
+		{
+			"session_id": "ws-123e4567-e89b-12d3-a456-426614174002",
+			"first_event_start_time": "2024-01-17T09:00:00.000Z",
+			"first_event_end_time": "2024-01-17T10:30:00.000Z",
+			"day_of_week_abbreviation": "WE",
+			"teacher_name": "Marie Dubois",
+			"teacher_calendar_id": "marie.dubois@frenchlanguagesolutions.com",
+			"event_summary": "French Beginner Level 1 - Online: Wednesday / Marie Dubois"
+		},
+		{
+			"session_id": "ws-123e4567-e89b-12d3-a456-426614174003",
+			"first_event_start_time": "2024-01-19T09:00:00.000Z",
+			"first_event_end_time": "2024-01-19T10:30:00.000Z",
+			"day_of_week_abbreviation": "FR",
+			"teacher_name": "Pierre Martin",
+			"teacher_calendar_id": "pierre.martin@frenchlanguagesolutions.com",
+			"event_summary": "French Beginner Level 1 - Online: Friday / Pierre Martin"
+		}
+	],
+	"attendees": [
+		"john.doe@example.com",
+		"jane.smith@example.com",
+		"robert.johnson@example.com",
+		"marie.dubois@example.com",
+		"pierre.martin@example.com"
+	]
+}

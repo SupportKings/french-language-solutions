@@ -5,31 +5,39 @@ import type * as React from "react";
 import { usePathname } from "next/navigation";
 
 import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarMenu,
 } from "@/components/ui/sidebar";
 
-import { BookOpen } from "lucide-react";
+import { BookOpen, UserCog } from "lucide-react";
+import { IconWrapper } from "./icon-wrapper";
 import { SidebarItemComponent } from "./sidebar-item";
 
 export function NavSecondary({
-  ...props
-}: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const pathname = usePathname();
-  const isActive = pathname === "/dashboard/knowledge-base";
+	userRole,
+	...props
+}: React.ComponentPropsWithoutRef<typeof SidebarGroup> & {
+	userRole?: string;
+}) {
+	const pathname = usePathname();
 
-  return (
-    <SidebarGroup {...props}>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          <SidebarItemComponent
-            href="/dashboard/knowledge-base"
-            label="Knowledge Base"
-            icon={<BookOpen size={16} />}
-          />
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
+	// Only show portal users to admins
+	const canAccessPortalUsers = userRole === "admin";
+
+	return (
+		<SidebarGroup {...props}>
+			<SidebarGroupContent>
+				<SidebarMenu>
+					{canAccessPortalUsers && (
+						<SidebarItemComponent
+							href="/admin/portal-users"
+							label="Portal Users"
+							icon={<IconWrapper name="UserCog" size={16} />}
+						/>
+					)}
+				</SidebarMenu>
+			</SidebarGroupContent>
+		</SidebarGroup>
+	);
 }

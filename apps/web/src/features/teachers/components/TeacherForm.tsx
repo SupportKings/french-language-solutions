@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Form,
 	FormControl,
@@ -14,9 +16,6 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import {
 	Select,
 	SelectContent,
@@ -24,15 +23,22 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { 
-	teacherFormSchema, 
-	type TeacherFormData, 
-	type Teacher 
+import {
+	useCreateTeacher,
+	useUpdateTeacher,
+} from "../queries/teachers.queries";
+import {
+	type Teacher,
+	type TeacherFormData,
+	teacherFormSchema,
 } from "../schemas/teacher.schema";
-import { useCreateTeacher, useUpdateTeacher } from "../queries/teachers.queries";
 
 interface TeacherFormProps {
 	teacher?: Teacher;
@@ -58,8 +64,10 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 			qualified_for_under_16: teacher?.qualified_for_under_16 ?? false,
 			available_for_booking: teacher?.available_for_booking ?? true,
 			contract_type: teacher?.contract_type || undefined,
-			available_for_online_classes: teacher?.available_for_online_classes ?? true,
-			available_for_in_person_classes: teacher?.available_for_in_person_classes ?? false,
+			available_for_online_classes:
+				teacher?.available_for_online_classes ?? true,
+			available_for_in_person_classes:
+				teacher?.available_for_in_person_classes ?? false,
 			mobile_phone_number: teacher?.mobile_phone_number || "",
 			admin_notes: teacher?.admin_notes || "",
 		},
@@ -77,7 +85,11 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 			}
 			router.push("/admin/teachers");
 		} catch (error) {
-			toast.error(mode === "create" ? "Failed to create teacher" : "Failed to update teacher");
+			toast.error(
+				mode === "create"
+					? "Failed to create teacher"
+					: "Failed to update teacher",
+			);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -170,7 +182,10 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Onboarding Status</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="Select status" />
@@ -178,7 +193,9 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 											</FormControl>
 											<SelectContent>
 												<SelectItem value="new">New</SelectItem>
-												<SelectItem value="training_in_progress">Training in Progress</SelectItem>
+												<SelectItem value="training_in_progress">
+													Training in Progress
+												</SelectItem>
 												<SelectItem value="onboarded">Onboarded</SelectItem>
 												<SelectItem value="offboarded">Offboarded</SelectItem>
 											</SelectContent>
@@ -194,7 +211,10 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Contract Type</FormLabel>
-										<Select onValueChange={field.onChange} defaultValue={field.value}>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
 											<FormControl>
 												<SelectTrigger>
 													<SelectValue placeholder="Select contract type" />
@@ -217,14 +237,19 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Group Class Bonus Terms</FormLabel>
-									<Select onValueChange={field.onChange} defaultValue={field.value}>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
 										<FormControl>
 											<SelectTrigger>
 												<SelectValue placeholder="Select bonus terms" />
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
-											<SelectItem value="per_student_per_hour">Per Student Per Hour</SelectItem>
+											<SelectItem value="per_student_per_hour">
+												Per Student Per Hour
+											</SelectItem>
 											<SelectItem value="per_hour">Per Hour</SelectItem>
 										</SelectContent>
 									</Select>
@@ -249,10 +274,16 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 									<FormItem>
 										<FormLabel>Maximum Hours Per Week</FormLabel>
 										<FormControl>
-											<Input 
-												type="number" 
-												{...field} 
-												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+											<Input
+												type="number"
+												{...field}
+												onChange={(e) =>
+													field.onChange(
+														e.target.value
+															? Number.parseInt(e.target.value)
+															: undefined,
+													)
+												}
 												value={field.value || ""}
 											/>
 										</FormControl>
@@ -268,10 +299,16 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 									<FormItem>
 										<FormLabel>Maximum Hours Per Day</FormLabel>
 										<FormControl>
-											<Input 
-												type="number" 
+											<Input
+												type="number"
 												{...field}
-												onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+												onChange={(e) =>
+													field.onChange(
+														e.target.value
+															? Number.parseInt(e.target.value)
+															: undefined,
+													)
+												}
 												value={field.value || ""}
 											/>
 										</FormControl>
@@ -290,7 +327,9 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
 										<div className="space-y-0.5">
-											<FormLabel className="text-base">Available for Booking</FormLabel>
+											<FormLabel className="text-base">
+												Available for Booking
+											</FormLabel>
 											<FormDescription>
 												Teacher can be scheduled for new classes
 											</FormDescription>
@@ -311,7 +350,9 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
 										<div className="space-y-0.5">
-											<FormLabel className="text-base">Qualified for Under 16</FormLabel>
+											<FormLabel className="text-base">
+												Qualified for Under 16
+											</FormLabel>
 											<FormDescription>
 												Teacher can teach students under 16 years old
 											</FormDescription>
@@ -332,7 +373,9 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
 										<div className="space-y-0.5">
-											<FormLabel className="text-base">Available for Online Classes</FormLabel>
+											<FormLabel className="text-base">
+												Available for Online Classes
+											</FormLabel>
 											<FormDescription>
 												Teacher can conduct online classes
 											</FormDescription>
@@ -353,7 +396,9 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
 										<div className="space-y-0.5">
-											<FormLabel className="text-base">Available for In-Person Classes</FormLabel>
+											<FormLabel className="text-base">
+												Available for In-Person Classes
+											</FormLabel>
 											<FormDescription>
 												Teacher can conduct in-person classes
 											</FormDescription>
@@ -383,8 +428,8 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 							render={({ field }) => (
 								<FormItem>
 									<FormControl>
-										<Textarea 
-											{...field} 
+										<Textarea
+											{...field}
 											placeholder="Internal notes about this teacher..."
 											className="min-h-[100px]"
 										/>
@@ -401,11 +446,12 @@ export function TeacherForm({ teacher, mode }: TeacherFormProps) {
 
 				{/* Actions */}
 				<div className="flex gap-4">
-					<Button
-						type="submit"
-						disabled={isSubmitting}
-					>
-						{isSubmitting ? "Saving..." : mode === "create" ? "Create Teacher" : "Update Teacher"}
+					<Button type="submit" disabled={isSubmitting}>
+						{isSubmitting
+							? "Saving..."
+							: mode === "create"
+								? "Create Teacher"
+								: "Update Teacher"}
 					</Button>
 					<Button
 						type="button"

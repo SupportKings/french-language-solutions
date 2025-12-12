@@ -1,0 +1,73 @@
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+
+import { MainContent, PageHeader, StudentSidebar } from "@/components/layout";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+
+import { getUnreadAnnouncementCount } from "@/features/announcements/queries/getUnreadCount";
+import { getUnreadChatCount } from "@/features/chats/queries/getUnreadChatCount";
+
+import { getUser } from "@/queries/getUser";
+
+export default async function AuthenticatedLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	const session = await getUser();
+
+	if (!session?.user) {
+		redirect("/");
+	}
+
+	// Check if user is banned
+	const supabase = await createClient();
+	const { data: user } = await supabase
+		.from("user")
+		.select("banned, banReason, image")
+		.eq("id", session.user.id)
+		.single();
+
+	if (user?.banned) {
+		redirect("/?error=access_revoked");
+	}
+
+	// Verify user is a student
+	const { data: student } = await supabase
+		.from("students")
+		.select("id, full_name, first_name, email")
+		.eq("user_id", session.user.id)
+		.single();
+
+	if (!student) {
+		redirect("/?error=not_a_student");
+	}
+
+	// Get unread counts
+	const [unreadCount, unreadChatCount] = await Promise.all([
+		getUnreadAnnouncementCount(student.id),
+		getUnreadChatCount(session.user.id),
+	]);
+
+	const studentData = {
+		id: student.id,
+		fullName: student.full_name || "Student",
+		email: student.email || "",
+		avatar: user?.image || undefined,
+	};
+
+	return (
+		<SidebarProvider>
+			<StudentSidebar
+				student={studentData}
+				unreadAnnouncementCount={unreadCount}
+				unreadChatCount={unreadChatCount}
+			/>
+			<SidebarInset>
+				<PageHeader student={studentData} unreadCount={unreadCount} />
+				<MainContent>{children}</MainContent>
+			</SidebarInset>
+		</SidebarProvider>
+	);
+}

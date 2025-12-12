@@ -1,92 +1,128 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from "date-fns";
-import { 
-	CalendarIcon, 
-	GraduationCap,
-	MapPin,
-	FolderOpen,
-	BookOpen,
-	Users,
-	Clock,
-	Plus,
-	Trash2,
-	Info,
-	ChevronLeft,
-	Settings,
-	Calendar
-} from "lucide-react";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+
+import { parseDateString } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
+
+import { extractGoogleDriveFolderId } from "@/utils/google-drive";
+
+import {
+	FormActions,
+	FormContent,
+	FormField,
+	FormHeader,
+	FormLayout,
+	FormRow,
+	FormSection,
+	InfoBanner,
+	InputField,
+	SelectField,
+	TextareaField,
+} from "@/components/form-layout/FormLayout";
+import { SearchableSelect } from "@/components/form-layout/SearchableSelect";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+
+import { languageLevelQueries } from "@/features/language-levels/queries/language-levels.queries";
+import {
+	productQueries,
+	useAllProducts,
+} from "@/features/products/queries/products.queries";
+import {
+	teachersQueries,
+	useTeachers,
+} from "@/features/teachers/queries/teachers.queries";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
+	AlertCircle,
+	BookOpen,
+	Calendar as CalendarIcon,
+	ChevronDown,
+	Clock,
+	FolderOpen,
+	GraduationCap,
+	Info,
+	MapPin,
+	Plus,
+	Settings,
+	Trash2,
+	User,
+	Users,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import {
-	Form,
-	FormControl,
-	FormDescription,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
+import { z } from "zod";
+import { useCreateCohort, useUpdateCohort } from "../queries/cohorts.queries";
 
 // Schema for the cohort form
 const cohortFormSchema = z.object({
 	// Basic Information
-	title: z.string().optional(),
-	format: z.enum(["group", "private"]),
-	starting_level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]),
-	current_level: z.enum([
-		"a1", "a1_plus", "a2", "a2_plus", "b1", "b1_plus", 
-		"b2", "b2_plus", "c1", "c1_plus", "c2"
-	]).optional(),
-	
+	nickname: z.string().optional(),
+	starting_level_id: z.string().min(1, "Starting level is required"),
+	current_level_id: z.string().optional(),
+	max_students: z.number().int().min(1).max(100).optional(),
+	product_id: z.string().optional(),
+
 	// Schedule
 	start_date: z.date().optional(),
-	cohort_status: z.enum(["enrollment_open", "enrollment_closed", "class_ended"]),
-	
-	// Location
-	room_type: z.enum(["for_one_to_one", "medium", "medium_plus", "large"]).optional(),
-	room: z.string().optional(),
-	
+	cohort_status: z.enum([
+		"enrollment_open",
+		"enrollment_closed",
+		"class_ended",
+	]),
+
 	// Resources
-	product_id: z.string().optional(),
-	google_drive_folder_id: z.string().optional(),
-	
+	google_drive_folder_id: z
+		.string()
+		.optional()
+		.refine(
+			(val) => {
+				// If empty, it's valid (optional field)
+				if (!val || val.trim() === "") return true;
+				// If provided, must be valid format
+				return extractGoogleDriveFolderId(val) !== null;
+			},
+			{
+				message:
+					"Invalid Google Drive folder URL or ID. Please paste a valid Google Drive folder URL or folder ID.",
+			},
+		),
+
 	// Weekly Sessions
-	weekly_sessions: z.array(z.object({
-		id: z.string().optional(),
-		day_of_week: z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]),
-		start_time: z.string(),
-		end_time: z.string(),
-		teacher_id: z.string().optional(),
-		google_calendar_event_id: z.string().optional(),
-	})),
-	
+	weekly_sessions: z.array(
+		z
+			.object({
+				id: z.string().optional(),
+				day_of_week: z.enum([
+					"monday",
+					"tuesday",
+					"wednesday",
+					"thursday",
+					"friday",
+					"saturday",
+					"sunday",
+				]),
+				start_time: z.string(),
+				end_time: z.string(),
+				teacher_id: z.string().optional(),
+				google_calendar_event_id: z.string().optional(),
+			})
+			.refine((s) => s.start_time < s.end_time, {
+				path: ["end_time"],
+				message: "End time must be after start time",
+			}),
+	),
 	// External IDs
 	airtable_record_id: z.string().optional(),
 });
@@ -98,55 +134,71 @@ interface CohortFormProps {
 	onSuccess?: () => void;
 }
 
-const levelOptions = [
-	{ value: "a1", label: "A1" },
-	{ value: "a1_plus", label: "A1+" },
-	{ value: "a2", label: "A2" },
-	{ value: "a2_plus", label: "A2+" },
-	{ value: "b1", label: "B1" },
-	{ value: "b1_plus", label: "B1+" },
-	{ value: "b2", label: "B2" },
-	{ value: "b2_plus", label: "B2+" },
-	{ value: "c1", label: "C1" },
-	{ value: "c1_plus", label: "C1+" },
-	{ value: "c2", label: "C2" },
+const statusOptions = [
+	{ label: "Enrollment Open", value: "enrollment_open" },
+	{ label: "Enrollment Closed", value: "enrollment_closed" },
+	{ label: "Class Ended", value: "class_ended" },
 ];
 
-const roomTypeOptions = [
-	{ value: "for_one_to_one", label: "One-to-One" },
-	{ value: "medium", label: "Medium" },
-	{ value: "medium_plus", label: "Medium Plus" },
-	{ value: "large", label: "Large" },
+const formatOptions = [
+	{ label: "Group", value: "group" },
+	{ label: "Private", value: "private" },
 ];
 
 const dayOptions = [
-	{ value: "monday", label: "Monday" },
-	{ value: "tuesday", label: "Tuesday" },
-	{ value: "wednesday", label: "Wednesday" },
-	{ value: "thursday", label: "Thursday" },
-	{ value: "friday", label: "Friday" },
-	{ value: "saturday", label: "Saturday" },
-	{ value: "sunday", label: "Sunday" },
+	{ label: "Monday", value: "monday" },
+	{ label: "Tuesday", value: "tuesday" },
+	{ label: "Wednesday", value: "wednesday" },
+	{ label: "Thursday", value: "thursday" },
+	{ label: "Friday", value: "friday" },
+	{ label: "Saturday", value: "saturday" },
+	{ label: "Sunday", value: "sunday" },
 ];
 
 export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 	const router = useRouter();
-	const [isLoading, setIsLoading] = useState(false);
-	const [teachers, setTeachers] = useState<any[]>([]);
-	const [products, setProducts] = useState<any[]>([]);
+	const createCohortMutation = useCreateCohort();
+	const updateCohortMutation = useUpdateCohort();
+	const [showSessions, setShowSessions] = useState(
+		cohort?.weekly_sessions?.length > 0 || false,
+	);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const isEditMode = !!cohort;
+	// Track original weekly sessions to detect removals
+	const [originalSessionIds] = useState<string[]>(
+		cohort?.weekly_sessions?.filter((s: any) => s.id).map((s: any) => s.id) ||
+			[],
+	);
+
+	// Fetch language levels
+	const { data: languageLevels, isLoading: languageLevelsLoading } = useQuery(
+		languageLevelQueries.list(),
+	);
+	const levelOptions = languageLevels || [];
+
+	// Fetch teachers
+	const { data: teachersData, isLoading: teachersLoading } = useTeachers({
+		page: 1,
+		limit: 100,
+		sortBy: "first_name",
+		sortOrder: "asc",
+	});
+	const teachers = teachersData?.data || [];
+
+	// Fetch all products (unpaginated for dropdown)
+	const { data: products = [], isLoading: productsLoading } = useAllProducts();
 
 	const form = useForm<CohortFormValues>({
 		resolver: zodResolver(cohortFormSchema),
 		defaultValues: {
-			title: cohort?.title || "",
-			format: cohort?.format || "group",
-			starting_level: cohort?.starting_level || "a1",
-			current_level: cohort?.current_level || cohort?.starting_level,
-			start_date: cohort?.start_date ? new Date(cohort.start_date) : undefined,
+			nickname: cohort?.nickname || "",
+			starting_level_id: cohort?.starting_level_id || "",
+			current_level_id: cohort?.current_level_id || "",
+			max_students: cohort?.max_students || 20,
+			start_date: cohort?.start_date
+				? parseDateString(cohort.start_date)
+				: undefined,
 			cohort_status: cohort?.cohort_status ?? "enrollment_open",
-			room_type: cohort?.room_type,
-			room: cohort?.room || "",
 			product_id: cohort?.product_id || "",
 			google_drive_folder_id: cohort?.google_drive_folder_id || "",
 			weekly_sessions: cohort?.weekly_sessions ?? [],
@@ -154,32 +206,8 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 		},
 	});
 
-	// Fetch teachers and products
-	React.useEffect(() => {
-		async function fetchData() {
-			try {
-				// Fetch teachers
-				const teachersResponse = await fetch("/api/teachers");
-				if (teachersResponse.ok) {
-					const teachersData = await teachersResponse.json();
-					setTeachers(teachersData);
-				}
-
-				// Fetch products
-				const productsResponse = await fetch("/api/products");
-				if (productsResponse.ok) {
-					const productsData = await productsResponse.json();
-					setProducts(productsData);
-				}
-			} catch (error) {
-				console.error("Error fetching data:", error);
-			}
-		}
-		fetchData();
-	}, []);
-
 	const addWeeklySession = () => {
-		const currentSessions = form.getValues("weekly_sessions");
+		const currentSessions = form.getValues("weekly_sessions") || [];
 		form.setValue("weekly_sessions", [
 			...currentSessions,
 			{
@@ -188,546 +216,554 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 				end_time: "10:00",
 				teacher_id: "",
 				google_calendar_event_id: "",
-			}
+			},
 		]);
 	};
 
 	const removeWeeklySession = (index: number) => {
-		const currentSessions = form.getValues("weekly_sessions");
-		form.setValue("weekly_sessions", currentSessions.filter((_, i) => i !== index));
+		const currentSessions = form.getValues("weekly_sessions") || [];
+		form.setValue(
+			"weekly_sessions",
+			currentSessions.filter((_, i) => i !== index),
+		);
 	};
 
 	const onSubmit = async (data: CohortFormValues) => {
-		setIsLoading(true);
+		// Prevent duplicate submissions
+		if (isSubmitting) return;
+
+		setIsSubmitting(true);
 		try {
 			const formattedData = {
 				...data,
-				start_date: data.start_date ? format(data.start_date, "yyyy-MM-dd") : null,
-				current_level: data.current_level || data.starting_level,
+				nickname: data.nickname || null,
+				start_date: data.start_date
+					? format(data.start_date, "yyyy-MM-dd")
+					: null,
+				current_level_id: data.current_level_id || data.starting_level_id,
+				max_students: data.max_students || 20,
+				google_drive_folder_id: data.google_drive_folder_id
+					? extractGoogleDriveFolderId(data.google_drive_folder_id)
+					: null,
+				airtable_record_id: data.airtable_record_id || null,
+				product_id: data.product_id || null,
+				starting_level_id: data.starting_level_id || null,
+				room_type: null,
+				setup_finalized: cohort?.setup_finalized ?? false,
 			};
 
-			const response = await fetch(
-				isEditMode ? `/api/cohorts/${cohort.id}` : "/api/cohorts",
-				{
-					method: isEditMode ? "PATCH" : "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(formattedData),
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error("Failed to save cohort");
+			// Use mutation hooks for better cache management
+			let savedCohort;
+			if (isEditMode) {
+				savedCohort = await updateCohortMutation.mutateAsync({
+					id: cohort.id,
+					data: formattedData,
+				});
+			} else {
+				savedCohort = await createCohortMutation.mutateAsync(formattedData);
 			}
 
-			const savedCohort = await response.json();
+			// Delete removed weekly sessions
+			if (isEditMode && originalSessionIds.length > 0) {
+				const currentSessionIds =
+					formattedData.weekly_sessions
+						?.filter((s: any) => s.id)
+						.map((s: any) => s.id) || [];
 
-			// Save weekly sessions
-			if (formattedData.weekly_sessions.length > 0) {
-				for (const session of formattedData.weekly_sessions) {
-					const sessionData = {
-						...session,
-						cohort_id: savedCohort.id,
-					};
+				const sessionsToDelete = originalSessionIds.filter(
+					(id) => !currentSessionIds.includes(id),
+				);
 
-					const sessionResponse = await fetch(
-						session.id ? `/api/weekly-sessions/${session.id}` : "/api/cohorts/" + savedCohort.id + "/sessions",
-						{
-							method: session.id ? "PATCH" : "POST",
-							headers: { "Content-Type": "application/json" },
-							body: JSON.stringify(sessionData),
-						}
-					);
+				if (sessionsToDelete.length > 0) {
+					try {
+						const deletePromises = sessionsToDelete.map(async (sessionId) => {
+							const deleteResponse = await fetch(
+								`/api/weekly-sessions/${sessionId}`,
+								{ method: "DELETE" },
+							);
 
-					if (!sessionResponse.ok) {
-						console.error("Failed to save weekly session");
+							if (!deleteResponse.ok) {
+								const errorText = await deleteResponse.text();
+								console.error(`Failed to delete session ${sessionId}:`, {
+									status: deleteResponse.status,
+									response: errorText,
+								});
+								throw new Error(
+									`Failed to delete session ${sessionId}: ${deleteResponse.status}`,
+								);
+							}
+
+							return sessionId;
+						});
+
+						const deletedIds = await Promise.all(deletePromises);
+						console.log("Successfully deleted sessions:", deletedIds);
+					} catch (error) {
+						console.error("Error deleting weekly sessions:", error);
+						throw new Error(
+							`Failed to delete removed sessions: ${
+								error instanceof Error ? error.message : "Unknown error"
+							}`,
+						);
 					}
 				}
 			}
 
-			toast.success(isEditMode ? "Cohort updated successfully" : "Cohort created successfully");
-			
+			// Save weekly sessions in parallel
+			if (
+				formattedData.weekly_sessions &&
+				formattedData.weekly_sessions.length > 0
+			) {
+				try {
+					const sessionPromises = formattedData.weekly_sessions.map(
+						async (session, index) => {
+							const sessionData = {
+								...session,
+								cohort_id: savedCohort.id,
+							};
+
+							const url = session.id
+								? `/api/weekly-sessions/${session.id}`
+								: `/api/cohorts/${savedCohort.id}/sessions`;
+							const method = session.id ? "PATCH" : "POST";
+
+							try {
+								const sessionResponse = await fetch(url, {
+									method,
+									headers: { "Content-Type": "application/json" },
+									body: JSON.stringify(sessionData),
+								});
+
+								if (!sessionResponse.ok) {
+									const errorText = await sessionResponse.text();
+									throw new Error(
+										`Session ${
+											session.id || `temp-${index}`
+										} failed: ${method} ${url} - Status: ${
+											sessionResponse.status
+										}, Response: ${errorText}`,
+									);
+								}
+
+								return sessionResponse.json();
+							} catch (error) {
+								const errorMessage =
+									error instanceof Error
+										? error.message
+										: `Unknown error for session ${
+												session.id || `temp-${index}`
+											}`;
+								console.error("Failed to save weekly session:", {
+									sessionId: session.id || `temp-${index}`,
+									url,
+									method,
+									error: errorMessage,
+									sessionData,
+								});
+								throw new Error(errorMessage);
+							}
+						},
+					);
+
+					await Promise.all(sessionPromises);
+				} catch (error) {
+					console.error("Failed to save weekly sessions:", error);
+					throw new Error(
+						`Failed to save weekly sessions: ${
+							error instanceof Error ? error.message : "Unknown error"
+						}`,
+					);
+				}
+			}
+
+			toast.success(
+				isEditMode
+					? "Cohort updated successfully"
+					: "Cohort created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else {
-				router.push(`/admin/classes/${savedCohort.id}`);
+				// Small delay to allow cache invalidation to complete
+				setTimeout(() => {
+					router.push(`/admin/cohorts/${savedCohort.id}`);
+				}, 100);
 			}
 		} catch (error) {
 			console.error("Error saving cohort:", error);
-			toast.error(isEditMode ? "Failed to update cohort" : "Failed to create cohort");
-		} finally {
-			setIsLoading(false);
+			const errorMessage =
+				error instanceof Error ? error.message : "An unexpected error occurred";
+			toast.error(errorMessage);
+			// Reset submitting state on error to allow retry
+			setIsSubmitting(false);
 		}
 	};
 
+	const handleCancel = () => {
+		router.push("/admin/cohorts");
+	};
+
+	// Transform language levels for select options
+	const languageLevelOptions = levelOptions.map((level) => ({
+		label: level.display_name,
+		value: level.id,
+	}));
+
+	// Transform teachers for select options with max students
+	const teacherOptions = teachers.map((teacher: any) => {
+		const name =
+			`${teacher.first_name || ""} ${teacher.last_name || ""}`.trim() ||
+			"Unknown";
+		// Get the appropriate max students based on product location
+		const selectedProduct = products.find(
+			(p: any) => p.id === form.watch("product_id"),
+		);
+		const isOnline = selectedProduct?.location === "online";
+		const maxStudents = isOnline
+			? teacher.max_students_online
+			: teacher.max_students_in_person;
+
+		// Show capacity with location context
+		const label = maxStudents
+			? `${name} (Max: ${maxStudents} students ${isOnline ? "online" : "in-person"})`
+			: `${name}`;
+		return {
+			label,
+			value: teacher.id,
+			maxStudents: maxStudents || null,
+		};
+	});
+
+	// Transform products for select options
+	const productOptions = products.map((product: any) => ({
+		label: product.display_name || product.name || "Unknown",
+		value: product.id,
+	}));
+
+	// Calculate actual max students based on selected teachers
+	const calculateActualMaxStudents = () => {
+		const sessions = form.watch("weekly_sessions") || [];
+		const selectedTeachers = new Set(
+			sessions.filter((s) => s.teacher_id).map((s) => s.teacher_id),
+		);
+
+		if (selectedTeachers.size === 0) {
+			return form.watch("max_students") || 20;
+		}
+
+		// Get product location to determine which capacity to use
+		const selectedProduct = products.find(
+			(p: any) => p.id === form.watch("product_id"),
+		);
+		const isOnline = selectedProduct?.location === "online";
+
+		// Find the minimum capacity among selected teachers
+		let minCapacity = Number.MAX_SAFE_INTEGER;
+		selectedTeachers.forEach((teacherId) => {
+			const teacher = teachers.find((t: any) => t.id === teacherId);
+			if (teacher) {
+				const teacherCapacity = isOnline
+					? teacher.max_students_online
+					: teacher.max_students_in_person;
+				if (teacherCapacity && teacherCapacity < minCapacity) {
+					minCapacity = teacherCapacity;
+				}
+			}
+		});
+
+		const cohortMax = form.watch("max_students") || 20;
+		return minCapacity === Number.MAX_SAFE_INTEGER
+			? cohortMax
+			: Math.min(cohortMax, minCapacity);
+	};
+
+	const actualMaxStudents = calculateActualMaxStudents();
+	const cohortMaxStudents = form.watch("max_students") || 20;
+	const isCapacityLimited = actualMaxStudents < cohortMaxStudents;
+
 	return (
-		<div className="space-y-6">
-			<div className="space-y-6">
-				<div className="flex items-center gap-4">
-					<Link
-						href="/admin/classes"
-						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-					>
-						<ChevronLeft className="mr-1 h-4 w-4" />
-						Back to Cohorts
-					</Link>
-				</div>
-				
-				<div>
-					<h1 className="text-2xl font-bold tracking-tight">
-						{isEditMode ? "Edit Cohort" : "Create New Cohort"}
-					</h1>
-					<p className="text-muted-foreground">
-						{isEditMode 
-							? "Update cohort information and weekly schedule"
-							: "Set up a new cohort with all necessary details"
-						}
-					</p>
-				</div>
-			</div>
+		<FormLayout>
+			<FormHeader
+				backUrl="/admin/cohorts"
+				backLabel="Cohorts"
+				title={isEditMode ? "Edit Cohort" : "New Cohort"}
+				subtitle={
+					isEditMode
+						? "Update cohort information and schedule"
+						: "Set up a new cohort with all necessary details"
+				}
+				badge={
+					isEditMode ? { label: "Editing", variant: "warning" } : undefined
+				}
+			/>
 
-			<div className="space-y-6">
-				<Form {...form}>
-					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+			<form onSubmit={form.handleSubmit(onSubmit)}>
+				<FormContent>
+					<div className="space-y-4">
+						{/* Info Banner for new cohorts */}
+						{!isEditMode && (
+							<InfoBanner
+								variant="info"
+								title="Quick Tip"
+								message="You can configure the basic details now and add weekly sessions later. Only starting level is required."
+							/>
+						)}
+
 						{/* Basic Information */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<BookOpen className="h-5 w-5" />
-									Basic Information
-								</CardTitle>
-								<p className="text-sm text-muted-foreground">Core details about the cohort</p>
-							</CardHeader>
-							<CardContent className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="title"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Cohort Title (Optional)</FormLabel>
-											<FormControl>
-												<Input 
-													placeholder="e.g., Spring 2024 A1 Group" 
-													{...field}
-													value={field.value || ""}
-												/>
-											</FormControl>
-											<FormDescription>
-												A custom title to easily identify this cohort
-											</FormDescription>
-											<FormMessage />
-										</FormItem>
-									)}
+						<FormSection
+							title="Basic Information"
+							description="Core details about the cohort"
+							icon={BookOpen}
+							required
+						>
+							<FormField
+								label="Nickname"
+								hint="Optional friendly name for this cohort"
+								error={form.formState.errors.nickname?.message}
+							>
+								<InputField
+									placeholder="e.g., Antoine's Class"
+									error={!!form.formState.errors.nickname}
+									{...form.register("nickname")}
 								/>
-
-								<FormField
-									control={form.control}
-									name="format"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Format</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													<SelectItem value="group">
-														<div className="flex items-center gap-2">
-															<Users className="h-4 w-4" />
-															Group
-														</div>
-													</SelectItem>
-													<SelectItem value="private">
-														<div className="flex items-center gap-2">
-															<Users className="h-4 w-4" />
-															Private
-														</div>
-													</SelectItem>
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
+							</FormField>
+							<FormField
+								label="Product"
+								hint="Select the product/format for this cohort"
+								error={form.formState.errors.product_id?.message}
+							>
+								<SearchableSelect
+									placeholder="Select a product"
+									searchPlaceholder="Search products..."
+									value={form.watch("product_id") || ""}
+									onValueChange={(value) => form.setValue("product_id", value)}
+									options={productOptions}
+									showOnlyOnSearch={false}
 								/>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="starting_level"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Starting Level</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{levelOptions.map((level) => (
-														<SelectItem key={level.value} value={level.value}>
-															{level.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
+							</FormField>
+							<FormField
+								label="Starting Level"
+								required
+								error={form.formState.errors.starting_level_id?.message}
+							>
+								<SearchableSelect
+									placeholder={
+										languageLevelsLoading
+											? "Loading levels..."
+											: "Select starting level"
+									}
+									searchPlaceholder="Type to search levels..."
+									value={form.watch("starting_level_id") || ""}
+									onValueChange={(value) =>
+										form.setValue("starting_level_id", value)
+									}
+									options={languageLevelOptions}
+									showOnlyOnSearch={true}
+									disabled={languageLevelsLoading}
 								/>
-
-								<FormField
-									control={form.control}
-									name="current_level"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Current Level (Optional)</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder="Same as starting level" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{levelOptions.map((level) => (
-														<SelectItem key={level.value} value={level.value}>
-															{level.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<FormDescription>
-												Leave empty to use starting level
-											</FormDescription>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-							</CardContent>
-						</Card>
+							</FormField>
+						</FormSection>
 
 						{/* Schedule & Status */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Calendar className="h-5 w-5" />
-									Schedule & Status
-								</CardTitle>
-								<p className="text-sm text-muted-foreground">When the cohort starts and its enrollment status</p>
-							</CardHeader>
-							<CardContent className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<FormSection
+							title="Schedule & Status"
+							description="When the cohort starts and its enrollment status"
+							icon={CalendarIcon}
+						>
+							<FormRow>
 								<FormField
-									control={form.control}
-									name="start_date"
-									render={({ field }) => (
-										<FormItem className="flex flex-col">
-											<FormLabel>Start Date</FormLabel>
-											<Popover>
-												<PopoverTrigger asChild>
-													<FormControl>
-														<Button
-															variant="outline"
-															className={cn(
-																"w-full pl-3 text-left font-normal",
-																!field.value && "text-muted-foreground"
-															)}
-														>
-															{field.value ? (
-																format(field.value, "PPP")
-															) : (
-																<span>Pick a date</span>
-															)}
-															<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-														</Button>
-													</FormControl>
-												</PopoverTrigger>
-												<PopoverContent className="w-auto p-0" align="start">
-													<CalendarComponent
-														mode="single"
-														selected={field.value}
-														onSelect={field.onChange}
-														disabled={(date) =>
-															date < new Date(new Date().setHours(0, 0, 0, 0))
-														}
-														initialFocus
-													/>
-												</PopoverContent>
-											</Popover>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="cohort_status"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Status</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													<SelectItem value="enrollment_open">
-														<div className="flex items-center gap-2">
-															<Badge variant="success" className="h-2 w-2 p-0 rounded-full" />
-															Enrollment Open
-														</div>
-													</SelectItem>
-													<SelectItem value="enrollment_closed">
-														<div className="flex items-center gap-2">
-															<Badge variant="warning" className="h-2 w-2 p-0 rounded-full" />
-															Enrollment Closed
-														</div>
-													</SelectItem>
-													<SelectItem value="class_ended">
-														<div className="flex items-center gap-2">
-															<Badge variant="secondary" className="h-2 w-2 p-0 rounded-full" />
-															Class Ended
-														</div>
-													</SelectItem>
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-							</CardContent>
-						</Card>
-
-						{/* Location */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<MapPin className="h-5 w-5" />
-									Location
-								</CardTitle>
-								<p className="text-sm text-muted-foreground">Physical or virtual location settings</p>
-							</CardHeader>
-							<CardContent className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="room_type"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Room Type</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder="Select room type" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{roomTypeOptions.map((type) => (
-														<SelectItem key={type.value} value={type.value}>
-															{type.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="room"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Room/Location (Optional)</FormLabel>
-											<FormControl>
-												<Input 
-													placeholder="e.g., Room 201, Online, Building A" 
-													{...field}
-													value={field.value || ""}
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-							</CardContent>
-						</Card>
-
-						{/* Resources */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<FolderOpen className="h-5 w-5" />
-									Resources
-								</CardTitle>
-								<p className="text-sm text-muted-foreground">Product and learning materials</p>
-							</CardHeader>
-							<CardContent className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="product_id"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Product (Optional)</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder="Select a product" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													<SelectItem value="">No product</SelectItem>
-													{products.map((product) => (
-														<SelectItem key={product.id} value={product.id}>
-															{product.display_name}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="google_drive_folder_id"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Google Drive Folder ID (Optional)</FormLabel>
-											<FormControl>
-												<Input 
-													placeholder="Folder ID from Google Drive URL" 
-													{...field}
-													value={field.value || ""}
-												/>
-											</FormControl>
-											<FormDescription>
-												The ID from the Google Drive folder URL
-											</FormDescription>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-							</CardContent>
-						</Card>
-
-						{/* Weekly Sessions */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Clock className="h-5 w-5" />
-									Weekly Sessions
-								</CardTitle>
-								<p className="text-sm text-muted-foreground">Regular weekly class schedule</p>
-							</CardHeader>
-							<CardContent>
-							<div className="space-y-4">
-								{form.watch("weekly_sessions").map((session, index) => (
-									<Card key={index} className="relative">
-										<CardContent className="pt-6">
+									label="Start Date"
+									error={form.formState.errors.start_date?.message}
+								>
+									<Popover>
+										<PopoverTrigger asChild>
 											<Button
 												type="button"
-												variant="ghost"
-												size="icon"
-												className="absolute right-2 top-2"
-												onClick={() => removeWeeklySession(index)}
+												variant="outline"
+												className={cn(
+													"w-full justify-start text-left font-normal",
+													!form.watch("start_date") && "text-muted-foreground",
+												)}
 											>
-												<Trash2 className="h-4 w-4" />
+												<CalendarIcon className="mr-2 h-4 w-4" />
+												{form.watch("start_date") ? (
+													format(form.watch("start_date")!, "PPP")
+												) : (
+													<span>Pick a date</span>
+												)}
 											</Button>
+										</PopoverTrigger>
+										<PopoverContent className="w-auto p-0" align="start">
+											<Calendar
+												mode="single"
+												selected={form.watch("start_date")}
+												onSelect={(date) => form.setValue("start_date", date)}
+												disabled={(date) =>
+													date < new Date(new Date().setHours(0, 0, 0, 0))
+												}
+											/>
+										</PopoverContent>
+									</Popover>
+								</FormField>
+								<FormField
+									label="Status"
+									error={form.formState.errors.cohort_status?.message}
+								>
+									<SelectField
+										placeholder="Select status"
+										value={form.watch("cohort_status") || ""}
+										onValueChange={(value) =>
+											form.setValue(
+												"cohort_status",
+												value as
+													| "enrollment_open"
+													| "enrollment_closed"
+													| "class_ended",
+											)
+										}
+										options={statusOptions}
+									/>
+								</FormField>
+							</FormRow>
+						</FormSection>
 
-											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-												<FormField
-													control={form.control}
-													name={`weekly_sessions.${index}.day_of_week`}
-													render={({ field }) => (
-														<FormItem>
-															<FormLabel>Day</FormLabel>
-															<Select onValueChange={field.onChange} defaultValue={field.value}>
-																<FormControl>
-																	<SelectTrigger>
-																		<SelectValue />
-																	</SelectTrigger>
-																</FormControl>
-																<SelectContent>
-																	{dayOptions.map((day) => (
-																		<SelectItem key={day.value} value={day.value}>
-																			{day.label}
-																		</SelectItem>
-																	))}
-																</SelectContent>
-															</Select>
-															<FormMessage />
-														</FormItem>
-													)}
-												/>
+						{/* Resources */}
+						<FormSection
+							title="Resources"
+							description="Learning materials and resources"
+							icon={FolderOpen}
+						>
+							<FormField
+								label="Google Drive Folder"
+								hint="Paste the full Google Drive folder URL or just the folder ID"
+								error={form.formState.errors.google_drive_folder_id?.message}
+							>
+								<InputField
+									placeholder="https://drive.google.com/drive/folders/... or folder ID"
+									error={!!form.formState.errors.google_drive_folder_id}
+									{...form.register("google_drive_folder_id")}
+								/>
+							</FormField>
+						</FormSection>
 
-												<FormField
-													control={form.control}
-													name={`weekly_sessions.${index}.teacher_id`}
-													render={({ field }) => (
-														<FormItem>
-															<FormLabel>Teacher (Optional)</FormLabel>
-															<Select onValueChange={field.onChange} defaultValue={field.value}>
-																<FormControl>
-																	<SelectTrigger>
-																		<SelectValue placeholder="Select teacher" />
-																	</SelectTrigger>
-																</FormControl>
-																<SelectContent>
-																	<SelectItem value="">No teacher</SelectItem>
-																	{teachers.map((teacher) => (
-																		<SelectItem key={teacher.id} value={teacher.id}>
-																			{teacher.first_name} {teacher.last_name}
-																		</SelectItem>
-																	))}
-																</SelectContent>
-															</Select>
-															<FormMessage />
-														</FormItem>
-													)}
-												/>
+						{/* Weekly Sessions */}
+						<FormSection
+							title="Weekly Sessions"
+							description="Regular weekly class schedule"
+							icon={Clock}
+						>
+							<div className="space-y-4">
+								{(form.watch("weekly_sessions") || []).map((session, index) => (
+									<div
+										key={index}
+										className="relative rounded-lg border bg-muted/30 p-4"
+									>
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											className="absolute top-2 right-2 h-8 w-8"
+											onClick={() => removeWeeklySession(index)}
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
 
+										<div className="space-y-4">
+											<FormRow>
 												<FormField
-													control={form.control}
-													name={`weekly_sessions.${index}.start_time`}
-													render={({ field }) => (
-														<FormItem>
-															<FormLabel>Start Time</FormLabel>
-															<FormControl>
-																<Input type="time" {...field} />
-															</FormControl>
-															<FormMessage />
-														</FormItem>
-													)}
-												/>
-
+													label="Day of Week"
+													error={
+														form.formState.errors.weekly_sessions?.[index]
+															?.day_of_week?.message
+													}
+												>
+													<SelectField
+														placeholder="Select day"
+														value={session.day_of_week || ""}
+														onValueChange={(value) => {
+															const sessions =
+																form.getValues("weekly_sessions") || [];
+															sessions[index] = {
+																...sessions[index],
+																day_of_week: value as any,
+															};
+															form.setValue("weekly_sessions", sessions);
+														}}
+														options={dayOptions}
+													/>
+												</FormField>
 												<FormField
-													control={form.control}
-													name={`weekly_sessions.${index}.end_time`}
-													render={({ field }) => (
-														<FormItem>
-															<FormLabel>End Time</FormLabel>
-															<FormControl>
-																<Input type="time" {...field} />
-															</FormControl>
-															<FormMessage />
-														</FormItem>
-													)}
-												/>
-											</div>
-										</CardContent>
-									</Card>
+													label="Teacher"
+													error={
+														form.formState.errors.weekly_sessions?.[index]
+															?.teacher_id?.message
+													}
+												>
+													<SearchableSelect
+														placeholder="Select teacher"
+														searchPlaceholder="Type to search teachers..."
+														value={session.teacher_id || ""}
+														onValueChange={(value) => {
+															const sessions =
+																form.getValues("weekly_sessions") || [];
+															sessions[index] = {
+																...sessions[index],
+																teacher_id: value,
+															};
+															form.setValue("weekly_sessions", sessions);
+														}}
+														options={teacherOptions}
+														showOnlyOnSearch={true}
+													/>
+												</FormField>
+											</FormRow>
+											<FormRow>
+												<FormField
+													label="Start Time"
+													error={
+														form.formState.errors.weekly_sessions?.[index]
+															?.start_time?.message
+													}
+												>
+													<InputField
+														type="time"
+														value={session.start_time || ""}
+														onChange={(e) => {
+															const sessions =
+																form.getValues("weekly_sessions") || [];
+															sessions[index] = {
+																...sessions[index],
+																start_time: e.target.value,
+															};
+															form.setValue("weekly_sessions", sessions);
+														}}
+													/>
+												</FormField>
+												<FormField
+													label="End Time"
+													error={
+														form.formState.errors.weekly_sessions?.[index]
+															?.end_time?.message
+													}
+												>
+													<InputField
+														type="time"
+														value={session.end_time || ""}
+														onChange={(e) => {
+															const sessions =
+																form.getValues("weekly_sessions") || [];
+															sessions[index] = {
+																...sessions[index],
+																end_time: e.target.value,
+															};
+															form.setValue("weekly_sessions", sessions);
+														}}
+													/>
+												</FormField>
+											</FormRow>
+										</div>
+									</div>
 								))}
 
 								<Button
@@ -736,65 +772,55 @@ export function CohortForm({ cohort, onSuccess }: CohortFormProps) {
 									onClick={addWeeklySession}
 									className="w-full"
 								>
-									<Plus className="h-4 w-4 mr-2" />
+									<Plus className="mr-2 h-4 w-4" />
 									Add Weekly Session
 								</Button>
 							</div>
-							</CardContent>
-						</Card>
+						</FormSection>
 
-						{/* External IDs */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Settings className="h-5 w-5" />
-									External References
-								</CardTitle>
-								<p className="text-sm text-muted-foreground">IDs from external systems</p>
-							</CardHeader>
-							<CardContent>
+						{/* Capacity */}
+						<FormSection
+							title="Capacity"
+							description="Maximum enrollment for this cohort"
+							icon={Users}
+						>
 							<FormField
-								control={form.control}
-								name="airtable_record_id"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Airtable Record ID (Optional)</FormLabel>
-										<FormControl>
-											<Input 
-												placeholder="rec..." 
-												{...field}
-												value={field.value || ""}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							</CardContent>
-						</Card>
-
-						<div className="flex justify-end gap-4">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => router.back()}
-								disabled={isLoading}
+								label="Max Students"
+								hint="Maximum enrollment capacity for this cohort"
+								error={form.formState.errors.max_students?.message}
 							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={isLoading}>
-								{isLoading
-									? isEditMode
-										? "Updating..."
-										: "Creating..."
-									: isEditMode
-									? "Update Cohort"
-									: "Create Cohort"}
-							</Button>
-						</div>
-					</form>
-				</Form>
-			</div>
-		</div>
+								<InputField
+									type="number"
+									placeholder="20"
+									min={1}
+									max={100}
+									error={!!form.formState.errors.max_students}
+									{...form.register("max_students", {
+										setValueAs: (v) =>
+											v === "" || v === null ? undefined : Number(v),
+									})}
+								/>
+							</FormField>
+						</FormSection>
+					</div>
+				</FormContent>
+
+				<FormActions
+					primaryLabel={
+						isSubmitting
+							? isEditMode
+								? "Updating..."
+								: "Creating..."
+							: isEditMode
+								? "Update Cohort"
+								: "Create Cohort"
+					}
+					primaryLoading={isSubmitting}
+					primaryType="submit"
+					secondaryLabel="Cancel"
+					onSecondaryClick={handleCancel}
+				/>
+			</form>
+		</FormLayout>
 	);
 }

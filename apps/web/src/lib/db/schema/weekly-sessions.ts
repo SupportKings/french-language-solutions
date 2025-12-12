@@ -1,12 +1,6 @@
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-	time,
-} from "drizzle-orm/pg-core";
-import { dayOfWeekEnum } from "./enums";
+import { pgTable, text, time, timestamp, uuid } from "drizzle-orm/pg-core";
 import { cohorts } from "./cohorts";
+import { dayOfWeekEnum } from "./enums";
 import { teachers } from "./teachers";
 
 export const weeklySessions = pgTable("weekly_sessions", {

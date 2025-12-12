@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,10 +17,10 @@ export function CopyButton({ text, label }: CopyButtonProps) {
 	};
 
 	return (
-		<Button 
-			variant="ghost" 
-			size="icon" 
-			className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+		<Button
+			variant="ghost"
+			size="icon"
+			className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
 			onClick={handleCopy}
 		>
 			<Copy className="h-3 w-3" />
@@ -34,10 +35,10 @@ export function CopyButtonSmall({ text, label }: CopyButtonProps) {
 	};
 
 	return (
-		<Button 
-			variant="ghost" 
-			size="icon" 
-			className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+		<Button
+			variant="ghost"
+			size="icon"
+			className="h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
 			onClick={handleCopy}
 		>
 			<Copy className="h-2.5 w-2.5" />

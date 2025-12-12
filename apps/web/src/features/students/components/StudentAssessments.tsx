@@ -1,26 +1,31 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { 
-	Table, 
-	TableBody, 
-	TableCell, 
-	TableHead, 
-	TableHeader, 
-	TableRow 
-} from "@/components/ui/table";
+import { useEffect } from "react";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-	Plus, 
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
 	Calendar,
 	CheckCircle,
+	ExternalLink,
+	Plus,
 	XCircle,
-	ExternalLink 
 } from "lucide-react";
-import { format } from "date-fns";
-import Link from "next/link";
 
 const resultColors = {
 	requested: "secondary",
@@ -38,13 +43,36 @@ const resultLabels = {
 
 interface StudentAssessmentsProps {
 	studentId: string;
+	canScheduleAssessment?: boolean;
 }
 
-export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
+export function StudentAssessments({
+	studentId,
+	canScheduleAssessment = true,
+}: StudentAssessmentsProps) {
+	const router = useRouter();
+	const pathname = usePathname();
+	const queryClient = useQueryClient();
+
+	// Get current URL for redirectTo
+	const currentUrl = `${pathname}?tab=assessments`;
+
+	// Invalidate cache when component mounts (useful when returning from forms)
+	useEffect(() => {
+		const searchParams = new URLSearchParams(window.location.search);
+		if (searchParams.get("tab") === "assessments") {
+			queryClient.invalidateQueries({
+				queryKey: ["student-assessments", studentId],
+			});
+		}
+	}, [queryClient, studentId, pathname]);
+
 	const { data: assessments, isLoading } = useQuery({
 		queryKey: ["student-assessments", studentId],
 		queryFn: async () => {
-			const response = await fetch(`/api/assessments?studentId=${studentId}&limit=50`);
+			const response = await fetch(
+				`/api/assessments?studentId=${studentId}&limit=50`,
+			);
 			if (!response.ok) throw new Error("Failed to fetch assessments");
 			const result = await response.json();
 			return result.assessments || [];
@@ -55,7 +83,10 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 		return (
 			<div className="space-y-3">
 				{Array.from({ length: 3 }).map((_, i) => (
-					<div key={i} className="flex items-center justify-between rounded-lg border p-4">
+					<div
+						key={i}
+						className="flex items-center justify-between rounded-lg border p-4"
+					>
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-32" />
 							<Skeleton className="h-3 w-24" />
@@ -69,14 +100,18 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 
 	if (!assessments || assessments.length === 0) {
 		return (
-			<div className="text-center py-8">
-				<p className="text-muted-foreground mb-4">No assessments yet</p>
-				<Link href={`/admin/students/assessments/new?studentId=${studentId}`}>
-					<Button>
-						<Plus className="mr-2 h-4 w-4" />
-						Schedule Assessment
-					</Button>
-				</Link>
+			<div className="py-8 text-center">
+				<p className="mb-4 text-muted-foreground">No assessments yet</p>
+				{canScheduleAssessment && (
+					<Link
+						href={`/admin/students/assessments/new?studentId=${studentId}&redirectTo=${encodeURIComponent(currentUrl)}`}
+					>
+						<Button>
+							<Plus className="mr-2 h-4 w-4" />
+							Schedule Assessment
+						</Button>
+					</Link>
+				)}
 			</div>
 		);
 	}
@@ -84,8 +119,8 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<p className="text-sm text-muted-foreground">
-					{assessments.length} assessment{assessments.length === 1 ? '' : 's'}
+				<p className="text-muted-foreground text-sm">
+					{assessments.length} assessment{assessments.length === 1 ? "" : "s"}
 				</p>
 			</div>
 
@@ -103,15 +138,21 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 					</TableHeader>
 					<TableBody>
 						{assessments.map((assessment: any) => (
-							<TableRow 
+							<TableRow
 								key={assessment.id}
-								className="cursor-pointer hover:bg-muted/50 transition-colors"
-								onClick={() => window.location.href = `/admin/assessments/${assessment.id}`}
+								className="cursor-pointer transition-colors hover:bg-muted/50"
+								onClick={() =>
+									router.push(
+										`/admin/students/assessments/${assessment.id}?redirectTo=${encodeURIComponent(currentUrl)}`,
+									)
+								}
 							>
 								<TableCell>
-									{assessment.level ? (
+									{assessment.language_level?.display_name ||
+									assessment.language_level?.code ? (
 										<Badge variant="outline">
-											{assessment.level.toUpperCase()}
+											{assessment.language_level.display_name ||
+												assessment.language_level.code.toUpperCase()}
 										</Badge>
 									) : (
 										<span className="text-muted-foreground">TBD</span>
@@ -122,7 +163,10 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 										<div className="flex items-center gap-1">
 											<Calendar className="h-3 w-3 text-muted-foreground" />
 											<span className="text-sm">
-												{format(new Date(assessment.scheduled_for), "MMM d, yyyy")}
+												{format(
+													new Date(assessment.scheduled_for),
+													"MMM d, yyyy",
+												)}
 											</span>
 										</div>
 									) : (
@@ -148,9 +192,9 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 									<div className="flex gap-1">
 										{assessment.calendar_event_url && (
 											<Button size="sm" variant="ghost" asChild>
-												<a 
-													href={assessment.calendar_event_url} 
-													target="_blank" 
+												<a
+													href={assessment.calendar_event_url}
+													target="_blank"
 													rel="noopener noreferrer"
 													title="Calendar Event"
 												>
@@ -160,9 +204,9 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 										)}
 										{assessment.meeting_recording_url && (
 											<Button size="sm" variant="ghost" asChild>
-												<a 
-													href={assessment.meeting_recording_url} 
-													target="_blank" 
+												<a
+													href={assessment.meeting_recording_url}
+													target="_blank"
 													rel="noopener noreferrer"
 													title="Recording"
 												>
@@ -177,25 +221,6 @@ export function StudentAssessments({ studentId }: StudentAssessmentsProps) {
 					</TableBody>
 				</Table>
 			</div>
-
-			{assessments.length > 0 && (
-				<div className="rounded-lg bg-muted/50 p-4">
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						<div>
-							<p className="font-medium">Latest Assessment</p>
-							<p className="text-muted-foreground">
-								{format(new Date(assessments[0].created_at), "MMM d, yyyy")}
-							</p>
-						</div>
-						<div>
-							<p className="font-medium">Current Level</p>
-							<p className="text-muted-foreground">
-								{assessments.find((a: any) => a.level)?.level?.toUpperCase() || "Not determined"}
-							</p>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

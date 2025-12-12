@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
+import { requireAuth } from "@/lib/rbac-middleware";
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteParams {
@@ -9,6 +11,10 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
+
+		// Require authentication
+		await requireAuth();
+
 		const supabase = await createClient();
 
 		const { data, error } = await supabase
@@ -20,7 +26,29 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 					full_name,
 					email,
 					mobile_phone_number,
-					desired_starting_language_level
+					desired_starting_language_level_id,
+					desired_language_level:language_levels!desired_starting_language_level_id (
+						id,
+						code,
+						display_name,
+						level_group
+					)
+				),
+				language_level:language_levels!level_id (
+					id,
+					code,
+					display_name,
+					level_group
+				),
+				interview_held_by_teacher:teachers!interview_held_by (
+					id,
+					first_name,
+					last_name
+				),
+				level_checked_by_teacher:teachers!level_checked_by (
+					id,
+					first_name,
+					last_name
 				)
 			`)
 			.eq("id", id)
@@ -30,13 +58,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Assessment not found" },
-					{ status: 404 }
+					{ status: 404 },
+				);
+			}
+			// Check for permission denied - PGRST301 or 42501
+			if (error.code === "PGRST301" || error.code === "42501") {
+				return NextResponse.json(
+					{ error: "You don't have permission to view this assessment" },
+					{ status: 403 },
 				);
 			}
 			console.error("Error fetching assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch assessment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -45,7 +80,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in GET /api/assessments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -54,6 +89,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
+
+		// Require authentication
+		await requireAuth();
+
 		const supabase = await createClient();
 		const body = await request.json();
 
@@ -74,7 +113,29 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 					full_name,
 					email,
 					mobile_phone_number,
-					desired_starting_language_level
+					desired_starting_language_level_id,
+					desired_language_level:language_levels!desired_starting_language_level_id (
+						id,
+						code,
+						display_name,
+						level_group
+					)
+				),
+				language_level:language_levels!level_id (
+					id,
+					code,
+					display_name,
+					level_group
+				),
+				interview_held_by_teacher:teachers!interview_held_by (
+					id,
+					first_name,
+					last_name
+				),
+				level_checked_by_teacher:teachers!level_checked_by (
+					id,
+					first_name,
+					last_name
 				)
 			`)
 			.single();
@@ -83,13 +144,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Assessment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error updating assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to update assessment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -98,7 +159,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in PATCH /api/assessments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -107,6 +168,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
+
+		// Require authentication
+		await requireAuth();
+
 		const supabase = await createClient();
 
 		const { error } = await supabase
@@ -118,13 +183,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 			if (error.code === "PGRST116") {
 				return NextResponse.json(
 					{ error: "Assessment not found" },
-					{ status: 404 }
+					{ status: 404 },
 				);
 			}
 			console.error("Error deleting assessment:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete assessment" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -133,7 +198,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 		console.error("Error in DELETE /api/assessments/[id]:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

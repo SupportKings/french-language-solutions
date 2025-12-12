@@ -1,22 +1,33 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect, useRef, useState } from "react";
+
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/form-layout/SearchableSelect";
+
+import { Check, Loader2, X } from "lucide-react";
 
 interface InlineEditFieldProps {
 	value: any;
 	onSave: (value: any) => Promise<void>;
-	type?: "text" | "textarea" | "select" | "badge" | "date";
+	type?: "text" | "textarea" | "select" | "searchable-select" | "badge" | "date";
 	options?: { label: string; value: string }[];
 	className?: string;
 	editing?: boolean;
 	placeholder?: string;
+	searchPlaceholder?: string;
 	required?: boolean;
 	variant?: any;
 }
@@ -29,8 +40,9 @@ export function InlineEditField({
 	className,
 	editing = false,
 	placeholder,
+	searchPlaceholder,
 	required = false,
-	variant
+	variant,
 }: InlineEditFieldProps) {
 	const [localValue, setLocalValue] = useState(value);
 	const [saving, setSaving] = useState(false);
@@ -43,7 +55,7 @@ export function InlineEditField({
 	useEffect(() => {
 		if (editing && inputRef.current) {
 			inputRef.current.focus();
-			if ('select' in inputRef.current) {
+			if ("select" in inputRef.current) {
 				inputRef.current.select();
 			}
 		}
@@ -52,7 +64,7 @@ export function InlineEditField({
 	const handleSave = async () => {
 		if (required && !localValue) return;
 		if (localValue === value) return;
-		
+
 		setSaving(true);
 		try {
 			await onSave(localValue);
@@ -88,19 +100,19 @@ export function InlineEditField({
 		}
 		if (type === "date" && value) {
 			const date = new Date(value);
-			const formatted = date.toLocaleDateString("en-US", { 
-				year: "numeric", 
-				month: "short", 
-				day: "numeric" 
+			const formatted = date.toLocaleDateString("en-US", {
+				year: "numeric",
+				month: "short",
+				day: "numeric",
 			});
 			return (
-				<span className={cn("text-sm font-medium", className)}>
+				<span className={cn("font-medium text-sm", className)}>
 					{formatted}
 				</span>
 			);
 		}
 		return (
-			<span className={cn("text-sm font-medium", className)}>
+			<span className={cn("font-medium text-sm", className)}>
 				{value || "—"}
 			</span>
 		);
@@ -121,7 +133,7 @@ export function InlineEditField({
 					disabled={saving}
 				/>
 			)}
-			
+
 			{type === "textarea" && (
 				<Textarea
 					ref={inputRef as any}
@@ -134,7 +146,7 @@ export function InlineEditField({
 					disabled={saving}
 				/>
 			)}
-			
+
 			{type === "select" && (
 				<Select
 					value={localValue}
@@ -157,6 +169,21 @@ export function InlineEditField({
 				</Select>
 			)}
 
+			{type === "searchable-select" && (
+				<SearchableSelect
+					value={localValue}
+					onValueChange={(val) => {
+						setLocalValue(val);
+						onSave(val);
+					}}
+					options={options}
+					placeholder={placeholder}
+					searchPlaceholder={searchPlaceholder}
+					disabled={saving}
+					className="h-8 text-sm"
+				/>
+			)}
+
 			{type === "date" && (
 				<Input
 					ref={inputRef as any}
@@ -170,7 +197,7 @@ export function InlineEditField({
 					disabled={saving}
 				/>
 			)}
-			
+
 			{saving && <Loader2 className="h-4 w-4 animate-spin" />}
 		</div>
 	);

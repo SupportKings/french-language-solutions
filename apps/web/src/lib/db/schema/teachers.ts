@@ -1,16 +1,16 @@
 import {
+	boolean,
+	integer,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	integer,
-	boolean,
 	varchar,
 } from "drizzle-orm/pg-core";
 import {
+	contractTypeEnum,
 	groupClassBonusTermsEnum,
 	onboardingStatusEnum,
-	contractTypeEnum,
 } from "./enums";
 
 export const teachers = pgTable("teachers", {
@@ -18,6 +18,7 @@ export const teachers = pgTable("teachers", {
 	userId: text("user_id"), // Optional - references Better Auth user.id when auth needed
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
+	email: text("email").notNull().unique(), // Email address for the teacher (unique constraint)
 	groupClassBonusTerms: groupClassBonusTermsEnum("group_class_bonus_terms"),
 	onboardingStatus: onboardingStatusEnum("onboarding_status")
 		.notNull()

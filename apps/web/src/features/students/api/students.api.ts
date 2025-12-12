@@ -1,4 +1,11 @@
-import type { Student, CreateStudent, UpdateStudent, StudentQuery } from "../schemas/student.schema";
+import { getApiUrl } from "@/lib/api-utils";
+
+import type {
+	CreateStudent,
+	Student,
+	StudentQuery,
+	UpdateStudent,
+} from "../schemas/student.schema";
 
 export interface PaginatedResponse<T> {
 	data: T[];
@@ -18,14 +25,14 @@ export const studentsApi = {
 			if (value !== undefined && value !== null) {
 				// Handle arrays for multi-select filters
 				if (Array.isArray(value)) {
-					value.forEach(v => searchParams.append(key, String(v)));
+					value.forEach((v) => searchParams.append(key, String(v)));
 				} else {
 					searchParams.append(key, String(value));
 				}
 			}
 		});
 
-		const response = await fetch(`/api/students?${searchParams}`, {
+		const response = await fetch(getApiUrl(`/api/students?${searchParams}`), {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -41,7 +48,10 @@ export const studentsApi = {
 
 	// Get single student
 	async getById(id: string): Promise<Student> {
-		const response = await fetch(`/api/students/${id}`, {
+		const url = getApiUrl(`/api/students/${id}`);
+		console.log("[studentsApi.getById] Fetching from URL:", url);
+
+		const response = await fetch(url, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -49,7 +59,11 @@ export const studentsApi = {
 		});
 
 		if (!response.ok) {
-			throw new Error("Failed to fetch student");
+			console.error(
+				`[studentsApi.getById] Failed with status ${response.status} for URL:`,
+				url,
+			);
+			throw new Error(`Failed to fetch student: ${response.status}`);
 		}
 
 		return response.json();
@@ -57,7 +71,7 @@ export const studentsApi = {
 
 	// Create student
 	async create(data: CreateStudent): Promise<Student> {
-		const response = await fetch(`/api/students`, {
+		const response = await fetch(getApiUrl("/api/students"), {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -74,7 +88,7 @@ export const studentsApi = {
 
 	// Update student
 	async update(id: string, data: UpdateStudent): Promise<Student> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -91,7 +105,7 @@ export const studentsApi = {
 
 	// Delete student
 	async delete(id: string): Promise<void> {
-		const response = await fetch(`/api/students/${id}`, {
+		const response = await fetch(getApiUrl(`/api/students/${id}`), {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",

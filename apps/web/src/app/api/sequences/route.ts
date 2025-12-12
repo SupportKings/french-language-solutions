@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -7,14 +8,13 @@ export async function GET(request: NextRequest) {
 		const supabase = await createClient();
 
 		// Parse query parameters
-		const page = parseInt(searchParams.get("page") || "1");
-		const limit = parseInt(searchParams.get("limit") || "10");
+		const page = Number.parseInt(searchParams.get("page") || "1");
+		const limit = Number.parseInt(searchParams.get("limit") || "10");
 		const search = searchParams.get("search");
 
 		// Build the query
-		let query = supabase
-			.from("template_follow_up_sequences")
-			.select(`
+		let query = supabase.from("template_follow_up_sequences").select(
+			`
 				*,
 				template_follow_up_messages (
 					id,
@@ -24,13 +24,16 @@ export async function GET(request: NextRequest) {
 					message_content,
 					created_at,
 					updated_at
-				),
-				automated_follow_ups (count)
-			`, { count: "exact" });
+				)
+			`,
+			{ count: "exact" },
+		);
 
 		// Apply search filter
 		if (search) {
-			query = query.or(`display_name.ilike.%${search}%,subject.ilike.%${search}%`);
+			query = query.or(
+				`display_name.ilike.%${search}%,subject.ilike.%${search}%`,
+			);
 		}
 
 		// Apply pagination
@@ -47,17 +50,34 @@ export async function GET(request: NextRequest) {
 			console.error("Error fetching sequences:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch sequences" },
-				{ status: 500 }
+				{ status: 500 },
 			);
+		}
+
+		// Get active counts for each sequence
+		const sequenceIds = data?.map((s: any) => s.id) || [];
+		const activeCounts: Record<string, number> = {};
+
+		if (sequenceIds.length > 0) {
+			// Get counts of active follow-ups (activated or ongoing) for all sequences at once
+			const { data: followUpCounts } = await supabase
+				.from("automated_follow_ups")
+				.select("sequence_id")
+				.in("sequence_id", sequenceIds)
+				.in("status", ["activated", "ongoing"]);
+
+			// Count by sequence_id
+			followUpCounts?.forEach((fu: any) => {
+				activeCounts[fu.sequence_id] = (activeCounts[fu.sequence_id] || 0) + 1;
+			});
 		}
 
 		// Transform data to include count
 		const transformedData = data?.map((sequence: any) => ({
 			...sequence,
 			_count: {
-				automated_follow_ups: sequence.automated_follow_ups?.[0]?.count || 0
+				automated_follow_ups: activeCounts[sequence.id] || 0,
 			},
-			automated_follow_ups: undefined // Remove the raw count array
 		}));
 
 		const totalPages = count ? Math.ceil(count / limit) : 0;
@@ -75,7 +95,7 @@ export async function GET(request: NextRequest) {
 		console.error("Sequences API error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -90,7 +110,6 @@ export async function POST(request: NextRequest) {
 			.insert({
 				display_name: body.display_name,
 				subject: body.subject,
-				first_follow_up_delay_minutes: body.first_follow_up_delay_minutes,
 			})
 			.select()
 			.single();
@@ -99,7 +118,7 @@ export async function POST(request: NextRequest) {
 			console.error("Error creating sequence:", error);
 			return NextResponse.json(
 				{ error: "Failed to create sequence" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -128,7 +147,7 @@ export async function POST(request: NextRequest) {
 		console.error("Sequence creation error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

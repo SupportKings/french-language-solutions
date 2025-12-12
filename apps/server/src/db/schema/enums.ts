@@ -42,26 +42,7 @@ export const communicationChannelEnum = pgEnum("communication_channel", [
 	"sms",
 ]);
 
-// Language levels - can be expanded later
-export const languageLevelEnum = pgEnum("language_level", [
-	"a1",
-	"a1_plus",
-	"a2",
-	"a2_plus",
-	"b1",
-	"b1_plus",
-	"b2",
-	"b2_plus",
-	"c1",
-	"c1_plus",
-	"c2",
-]);
-
 // Cohort enums
-export const cohortFormatEnum = pgEnum("cohort_format", [
-	"group",
-	"private",
-]);
 
 export const cohortStatusEnum = pgEnum("cohort_status", [
 	"enrollment_open",
@@ -115,11 +96,17 @@ export const followUpMessageStatusEnum = pgEnum("follow_up_message_status", [
 ]);
 
 // Automated follow-up status
-export const automatedFollowUpStatusEnum = pgEnum("automated_follow_up_status", [
-	"activated",
-	"ongoing",
-	"answer_received",
-	"disabled",
+export const automatedFollowUpStatusEnum = pgEnum(
+	"automated_follow_up_status",
+	["activated", "ongoing", "answer_received", "disabled", "completed"],
+);
+
+// Team roles enum
+export const teamRolesEnum = pgEnum("team_roles", [
+	"Teacher",
+	"Evaluator",
+	"Marketing/Admin",
+	"Exec",
 ]);
 
 // Touchpoint enums

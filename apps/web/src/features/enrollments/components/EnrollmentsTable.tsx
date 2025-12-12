@@ -1,32 +1,60 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { 
-	Table, 
-	TableBody, 
-	TableCell, 
-	TableHead, 
-	TableHeader, 
-	TableRow 
-} from "@/components/ui/table";
+import { useEffect, useMemo, useRef } from "react";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import {
+	DataTableFilter,
+	useDataTableFilters,
+} from "@/components/data-table-filter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
+import { Card, CardContent } from "@/components/ui/card";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger 
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { LinkedRecordBadge } from "@/components/ui/linked-record-badge";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoreHorizontal, Edit, Trash, Search, Plus, CheckCircle, Users, Calendar, GraduationCap, Building, Eye } from "lucide-react";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+
+import { useProducts } from "@/features/products/queries/useProducts";
+import { teachersQueries } from "@/features/teachers/queries/teachers.queries";
+
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import Link from "next/link";
-import { useDebounce } from "@uidotdev/usehooks";
+import {
+	BarChart3,
+	Building,
+	Calendar,
+	CalendarDays,
+	CheckCircle,
+	Edit,
+	Eye,
+	GraduationCap,
+	MoreHorizontal,
+	Package,
+	Plus,
+	Search,
+	Trash,
+	User,
+	Users,
+} from "lucide-react";
+import { useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { DataTableFilter, useDataTableFilters } from "@/components/data-table-filter";
 
 const statusColors = {
 	declined_contract: "destructive",
@@ -38,6 +66,8 @@ const statusColors = {
 	payment_abandoned: "destructive",
 	paid: "success",
 	welcome_package_sent: "success",
+	transitioning: "warning",
+	offboarding: "warning",
 };
 
 const statusLabels = {
@@ -50,10 +80,12 @@ const statusLabels = {
 	payment_abandoned: "Payment Abandoned",
 	paid: "Paid",
 	welcome_package_sent: "Welcome Package Sent",
+	transitioning: "Transitioning",
+	offboarding: "Offboarding",
 };
 
-// Define column configurations for data-table-filter
-const enrollmentColumns = [
+// Function to get column configurations - needs products and teachers for options
+const getEnrollmentColumns = (products: any[], teachers: any[]) => [
 	{
 		id: "status",
 		accessor: (enrollment: any) => enrollment.status,
@@ -66,60 +98,53 @@ const enrollmentColumns = [
 		})),
 	},
 	{
-		id: "cohort_format",
-		accessor: (enrollment: any) => enrollment.cohorts?.format,
-		displayName: "Class Format",
+		id: "product",
+		accessor: (enrollment: any) => enrollment.cohorts?.products?.id,
+		displayName: "Product",
+		icon: Package,
+		type: "option" as const,
+		options: products.map((product) => ({
+			label: product.display_name,
+			value: product.id,
+		})),
+	},
+	{
+		id: "cohort_nickname",
+		accessor: (enrollment: any) => enrollment.cohorts?.nickname,
+		displayName: "Cohort Nickname",
 		icon: Users,
-		type: "option" as const,
-		options: [
-			{ label: "Group Class", value: "group" },
-			{ label: "Private Class", value: "private" },
-		],
+		type: "text" as const,
 	},
 	{
-		id: "cohort_status",
-		accessor: (enrollment: any) => enrollment.cohorts?.cohort_status,
-		displayName: "Cohort Status",
-		icon: Calendar,
-		type: "option" as const,
-		options: [
-			{ label: "Enrollment Open", value: "enrollment_open" },
-			{ label: "Enrollment Closed", value: "enrollment_closed" },
-			{ label: "Class Ended", value: "class_ended" },
-		],
-	},
-	{
-		id: "starting_level",
-		accessor: (enrollment: any) => enrollment.cohorts?.starting_level,
-		displayName: "Starting Level",
+		id: "teacher",
+		accessor: (enrollment: any) =>
+			enrollment.cohorts?.weekly_sessions
+				?.map((s: any) => s.teacher_id)
+				.filter(Boolean),
+		displayName: "Teacher",
 		icon: GraduationCap,
 		type: "option" as const,
-		options: [
-			{ label: "A1", value: "a1" },
-			{ label: "A1+", value: "a1_plus" },
-			{ label: "A2", value: "a2" },
-			{ label: "A2+", value: "a2_plus" },
-			{ label: "B1", value: "b1" },
-			{ label: "B1+", value: "b1_plus" },
-			{ label: "B2", value: "b2" },
-			{ label: "B2+", value: "b2_plus" },
-			{ label: "C1", value: "c1" },
-			{ label: "C1+", value: "c1_plus" },
-			{ label: "C2", value: "c2" },
-		],
+		options: teachers.map((teacher) => ({
+			label: `${teacher.first_name} ${teacher.last_name}`,
+			value: teacher.id,
+		})),
 	},
 	{
-		id: "room_type",
-		accessor: (enrollment: any) => enrollment.cohorts?.room_type,
-		displayName: "Room Type",
-		icon: Building,
-		type: "option" as const,
-		options: [
-			{ label: "One-to-One", value: "for_one_to_one" },
-			{ label: "Medium", value: "medium" },
-			{ label: "Medium+", value: "medium_plus" },
-			{ label: "Large", value: "large" },
-		],
+		id: "created_at",
+		accessor: (enrollment: any) =>
+			enrollment.airtable_created_at || enrollment.created_at,
+		displayName: "Created Date",
+		icon: CalendarDays,
+		type: "date" as const,
+	},
+	{
+		id: "completion_percentage",
+		accessor: (enrollment: any) => enrollment.completion_percentage ?? 0,
+		displayName: "Completion Progress",
+		icon: BarChart3,
+		type: "number" as const,
+		min: 0,
+		max: 100,
 	},
 ];
 
@@ -128,66 +153,354 @@ interface EnrollmentsTableProps {
 }
 
 export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
-	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState("");
-	const debouncedSearch = useDebounce(search, 300);
+	const router = useRouter();
 
-	// Data table filters hook
-	const {
-		columns,
-		filters,
-		actions,
-		strategy,
-	} = useDataTableFilters({
-		strategy: "server" as const,
-		data: [], // Empty for server-side filtering
-		columnsConfig: enrollmentColumns,
+	// Track if this is the first render to avoid resetting page on initial load
+	const isInitialMount = useRef(true);
+
+	// URL state management for pagination and search
+	const [pageState, setPageState] = useQueryState("page", {
+		parse: (value) => Number.parseInt(value) || 1,
+		serialize: (value) => value.toString(),
+		defaultValue: 1,
+	});
+	const page = pageState ?? 1;
+
+	const [searchQuery, setSearchQuery] = useQueryState("search", {
+		defaultValue: "",
 	});
 
-	// Convert filters to query params - support multiple values
+	// Store filters in URL as JSON
+	const [filtersParam, setFiltersParam] = useQueryState("filters", {
+		defaultValue: "",
+		parse: (value) => value,
+		serialize: (value) => value,
+	});
+
+	const limit = 20;
+
+	// Fetch products for filter options using React Query
+	const { data: productsData } = useProducts({
+		page: 1,
+		limit: 100,
+		sortBy: "display_name",
+		sortOrder: "asc",
+	});
+
+	// Fetch teachers for filter options - only onboarded teachers with Teacher role
+	const { data: teachersData } = useQuery(
+		teachersQueries.list({
+			page: 1,
+			limit: 200,
+			sortBy: "first_name",
+			sortOrder: "asc",
+			onboarding_status: ["onboarded"],
+			role: ["Teacher"],
+		}),
+	);
+
+	const products = productsData?.data || [];
+	const teachers = teachersData?.data || [];
+
+	// Parse initial filters from URL and convert date strings back to Date objects
+	const initialFilters = useMemo(() => {
+		if (!filtersParam) return [];
+		try {
+			const parsed = JSON.parse(decodeURIComponent(filtersParam));
+			// Convert date string values back to Date objects
+			return parsed.map((filter: any) => {
+				if (filter.type === "date" && filter.values) {
+					return {
+						...filter,
+						values: filter.values.map((v: any) => (v ? new Date(v) : v)),
+					};
+				}
+				return filter;
+			});
+		} catch {
+			return [];
+		}
+	}, [filtersParam]);
+
+	// Data table filters hook - use dynamic columns with products and teachers
+	const { columns, filters, actions, strategy } = useDataTableFilters({
+		strategy: "server" as const,
+		data: [], // Empty for server-side filtering
+		columnsConfig: getEnrollmentColumns(products, teachers),
+		defaultFilters: initialFilters,
+	});
+
+	// Sync filters to URL whenever they change
+	useEffect(() => {
+		if (filters.length === 0) {
+			setFiltersParam(null);
+		} else {
+			const serialized = encodeURIComponent(JSON.stringify(filters));
+			setFiltersParam(serialized);
+		}
+	}, [filters, setFiltersParam]);
+
+	// Convert filters to query params with operators
 	const filterQuery = useMemo(() => {
-		const statusFilter = filters.find(f => f.columnId === "status");
-		const formatFilter = filters.find(f => f.columnId === "cohort_format");
-		const cohortStatusFilter = filters.find(f => f.columnId === "cohort_status");
-		const levelFilter = filters.find(f => f.columnId === "starting_level");
-		const roomFilter = filters.find(f => f.columnId === "room_type");
-		
+		const statusFilter = filters.find((f) => f.columnId === "status");
+		const productFilter = filters.find((f) => f.columnId === "product");
+		const cohortNicknameFilter = filters.find(
+			(f) => f.columnId === "cohort_nickname",
+		);
+		const teacherFilter = filters.find((f) => f.columnId === "teacher");
+		const dateFilter = filters.find((f) => f.columnId === "created_at");
+		const completionFilter = filters.find(
+			(f) => f.columnId === "completion_percentage",
+		);
+
+		// Date filter values are stored as [from, to] for ranges or [date] for single dates
+		const dateValues = dateFilter?.values || [];
+		let dateFrom = "";
+		let dateTo = "";
+		let useAirtableDate = false;
+
+		if (dateValues.length > 0 && dateValues[0]) {
+			// Create date and set to start of day (00:00:00.000)
+			const fromDate = new Date(dateValues[0]);
+			fromDate.setHours(0, 0, 0, 0);
+			dateFrom = fromDate.toISOString();
+			useAirtableDate = true;
+		}
+
+		if (dateValues.length > 1 && dateValues[1]) {
+			// Range selected - set end date to end of day (23:59:59.999)
+			const toDate = new Date(dateValues[1]);
+			toDate.setHours(23, 59, 59, 999);
+			dateTo = toDate.toISOString();
+		} else if (dateValues.length === 1 && dateValues[0]) {
+			// Single date selected - set to end of same day
+			const toDate = new Date(dateValues[0]);
+			toDate.setHours(23, 59, 59, 999);
+			dateTo = toDate.toISOString();
+		}
+
+		// Completion percentage filter
+		const completionValues = completionFilter?.values || [];
+		const completionOperator = completionFilter?.operator;
+		let completionMin = null;
+		let completionMax = null;
+		let completionExact = null;
+		let completionExclude = null;
+
+		if (completionValues.length > 0) {
+			const numValue = Number(completionValues[0]);
+
+			switch (completionOperator) {
+				case "is":
+					// Exact match
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
+					break;
+				case "is not":
+					// Exclude this value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExclude = numValue;
+					}
+					break;
+				case "is greater than":
+					// Greater than: min is value + 0.01 to exclude the exact value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue + 0.01;
+					}
+					break;
+				case "is greater than or equal to":
+					// Greater than or equal: min is value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMin = numValue;
+					}
+					break;
+				case "is less than":
+					// Less than: max is value - 0.01 to exclude the exact value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue - 0.01;
+					}
+					break;
+				case "is less than or equal to":
+					// Less than or equal: max is value
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionMax = numValue;
+					}
+					break;
+				case "is between":
+					// Range: use both values
+					if (completionValues.length > 1) {
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
+					}
+					break;
+				case "is not between":
+					// Not in range - this is complex, we'll handle separately
+					if (completionValues.length > 1) {
+						const minValue = Number(completionValues[0]);
+						const maxValue = Number(completionValues[1]);
+						if (
+							!Number.isNaN(minValue) &&
+							Number.isFinite(minValue) &&
+							!Number.isNaN(maxValue) &&
+							Number.isFinite(maxValue)
+						) {
+							// For "not between", we need special handling on the server
+							completionMin = minValue;
+							completionMax = maxValue;
+						}
+					}
+					break;
+				default:
+					// Fallback: treat as exact match
+					if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+						completionExact = numValue;
+					}
+			}
+		}
+
 		return {
-			// Pass arrays for multi-select filters
 			status: statusFilter?.values?.length ? statusFilter.values : undefined,
-			cohort_format: formatFilter?.values?.length ? formatFilter.values : undefined,
-			cohort_status: cohortStatusFilter?.values?.length ? cohortStatusFilter.values : undefined,
-			starting_level: levelFilter?.values?.length ? levelFilter.values : undefined,
-			room_type: roomFilter?.values?.length ? roomFilter.values : undefined,
+			status_operator: statusFilter?.operator,
+			productIds: productFilter?.values?.length
+				? productFilter.values
+				: undefined,
+			productIds_operator: productFilter?.operator,
+			cohortNickname: cohortNicknameFilter?.values?.[0] || undefined,
+			cohortNickname_operator: cohortNicknameFilter?.operator,
+			teacherIds: teacherFilter?.values?.length
+				? teacherFilter.values
+				: undefined,
+			teacherIds_operator: teacherFilter?.operator,
+			dateFrom,
+			dateTo,
+			useAirtableDate,
+			created_at_operator: dateFilter?.operator,
+			completionMin,
+			completionMax,
+			completionExact,
+			completionExclude,
+			completionOperator,
 		};
 	}, [filters]);
 
+	// Reset page when filters or search change (but not on initial mount)
+	useEffect(() => {
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
+		setPageState(1);
+	}, [filters, searchQuery, setPageState]);
+
 	const { data, isLoading, error } = useQuery({
-		queryKey: ["enrollments", page, debouncedSearch, filterQuery],
+		queryKey: ["enrollments", page, limit, searchQuery, filterQuery],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				page: page.toString(),
-				limit: "20",
-				...(debouncedSearch && { search: debouncedSearch }),
+				limit: limit.toString(),
+				sortBy: "created_at",
+				sortOrder: "desc",
 			});
-			
-			// Add array filters
-			if (filterQuery.status) {
-				filterQuery.status.forEach(v => params.append("status", v));
+
+			// Add search if present
+			if (searchQuery) {
+				params.append("search", searchQuery);
 			}
-			if (filterQuery.cohort_format) {
-				filterQuery.cohort_format.forEach(v => params.append("cohort_format", v));
+
+			// Add product filters (multiple values) with operator
+			if (filterQuery.productIds && filterQuery.productIds.length > 0) {
+				filterQuery.productIds.forEach((id) => params.append("productId", id));
+				if (filterQuery.productIds_operator) {
+					params.append("productIds_operator", filterQuery.productIds_operator);
+				}
 			}
-			if (filterQuery.cohort_status) {
-				filterQuery.cohort_status.forEach(v => params.append("cohort_status", v));
+
+			// Add status filters (multiple values) with operator
+			if (filterQuery.status && filterQuery.status.length > 0) {
+				filterQuery.status.forEach((s) => params.append("status", s));
+				if (filterQuery.status_operator) {
+					params.append("status_operator", filterQuery.status_operator);
+				}
 			}
-			if (filterQuery.starting_level) {
-				filterQuery.starting_level.forEach(v => params.append("starting_level", v));
+
+			// Add cohort nickname text search with operator
+			if (filterQuery.cohortNickname) {
+				params.append("cohortNickname", filterQuery.cohortNickname);
+				if (filterQuery.cohortNickname_operator) {
+					params.append(
+						"cohortNickname_operator",
+						filterQuery.cohortNickname_operator,
+					);
+				}
 			}
-			if (filterQuery.room_type) {
-				filterQuery.room_type.forEach(v => params.append("room_type", v));
+
+			// Add teacher filters (multiple values) with operator
+			if (filterQuery.teacherIds && filterQuery.teacherIds.length > 0) {
+				filterQuery.teacherIds.forEach((id) => params.append("teacherId", id));
+				if (filterQuery.teacherIds_operator) {
+					params.append("teacherIds_operator", filterQuery.teacherIds_operator);
+				}
 			}
-			
+
+			// Add date filters with operator
+			if (filterQuery.dateFrom) {
+				params.append("dateFrom", filterQuery.dateFrom);
+				if (filterQuery.useAirtableDate) {
+					params.append("useAirtableDate", "true");
+				}
+			}
+			if (filterQuery.dateTo) {
+				params.append("dateTo", filterQuery.dateTo);
+			}
+			if (filterQuery.created_at_operator) {
+				params.append("created_at_operator", filterQuery.created_at_operator);
+			}
+
+			// Add completion percentage filters
+			if (
+				filterQuery.completionMin !== null &&
+				filterQuery.completionMin !== undefined
+			) {
+				params.append("completionMin", filterQuery.completionMin.toString());
+			}
+			if (
+				filterQuery.completionMax !== null &&
+				filterQuery.completionMax !== undefined
+			) {
+				params.append("completionMax", filterQuery.completionMax.toString());
+			}
+			if (
+				filterQuery.completionExact !== null &&
+				filterQuery.completionExact !== undefined
+			) {
+				params.append(
+					"completionExact",
+					filterQuery.completionExact.toString(),
+				);
+			}
+			if (
+				filterQuery.completionExclude !== null &&
+				filterQuery.completionExclude !== undefined
+			) {
+				params.append(
+					"completionExclude",
+					filterQuery.completionExclude.toString(),
+				);
+			}
+			if (filterQuery.completionOperator) {
+				params.append("completionOperator", filterQuery.completionOperator);
+			}
+
 			const response = await fetch(`/api/enrollments?${params}`);
 			if (!response.ok) throw new Error("Failed to fetch enrollments");
 			return response.json();
@@ -199,9 +512,9 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			const response = await fetch(`/api/enrollments/${id}`, {
 				method: "DELETE",
 			});
-			
+
 			if (!response.ok) throw new Error("Failed to delete enrollment");
-			
+
 			toast.success("Enrollment deleted successfully");
 			// Refetch data
 			window.location.reload();
@@ -228,32 +541,32 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 			{/* Table with integrated search, filters and actions */}
 			<div className="rounded-md border">
 				{/* Combined header with search, filters, and add button */}
-				<div className="border-b bg-muted/30 px-4 py-2 space-y-2">
+				<div className="space-y-2 border-b bg-muted/30 px-4 py-2">
 					{/* Search bar and action button */}
 					<div className="flex items-center gap-3">
-						<div className="relative flex-1 max-w-sm">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+						<div className="relative max-w-sm flex-1">
+							<Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
 							<Input
 								placeholder="Search by student name or email..."
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-								className="h-9 pl-9 bg-muted/50"
+								value={searchQuery || ""}
+								onChange={(e) => {
+									setSearchQuery(e.target.value || null);
+									setPageState(1); // Reset to first page on search
+								}}
+								className="h-9 bg-muted/50 pl-9"
 							/>
 						</div>
-						
+
 						<div className="ml-auto">
 							<Link href="/admin/students/enrollments/new">
-								<Button 
-									size="sm" 
-									className="h-9"
-								>
+								<Button size="sm" className="h-9">
 									<Plus className="mr-1.5 h-4 w-4" />
 									New Enrollment
 								</Button>
 							</Link>
 						</div>
 					</div>
-					
+
 					{/* Filter bar */}
 					<DataTableFilter
 						columns={columns}
@@ -262,109 +575,270 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 						strategy={strategy}
 					/>
 				</div>
-				
+
 				<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Student</TableHead>
-								<TableHead>Cohort</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Enrolled</TableHead>
-								<TableHead className="w-[70px]"></TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{isLoading ? (
-								Array.from({ length: 5 }).map((_, i) => (
-									<TableRow key={i}>
-										<TableCell><Skeleton className="h-5 w-32" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-20" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-24" /></TableCell>
-										<TableCell><Skeleton className="h-5 w-8" /></TableCell>
-									</TableRow>
-								))
-							) : data?.enrollments?.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={5} className="text-center text-muted-foreground">
-										No enrollments found
+					<TableHeader>
+						<TableRow>
+							<TableHead>Student</TableHead>
+							<TableHead>Cohort (Product and Sessions)</TableHead>
+							<TableHead>Teachers</TableHead>
+							<TableHead>Status</TableHead>
+							<TableHead>Progress</TableHead>
+							<TableHead>Created at</TableHead>
+							<TableHead className="w-[70px]" />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{isLoading ? (
+							Array.from({ length: 5 }).map((_, i) => (
+								<TableRow key={i}>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-20" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-32" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-24" />
+									</TableCell>
+									<TableCell>
+										<Skeleton className="h-5 w-8" />
 									</TableCell>
 								</TableRow>
-							) : (
-								data?.enrollments?.map((enrollment: any) => (
-									<TableRow key={enrollment.id} className="hover:bg-muted/50 transition-colors duration-150">
-										<TableCell>
-											<Link href={`/admin/students/${enrollment.student_id}`} className="hover:underline">
-												<div>
-													<p className="font-medium">{enrollment.students?.full_name}</p>
-													<p className="text-sm text-muted-foreground">
-														{enrollment.students?.email || "No email"}
-													</p>
-												</div>
-											</Link>
-										</TableCell>
-										<TableCell>
-											<div>
-												<p className="font-medium">
-													{enrollment.cohorts?.format} - {enrollment.cohorts?.starting_level?.toUpperCase()}
-												</p>
-												{enrollment.cohorts?.start_date && (
-													<p className="text-sm text-muted-foreground">
-														Starts {format(new Date(enrollment.cohorts.start_date), "MMM d, yyyy")}
-													</p>
+							))
+						) : data?.enrollments?.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={6}
+									className="text-center text-muted-foreground"
+								>
+									No enrollments found
+								</TableCell>
+							</TableRow>
+						) : (
+							data?.enrollments?.map((enrollment: any) => (
+								<TableRow
+									key={enrollment.id}
+									className="cursor-pointer transition-colors duration-150 hover:bg-muted/50"
+									onClick={() =>
+										router.push(`/admin/students/enrollments/${enrollment.id}`)
+									}
+								>
+									<TableCell>
+										{enrollment.students ? (
+											<LinkedRecordBadge
+												href={`/admin/students/${enrollment.student_id}`}
+												label={enrollment.students.full_name}
+												icon={User}
+												title={enrollment.students.email || "No email"}
+											/>
+										) : (
+											<span className="text-muted-foreground">No student</span>
+										)}
+									</TableCell>
+									<TableCell>
+										<div className="space-y-1">
+											{/* Cohort Name - show nickname if available, otherwise product + level */}
+											<div className="font-medium">
+												{enrollment.cohorts?.nickname ? (
+													<span
+														className="inline-block max-w-[250px] truncate align-bottom"
+														title={enrollment.cohorts.nickname}
+													>
+														{enrollment.cohorts.nickname}
+													</span>
+												) : (
+													<>
+														{enrollment.cohorts?.products?.display_name ||
+															"N/A"}
+														{enrollment.cohorts?.starting_level?.code ? (
+															<span className="font-normal text-muted-foreground">
+																{" "}
+																(
+																{enrollment.cohorts.starting_level.code.toUpperCase()}
+																{enrollment.cohorts?.current_level?.code !==
+																	enrollment.cohorts?.starting_level?.code && (
+																	<>
+																		{" "}
+																		→{" "}
+																		{enrollment.cohorts.current_level?.code?.toUpperCase()}
+																	</>
+																)}
+																)
+															</span>
+														) : (
+															enrollment.cohorts?.products?.display_name && (
+																<span className="font-normal text-muted-foreground">
+																	{" "}
+																	(N/A)
+																</span>
+															)
+														)}
+													</>
 												)}
 											</div>
-										</TableCell>
-										<TableCell>
-											<Badge variant={(statusColors as any)[enrollment.status]}>
-												{(statusLabels as any)[enrollment.status]}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">
-												{format(new Date(enrollment.created_at), "MMM d, yyyy")}
-											</p>
-										</TableCell>
-										<TableCell>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<Link href={`/admin/students/enrollments/${enrollment.id}`}>
-														<DropdownMenuItem>
-															<Eye className="mr-2 h-4 w-4" />
-															View
-														</DropdownMenuItem>
-													</Link>
-													<DropdownMenuItem 
-														onClick={() => handleDelete(enrollment.id)}
-														className="text-destructive"
-													>
-														<Trash className="mr-2 h-4 w-4" />
-														Delete
+
+											{/* Weekly Sessions */}
+											{enrollment.cohorts?.weekly_sessions &&
+												enrollment.cohorts.weekly_sessions.length > 0 && (
+													<div className="flex flex-wrap gap-1">
+														{enrollment.cohorts.weekly_sessions.map(
+															(session: any) => {
+																const dayMap: Record<string, string> = {
+																	monday: "Mon",
+																	tuesday: "Tue",
+																	wednesday: "Wed",
+																	thursday: "Thu",
+																	friday: "Fri",
+																	saturday: "Sat",
+																	sunday: "Sun",
+																};
+																const dayAbbrev = session.day_of_week
+																	? dayMap[session.day_of_week.toLowerCase()] ||
+																		session.day_of_week
+																	: "";
+
+																// Format time to HH:MM
+																const formatTime = (timeStr: string | null) => {
+																	if (!timeStr) return "";
+																	return timeStr.slice(0, 5); // Already in HH:MM:SS format
+																};
+
+																return (
+																	<Badge
+																		key={session.id}
+																		variant="secondary"
+																		className="text-xs"
+																	>
+																		{dayAbbrev} {formatTime(session.start_time)}
+																	</Badge>
+																);
+															},
+														)}
+													</div>
+												)}
+										</div>
+									</TableCell>
+									<TableCell>
+										{enrollment.cohorts?.weekly_sessions &&
+										enrollment.cohorts.weekly_sessions.length > 0 ? (
+											<div className="flex flex-wrap gap-1">
+												{enrollment.cohorts.weekly_sessions
+													.map((session: any) => session.teachers)
+													.filter(Boolean) // Remove null/undefined
+													.filter(
+														(teacher: any, index: number, self: any[]) =>
+															teacher &&
+															self.findIndex(
+																(t: any) => t?.id === teacher?.id,
+															) === index,
+													) // Get unique teachers
+													.map((teacher: any) => (
+														<LinkedRecordBadge
+															key={teacher.id}
+															href={`/admin/team-members/${teacher.id}`}
+															label={`${teacher.first_name} ${teacher.last_name}`}
+															icon={GraduationCap}
+														/>
+													))}
+											</div>
+										) : (
+											<span className="text-muted-foreground text-sm">
+												No teachers
+											</span>
+										)}
+									</TableCell>
+									<TableCell>
+										<Badge variant={(statusColors as any)[enrollment.status]}>
+											{(statusLabels as any)[enrollment.status]}
+										</Badge>
+									</TableCell>
+									<TableCell onClick={(e) => e.stopPropagation()}>
+										<div className="min-w-[140px]">
+											<ProgressBar
+												value={enrollment.completion_percentage || 0}
+												size="sm"
+											/>
+										</div>
+									</TableCell>
+									<TableCell>
+										<p className="text-sm">
+											{format(
+												new Date(
+													enrollment.airtable_created_at ||
+														enrollment.created_at,
+												),
+												"MMM d, yyyy",
+											)}
+										</p>
+									</TableCell>
+									<TableCell>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={(e) => e.stopPropagation()}
+												>
+													<MoreHorizontal className="h-4 w-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end">
+												<Link
+													href={`/admin/students/enrollments/${enrollment.id}`}
+												>
+													<DropdownMenuItem>
+														<Eye className="mr-2 h-4 w-4" />
+														View Details
 													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</TableCell>
-									</TableRow>
-								))
-							)}
-						</TableBody>
+												</Link>
+												<DropdownMenuItem
+													onClick={() => handleDelete(enrollment.id)}
+													className="text-destructive"
+												>
+													<Trash className="mr-2 h-4 w-4" />
+													Delete
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</TableCell>
+								</TableRow>
+							))
+						)}
+					</TableBody>
 				</Table>
-				
+
 				{data?.pagination && data.pagination.totalPages > 1 && (
-					<div className="flex items-center justify-between px-4 py-3 border-t bg-muted/10">
-						<p className="text-sm text-muted-foreground">
-							Page {data.pagination.page} of {data.pagination.totalPages}
-						</p>
+					<div className="flex items-center justify-between border-t bg-muted/10 px-4 py-3">
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
+							<span className="font-medium text-primary">
+								Total: {data.pagination.total || 0}
+							</span>
+							<span>•</span>
+							<span>
+								Page {data.pagination.page} of {data.pagination.totalPages}
+							</span>
+						</div>
 						<div className="flex gap-2">
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page - 1)}
+								onClick={() => {
+									setPageState(page - 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === 1}
 							>
 								Previous
@@ -372,7 +846,10 @@ export function EnrollmentsTable({ hideTitle = false }: EnrollmentsTableProps) {
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => setPage(page + 1)}
+								onClick={() => {
+									setPageState(page + 1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
 								disabled={page === data.pagination.totalPages}
 							>
 								Next

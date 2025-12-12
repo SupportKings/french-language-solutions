@@ -13,7 +13,7 @@
 		"includes": [
 			"**",
 			"!**/.next",
-			"!**/dist", 
+			"!**/dist",
 			"!**/.turbo",
 			"!**/dev-dist",
 			"!**/.zed",
@@ -80,7 +80,7 @@
 							["react", "react/**"],
 							":BLANK_LINE:",
 							["next", "next/**"],
-							":BLANK_LINE:", 
+							":BLANK_LINE:",
 							[":NODE:", ":BUN:"],
 							":BLANK_LINE:",
 							["@trpc/**"],

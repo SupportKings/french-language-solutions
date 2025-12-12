@@ -8,7 +8,7 @@ async function seedCohorts() {
 	try {
 		// Get existing products
 		const existingProducts = await db.select().from(products).limit(3);
-		
+
 		if (existingProducts.length === 0) {
 			console.log("No products found. Please seed products first.");
 			return;
@@ -74,8 +74,10 @@ async function seedCohorts() {
 			.values(sampleCohorts)
 			.returning();
 
-		console.log(`Successfully seeded ${insertedCohorts.length} cohorts with titles`);
-		
+		console.log(
+			`Successfully seeded ${insertedCohorts.length} cohorts with titles`,
+		);
+
 		return insertedCohorts;
 	} catch (error) {
 		console.error("Error seeding cohorts:", error);

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+
 import { createClient } from "@/lib/supabase/server";
 
 // GET /api/weekly-sessions/[id] - Get a single weekly session
 export async function GET(
 	request: Request,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -30,14 +31,14 @@ export async function GET(
 			console.error("Error fetching weekly session:", error);
 			return NextResponse.json(
 				{ error: "Failed to fetch weekly session" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
 		if (!data) {
 			return NextResponse.json(
 				{ error: "Weekly session not found" },
-				{ status: 404 }
+				{ status: 404 },
 			);
 		}
 
@@ -46,7 +47,7 @@ export async function GET(
 		console.error("Error in weekly session GET:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -54,7 +55,7 @@ export async function GET(
 // PATCH /api/weekly-sessions/[id] - Update a weekly session
 export async function PATCH(
 	request: Request,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -85,7 +86,7 @@ export async function PATCH(
 			console.error("Error updating weekly session:", error);
 			return NextResponse.json(
 				{ error: "Failed to update weekly session" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -94,7 +95,7 @@ export async function PATCH(
 		console.error("Error in weekly session PATCH:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -102,7 +103,7 @@ export async function PATCH(
 // DELETE /api/weekly-sessions/[id] - Delete a weekly session
 export async function DELETE(
 	request: Request,
-	{ params }: { params: Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
 		const { id } = await params;
@@ -117,7 +118,7 @@ export async function DELETE(
 			console.error("Error deleting weekly session:", error);
 			return NextResponse.json(
 				{ error: "Failed to delete weekly session" },
-				{ status: 500 }
+				{ status: 500 },
 			);
 		}
 
@@ -126,7 +127,7 @@ export async function DELETE(
 		console.error("Error in weekly session DELETE:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

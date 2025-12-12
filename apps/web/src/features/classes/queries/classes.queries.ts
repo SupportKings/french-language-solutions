@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { classesApi } from "../api/classes.api";
-import type { Class, ClassFormValues, ClassFilters } from "../schemas/class.schema";
 import { toast } from "sonner";
+import { classesApi } from "../api/classes.api";
+import type {
+	Class,
+	ClassFilters,
+	ClassFormValues,
+} from "../schemas/class.schema";
 
 // Query keys factory
 export const classesKeys = {
@@ -59,8 +63,13 @@ export function useUpdateClass() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<ClassFormValues> }) =>
-			classesApi.updateClass(id, data),
+		mutationFn: ({
+			id,
+			data,
+		}: {
+			id: string;
+			data: Partial<ClassFormValues>;
+		}) => classesApi.updateClass(id, data),
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: classesKeys.lists() });
 			queryClient.invalidateQueries({ queryKey: classesKeys.detail(id) });

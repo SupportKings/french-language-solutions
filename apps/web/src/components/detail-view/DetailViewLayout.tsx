@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import Link from "next/link";
+
+import { cn } from "@/lib/utils";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-	ArrowLeft, 
-	Edit, 
-	MoreVertical
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,8 +14,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+
+import type { LucideIcon } from "lucide-react";
+import { ArrowLeft, Edit, MoreVertical } from "lucide-react";
 
 // Main Layout Component
 interface DetailViewLayoutProps {
@@ -24,11 +24,12 @@ interface DetailViewLayoutProps {
 	className?: string;
 }
 
-export function DetailViewLayout({ children, className }: DetailViewLayoutProps) {
+export function DetailViewLayout({
+	children,
+	className,
+}: DetailViewLayoutProps) {
 	return (
-		<div className={cn("min-h-screen bg-muted/30", className)}>
-			{children}
-		</div>
+		<div className={cn("min-h-screen bg-muted/30", className)}>{children}</div>
 	);
 }
 
@@ -44,7 +45,14 @@ interface DetailViewHeaderProps {
 	};
 	badges?: {
 		label: string;
-		variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
+		variant?:
+			| "default"
+			| "secondary"
+			| "destructive"
+			| "outline"
+			| "success"
+			| "warning"
+			| "info";
 		className?: string;
 	}[];
 	stats?: string;
@@ -58,65 +66,78 @@ interface DetailViewHeaderProps {
 	editUrl?: string;
 }
 
-export function DetailViewHeader({ 
+export function DetailViewHeader({
 	backUrl,
 	backLabel = "Back",
-	title, 
+	title,
 	subtitle,
 	avatar,
 	badges = [],
 	stats,
 	actions = [],
-	editUrl
+	editUrl,
 }: DetailViewHeaderProps) {
 	return (
 		<div className="border-b bg-background">
 			<div className="px-6 py-3">
 				{/* Breadcrumb */}
-				<div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-					<Link href={backUrl} className="hover:text-foreground transition-colors">
+				<div className="mb-2 flex items-center gap-2 text-muted-foreground text-sm">
+					<Link
+						href={backUrl}
+						className="transition-colors hover:text-foreground"
+					>
 						{backLabel}
 					</Link>
 					<span>/</span>
 					<span>{title}</span>
 				</div>
-				
+
 				{/* Main Header */}
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						{/* Avatar */}
 						{avatar && (
-							<div className={cn(
-								"h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center",
-								avatar.className
-							)}>
-								<span className="text-sm font-semibold text-primary">{avatar.initials}</span>
+							<div
+								className={cn(
+									"flex h-10 w-10 items-center justify-center rounded-full bg-primary/10",
+									avatar.className,
+								)}
+							>
+								<span className="font-semibold text-primary text-sm">
+									{avatar.initials}
+								</span>
 							</div>
 						)}
-						
+
 						{/* Title and Badges */}
 						<div>
-							<h1 className="text-xl font-semibold">{title}</h1>
+							<h1 className="font-semibold text-xl">{title}</h1>
 							{(subtitle || badges.length > 0 || stats) && (
-								<div className="flex items-center gap-2 mt-0.5">
-									{subtitle && <span className="text-sm text-muted-foreground">{subtitle}</span>}
+								<div className="mt-0.5 flex items-center gap-2">
+									{subtitle && (
+										<span className="text-muted-foreground text-sm">
+											{subtitle}
+										</span>
+									)}
 									{badges.map((badge, i) => (
-										<Badge 
-											key={i} 
-											variant={badge.variant} 
-											className={cn("h-4 text-[10px] px-1.5", badge.className)}
+										<Badge
+											key={i}
+											variant={badge.variant}
+											className={cn("h-4 px-1.5 text-[10px]", badge.className)}
 										>
 											{badge.label}
 										</Badge>
 									))}
 									{stats && (
-										<span className="text-xs text-muted-foreground">{stats}</span>
+										<span className="text-muted-foreground text-xs">
+											{stats}
+										</span>
 									)}
 								</div>
 							)}
 						</div>
 					</div>
-					
+
 					{/* Actions */}
 					<div className="flex items-center gap-2">
 						{actions.length > 0 && (
@@ -130,19 +151,23 @@ export function DetailViewHeader({
 									{actions.map((action, i) => {
 										const Icon = action.icon;
 										const isDestructive = action.destructive;
-										
+
 										return (
 											<div key={i}>
 												{isDestructive && i > 0 && <DropdownMenuSeparator />}
 												{action.href ? (
 													<Link href={action.href}>
-														<DropdownMenuItem className={isDestructive ? "text-destructive" : ""}>
+														<DropdownMenuItem
+															className={
+																isDestructive ? "text-destructive" : ""
+															}
+														>
 															<Icon className="mr-2 h-3.5 w-3.5" />
 															{action.label}
 														</DropdownMenuItem>
 													</Link>
 												) : (
-													<DropdownMenuItem 
+													<DropdownMenuItem
 														onClick={action.onClick}
 														className={isDestructive ? "text-destructive" : ""}
 													>
@@ -156,7 +181,7 @@ export function DetailViewHeader({
 								</DropdownMenuContent>
 							</DropdownMenu>
 						)}
-						
+
 						{editUrl && (
 							<Link href={editUrl}>
 								<Button size="sm">
@@ -178,12 +203,11 @@ interface DetailViewContentProps {
 	className?: string;
 }
 
-export function DetailViewContent({ children, className }: DetailViewContentProps) {
-	return (
-		<div className={cn("px-6 py-4 space-y-4", className)}>
-			{children}
-		</div>
-	);
+export function DetailViewContent({
+	children,
+	className,
+}: DetailViewContentProps) {
+	return <div className={cn("space-y-4 px-6 py-4", className)}>{children}</div>;
 }
 
 // Related Data Cards (for enrollments, assessments, etc.)
@@ -208,22 +232,20 @@ export function RelatedDataCard({
 	actionHref,
 	onAction,
 	children,
-	className
+	className,
 }: RelatedDataCardProps) {
 	return (
 		<Card className={cn("bg-background", className)}>
 			<CardHeader className="pb-3">
 				<div className="flex items-center justify-between">
 					<div>
-						<CardTitle className="text-base font-semibold">{title}</CardTitle>
+						<CardTitle className="font-semibold text-base">{title}</CardTitle>
 						{subtitle && (
-							<p className="text-xs text-muted-foreground mt-0.5">
-								{subtitle}
-							</p>
+							<p className="mt-0.5 text-muted-foreground text-xs">{subtitle}</p>
 						)}
 					</div>
-					{(actionLabel || actionHref) && (
-						actionHref ? (
+					{(actionLabel || actionHref) &&
+						(actionHref ? (
 							<Link href={actionHref}>
 								<Button size="sm" variant="outline">
 									{ActionIcon && <ActionIcon className="mr-1.5 h-3.5 w-3.5" />}
@@ -235,13 +257,10 @@ export function RelatedDataCard({
 								{ActionIcon && <ActionIcon className="mr-1.5 h-3.5 w-3.5" />}
 								{actionLabel}
 							</Button>
-						)
-					)}
+						))}
 				</div>
 			</CardHeader>
-			<CardContent className="pt-0">
-				{children}
-			</CardContent>
+			<CardContent className="pt-0">{children}</CardContent>
 		</Card>
 	);
 }
@@ -254,16 +273,19 @@ interface InfoSectionProps {
 	className?: string;
 }
 
-export function InfoSection({ title, icon: Icon, children, className }: InfoSectionProps) {
+export function InfoSection({
+	title,
+	icon: Icon,
+	children,
+	className,
+}: InfoSectionProps) {
 	return (
 		<div className={className}>
-			<h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+			<h3 className="mb-2 flex items-center gap-1.5 font-medium text-muted-foreground text-xs uppercase tracking-wider">
 				{Icon && <Icon className="h-3 w-3" />}
 				{title}
 			</h3>
-			<div className="space-y-2">
-				{children}
-			</div>
+			<div className="space-y-2">{children}</div>
 		</div>
 	);
 }
@@ -277,7 +299,12 @@ interface InfoFieldProps {
 	className?: string;
 }
 
-export function InfoField({ label, value, icon: Icon, className }: InfoFieldProps) {
+export function InfoField({
+	label,
+	value,
+	icon: Icon,
+	className,
+}: InfoFieldProps) {
 	return (
 		<div className={cn("flex items-center gap-2 text-sm", className)}>
 			{Icon && <Icon className="h-3 w-3 text-muted-foreground" />}
@@ -294,16 +321,23 @@ interface OverviewItemProps {
 	icon?: LucideIcon;
 	badge?: {
 		label: string;
-		variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
+		variant?:
+			| "default"
+			| "secondary"
+			| "destructive"
+			| "outline"
+			| "success"
+			| "warning"
+			| "info";
 	};
 }
 
-export function OverviewCard({ 
-	title = "Overview", 
-	items 
-}: { 
-	title?: string; 
-	items: OverviewItemProps[] 
+export function OverviewCard({
+	title = "Overview",
+	items,
+}: {
+	title?: string;
+	items: OverviewItemProps[];
 }) {
 	return (
 		<Card className="bg-background">
@@ -313,14 +347,17 @@ export function OverviewCard({
 			<CardContent className="space-y-3">
 				{items.map((item, i) => (
 					<div key={i} className="flex items-center justify-between">
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							{item.icon && <item.icon className="h-3.5 w-3.5" />}
 							<span>{item.label}</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<span className="text-lg font-semibold">{item.value}</span>
+							<span className="font-semibold text-lg">{item.value}</span>
 							{item.badge && (
-								<Badge variant={item.badge.variant} className="h-4 text-[10px] px-1">
+								<Badge
+									variant={item.badge.variant}
+									className="h-4 px-1 text-[10px]"
+								>
 									{item.badge.label}
 								</Badge>
 							)}
@@ -341,23 +378,33 @@ interface SystemInfoProps {
 	additionalFields?: { label: string; value: string }[];
 }
 
-export function SystemInfoCard({ id, userId, createdAt, updatedAt, additionalFields = [] }: SystemInfoProps) {
+export function SystemInfoCard({
+	id,
+	userId,
+	createdAt,
+	updatedAt,
+	additionalFields = [],
+}: SystemInfoProps) {
 	return (
 		<Card className="bg-background">
 			<CardHeader className="py-3">
 				<CardTitle className="text-sm">System</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-2">
-				<div className="flex items-center justify-between group">
-					<span className="text-sm text-muted-foreground">ID:</span>
+				<div className="group flex items-center justify-between">
+					<span className="text-muted-foreground text-sm">ID:</span>
 					<div className="flex items-center gap-1">
-						<code className="text-xs bg-muted px-1 py-0.5 rounded">{id.slice(0, 8)}...</code>
+						<code className="rounded bg-muted px-1 py-0.5 text-xs">
+							{id.slice(0, 8)}...
+						</code>
 					</div>
 				</div>
 				{userId && (
 					<div className="text-sm">
 						<span className="text-muted-foreground">User:</span>
-						<code className="ml-2 text-xs bg-muted px-1 py-0.5 rounded">{userId.slice(0, 8)}...</code>
+						<code className="ml-2 rounded bg-muted px-1 py-0.5 text-xs">
+							{userId.slice(0, 8)}...
+						</code>
 					</div>
 				)}
 				{additionalFields.map((field, i) => (
@@ -367,11 +414,11 @@ export function SystemInfoCard({ id, userId, createdAt, updatedAt, additionalFie
 					</div>
 				))}
 				<div className="text-sm">
-					<span className="text-muted-foreground">Created:</span>
+					<span className="text-muted-foreground">Created at:</span>
 					<span className="ml-2">{createdAt}</span>
 				</div>
 				<div className="text-sm">
-					<span className="text-muted-foreground">Updated:</span>
+					<span className="text-muted-foreground">Updated at:</span>
 					<span className="ml-2">{updatedAt}</span>
 				</div>
 			</CardContent>

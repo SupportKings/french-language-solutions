@@ -1,127 +1,194 @@
 "use client";
 
+import * as React from "react";
+
 import { usePathname } from "next/navigation";
 
 import { Link } from "@/components/fastLink";
+import { Badge } from "@/components/ui/badge";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+	SidebarGroup,
+	SidebarGroupLabel,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 import { ChevronIcon } from "@/icons/collapsibleIcon";
 
-import type { LucideIcon } from "lucide-react";
+import { IconWrapper } from "./icon-wrapper";
 import { SidebarItemComponent } from "./sidebar-item";
 
 export function NavCollapsible({
-  items,
+	items,
 }: {
-  items: {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
-  }[];
+	items: {
+		title: string;
+		url: string;
+		icon: string;
+		isActive?: boolean;
+		badge?: number;
+		items?: {
+			title: string;
+			url: string;
+		}[];
+	}[];
 }) {
-  const pathname = usePathname();
+	const pathname = usePathname();
 
-  // Function to check if a URL is active
-  const isActive = (url: string) => {
-    if (url === "/dashboard") {
-      return pathname === "/dashboard";
-    }
-    return pathname.startsWith(url);
-  };
+	// Function to check if a URL is active
+	const isActive = (url: string) => {
+		// Skip placeholder URLs
+		if (url === "#") return false;
 
-  // Function to check if any sub-item is active
-  const hasActiveSubItem = (subItems?: { title: string; url: string }[]) => {
-    if (!subItems) return false;
-    return subItems.some((subItem) => isActive(subItem.url));
-  };
+		if (url === "/dashboard") {
+			return pathname === "/dashboard";
+		}
 
-  return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => {
-          const itemIsActive =
-            isActive(item.url) || hasActiveSubItem(item.items);
+		// For exact match check
+		if (pathname === url) return true;
 
-          // If there's only one item, render it directly without collapsible
-          if (item.items?.length === 1) {
-            const singleItem = item.items[0];
-            const singleItemIsActive = isActive(singleItem.url);
+		// For parent-child relationship, be more specific
+		// e.g., /admin/students should be active for /admin/students/enrollments
+		// but NOT for /admin/students itself when we're on /admin/students/enrollments
+		return false;
+	};
 
-            return (
-              <SidebarItemComponent
-                key={item.title}
-                href={singleItem.url}
-                label={singleItem.title}
-                icon={<item.icon size={16} />}
-              />
-            );
-          }
+	// Function to check if any sub-item is active
+	const hasActiveSubItem = (subItems?: { title: string; url: string }[]) => {
+		if (!subItems) return false;
+		// Check for exact match with current pathname
+		return subItems.some(
+			(subItem) =>
+				pathname === subItem.url || pathname.startsWith(subItem.url + "/"),
+		);
+	};
 
-          // Multi-item collapsible
-          return (
-            <SidebarMenuItem key={item.title}>
-              <Collapsible defaultOpen={hasActiveSubItem(item.items)}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={itemIsActive}
-                  tooltip={item.title}
-                  className="group"
-                >
-                  <CollapsibleTrigger className="w-full">
-                    <item.icon />
-                    <span>{item.title}</span>
-                    {item.items?.length ? (
-                      <ChevronIcon className="ml-auto size-3 transition-all ease-out group-data-[panel-open]:rotate-90" />
-                    ) : null}
-                  </CollapsibleTrigger>
-                </SidebarMenuButton>
-                {item.items?.length ? (
-                  <CollapsibleContent className="flex h-[var(--collapsible-panel-height)] flex-col justify-end overflow-hidden text-sm transition-all ease-out data-[ending-style]:h-0 data-[starting-style]:h-0">
-                    <SidebarMenuSub>
-                      {item.items?.map((subItem) => {
-                        const subItemIsActive = isActive(subItem.url);
+	// Track open state for each collapsible item
+	const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(
+		() => {
+			const initialState: Record<string, boolean> = {};
+			items.forEach((item) => {
+				if (item.items && item.items.length > 0) {
+					initialState[item.title] = hasActiveSubItem(item.items);
+				}
+			});
+			return initialState;
+		},
+	);
 
-                        return (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={subItemIsActive}
-                            >
-                              <Link prefetch={true} href={subItem.url}>
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        );
-                      })}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                ) : null}
-              </Collapsible>
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
-  );
+	return (
+		<SidebarGroup>
+			<SidebarMenu>
+				{items.map((item) => {
+					const itemIsActive =
+						isActive(item.url) || hasActiveSubItem(item.items);
+
+					// Skip the single-item optimization to keep Configuration as a section
+					// This ensures items like "Language Levels" stay under "Configuration"
+
+					// If item has no sub-items and has a valid URL, make it a direct link
+					if (!item.items?.length && item.url && item.url !== "#") {
+						return (
+							<SidebarMenuItem key={item.title}>
+								<SidebarMenuButton
+									asChild
+									isActive={
+										pathname === item.url || pathname.startsWith(item.url + "/")
+									}
+									tooltip={item.title}
+								>
+									<Link prefetch={true} href={item.url}>
+										<IconWrapper name={item.icon} />
+										<span>{item.title}</span>
+										{item.badge !== undefined && item.badge > 0 && (
+											<Badge
+												variant="default"
+												className="ml-auto h-5 min-w-5 rounded-full bg-destructive px-1.5 text-[10px]"
+											>
+												{item.badge}
+											</Badge>
+										)}
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						);
+					}
+
+					// Multi-item collapsible
+					return (
+						<SidebarMenuItem key={item.title}>
+							<Collapsible
+								open={openItems[item.title] ?? false}
+								onOpenChange={(open) => {
+									setOpenItems((prev) => ({ ...prev, [item.title]: open }));
+								}}
+							>
+								<SidebarMenuButton
+									asChild
+									isActive={itemIsActive}
+									tooltip={item.title}
+									className="group"
+								>
+									<CollapsibleTrigger className="w-full">
+										<IconWrapper name={item.icon} />
+										<span>{item.title}</span>
+										{item.items?.length ? (
+											<ChevronIcon className="ml-auto size-3 transition-all ease-out group-data-[panel-open]:rotate-90" />
+										) : null}
+									</CollapsibleTrigger>
+								</SidebarMenuButton>
+								{item.items?.length ? (
+									<CollapsibleContent className="flex h-[var(--collapsible-panel-height)] flex-col justify-end overflow-hidden text-sm transition-all ease-out data-[ending-style]:h-0 data-[starting-style]:h-0">
+										<SidebarMenuSub>
+											{item.items?.map((subItem) => {
+												// More precise active state detection
+												// Check if this is the most specific match among all sub-items
+												let subItemIsActive = false;
+
+												if (pathname === subItem.url) {
+													// Exact match
+													subItemIsActive = true;
+												} else if (pathname.startsWith(subItem.url + "/")) {
+													// Check if this is the most specific match
+													// by ensuring no other sub-item has a longer matching URL
+													subItemIsActive = !item.items?.some(
+														(otherItem) =>
+															otherItem.url !== subItem.url &&
+															otherItem.url.length > subItem.url.length &&
+															pathname.startsWith(otherItem.url),
+													);
+												}
+
+												return (
+													<SidebarMenuSubItem key={subItem.title}>
+														<SidebarMenuSubButton
+															asChild
+															isActive={subItemIsActive}
+														>
+															<Link prefetch={true} href={subItem.url}>
+																<span>{subItem.title}</span>
+															</Link>
+														</SidebarMenuSubButton>
+													</SidebarMenuSubItem>
+												);
+											})}
+										</SidebarMenuSub>
+									</CollapsibleContent>
+								) : null}
+							</Collapsible>
+						</SidebarMenuItem>
+					);
+				})}
+			</SidebarMenu>
+		</SidebarGroup>
+	);
 }

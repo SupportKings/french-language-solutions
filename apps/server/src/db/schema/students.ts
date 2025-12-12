@@ -1,18 +1,15 @@
+import { sql } from "drizzle-orm";
 import {
+	boolean,
+	date,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	boolean,
 	varchar,
-	date,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
-import {
-	languageLevelEnum,
-	initialChannelEnum,
-	communicationChannelEnum,
-} from "./enums";
+import { communicationChannelEnum, initialChannelEnum } from "./enums";
+import { languageLevels } from "./language-levels";
 
 export const students = pgTable("students", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -30,9 +27,9 @@ export const students = pgTable("students", {
 		END`,
 	),
 	email: text("email"), // Separate from auth email - students might not have auth
-	desiredStartingLanguageLevel: languageLevelEnum(
-		"desired_starting_language_level",
-	),
+	desiredStartingLanguageLevelId: uuid(
+		"desired_starting_language_level_id",
+	).references(() => languageLevels.id, { onDelete: "set null" }),
 	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }), // E.164 format
 	city: text("city"),
 	websiteQuizSubmissionDate: date("website_quiz_submission_date"),

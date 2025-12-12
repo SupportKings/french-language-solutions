@@ -1,23 +1,27 @@
 import {
+	boolean,
+	integer,
 	pgTable,
 	text,
 	timestamp,
 	uuid,
-	integer,
-	boolean,
 	varchar,
 } from "drizzle-orm/pg-core";
 import {
+	contractTypeEnum,
+	dayOfWeekEnum,
 	groupClassBonusTermsEnum,
 	onboardingStatusEnum,
-	contractTypeEnum,
+	teamRolesEnum,
 } from "./enums";
 
 export const teachers = pgTable("teachers", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	userId: text("user_id"), // Optional - references Better Auth user.id when auth needed
+	userId: text("user_id"),
 	firstName: text("first_name").notNull(),
 	lastName: text("last_name").notNull(),
+	email: text("email").notNull().unique(),
+	role: teamRolesEnum("role").array(),
 	groupClassBonusTerms: groupClassBonusTermsEnum("group_class_bonus_terms"),
 	onboardingStatus: onboardingStatusEnum("onboarding_status")
 		.notNull()
@@ -34,9 +38,13 @@ export const teachers = pgTable("teachers", {
 	availableForInPersonClasses: boolean(
 		"available_for_in_person_classes",
 	).default(false),
-	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }), // E.164 format
+	maxStudentsInPerson: integer("max_students_in_person"),
+	maxStudentsOnline: integer("max_students_online"),
+	daysAvailableOnline: dayOfWeekEnum("days_available_online").array(),
+	daysAvailableInPerson: dayOfWeekEnum("days_available_in_person").array(),
+	mobilePhoneNumber: varchar("mobile_phone_number", { length: 20 }),
 	adminNotes: text("admin_notes"),
-	airtableRecordId: text("airtable_record_id"), // For migration tracking
+	airtableRecordId: text("airtable_record_id"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

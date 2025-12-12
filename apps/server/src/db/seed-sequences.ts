@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { templateFollowUpSequences } from "./schema";
-import { eq } from "drizzle-orm";
 
 async function seedSequences() {
 	try {
@@ -8,9 +8,11 @@ async function seedSequences() {
 
 		// Check if sequences already exist
 		const existingSequences = await db.select().from(templateFollowUpSequences);
-		
+
 		if (existingSequences.length > 0) {
-			console.log(`✅ Sequences already exist (${existingSequences.length} found). Skipping seed.`);
+			console.log(
+				`✅ Sequences already exist (${existingSequences.length} found). Skipping seed.`,
+			);
 			return;
 		}
 
@@ -43,7 +45,10 @@ async function seedSequences() {
 			},
 		];
 
-		const insertedSequences = await db.insert(templateFollowUpSequences).values(sequencesData).returning();
+		const insertedSequences = await db
+			.insert(templateFollowUpSequences)
+			.values(sequencesData)
+			.returning();
 		console.log(`✅ Inserted ${insertedSequences.length} follow-up sequences`);
 
 		console.log("✅ Sequences seed completed successfully!");

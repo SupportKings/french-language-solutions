@@ -1,10 +1,25 @@
-import { SequenceDetails } from "@/features/sequences/components/SequenceDetails";
+import { sequencesQueries } from "@/features/sequences/queries/sequences.queries";
 
-interface SequenceDetailPageProps {
+import {
+	dehydrate,
+	HydrationBoundary,
+	QueryClient,
+} from "@tanstack/react-query";
+import { SequenceDetailPageClient } from "./page-client";
+export default async function SequenceDetailPage({
+	params,
+}: {
 	params: Promise<{ id: string }>;
-}
-
-export default async function SequenceDetailPage({ params }: SequenceDetailPageProps) {
+}) {
 	const { id } = await params;
-	return <SequenceDetails sequenceId={id} />;
+	const queryClient = new QueryClient();
+	await Promise.all([
+		queryClient.prefetchQuery(sequencesQueries.detail(id)),
+		// TODO: fetch session once here if required by downstream components
+	]);
+	return (
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<SequenceDetailPageClient sequenceId={id} />
+		</HydrationBoundary>
+	);
 }

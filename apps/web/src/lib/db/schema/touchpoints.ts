@@ -1,10 +1,4 @@
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-	pgEnum,
-} from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 // Enum for communication channels
 export const touchpointChannelEnum = pgEnum("touchpoint_channel", [

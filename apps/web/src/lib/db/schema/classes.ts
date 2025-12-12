@@ -1,9 +1,4 @@
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { cohorts } from "./cohorts";
 
 export const classes = pgTable("classes", {

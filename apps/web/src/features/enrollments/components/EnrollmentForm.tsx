@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Loader2, Check, ChevronsUpDown } from "lucide-react";
+
+import { formatDate } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+} from "@/components/ui/command";
 import {
 	Form,
 	FormControl,
@@ -17,26 +25,23 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-} from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 const enrollmentFormSchema = z.object({
 	student_id: z.string().min(1, "Student is required"),
@@ -51,6 +56,8 @@ const enrollmentFormSchema = z.object({
 		"payment_abandoned",
 		"paid",
 		"welcome_package_sent",
+		"transitioning",
+		"offboarding",
 	]),
 });
 
@@ -62,7 +69,11 @@ interface EnrollmentFormProps {
 	onSuccess?: () => void;
 }
 
-export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentFormProps) {
+export function EnrollmentForm({
+	enrollment,
+	studentId,
+	onSuccess,
+}: EnrollmentFormProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [students, setStudents] = useState<any[]>([]);
@@ -119,14 +130,14 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 
 	async function onSubmit(values: EnrollmentFormValues) {
 		setIsLoading(true);
-		
+
 		try {
-			const url = enrollment 
+			const url = enrollment
 				? `/api/enrollments/${enrollment.id}`
 				: "/api/enrollments";
-			
+
 			const method = enrollment ? "PATCH" : "POST";
-			
+
 			// API expects snake_case field names
 			const payload = {
 				studentId: values.student_id,
@@ -145,8 +156,12 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 				throw new Error(error.error || "Failed to save enrollment");
 			}
 
-			toast.success(enrollment ? "Enrollment updated successfully" : "Enrollment created successfully");
-			
+			toast.success(
+				enrollment
+					? "Enrollment updated successfully"
+					: "Enrollment created successfully",
+			);
+
 			if (onSuccess) {
 				onSuccess();
 			} else {
@@ -179,14 +194,17 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 												role="combobox"
 												className={cn(
 													"justify-between",
-													!field.value && "text-muted-foreground"
+													!field.value && "text-muted-foreground",
 												)}
 												disabled={!!studentId || loadingStudents}
 											>
 												{field.value
-													? students.find((s) => s.id === field.value)?.full_name
+													? students.find((s) => s.id === field.value)
+															?.full_name
 													: "Select student..."}
-												{!studentId && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+												{!studentId && (
+													<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+												)}
 											</Button>
 										</FormControl>
 									</PopoverTrigger>
@@ -207,13 +225,17 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 															<Check
 																className={cn(
 																	"mr-2 h-4 w-4",
-																	field.value === student.id ? "opacity-100" : "opacity-0"
+																	field.value === student.id
+																		? "opacity-100"
+																		: "opacity-0",
 																)}
 															/>
 															<div className="flex flex-col">
 																<span>{student.full_name}</span>
 																{student.email && (
-																	<span className="text-xs text-muted-foreground">{student.email}</span>
+																	<span className="text-muted-foreground text-xs">
+																		{student.email}
+																	</span>
 																)}
 															</div>
 														</CommandItem>
@@ -224,7 +246,9 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 									)}
 								</Popover>
 								<FormDescription>
-									{studentId ? "Student is pre-selected" : "Choose the student to enroll"}
+									{studentId
+										? "Student is pre-selected"
+										: "Choose the student to enroll"}
 								</FormDescription>
 								<FormMessage />
 							</FormItem>
@@ -245,17 +269,19 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 												role="combobox"
 												className={cn(
 													"justify-between",
-													!field.value && "text-muted-foreground"
+													!field.value && "text-muted-foreground",
 												)}
 												disabled={loadingCohorts}
 											>
 												{field.value
 													? (() => {
-														const cohort = cohorts.find((c) => c.id === field.value);
-														return cohort 
-															? `${cohort.format} - ${cohort.starting_level?.toUpperCase()} (${cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : 'TBD'})`
-															: "Select cohort...";
-													})()
+															const cohort = cohorts.find(
+																(c) => c.id === field.value,
+															);
+															return cohort
+																? `${cohort.products?.format || "N/A"} - ${cohort.starting_level?.display_name || cohort.starting_level?.code?.toUpperCase() || "N/A"} (${cohort.start_date ? formatDate(cohort.start_date, "PP") : "TBD"})`
+																: "Select cohort...";
+														})()
 													: "Select cohort..."}
 												<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 											</Button>
@@ -269,7 +295,7 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 												{cohorts.map((cohort) => (
 													<CommandItem
 														key={cohort.id}
-														value={`${cohort.format} ${cohort.starting_level}`}
+														value={`${cohort.products?.format || ""} ${cohort.starting_level?.code || ""}`}
 														onSelect={() => {
 															form.setValue("cohort_id", cohort.id);
 														}}
@@ -277,18 +303,24 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 														<Check
 															className={cn(
 																"mr-2 h-4 w-4",
-																field.value === cohort.id ? "opacity-100" : "opacity-0"
+																field.value === cohort.id
+																	? "opacity-100"
+																	: "opacity-0",
 															)}
 														/>
 														<div className="flex flex-col">
 															<span className="font-medium">
-																{cohort.format} - {cohort.starting_level?.toUpperCase()}
+																{cohort.products?.format || "N/A"} -{" "}
+																{cohort.starting_level?.display_name ||
+																	cohort.starting_level?.code?.toUpperCase() ||
+																	"N/A"}
 															</span>
-															<span className="text-xs text-muted-foreground">
-																{cohort.start_date 
-																	? `Starts ${new Date(cohort.start_date).toLocaleDateString()}`
+															<span className="text-muted-foreground text-xs">
+																{cohort.start_date
+																	? `Starts ${formatDate(cohort.start_date, "PP")}`
 																	: "Start date TBD"}
-																{cohort.cohort_status && ` • ${cohort.cohort_status.replace('_', ' ')}`}
+																{cohort.cohort_status &&
+																	` • ${cohort.cohort_status.replace("_", " ")}`}
 															</span>
 														</div>
 													</CommandItem>
@@ -311,7 +343,10 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Status</FormLabel>
-								<Select onValueChange={field.onChange} defaultValue={field.value}>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
 									<FormControl>
 										<SelectTrigger>
 											<SelectValue />
@@ -319,13 +354,27 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 									</FormControl>
 									<SelectContent>
 										<SelectItem value="interested">Interested</SelectItem>
-										<SelectItem value="beginner_form_filled">Form Filled</SelectItem>
-										<SelectItem value="contract_abandoned">Contract Abandoned</SelectItem>
-										<SelectItem value="contract_signed">Contract Signed</SelectItem>
-										<SelectItem value="payment_abandoned">Payment Abandoned</SelectItem>
+										<SelectItem value="beginner_form_filled">
+											Form Filled
+										</SelectItem>
+										<SelectItem value="contract_abandoned">
+											Contract Abandoned
+										</SelectItem>
+										<SelectItem value="contract_signed">
+											Contract Signed
+										</SelectItem>
+										<SelectItem value="payment_abandoned">
+											Payment Abandoned
+										</SelectItem>
 										<SelectItem value="paid">Paid</SelectItem>
-										<SelectItem value="welcome_package_sent">Welcome Package Sent</SelectItem>
-										<SelectItem value="declined_contract">Declined Contract</SelectItem>
+										<SelectItem value="welcome_package_sent">
+											Welcome Package Sent
+										</SelectItem>
+										<SelectItem value="transitioning">Transitioning</SelectItem>
+										<SelectItem value="offboarding">Offboarding</SelectItem>
+										<SelectItem value="declined_contract">
+											Declined Contract
+										</SelectItem>
 										<SelectItem value="dropped_out">Dropped Out</SelectItem>
 									</SelectContent>
 								</Select>
@@ -339,10 +388,7 @@ export function EnrollmentForm({ enrollment, studentId, onSuccess }: EnrollmentF
 				</div>
 
 				<div className="flex gap-4">
-					<Button
-						type="submit"
-						disabled={isLoading}
-					>
+					<Button type="submit" disabled={isLoading}>
 						{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						{enrollment ? "Update Enrollment" : "Create Enrollment"}
 					</Button>
