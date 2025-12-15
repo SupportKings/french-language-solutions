@@ -16,7 +16,7 @@ interface GetDirectConversationsResult {
 
 /**
  * Get direct message conversations for the current user
- * Returns conversations sorted by last message time (most recent first)
+ * Returns conversations sorted by unread first, then by last message time
  */
 export async function getDirectConversations({
 	page = 1,
@@ -25,16 +25,12 @@ export async function getDirectConversations({
 	const session = await requireAuth();
 	const supabase = await createClient();
 
-	// Calculate pagination
+	// Calculate pagination (applied after sorting by unread status)
 	const from = (page - 1) * limit;
-	const to = from + limit - 1;
 
-	// Fetch conversations where user is a participant
-	const {
-		data: conversationsData,
-		error,
-		count,
-	} = await supabase
+	// Fetch ALL conversations where user is a participant
+	// NOTE: We fetch all to sort by unread status, then apply pagination in memory
+	const { data: conversationsData, error } = await supabase
 		.from("conversations")
 		.select(
 			`
@@ -52,12 +48,10 @@ export async function getDirectConversations({
 				)
 			)
 		`,
-			{ count: "exact" },
 		)
 		.eq("conversation_participants.user_id", session.user.id)
 		.is("deleted_at", null)
-		.order("last_message_at", { ascending: false, nullsFirst: false })
-		.range(from, to);
+		.order("last_message_at", { ascending: false, nullsFirst: false });
 
 	if (error) {
 		throw new Error(`Failed to fetch conversations: ${error.message}`);
@@ -178,11 +172,33 @@ export async function getDirectConversations({
 		};
 	});
 
-	const conversations: any = await Promise.all(conversationsPromises);
+	// biome-ignore lint/suspicious/noExplicitAny: Pre-existing type mismatch with ConversationListItem
+	const conversations: any[] = await Promise.all(conversationsPromises);
+
+	// Sort: unread conversations first, then by last message time
+	conversations.sort((a, b) => {
+		// Prioritize conversations with unread messages
+		const aHasUnread = a.unreadCount > 0 ? 1 : 0;
+		const bHasUnread = b.unreadCount > 0 ? 1 : 0;
+		if (aHasUnread !== bHasUnread) {
+			return bHasUnread - aHasUnread; // Unread first
+		}
+		// Then sort by last message time (most recent first)
+		if (!a.lastMessageAt && !b.lastMessageAt) return 0;
+		if (!a.lastMessageAt) return 1;
+		if (!b.lastMessageAt) return -1;
+		return (
+			new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+		);
+	});
+
+	// Apply pagination AFTER sorting by unread status
+	const total = conversations.length;
+	const paginatedConversations = conversations.slice(from, from + limit);
 
 	return {
-		conversations,
-		hasMore: (count || 0) > page * limit,
-		total: count || 0,
+		conversations: paginatedConversations,
+		hasMore: total > page * limit,
+		total,
 	};
 }
