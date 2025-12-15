@@ -91,6 +91,7 @@ export async function getAllCohorts({
 	// Build query with optional search filter
 	// Use LEFT JOIN (!left) explicitly to include cohorts without messages (important for admins to see all cohorts)
 	// Deleted messages are filtered during transformation
+	// NOTE: We fetch ALL cohorts first to sort by unread status, then apply pagination in memory
 	let query = supabase.from("cohorts").select(
 		`
 			id,
@@ -105,7 +106,6 @@ export async function getAllCohorts({
 				)
 			)
 		`,
-		{ count: "exact" },
 	);
 
 	// Filter by accessible cohort IDs for non-admins
@@ -118,8 +118,8 @@ export async function getAllCohorts({
 		query = query.ilike("nickname", `%${searchQuery}%`);
 	}
 
-	// Fetch cohorts with their last message
-	const { data: cohorts, error, count } = await query.range(from, to);
+	// Fetch ALL cohorts (pagination applied after sorting by unread status)
+	const { data: cohorts, error } = await query;
 
 	if (error) {
 		console.error("❌ Error fetching cohorts:", error);
@@ -181,8 +181,15 @@ export async function getAllCohorts({
 					: null,
 			};
 		})
-		// Sort cohorts by last message time (most recent first)
+		// Sort: unread cohorts first, then by last message time
 		.sort((a: SimpleCohort, b: SimpleCohort) => {
+			// Prioritize cohorts with unread messages
+			const aHasUnread = a.unreadCount > 0 ? 1 : 0;
+			const bHasUnread = b.unreadCount > 0 ? 1 : 0;
+			if (aHasUnread !== bHasUnread) {
+				return bHasUnread - aHasUnread; // Unread first
+			}
+			// Then sort by last message time (most recent first)
 			if (!a.lastMessage && !b.lastMessage) return 0;
 			if (!a.lastMessage) return 1;
 			if (!b.lastMessage) return -1;
@@ -191,9 +198,14 @@ export async function getAllCohorts({
 				new Date(a.lastMessage.createdAt).getTime()
 			);
 		});
+
+	// Apply pagination AFTER sorting by unread status
+	const total = transformedCohorts.length;
+	const paginatedCohorts = transformedCohorts.slice(from, from + limit);
+
 	return {
-		cohorts: transformedCohorts,
-		total: count || 0,
-		hasMore: (count || 0) > page * limit,
+		cohorts: paginatedCohorts,
+		total,
+		hasMore: total > page * limit,
 	};
 }
