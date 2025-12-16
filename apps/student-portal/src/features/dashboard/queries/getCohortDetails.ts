@@ -14,6 +14,7 @@ export interface CohortDetails {
 	cohort: {
 		id: string;
 		startDate: string | null;
+		googleDriveFolderId: string | null;
 		currentLevel: {
 			code: string;
 			displayName: string;
@@ -67,6 +68,7 @@ export async function getCohortDetails(
 			cohorts!inner (
 				id,
 				start_date,
+				google_drive_folder_id,
 				current_level_id,
 				starting_level_id,
 				language_levels!cohorts_current_level_id_language_levels_id_fk (
@@ -236,6 +238,7 @@ export async function getCohortDetails(
 		cohort: {
 			id: cohortData?.id,
 			startDate: cohortData?.start_date || null,
+			googleDriveFolderId: cohortData?.google_drive_folder_id || null,
 			currentLevel: currentLevel
 				? {
 						code: currentLevel.code,

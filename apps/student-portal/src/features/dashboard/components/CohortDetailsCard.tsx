@@ -1,9 +1,11 @@
-import { BookOpen, TrendingUp } from "lucide-react";
+"use client";
+
+import { BookOpen, FolderOpen, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
+import { cn, getGoogleDriveUrl } from "@/lib/utils";
 
 import type { CohortDetails } from "../queries/getCohortDetails";
 
@@ -135,7 +137,7 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 
 					{/* Footer */}
 					<div className="flex items-center justify-between pt-1">
-						<div className="flex items-center space-x-2 text-xs text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 							<span className="rounded-md bg-muted/50 px-2 py-1 backdrop-blur-sm transition-all duration-200 hover:bg-muted">
 								Started {formattedStartDate}
 							</span>
@@ -148,6 +150,18 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 								<span className="rounded-md bg-primary/10 px-2 py-1 font-medium text-primary backdrop-blur-sm transition-all duration-200 hover:bg-primary/20">
 									Goal: {goalLevel.displayName}
 								</span>
+							)}
+							{cohort.googleDriveFolderId && (
+								<a
+									href={getGoogleDriveUrl(cohort.googleDriveFolderId) || "#"}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-1.5 rounded-md bg-blue-500/10 px-2 py-1 font-medium text-blue-600 backdrop-blur-sm transition-all duration-200 hover:bg-blue-500/20 dark:text-blue-400"
+									onClick={(e) => e.stopPropagation()}
+								>
+									<FolderOpen className="h-3 w-3" />
+									Class Materials
+								</a>
 							)}
 						</div>
 					</div>

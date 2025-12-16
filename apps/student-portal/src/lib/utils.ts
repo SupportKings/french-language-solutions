@@ -25,3 +25,23 @@ export const hasErrorInput = [
 	"border-red-500 dark:border-red-700",
 	"ring-red-200 dark:ring-red-700/30",
 ];
+
+/**
+ * Constructs a Google Drive folder URL from a folder ID or returns the URL if already a valid URL
+ */
+export function getGoogleDriveUrl(
+	input: string | null | undefined,
+): string | null {
+	if (!input) return null;
+
+	const trimmed = input.trim();
+	if (!trimmed) return null;
+
+	// If it's already a URL, return it directly
+	if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+		return trimmed;
+	}
+
+	// Otherwise, construct the URL from the folder ID
+	return `https://drive.google.com/drive/folders/${trimmed}`;
+}
