@@ -53,7 +53,12 @@ const STATUS_LABELS: Record<RescheduleRequestStatus, string> = {
 	cancelled: "Cancelled",
 };
 
-export function RescheduleRequestsTable() {
+interface RescheduleRequestsTableProps {
+	userRole: string;
+}
+
+export function RescheduleRequestsTable({ userRole }: RescheduleRequestsTableProps) {
+	const canManageRequests = userRole !== "teacher";
 	// URL state management
 	const [pageState, setPageState] = useQueryState("page", {
 		parse: (value) => Number.parseInt(value) || 1,
@@ -159,7 +164,7 @@ export function RescheduleRequestsTable() {
 							<TableHead>Teacher Notes</TableHead>
 							<TableHead>Submitted</TableHead>
 							<TableHead>Status</TableHead>
-							<TableHead className="w-[140px]">Actions</TableHead>
+							{canManageRequests && <TableHead className="w-[140px]">Actions</TableHead>}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -187,15 +192,17 @@ export function RescheduleRequestsTable() {
 									<TableCell>
 										<Skeleton className="h-5 w-20" />
 									</TableCell>
-									<TableCell>
-										<Skeleton className="h-8 w-24" />
-									</TableCell>
+									{canManageRequests && (
+										<TableCell>
+											<Skeleton className="h-8 w-24" />
+										</TableCell>
+									)}
 								</TableRow>
 							))
 						) : data?.data?.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={8}
+									colSpan={canManageRequests ? 8 : 7}
 									className="py-10 text-center text-muted-foreground"
 								>
 									<Calendar className="mx-auto mb-2 h-8 w-8 opacity-50" />
@@ -332,9 +339,30 @@ export function RescheduleRequestsTable() {
 												{STATUS_LABELS[request.status]}
 											</Badge>
 										</TableCell>
-										<TableCell>
-											{request.status === "pending" ? (
-												<div className="flex items-center gap-1">
+										{canManageRequests && (
+											<TableCell>
+												{request.status === "pending" ? (
+													<div className="flex items-center gap-1">
+														<Button
+															size="sm"
+															variant="outline"
+															className="h-8 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+															onClick={() => handleAccept(request)}
+														>
+															<Check className="h-3.5 w-3.5" />
+															Accept
+														</Button>
+														<Button
+															size="sm"
+															variant="outline"
+															className="h-8 gap-1 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+															onClick={() => handleDecline(request)}
+														>
+															<X className="h-3.5 w-3.5" />
+															Decline
+														</Button>
+													</div>
+												) : request.status === "rejected" ? (
 													<Button
 														size="sm"
 														variant="outline"
@@ -344,6 +372,7 @@ export function RescheduleRequestsTable() {
 														<Check className="h-3.5 w-3.5" />
 														Accept
 													</Button>
+												) : request.status === "approved" ? (
 													<Button
 														size="sm"
 														variant="outline"
@@ -353,31 +382,11 @@ export function RescheduleRequestsTable() {
 														<X className="h-3.5 w-3.5" />
 														Decline
 													</Button>
-												</div>
-											) : request.status === "rejected" ? (
-												<Button
-													size="sm"
-													variant="outline"
-													className="h-8 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-													onClick={() => handleAccept(request)}
-												>
-													<Check className="h-3.5 w-3.5" />
-													Accept
-												</Button>
-											) : request.status === "approved" ? (
-												<Button
-													size="sm"
-													variant="outline"
-													className="h-8 gap-1 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-													onClick={() => handleDecline(request)}
-												>
-													<X className="h-3.5 w-3.5" />
-													Decline
-												</Button>
-											) : (
-												<span className="text-muted-foreground text-sm">—</span>
-											)}
-										</TableCell>
+												) : (
+													<span className="text-muted-foreground text-sm">—</span>
+												)}
+											</TableCell>
+										)}
 									</TableRow>
 								);
 							})

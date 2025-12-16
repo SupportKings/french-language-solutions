@@ -11,5 +11,7 @@ export default async function RescheduleRequestsPage() {
 		redirect("/signin");
 	}
 
-	return <RescheduleRequestsTable />;
+	const userRole = session.user.role || "teacher";
+
+	return <RescheduleRequestsTable userRole={userRole} />;
 }
