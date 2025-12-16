@@ -273,18 +273,30 @@ export async function GET(request: NextRequest) {
 			);
 		}
 
-		// 5. Process data to add latest enrollment status
+		// 5. Process data to add enrollment status (prioritizing paid/welcome_package_sent)
+		const PRIORITY_STATUSES = ["paid", "welcome_package_sent"];
+
 		const processedData = (data || []).map((student) => {
-			// Find the latest enrollment
-			const latestEnrollment = student.enrollments?.sort(
-				(a: any, b: any) =>
-					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-			)[0];
+			const enrollments = student.enrollments || [];
+
+			// First, check if any enrollment has a priority status
+			const priorityEnrollment = enrollments.find((e: any) =>
+				PRIORITY_STATUSES.includes(e.status),
+			);
+
+			// If found, use it; otherwise fall back to the latest enrollment
+			const selectedEnrollment =
+				priorityEnrollment ||
+				enrollments.sort(
+					(a: any, b: any) =>
+						new Date(b.created_at).getTime() -
+						new Date(a.created_at).getTime(),
+				)[0];
 
 			return {
 				...student,
-				enrollment_status: latestEnrollment?.status || null,
-				latest_enrollment: latestEnrollment || null,
+				enrollment_status: selectedEnrollment?.status || null,
+				latest_enrollment: selectedEnrollment || null,
 			};
 		});
 

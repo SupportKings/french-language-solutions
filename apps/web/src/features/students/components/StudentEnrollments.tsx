@@ -156,13 +156,8 @@ export function StudentEnrollments({ studentId }: StudentEnrollmentsProps) {
 													className="block truncate font-medium text-sm transition-colors hover:text-primary hover:underline"
 													onClick={(e: React.MouseEvent) => e.stopPropagation()}
 												>
-													{enrollment.cohorts?.products?.format
-														? `${enrollment.cohorts.products.format.charAt(0).toUpperCase() + enrollment.cohorts.products.format.slice(1)} Cohort`
-														: "Cohort"}{" "}
-													-{" "}
-													{enrollment.cohorts?.starting_level?.display_name ||
-														enrollment.cohorts?.starting_level?.code?.toUpperCase() ||
-														"N/A"}
+													{enrollment.cohorts?.nickname ||
+														`${enrollment.cohorts?.products?.format ? `${enrollment.cohorts.products.format.charAt(0).toUpperCase() + enrollment.cohorts.products.format.slice(1)} Cohort` : "Cohort"} - ${enrollment.cohorts?.starting_level?.display_name || enrollment.cohorts?.starting_level?.code?.toUpperCase() || "N/A"}`}
 												</Link>
 												<div className="mt-1 flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
 													{enrollment.cohorts?.start_date && (

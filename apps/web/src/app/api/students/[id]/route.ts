@@ -83,7 +83,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 			userData = user;
 		}
 
-		// Add enrollment status from the latest enrollment
+		// Add enrollment status (prioritizing paid/welcome_package_sent)
+		const PRIORITY_STATUSES = ["paid", "welcome_package_sent"];
+
 		const processedData = {
 			...data,
 			user: userData,
@@ -92,14 +94,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		};
 
 		if (data.enrollments && data.enrollments.length > 0) {
-			// Sort enrollments by created_at to get the latest one
-			const sortedEnrollments = data.enrollments.sort(
-				(a: any, b: any) =>
-					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			// First, check if any enrollment has a priority status
+			const priorityEnrollment = data.enrollments.find((e: any) =>
+				PRIORITY_STATUSES.includes(e.status),
 			);
-			const latestEnrollment = sortedEnrollments[0];
-			processedData.enrollment_status = latestEnrollment.status;
-			processedData.latest_enrollment = latestEnrollment;
+
+			// If found, use it; otherwise fall back to the latest enrollment
+			const selectedEnrollment =
+				priorityEnrollment ||
+				data.enrollments.sort(
+					(a: any, b: any) =>
+						new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+				)[0];
+
+			processedData.enrollment_status = selectedEnrollment.status;
+			processedData.latest_enrollment = selectedEnrollment;
 		}
 
 		return NextResponse.json(processedData);
