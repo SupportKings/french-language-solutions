@@ -62,6 +62,7 @@ const statusColors = {
 	answer_received: "secondary",
 	completed: "success",
 	disabled: "destructive",
+	failed: "destructive",
 };
 
 const statusLabels = {
@@ -70,6 +71,7 @@ const statusLabels = {
 	answer_received: "Answer Received",
 	completed: "Completed",
 	disabled: "Disabled",
+	failed: "Failed",
 };
 
 const statusIcons = {
@@ -78,6 +80,7 @@ const statusIcons = {
 	answer_received: CheckCircle,
 	completed: CheckCircle,
 	disabled: XCircle,
+	failed: AlertCircle,
 };
 
 // Define column configurations for data-table-filter - will be populated dynamically
