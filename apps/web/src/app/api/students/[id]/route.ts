@@ -187,6 +187,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
+		// If email was updated and student has a user_id, sync email to user table
+		if (body.email && data.user_id) {
+			const { error: userUpdateError } = await supabase
+				.from("user")
+				.update({
+					email: body.email,
+					updatedAt: new Date().toISOString(),
+				})
+				.eq("id", data.user_id);
+
+			if (userUpdateError) {
+				console.error("Error updating user email:", userUpdateError);
+				// Log the error but don't fail the request since student was updated
+				// This allows the UI to continue working even if user sync fails
+			}
+		}
+
 		return NextResponse.json(data);
 	} catch (error: any) {
 		if (error.message === "UNAUTHORIZED") {
