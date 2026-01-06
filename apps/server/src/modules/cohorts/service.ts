@@ -54,14 +54,14 @@ export class CohortService {
 	 */
 	private formatDuration(minutes: number): string {
 		if (minutes === 60) {
-			return "1 hr";
+			return "1 Hour";
 		}
 		if (minutes < 60) {
-			return `${minutes} min`;
+			return `${minutes} minutes`;
 		}
 		// For durations over 60 minutes, show as hours with decimal
 		const hours = minutes / 60;
-		return `${hours} hr`;
+		return `${hours} Hours`;
 	}
 
 	/**
@@ -168,6 +168,9 @@ export class CohortService {
 		// Get product info for event summary
 		const productName = cohort.product.display_name;
 
+		const location = cohort.product.location;
+		const locationString = location === "online" ? "Online Class" : "In-Person Group Class";
+
 		// Get only active enrollments
 		const activeEnrollments = this.getActiveEnrollments(cohort.enrollments);
 
@@ -244,12 +247,12 @@ export class CohortService {
 							)
 						: student.first_name;
 
-					eventSummary = `FLS-CP-${formattedStudent} – ${formattedTeacher} – ${formattedDuration}`;
+					eventSummary = `FLS-CP-${formattedStudent} – ${formattedTeacher} – ${formattedDuration} ${locationString}`;
 				} else {
 					// Group Classes: FLS CG[# of Students] – [Class Length]
 					// Example: FLS CG2 – 1 hr
 					const numberOfStudents = activeEnrollments.length;
-					eventSummary = `FLS-CG-${numberOfStudents} – ${formattedDuration}`;
+					eventSummary = `FLS-CG${numberOfStudents} – ${formattedDuration} ${locationString}`;
 				}
 
 				return {
