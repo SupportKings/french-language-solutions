@@ -287,7 +287,6 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 											</FormControl>
 											<SelectContent>
 												<SelectItem value="scheduled">Scheduled</SelectItem>
-												<SelectItem value="in_progress">In Progress</SelectItem>
 												<SelectItem value="completed">Completed</SelectItem>
 												<SelectItem value="cancelled">Cancelled</SelectItem>
 											</SelectContent>

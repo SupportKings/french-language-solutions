@@ -353,7 +353,6 @@ export function ClassCreateModal({
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="scheduled">Scheduled</SelectItem>
-								<SelectItem value="in_progress">In Progress</SelectItem>
 								<SelectItem value="completed">Completed</SelectItem>
 								<SelectItem value="cancelled">Cancelled</SelectItem>
 							</SelectContent>
