@@ -190,7 +190,7 @@ export function StudentFollowUps({ studentId }: StudentFollowUpsProps) {
 										className="h-8 flex-shrink-0 px-2"
 									>
 										<Link
-											href={`/admin/follow-ups/${followUp.id}?redirectTo=${encodeURIComponent(currentUrl)}`}
+											href={`/admin/automation/automated-follow-ups/${followUp.id}?redirectTo=${encodeURIComponent(currentUrl)}`}
 										>
 											<ExternalLink className="h-3.5 w-3.5" />
 										</Link>
