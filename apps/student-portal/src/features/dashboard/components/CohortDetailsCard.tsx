@@ -2,7 +2,6 @@
 
 import { BookOpen, FolderOpen, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
-import Link from "next/link";
 
 import { Progress } from "@/components/ui/progress";
 import { cn, getGoogleDriveUrl } from "@/lib/utils";
@@ -37,7 +36,7 @@ const enrollmentStatusConfig = {
 };
 
 export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
-	const { cohort, stats, enrollmentStatus, goalLevel } = details;
+	const { cohort, stats, enrollmentStatus, goalLevel, nextMajorLevel } = details;
 
 	const statusConfig =
 		enrollmentStatusConfig[
@@ -118,14 +117,19 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 						
 						</h3>
 
-						{/* Progress */}
+						{/* Progress towards next major level */}
 						<div className="space-y-1.5">
-							{goalLevel ? (
+							{cohort.currentLevel?.levelGroup === "c2" ? (
+								<div className="rounded-lg border border-dashed border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
+									<p className="text-sm text-emerald-600 dark:text-emerald-400 text-center">
+										Congratulations! You've reached the highest level.
+									</p>
+								</div>
+							) : nextMajorLevel && stats.totalHoursToNextLevel > 0 ? (
 								<>
 									<div className="flex items-baseline justify-between">
 										<span className="text-sm leading-snug text-muted-foreground">
-											{stats.hoursCompleted}h of {stats.totalHoursToGoal}h to{" "}
-											{goalLevel.displayName}
+											Progress to {nextMajorLevel.levelGroup.toUpperCase()}
 										</span>
 										<span className="text-sm font-semibold text-primary">
 											{stats.progressPercentage}%
@@ -133,19 +137,7 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 									</div>
 									<Progress value={stats.progressPercentage} className="h-1.5" />
 								</>
-							) : (
-								<div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 px-3 py-2">
-									<p className="text-sm text-muted-foreground text-center">
-										Goal level not set yet.{" "}
-										<Link
-											href="/settings"
-											className="text-primary underline underline-offset-2 hover:text-primary/80"
-										>
-											Set it in settings
-										</Link>
-									</p>
-								</div>
-							)}
+							) : null}
 						</div>
 					</div>
 
