@@ -1,7 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
-
+import { createSignedUploadUrl } from "../actions/createSignedUploadUrl";
 import type { AttachmentMetadata } from "../types";
 
 const SIZE_LIMITS = {
@@ -28,57 +27,59 @@ function getFileType(mimeType: string): "image" | "document" {
 }
 
 /**
- * Upload a file directly to Supabase storage from the client
- * This bypasses Next.js Server Action body size limits
+ * Upload a file to Supabase storage using a server-generated signed URL.
+ * This approach keeps the Supabase client server-side only while still
+ * allowing direct uploads to bypass Next.js body size limits.
  */
 export async function uploadFileToStorage(
 	file: File,
-	userId: string,
+	_userId: string,
 ): Promise<AttachmentMetadata> {
-	const supabase = createClient();
-
-	// Validate file type
+	// Validate file type locally first for immediate feedback
 	const fileType = getFileType(file.type);
 	const maxSize = SIZE_LIMITS[fileType];
 
-	// Validate file size
 	if (file.size > maxSize) {
 		throw new Error(
 			`File too large. Maximum size for ${fileType}s is ${maxSize / (1024 * 1024)}MB`,
 		);
 	}
 
-	// Generate unique filename
-	const timestamp = Date.now();
-	const randomString = Math.random().toString(36).substring(2, 8);
-	const fileExtension = file.name.split(".").pop() || "";
-	const fileName = `${timestamp}-${randomString}.${fileExtension}`;
+	// Get signed upload URL from server
+	const result = await createSignedUploadUrl({
+		fileName: file.name,
+		fileSize: file.size,
+		mimeType: file.type,
+	});
 
-	// Upload to temp folder
-	const filePath = `${userId}/temp/${fileName}`;
-
-	const { data, error } = await supabase.storage
-		.from("chat-attachments")
-		.upload(filePath, file, {
-			cacheControl: "3600",
-			upsert: false,
-		});
-
-	if (error) {
-		console.error("Upload error:", error);
-		throw new Error(`Failed to upload file: ${error.message}`);
+	if (!result?.data) {
+		throw new Error(
+			result?.serverError || "Failed to prepare upload. Please try again.",
+		);
 	}
 
-	// Get public URL
-	const {
-		data: { publicUrl },
-	} = supabase.storage.from("chat-attachments").getPublicUrl(data.path);
+	const { signedUrl, path, publicUrl } = result.data;
+
+	// Upload file directly to Supabase using the signed URL
+	const uploadResponse = await fetch(signedUrl, {
+		method: "PUT",
+		headers: {
+			"Content-Type": file.type,
+		},
+		body: file,
+	});
+
+	if (!uploadResponse.ok) {
+		const errorText = await uploadResponse.text();
+		console.error("Upload error:", errorText);
+		throw new Error("Failed to upload file. Please try again.");
+	}
 
 	return {
 		fileName: file.name,
 		fileUrl: publicUrl,
 		fileType,
 		fileSize: file.size,
-		storagePath: data.path,
+		storagePath: path,
 	};
 }

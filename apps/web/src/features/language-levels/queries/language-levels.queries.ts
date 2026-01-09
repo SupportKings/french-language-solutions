@@ -1,10 +1,15 @@
-import { createClient } from "@/lib/supabase/client";
-
 import {
 	queryOptions,
 	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
+import {
+	createLanguageLevel,
+	deleteLanguageLevel,
+	fetchLanguageLevelById,
+	fetchLanguageLevels,
+	updateLanguageLevel,
+} from "../actions/languageLevelActions";
 import type { LanguageLevel } from "../types/language-level.types";
 import { sortLanguageLevels } from "../utils/sorting";
 
@@ -14,14 +19,11 @@ export const languageLevelQueries = {
 		queryOptions({
 			queryKey: [...languageLevelQueries.all(), "list"] as const,
 			queryFn: async () => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("language_levels")
-					.select("*");
-
-				if (error) throw error;
-				// Apply natural sorting to handle A1.2 vs A1.11 correctly
-				return sortLanguageLevels(data as LanguageLevel[]);
+				const result = await fetchLanguageLevels();
+				if (!result?.data) {
+					throw new Error("Failed to fetch language levels");
+				}
+				return sortLanguageLevels(result.data as LanguageLevel[]);
 			},
 			staleTime: 1000 * 60 * 5, // 5 minutes
 		}),
@@ -30,15 +32,11 @@ export const languageLevelQueries = {
 		queryOptions({
 			queryKey: [...languageLevelQueries.all(), id] as const,
 			queryFn: async () => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("language_levels")
-					.select("*")
-					.eq("id", id)
-					.single();
-
-				if (error) throw error;
-				return data as LanguageLevel;
+				const result = await fetchLanguageLevelById({ id });
+				if (!result?.data) {
+					throw new Error("Failed to fetch language level");
+				}
+				return result.data as LanguageLevel;
 			},
 		}),
 };
@@ -54,22 +52,19 @@ export const useUpdateLanguageLevel = () => {
 			id: string;
 			data: Partial<LanguageLevel>;
 		}) => {
-			const supabase = createClient();
-			const { data: updated, error } = await supabase
-				.from("language_levels")
-				.update({
-					code: data.code,
-					display_name: data.display_name,
-					level_group: data.level_group,
-					hours: data.hours,
-					updated_at: new Date().toISOString(),
-				})
-				.eq("id", id)
-				.select()
-				.single();
-
-			if (error) throw error;
-			return updated;
+			const result = await updateLanguageLevel({
+				id,
+				code: data.code,
+				display_name: data.display_name,
+				level_group: data.level_group,
+				hours: data.hours,
+			});
+			if (!result?.data) {
+				throw new Error(
+					result?.serverError || "Failed to update language level",
+				);
+			}
+			return result.data;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: languageLevelQueries.all() });
@@ -82,20 +77,18 @@ export const useCreateLanguageLevel = () => {
 
 	return useMutation({
 		mutationFn: async (data: Partial<LanguageLevel>) => {
-			const supabase = createClient();
-			const { data: created, error } = await supabase
-				.from("language_levels")
-				.insert({
-					code: data.code,
-					display_name: data.display_name,
-					level_group: data.level_group,
-					hours: data.hours || 2,
-				})
-				.select()
-				.single();
-
-			if (error) throw error;
-			return created;
+			const result = await createLanguageLevel({
+				code: data.code!,
+				display_name: data.display_name!,
+				level_group: data.level_group!,
+				hours: data.hours || 2,
+			});
+			if (!result?.data) {
+				throw new Error(
+					result?.serverError || "Failed to create language level",
+				);
+			}
+			return result.data;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: languageLevelQueries.all() });
@@ -108,13 +101,12 @@ export const useDeleteLanguageLevel = () => {
 
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const supabase = createClient();
-			const { error } = await supabase
-				.from("language_levels")
-				.delete()
-				.eq("id", id);
-
-			if (error) throw error;
+			const result = await deleteLanguageLevel({ id });
+			if (!result?.data) {
+				throw new Error(
+					result?.serverError || "Failed to delete language level",
+				);
+			}
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: languageLevelQueries.all() });

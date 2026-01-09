@@ -84,9 +84,23 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 								{statusConfig.label}
 							</span>
 						</div>
-						<div className="text-right">
-							<div className="font-bold text-2xl text-primary">
-								{cohort.currentLevel?.displayName || "-"}
+						<div className="flex items-center gap-3">
+							{cohort.googleDriveFolderId && (
+								<a
+									href={getGoogleDriveUrl(cohort.googleDriveFolderId) || "#"}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:border-blue-700 dark:hover:bg-blue-900/50"
+									onClick={(e) => e.stopPropagation()}
+								>
+									<FolderOpen className="h-4 w-4" />
+									Class Materials
+								</a>
+							)}
+							<div className="text-right">
+								<div className="font-bold text-2xl text-primary">
+									{cohort.currentLevel?.displayName || "-"}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -150,18 +164,6 @@ export function CohortDetailsCard({ details }: CohortDetailsCardProps) {
 								<span className="rounded-md bg-primary/10 px-2 py-1 font-medium text-primary backdrop-blur-sm transition-all duration-200 hover:bg-primary/20">
 									Goal: {goalLevel.displayName}
 								</span>
-							)}
-							{cohort.googleDriveFolderId && (
-								<a
-									href={getGoogleDriveUrl(cohort.googleDriveFolderId) || "#"}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="inline-flex items-center gap-1.5 rounded-md bg-blue-500/10 px-2 py-1 font-medium text-blue-600 backdrop-blur-sm transition-all duration-200 hover:bg-blue-500/20 dark:text-blue-400"
-									onClick={(e) => e.stopPropagation()}
-								>
-									<FolderOpen className="h-3 w-3" />
-									Class Materials
-								</a>
 							)}
 						</div>
 					</div>

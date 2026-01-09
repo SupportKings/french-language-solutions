@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-
 import { useRouter } from "next/navigation";
-
-import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,14 +21,14 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { BookOpen, Calendar, Clock, MapPin, Users, Video } from "lucide-react";
+import { BookOpen, Calendar, MapPin, Users, Video } from "lucide-react";
+import { fetchCohortsForSelect } from "../actions/fetchCohortsForSelect";
+import { fetchTeachersForSelect } from "../actions/fetchTeachersForSelect";
 import { useForm } from "react-hook-form";
 import { useCreateClass, useUpdateClass } from "../queries/classes.queries";
 import {
@@ -53,28 +49,19 @@ export function ClassForm({ initialData, isEdit = false }: ClassFormProps) {
 
 	// Fetch cohorts for selection
 	const { data: cohorts } = useQuery({
-		queryKey: ["cohorts"],
+		queryKey: ["cohorts-for-select"],
 		queryFn: async () => {
-			const supabase = createClient();
-			const { data } = await supabase
-				.from("cohorts")
-				.select("id, starting_level, start_date")
-				.order("created_at", { ascending: false });
-			return data || [];
+			const result = await fetchCohortsForSelect();
+			return result?.data || [];
 		},
 	});
 
 	// Fetch teachers for selection
 	const { data: teachers } = useQuery({
-		queryKey: ["teachers"],
+		queryKey: ["teachers-for-select"],
 		queryFn: async () => {
-			const supabase = createClient();
-			const { data } = await supabase
-				.from("teachers")
-				.select("id, full_name")
-				.eq("onboarding_status", "onboarded")
-				.order("full_name");
-			return data || [];
+			const result = await fetchTeachersForSelect();
+			return result?.data || [];
 		},
 	});
 
