@@ -19,6 +19,7 @@ export interface CohortDetails {
 			code: string;
 			displayName: string;
 			levelNumber: number | null;
+			levelGroup: string | null;
 		} | null;
 		startingLevel: {
 			code: string;
@@ -39,8 +40,13 @@ export interface CohortDetails {
 		attendancePercentage: number;
 		progressPercentage: number;
 		hoursCompleted: number;
-		totalHoursToGoal: number;
+		totalHoursToNextLevel: number;
 	};
+	nextMajorLevel: {
+		code: string;
+		displayName: string;
+		levelGroup: string;
+	} | null;
 	goalLevel: {
 		code: string;
 		displayName: string;
@@ -74,7 +80,8 @@ export async function getCohortDetails(
 				language_levels!cohorts_current_level_id_language_levels_id_fk (
 					code,
 					display_name,
-					level_number
+					level_number,
+					level_group
 				),
 				starting_levels:language_levels!cohorts_starting_level_id_language_levels_id_fk (
 					code,
@@ -172,12 +179,16 @@ export async function getCohortDetails(
 	// Extract goal level from student
 	const goalLevelData = student?.goal_language_level as any;
 
-	// Calculate hours-based progress
+	// Calculate hours-based progress towards next major level
 	let progressPercentage = 0;
 	let hoursCompleted = 0;
-	let totalHoursToGoal = 0;
+	let totalHoursToNextLevel = 0;
+	let nextMajorLevelData: { code: string; displayName: string; levelGroup: string } | null = null;
 
-	if (goalLevelData && currentLevel && startingLevel) {
+	// Define the order of major level groups
+	const majorLevelOrder = ["a0", "a1", "a2", "b1", "b2", "c1", "c2"];
+
+	if (currentLevel) {
 		// Sort all levels using the same logic as the UI (by level_group, then code)
 		const sortedLevels = [...allLevels].sort((a, b) => {
 			// First sort by level_group (a0, a1, a2, b1, b2, c1, c2)
@@ -201,34 +212,60 @@ export async function getCohortDetails(
 			return a.code.localeCompare(b.code);
 		});
 
-		// Find indices in the sorted array
-		const startingIndex = sortedLevels.findIndex(
-			(l) => l.code === startingLevel.code,
-		);
-		const currentIndex = sortedLevels.findIndex(
-			(l) => l.code === currentLevel.code,
-		);
-		const goalIndex = sortedLevels.findIndex((l) => l.code === goalLevelData.code);
+		// Find current level's group and determine the next major level group
+		const currentLevelGroup = currentLevel.level_group;
+		const currentGroupIndex = majorLevelOrder.indexOf(currentLevelGroup);
+		const nextMajorGroup = currentGroupIndex !== -1 && currentGroupIndex < majorLevelOrder.length - 1
+			? majorLevelOrder[currentGroupIndex + 1]
+			: null;
 
-		if (startingIndex !== -1 && currentIndex !== -1 && goalIndex !== -1) {
-			// Sum hours from start to current (inclusive)
-			hoursCompleted = sortedLevels
-				.slice(startingIndex, currentIndex + 1)
-				.reduce((sum, level) => sum + (level.hours || 0), 0);
+		if (nextMajorGroup) {
+			// Find the first level of the next major group (this is the target)
+			const nextMajorLevel = sortedLevels.find((l) => l.level_group === nextMajorGroup);
 
-			// Sum hours from start to goal (inclusive)
-			totalHoursToGoal = sortedLevels
-				.slice(startingIndex, goalIndex + 1)
-				.reduce((sum, level) => sum + (level.hours || 0), 0);
+			if (nextMajorLevel) {
+				nextMajorLevelData = {
+					code: nextMajorLevel.code,
+					displayName: nextMajorLevel.display_name,
+					levelGroup: nextMajorLevel.level_group,
+				};
 
-			// Calculate percentage
-			progressPercentage =
-				totalHoursToGoal > 0
-					? Math.round((hoursCompleted / totalHoursToGoal) * 100)
-					: 0;
+				// Find the first level of current major group (start of current major level)
+				const currentMajorGroupStart = sortedLevels.find((l) => l.level_group === currentLevelGroup);
 
-			// Cap at 100%
-			progressPercentage = Math.min(progressPercentage, 100);
+				if (currentMajorGroupStart) {
+					const currentMajorStartIndex = sortedLevels.findIndex(
+						(l) => l.code === currentMajorGroupStart.code,
+					);
+					const currentIndex = sortedLevels.findIndex(
+						(l) => l.code === currentLevel.code,
+					);
+					const nextMajorIndex = sortedLevels.findIndex(
+						(l) => l.code === nextMajorLevel.code,
+					);
+
+					if (currentMajorStartIndex !== -1 && currentIndex !== -1 && nextMajorIndex !== -1) {
+						// Hours completed = from start of current major level to current level (inclusive of current)
+						hoursCompleted = sortedLevels
+							.slice(currentMajorStartIndex, currentIndex + 1)
+							.reduce((sum, level) => sum + (level.hours || 0), 0);
+
+						// Total hours = from start of current major level to end of current major level (before next major)
+						totalHoursToNextLevel = sortedLevels
+							.slice(currentMajorStartIndex, nextMajorIndex)
+							.reduce((sum, level) => sum + (level.hours || 0), 0);
+
+						// Calculate percentage
+						progressPercentage =
+							totalHoursToNextLevel > 0
+								? Math.round((hoursCompleted / totalHoursToNextLevel) * 100)
+								: 0;
+
+						// Cap at 100%
+						progressPercentage = Math.min(progressPercentage, 100);
+					}
+				}
+			}
 		}
 	}
 
@@ -244,6 +281,7 @@ export async function getCohortDetails(
 						code: currentLevel.code,
 						displayName: currentLevel.display_name,
 						levelNumber: currentLevel.level_number,
+						levelGroup: currentLevel.level_group,
 					}
 				: null,
 			startingLevel: startingLevel
@@ -269,8 +307,9 @@ export async function getCohortDetails(
 			attendancePercentage,
 			progressPercentage,
 			hoursCompleted,
-			totalHoursToGoal,
+			totalHoursToNextLevel,
 		},
+		nextMajorLevel: nextMajorLevelData,
 		goalLevel: goalLevelData
 			? {
 					code: goalLevelData.code,
