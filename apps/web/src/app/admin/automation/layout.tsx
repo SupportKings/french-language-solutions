@@ -13,8 +13,8 @@ export default async function AutomationLayout({
 		redirect("/");
 	}
 
-	// Only admins can access automation
-	if (session.user.role !== "admin") {
+	// Only admins and super_admins can access automation
+	if (session.user.role !== "admin" && session.user.role !== "super_admin") {
 		redirect("/admin/students");
 	}
 

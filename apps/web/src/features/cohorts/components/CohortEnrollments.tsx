@@ -43,6 +43,7 @@ interface CohortEnrollmentsProps {
 	cohortLevel?: string;
 	onEnrollmentUpdate?: () => void;
 	canEnrollStudent?: boolean;
+	userRole?: string;
 }
 
 export function CohortEnrollments({
@@ -51,6 +52,7 @@ export function CohortEnrollments({
 	cohortLevel = "",
 	onEnrollmentUpdate,
 	canEnrollStudent = true,
+	userRole,
 }: CohortEnrollmentsProps) {
 	const queryClient = useQueryClient();
 	const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
@@ -79,7 +81,16 @@ export function CohortEnrollments({
 		enabled: !!cohortId,
 	});
 
-	const enrolledStudents = data || [];
+	// Teachers only see these enrollment statuses in the cohort enrollments tab
+	const TEACHER_VISIBLE_STATUSES = ["paid", "welcome_package_sent", "transitioning", "offboarding"];
+	const isTeacher = userRole === "teacher";
+
+	// Filter enrollments - teachers only see specific statuses, admins see all
+	const enrolledStudents = isTeacher
+		? (data || []).filter((enrollment: any) =>
+				TEACHER_VISIBLE_STATUSES.includes(enrollment.status)
+			)
+		: data || [];
 
 	// Open create enrollment modal
 	const openCreateEnrollmentModal = () => {
@@ -232,23 +243,33 @@ export function CohortEnrollments({
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="all">All Statuses</SelectItem>
-									<SelectItem value="interested">Interested</SelectItem>
-									<SelectItem value="beginner_form_filled">
-										Form Filled
-									</SelectItem>
-									<SelectItem value="contract_signed">
-										Contract Signed
-									</SelectItem>
 									<SelectItem value="paid">Paid</SelectItem>
 									<SelectItem value="welcome_package_sent">
 										Welcome Package Sent
 									</SelectItem>
 									<SelectItem value="transitioning">Transitioning</SelectItem>
 									<SelectItem value="offboarding">Offboarding</SelectItem>
-									<SelectItem value="payment_abandoned">
-										Payment Abandoned
-									</SelectItem>
-									<SelectItem value="dropped_out">Dropped Out</SelectItem>
+									{!isTeacher && (
+										<>
+											<SelectItem value="interested">Interested</SelectItem>
+											<SelectItem value="beginner_form_filled">
+												Form Filled
+											</SelectItem>
+											<SelectItem value="contract_signed">
+												Contract Signed
+											</SelectItem>
+											<SelectItem value="contract_abandoned">
+												Contract Abandoned
+											</SelectItem>
+											<SelectItem value="payment_abandoned">
+												Payment Abandoned
+											</SelectItem>
+											<SelectItem value="declined_contract">
+												Declined
+											</SelectItem>
+											<SelectItem value="dropped_out">Dropped Out</SelectItem>
+										</>
+									)}
 								</SelectContent>
 							</Select>
 						</div>

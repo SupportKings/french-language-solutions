@@ -33,9 +33,13 @@ type SortOption = "newest" | "oldest";
 
 interface AnnouncementsPageClientProps {
 	userId: string;
+	canPostSchoolWide?: boolean;
 }
 
-export function AnnouncementsPageClient({ userId }: AnnouncementsPageClientProps) {
+export function AnnouncementsPageClient({
+	userId,
+	canPostSchoolWide = true,
+}: AnnouncementsPageClientProps) {
 	const [selectedCategory, setSelectedCategory] = useState<
 		"all" | AnnouncementScope
 	>("all");
@@ -118,6 +122,7 @@ export function AnnouncementsPageClient({ userId }: AnnouncementsPageClientProps
 									Create Announcement
 								</Button>
 							}
+							canPostSchoolWide={canPostSchoolWide}
 						/>
 					</div>
 				</div>
@@ -174,6 +179,7 @@ export function AnnouncementsPageClient({ userId }: AnnouncementsPageClientProps
 									Create
 								</Button>
 							}
+							canPostSchoolWide={canPostSchoolWide}
 						/>
 					</div>
 

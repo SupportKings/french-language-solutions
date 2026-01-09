@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -14,13 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 
 import { createTeacherUser } from "@/features/teachers/actions/createTeacherUser";
 
@@ -31,20 +25,38 @@ interface CreateUserDialogProps {
 	teacherId: string;
 	teacherName: string;
 	teacherEmail?: string;
+	teacherRoles?: string[];
 	onSuccess?: () => void;
+}
+
+// Derive auth role from team roles
+function deriveAuthRole(teamRoles?: string[]): "super_admin" | "admin" | "teacher" {
+	if (!teamRoles || teamRoles.length === 0) return "teacher";
+	// Super Admin gets super_admin access
+	if (teamRoles.includes("Super Admin")) {
+		return "super_admin";
+	}
+	// Marketing/Admin gets admin access
+	if (teamRoles.includes("Marketing/Admin")) {
+		return "admin";
+	}
+	return "teacher";
 }
 
 export function CreateUserDialog({
 	teacherId,
 	teacherName,
 	teacherEmail,
+	teacherRoles,
 	onSuccess,
 }: CreateUserDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [email, setEmail] = useState(teacherEmail || "");
-	const [role, setRole] = useState<string>("");
 	const [sendInvite, setSendInvite] = useState(true);
+
+	// Auto-derive role from team roles
+	const derivedRole = deriveAuthRole(teacherRoles);
 
 	const handleOpen = (isOpen: boolean) => {
 		setOpen(isOpen);
@@ -55,18 +67,18 @@ export function CreateUserDialog({
 	};
 
 	const handleCreateUser = async () => {
-		if (!email || !role) {
-			toast.error("Please fill in all required fields");
+		if (!email) {
+			toast.error("Please enter an email address");
 			return;
 		}
 
 		setLoading(true);
-		console.log("Creating user with sendInvite:", sendInvite);
+		console.log("Creating user with sendInvite:", sendInvite, "derivedRole:", derivedRole);
 		try {
 			const result = await createTeacherUser({
 				teacherId,
 				email,
-				role: role as "admin" | "teacher",
+				role: derivedRole,
 				sendInvite,
 			});
 
@@ -74,7 +86,6 @@ export function CreateUserDialog({
 				toast.success(result.data.message);
 				setOpen(false);
 				setEmail(teacherEmail || "");
-				setRole("");
 				setSendInvite(true);
 				console.log("User created successfully, calling onSuccess callback");
 				// Give the database a moment to update before refreshing
@@ -123,18 +134,18 @@ export function CreateUserDialog({
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="role">User Access Level *</Label>
-							<Select value={role} onValueChange={setRole} disabled={loading}>
-								<SelectTrigger>
-									<SelectValue placeholder="Select access level" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="teacher">Teacher Access</SelectItem>
-									<SelectItem value="admin">Admin Access</SelectItem>
-								</SelectContent>
-							</Select>
+							<Label>Portal Access Level</Label>
+							<div className="flex items-center gap-2">
+								<Badge variant={derivedRole === "teacher" ? "secondary" : "default"}>
+									{derivedRole === "super_admin"
+										? "Super Admin Access"
+										: derivedRole === "admin"
+											? "Admin Access"
+											: "Teacher Access"}
+								</Badge>
+							</div>
 							<p className="text-muted-foreground text-xs">
-								This determines what they can access in the system
+								Based on team role: {teacherRoles?.length ? teacherRoles.join(", ") : "No role assigned"}
 							</p>
 						</div>
 

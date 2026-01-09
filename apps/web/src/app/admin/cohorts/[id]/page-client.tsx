@@ -86,6 +86,7 @@ interface CohortDetailPageClientProps {
 	cohortId: string;
 	permissions: any;
 	currentUserId: string;
+	userRole?: string;
 }
 
 // Status options
@@ -145,6 +146,7 @@ export function CohortDetailPageClient({
 	cohortId,
 	permissions,
 	currentUserId,
+	userRole,
 }: CohortDetailPageClientProps) {
 	// Check permissions
 	const canAddSession = permissions?.cohorts?.includes("add_session");
@@ -1449,6 +1451,7 @@ export function CohortDetailPageClient({
 							)}
 							onEnrollmentUpdate={fetchEnrollmentData}
 							canEnrollStudent={canEditCohort}
+							userRole={userRole}
 						/>
 					</TabsContent>
 
@@ -1459,6 +1462,7 @@ export function CohortDetailPageClient({
 							cohortFormat={cohort?.products?.format}
 							cohortRoom={cohort?.room}
 							onViewAttendance={handleViewAttendance}
+							canCreateClasses={canEditCohort}
 						/>
 					</TabsContent>
 

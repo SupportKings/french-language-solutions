@@ -17,7 +17,7 @@ import { z } from "zod";
 const inputSchema = z.object({
 	teacherId: z.string(),
 	email: z.string().email("Invalid email address"),
-	role: z.enum(["admin", "teacher"]), // Simple roles: admin or teacher
+	role: z.enum(["super_admin", "admin", "teacher"]),
 	sendInvite: z.boolean().default(false),
 });
 
@@ -143,18 +143,36 @@ export const createTeacherUser = actionClient
 				updatedTeacher.user_id,
 			);
 
-			// Now try to set role - but don't fail if this doesn't work
+			// Set role - use direct database update for super_admin since Better Auth doesn't support it
 			try {
-				await auth.api.setRole({
-					body: {
-						userId: newUser.id,
-						role: parsedInput.role, // Already validated as "admin" or "teacher"
-					},
-					headers: await headers(),
-				});
-				console.log(
-					`Successfully set role to ${parsedInput.role} for user ${newUser.id}`,
-				);
+				if (parsedInput.role === "super_admin") {
+					// super_admin is not supported by Better Auth API, update directly in database
+					const supabase = await createClient();
+					const { error } = await supabase
+						.from("user")
+						.update({ role: parsedInput.role })
+						.eq("id", newUser.id);
+
+					if (error) {
+						console.error("Database update failed:", error);
+					} else {
+						console.log(
+							`Successfully set role to ${parsedInput.role} via database`,
+						);
+					}
+				} else {
+					// Use Better Auth API for admin/teacher roles
+					await auth.api.setRole({
+						body: {
+							userId: newUser.id,
+							role: parsedInput.role as "admin" | "teacher",
+						},
+						headers: await headers(),
+					});
+					console.log(
+						`Successfully set role to ${parsedInput.role} for user ${newUser.id}`,
+					);
+				}
 			} catch (roleError) {
 				console.warn(
 					"Better Auth API failed to set role, trying direct database update...",

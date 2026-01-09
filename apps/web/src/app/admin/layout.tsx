@@ -11,7 +11,7 @@ import { getUnreadChatCount } from "@/features/chats/queries/getUnreadChatCount"
 import { getUser } from "@/queries/getUser";
 
 // Allowed roles for admin portal
-const ALLOWED_ROLES = ["admin", "teacher"];
+const ALLOWED_ROLES = ["admin", "super_admin", "teacher"];
 
 export default async function AdminLayout({
 	children,

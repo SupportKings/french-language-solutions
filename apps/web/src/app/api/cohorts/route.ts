@@ -131,7 +131,8 @@ export async function GET(request: NextRequest) {
 		const offset = (page - 1) * limit;
 
 		// 2. Get teacher's cohort IDs for server-side filtering
-		const userIsAdmin = session.user.role === "admin";
+		const userIsAdmin =
+			session.user.role === "admin" || session.user.role === "super_admin";
 		let cohortIds: string[] | null = null;
 
 		if (!userIsAdmin) {

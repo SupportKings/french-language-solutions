@@ -22,8 +22,9 @@ export function NavSecondary({
 }) {
 	const pathname = usePathname();
 
-	// Only show portal users to admins
-	const canAccessPortalUsers = userRole === "admin";
+	// Only show portal users to admins and super_admins
+	const canAccessPortalUsers =
+		userRole === "admin" || userRole === "super_admin";
 
 	return (
 		<SidebarGroup {...props}>

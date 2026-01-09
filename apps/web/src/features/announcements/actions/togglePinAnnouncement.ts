@@ -45,7 +45,8 @@ export const togglePinAnnouncement = actionClient
 			.eq("id", session.user.id)
 			.single();
 
-		const isAdmin = userData?.role === "admin";
+		const isAdmin =
+			userData?.role === "admin" || userData?.role === "super_admin";
 
 		if (existingAnnouncement.author_id !== session.user.id && !isAdmin) {
 			throw new Error("Unauthorized to update this announcement");

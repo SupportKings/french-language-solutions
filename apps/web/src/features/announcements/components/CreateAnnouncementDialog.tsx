@@ -67,6 +67,7 @@ interface Cohort {
 
 interface CreateAnnouncementDialogProps {
 	trigger?: React.ReactNode;
+	canPostSchoolWide?: boolean;
 }
 
 interface AttachmentFile {
@@ -94,11 +95,15 @@ function getCohortDisplayName(cohort: Cohort): string {
 
 export function CreateAnnouncementDialog({
 	trigger,
+	canPostSchoolWide = true,
 }: CreateAnnouncementDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState<any>(null);
-	const [scope, setScope] = useState<"school_wide" | "cohort">("cohort");
+	// Default to cohort scope if user can't post school-wide
+	const [scope, setScope] = useState<"school_wide" | "cohort">(
+		canPostSchoolWide ? "cohort" : "cohort",
+	);
 	const [cohortId, setCohortId] = useState<string>("");
 	const [isPinned, setIsPinned] = useState(false);
 	const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
@@ -344,23 +349,29 @@ export function CreateAnnouncementDialog({
 							<Label htmlFor="scope">
 								Scope <span className="text-destructive">*</span>
 							</Label>
-							<Select
-								value={scope}
-								onValueChange={(value: "school_wide" | "cohort") => {
-									setScope(value);
-									if (value === "school_wide") {
-										setCohortId("");
-									}
-								}}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="school_wide">School-wide</SelectItem>
-									<SelectItem value="cohort">Specific Cohort</SelectItem>
-								</SelectContent>
-							</Select>
+							{canPostSchoolWide ? (
+								<Select
+									value={scope}
+									onValueChange={(value: "school_wide" | "cohort") => {
+										setScope(value);
+										if (value === "school_wide") {
+											setCohortId("");
+										}
+									}}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="school_wide">School-wide</SelectItem>
+										<SelectItem value="cohort">Specific Cohort</SelectItem>
+									</SelectContent>
+								</Select>
+							) : (
+								<div className="flex h-10 items-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">
+									Specific Cohort
+								</div>
+							)}
 						</div>
 
 						{/* Cohort Selection */}

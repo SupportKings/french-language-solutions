@@ -21,8 +21,8 @@ export default async function EnrollmentsLayout({
 		redirect("/");
 	}
 
-	// Only admins can access enrollments section
-	if (session.user.role !== "admin") {
+	// Only admins and super_admins can access enrollments section
+	if (session.user.role !== "admin" && session.user.role !== "super_admin") {
 		redirect("/admin/students");
 	}
 

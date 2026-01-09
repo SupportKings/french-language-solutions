@@ -48,7 +48,8 @@ export default async function TeamMemberDetailPage({
 
 	// Get current user session to check permissions
 	const session = await getUser();
-	const canAccessProducts = session?.user?.role === "admin";
+	const canAccessProducts =
+		session?.user?.role === "admin" || session?.user?.role === "super_admin";
 
 	return (
 		<TeacherDetailsClient

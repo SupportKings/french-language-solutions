@@ -152,12 +152,92 @@ export const teacher = ac.newRole({
 	// - clients, coaches, tickets, billing, analytics
 });
 
-// Admin role - Full access to everything
-// Admins can see ALL sections regardless of their additional role as teachers
+// Admin role - Full access EXCEPT team member management
+// Admins cannot access team members list, details, create, or edit team members
 export const admin = ac.newRole({
-	// ALL PERMISSIONS - Admins have unrestricted access to all system functions
+	// Full access to new sections (EXCEPT teachers)
+	students: ["read_all", "write"],
+	cohorts: ["read_all", "write", "update_current_level", "add_session"],
+	assessments: ["read_all", "write"],
+	// NO teachers access - admins cannot manage team members
+	enrollments: ["read_all", "write"],
+	products: ["read", "write"],
+	automation: ["read", "write"],
 
-	// Full access to new sections
+	// Full access to existing sections
+	clients: [
+		"read",
+		"write",
+		"activation_checklist_read",
+		"activation_checklist_write",
+		"nps_read",
+		"nps_write",
+		"wins_read",
+		"wins_write",
+		"testimonials_read",
+		"testimonials_write",
+		"status_read",
+		"status_write",
+		"onboarding_read",
+		"onboarding_write",
+		"offboarding_read",
+		"offboarding_write",
+		"assignments_read",
+		"assignments_write",
+		"history_read",
+		"call_feedback_read",
+		"plan_dates_write",
+	],
+	coaches: [
+		"read",
+		"write",
+		"onboarding_read",
+		"onboarding_write",
+		"capacity_read",
+		"capacity_write",
+		"assignments_read",
+		"assignments_write",
+		"kpis_read",
+		"status_write",
+	],
+	tickets: [
+		"read",
+		"write",
+		"create",
+		"reassign",
+		"executive_read",
+		"reminders_write",
+	],
+	billing: [
+		"read",
+		"write",
+		"transactions_read",
+		"payment_plans_read",
+		"payment_plans_write",
+		"cash_collection_read",
+		"renewals_read",
+		"churn_read",
+		"coach_costs_read",
+		"coach_costs_write",
+		"amount_owed_read",
+		"terms_write",
+	],
+	analytics: [
+		"read",
+		"forecasting_read",
+		"cohort_read",
+		"win_tags_read",
+		"activity_read",
+	],
+	system: ["configure", "churn_rate_configure", "activation_dropoff_configure"],
+	...adminAc.statements,
+});
+
+// Super Admin role - Full access to everything including team member management
+export const super_admin = ac.newRole({
+	// ALL PERMISSIONS - Super Admins have unrestricted access to all system functions
+
+	// Full access to all sections including teachers
 	students: ["read_all", "write"],
 	cohorts: ["read_all", "write", "update_current_level", "add_session"],
 	assessments: ["read_all", "write"],
@@ -238,6 +318,7 @@ export const admin = ac.newRole({
 export const rolesMap = {
 	teacher,
 	admin,
+	super_admin,
 } as const;
 
 //FOR DEV
@@ -245,11 +326,12 @@ export const rolesMap = {
 // Map of role keys to their display names
 export const roleDisplayNames = {
 	teacher: "Teacher",
-	admin: "Administrator",
+	admin: "Admin",
+	super_admin: "Super Admin",
 } as const;
 
 // Type-safe permissions type inferred from role statements
-export type PermissionStatements = typeof admin.statements;
+export type PermissionStatements = typeof super_admin.statements;
 
 // Derive all possible permission values from the statement object
 // This automatically includes new resources and actions as they're added

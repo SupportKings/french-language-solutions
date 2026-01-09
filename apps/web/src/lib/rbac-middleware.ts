@@ -35,14 +35,28 @@ export async function requireAuth() {
 // ============================================
 
 /**
- * Check if current user is an admin
- * Admins have unrestricted access to everything
+ * Check if current user is an admin or super_admin
+ * Both roles have elevated access (super_admin has full access, admin has most access)
  */
 export async function isAdmin(
 	session?: Awaited<ReturnType<typeof requireAuth>>,
 ) {
 	const userSession = session || (await requireAuth());
-	return userSession.user.role === "admin";
+	return (
+		userSession.user.role === "admin" ||
+		userSession.user.role === "super_admin"
+	);
+}
+
+/**
+ * Check if current user is a super_admin
+ * Super admins have unrestricted access to everything including team member management
+ */
+export async function isSuperAdmin(
+	session?: Awaited<ReturnType<typeof requireAuth>>,
+) {
+	const userSession = session || (await requireAuth());
+	return userSession.user.role === "super_admin";
 }
 
 /**

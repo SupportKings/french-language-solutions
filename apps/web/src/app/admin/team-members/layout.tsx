@@ -13,8 +13,8 @@ export default async function TeamMembersLayout({
 		redirect("/");
 	}
 
-	// Only admins can access team members
-	if (session.user.role !== "admin") {
+	// Only admins and super_admins can access team members
+	if (session.user.role !== "admin" && session.user.role !== "super_admin") {
 		redirect("/admin/students");
 	}
 
