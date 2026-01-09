@@ -61,6 +61,7 @@ export default async function CohortDetailPage({
 				cohortId={id}
 				permissions={permissions}
 				currentUserId={session.user.id}
+				userRole={userRole}
 			/>
 		</HydrationBoundary>
 	);

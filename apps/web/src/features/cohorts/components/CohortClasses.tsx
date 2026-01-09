@@ -61,6 +61,7 @@ interface CohortClassesProps {
 	cohortFormat?: string;
 	cohortRoom?: string;
 	onViewAttendance?: (classId: string) => void;
+	canCreateClasses?: boolean;
 }
 
 export function CohortClasses({
@@ -68,6 +69,7 @@ export function CohortClasses({
 	cohortFormat = "group",
 	cohortRoom,
 	onViewAttendance,
+	canCreateClasses = true,
 }: CohortClassesProps) {
 	const [classes, setClasses] = useState<any[]>([]);
 	const [loadingClasses, setLoadingClasses] = useState(false);
@@ -248,10 +250,12 @@ export function CohortClasses({
 							</span>
 						)}
 					</h2>
-					<Button variant="outline" size="sm" onClick={handleCreateClass}>
-						<Plus className="mr-2 h-4 w-4" />
-						Create Class
-					</Button>
+					{canCreateClasses && (
+						<Button variant="outline" size="sm" onClick={handleCreateClass}>
+							<Plus className="mr-2 h-4 w-4" />
+							Create Class
+						</Button>
+					)}
 				</div>
 
 				<div className="space-y-4">

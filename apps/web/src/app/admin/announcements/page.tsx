@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+import { rolesMap } from "@/lib/permissions";
+
 import { announcementsQueries } from "@/features/announcements/queries/announcements.queries";
 
 import { getUser } from "@/queries/getUser";
@@ -17,6 +19,11 @@ export default async function AnnouncementsPage() {
 		redirect("/signin");
 	}
 
+	// Get user's role and check if they can post school-wide announcements
+	// Only admins and super_admins can post school-wide announcements
+	const userRole = session.user.role || "teacher";
+	const canPostSchoolWide = userRole === "admin" || userRole === "super_admin";
+
 	const queryClient = new QueryClient();
 
 	// Prefetch announcements
@@ -24,7 +31,10 @@ export default async function AnnouncementsPage() {
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<AnnouncementsPageClient userId={session.user.id} />
+			<AnnouncementsPageClient
+				userId={session.user.id}
+				canPostSchoolWide={canPostSchoolWide}
+			/>
 		</HydrationBoundary>
 	);
 }

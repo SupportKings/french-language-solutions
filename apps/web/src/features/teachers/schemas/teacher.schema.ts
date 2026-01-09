@@ -16,10 +16,9 @@ export const onboardingStatusEnum = z.enum([
 export const contractTypeEnum = z.enum(["full_time", "freelancer"]);
 
 export const teamRoleEnum = z.enum([
-	"Teacher",
-	"Evaluator",
+	"Super Admin",
 	"Marketing/Admin",
-	"Exec",
+	"Teacher",
 ]);
 
 // Teacher schema for forms

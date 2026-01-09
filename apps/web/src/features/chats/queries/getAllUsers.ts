@@ -122,8 +122,10 @@ export async function getAllUsers(): Promise<UserForConversation[]> {
 			throw new Error(`Failed to fetch accessible users: ${error.message}`);
 		}
 
-		// CRITICAL: Filter out admins for teachers
-		return (users || []).filter((user) => user.role !== "admin");
+		// CRITICAL: Filter out admins and super_admins for teachers
+		return (users || []).filter(
+			(user) => user.role !== "admin" && user.role !== "super_admin"
+		);
 	}
 
 	// Others (students in web app, though shouldn't exist): no access

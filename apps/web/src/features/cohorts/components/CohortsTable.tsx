@@ -40,6 +40,7 @@ interface CohortsTableProps {
 	isLoading: boolean;
 	hideWrapper?: boolean;
 	canAccessProducts?: boolean;
+	canCreateCohorts?: boolean;
 }
 
 interface CohortWithStats extends Cohort {
@@ -112,6 +113,7 @@ export function CohortsTable({
 	isLoading,
 	hideWrapper = false,
 	canAccessProducts = false,
+	canCreateCohorts = true,
 }: CohortsTableProps) {
 	console.log(
 		"📊 CohortsTable received cohorts:",
@@ -239,11 +241,15 @@ export function CohortsTable({
 							<Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
 							<h3 className="mb-2 font-semibold text-lg">No cohorts found</h3>
 							<p className="mb-4 text-muted-foreground">
-								Create your first cohort to get started.
+								{canCreateCohorts
+									? "Create your first cohort to get started."
+									: "No cohorts are available."}
 							</p>
-							<Button asChild>
-								<Link href="/admin/cohorts/new">New Cohort</Link>
-							</Button>
+							{canCreateCohorts && (
+								<Button asChild>
+									<Link href="/admin/cohorts/new">New Cohort</Link>
+								</Button>
+							)}
 						</TableCell>
 					</TableRow>
 				) : (

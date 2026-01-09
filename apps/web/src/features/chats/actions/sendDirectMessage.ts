@@ -73,7 +73,8 @@ export const sendDirectMessage = actionClient
         throw new Error("Failed to validate conversation participants");
       }
       const hasAdmin = allParticipants?.some(
-        (p: any) => p.user?.role === "admin"
+        (p: any) =>
+          p.user?.role === "admin" || p.user?.role === "super_admin"
       );
 
       if (hasAdmin) {

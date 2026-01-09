@@ -19,7 +19,6 @@ import {
 	TextareaField,
 } from "@/components/form-layout/FormLayout";
 import { DaysSelector } from "@/components/ui/days-selector";
-import { MultiSelect } from "@/components/ui/multi-select";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Briefcase, CalendarDays, Clock, FileText, User } from "lucide-react";
@@ -225,30 +224,26 @@ export function TeacherFormNew({ teacher }: TeacherFormNewProps) {
 						>
 							<FormRow>
 								<FormField
-									label="Role(s)"
-									hint="Select all roles that apply"
+									label="Role"
+									hint="Select the team member's role"
 									error={form.formState.errors.role?.message}
 								>
-									<MultiSelect
-										options={[
-											{ label: "Teacher", value: "Teacher" },
-											{ label: "Evaluator", value: "Evaluator" },
-											{ label: "Marketing/Admin", value: "Marketing/Admin" },
-											{ label: "Exec", value: "Exec" },
-										]}
-										value={form.watch("role") || []}
+									<SelectField
+										value={form.watch("role")?.[0] || ""}
 										onValueChange={(value) =>
 											form.setValue(
 												"role",
-												value as (
-													| "Teacher"
-													| "Evaluator"
-													| "Marketing/Admin"
-													| "Exec"
-												)[],
+												value
+													? [value as "Super Admin" | "Marketing/Admin" | "Teacher"]
+													: [],
 											)
 										}
-										placeholder="Select roles..."
+										placeholder="Select role..."
+										options={[
+											{ label: "Super Admin", value: "Super Admin" },
+											{ label: "Marketing/Admin", value: "Marketing/Admin" },
+											{ label: "Teacher", value: "Teacher" },
+										]}
 									/>
 								</FormField>
 								<div />

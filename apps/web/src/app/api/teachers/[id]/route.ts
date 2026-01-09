@@ -10,6 +10,16 @@ import { createClient } from "@/utils/supabase/server";
 
 import { teacherFormSchema } from "@/features/teachers/schemas/teacher.schema";
 
+// Derive auth role from team roles
+function deriveAuthRole(
+	teamRoles?: string[],
+): "super_admin" | "admin" | "teacher" {
+	if (!teamRoles || teamRoles.length === 0) return "teacher";
+	if (teamRoles.includes("Super Admin")) return "super_admin";
+	if (teamRoles.includes("Marketing/Admin")) return "admin";
+	return "teacher";
+}
+
 // GET /api/teachers/[id] - Get a single teacher
 export async function GET(
 	request: NextRequest,
@@ -243,6 +253,27 @@ export async function PATCH(
 				console.error("Error updating user email:", userUpdateError);
 				// Log the error but don't fail the request since teacher was updated
 				// This allows the UI to continue working even if user sync fails
+			}
+		}
+
+		// If role was updated and teacher has a user_id, sync role to user table
+		if (validatedData.role && data.user_id) {
+			const derivedRole = deriveAuthRole(validatedData.role);
+			const { error: userRoleError } = await supabase
+				.from("user")
+				.update({
+					role: derivedRole,
+					updatedAt: new Date().toISOString(),
+				})
+				.eq("id", data.user_id);
+
+			if (userRoleError) {
+				console.error("Error updating user role:", userRoleError);
+				// Log the error but don't fail the request since teacher was updated
+			} else {
+				console.log(
+					`Synced user role to ${derivedRole} based on team roles: ${validatedData.role.join(", ")}`,
+				);
 			}
 		}
 

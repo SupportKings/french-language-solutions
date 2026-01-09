@@ -54,12 +54,19 @@ export default async function ClassesPage({
 		console.error("❌ Server prefetch failed:", error);
 	}
 
-	// Check if user can access product configuration
-	const canAccessProducts = session.user.role === "admin";
+	// Check user permissions based on role
+	const userRole = session.user.role || "teacher";
+	const canAccessProducts =
+		userRole === "admin" || userRole === "super_admin";
+	// Only admins and super_admins can create cohorts
+	const canCreateCohorts = userRole === "admin" || userRole === "super_admin";
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>
-			<ClassesPageClient canAccessProducts={canAccessProducts} />
+			<ClassesPageClient
+				canAccessProducts={canAccessProducts}
+				canCreateCohorts={canCreateCohorts}
+			/>
 		</HydrationBoundary>
 	);
 }

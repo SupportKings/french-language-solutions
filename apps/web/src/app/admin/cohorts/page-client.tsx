@@ -149,10 +149,12 @@ const cohortColumns = [
 
 interface ClassesPageClientProps {
 	canAccessProducts?: boolean;
+	canCreateCohorts?: boolean;
 }
 
 export function ClassesPageClient({
 	canAccessProducts = false,
+	canCreateCohorts = true,
 }: ClassesPageClientProps = {}) {
 	const router = useRouter();
 
@@ -494,14 +496,16 @@ export function ClassesPageClient({
 								Today's Cohorts
 							</Button>
 
-							<Button
-								onClick={() => router.push("/admin/cohorts/new")}
-								size="sm"
-								className="h-9"
-							>
-								<Plus className="mr-1.5 h-4 w-4" />
-								New Cohort
-							</Button>
+							{canCreateCohorts && (
+								<Button
+									onClick={() => router.push("/admin/cohorts/new")}
+									size="sm"
+									className="h-9"
+								>
+									<Plus className="mr-1.5 h-4 w-4" />
+									New Cohort
+								</Button>
+							)}
 						</div>
 					</div>
 				</div>
@@ -512,6 +516,7 @@ export function ClassesPageClient({
 					isLoading={isLoading && !isPlaceholderData}
 					hideWrapper={true}
 					canAccessProducts={canAccessProducts}
+					canCreateCohorts={canCreateCohorts}
 				/>
 			</div>
 

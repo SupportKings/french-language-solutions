@@ -13,8 +13,8 @@ export default async function ConfigurationLayout({
 		redirect("/");
 	}
 
-	// Only admins can access configuration
-	if (session.user.role !== "admin") {
+	// Only admins and super_admins can access configuration
+	if (session.user.role !== "admin" && session.user.role !== "super_admin") {
 		redirect("/admin/students");
 	}
 

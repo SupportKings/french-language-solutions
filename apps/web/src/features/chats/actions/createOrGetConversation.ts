@@ -79,11 +79,11 @@ export const createOrGetConversation = actionClient
 			throw new Error("No teachers found for your active enrollments");
 		}
 
-		// 3. Get all admins
+		// 3. Get all admins (both admin and super_admin roles)
 		const { data: admins, error: adminsError } = await supabase
 			.from("user")
 			.select("id")
-			.eq("role", "admin");
+			.in("role", ["admin", "super_admin"]);
 
 		if (adminsError) {
 			throw new Error(`Failed to fetch admins: ${adminsError.message}`);

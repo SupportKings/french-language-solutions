@@ -44,7 +44,8 @@ export const deleteAnnouncement = actionClient
 			.eq("id", session.user.id)
 			.single();
 
-		const isAdmin = userData?.role === "admin";
+		const isAdmin =
+			userData?.role === "admin" || userData?.role === "super_admin";
 
 		if (existingAnnouncement.author_id !== session.user.id && !isAdmin) {
 			throw new Error("Unauthorized to delete this announcement");

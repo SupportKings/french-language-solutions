@@ -21,14 +21,14 @@ export async function getUserSession() {
 }
 
 /**
- * Check if user is an admin
- * Admins have the "admin" role
+ * Check if user is an admin (admin or super_admin)
+ * Both admin and super_admin have elevated access
  */
 export async function isAdmin() {
 	const session = await getUserSession();
 	if (!session) return false;
 
-	return session.user.role === "admin";
+	return session.user.role === "admin" || session.user.role === "super_admin";
 }
 
 /**
@@ -53,8 +53,8 @@ export async function hasPermission(
 	const session = await getUserSession();
 	if (!session) return false;
 
-	// Admin has access to everything
-	if (session.user.role === "admin") return true;
+	// Admin and super_admin have access to everything
+	if (session.user.role === "admin" || session.user.role === "super_admin") return true;
 
 	// Check permission using Better Auth's access control
 	try {
@@ -101,8 +101,8 @@ export async function canAccessAllData(): Promise<boolean> {
 	const session = await getUserSession();
 	if (!session) return false;
 
-	// Admins can access all data
-	return session.user.role === "admin";
+	// Admins and super_admins can access all data
+	return session.user.role === "admin" || session.user.role === "super_admin";
 }
 
 /**

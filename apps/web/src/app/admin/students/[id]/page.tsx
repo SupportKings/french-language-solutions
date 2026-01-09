@@ -93,6 +93,7 @@ export default async function StudentDetailPage({
 				enrollmentCount={enrollmentCount}
 				assessmentCount={assessmentCount}
 				permissions={permissions}
+				userRole={userRole}
 			/>
 		</HydrationBoundary>
 	);

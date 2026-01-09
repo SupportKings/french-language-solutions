@@ -248,7 +248,10 @@ export function ChatMembersSidebar({
 
 					// Separate by role
 					const teachers = mapped.filter(
-						(p: any) => p.role === "teacher" || p.role === "admin",
+						(p: any) =>
+							p.role === "teacher" ||
+							p.role === "admin" ||
+							p.role === "super_admin",
 					);
 					const students = mapped.filter((p: any) => p.role === "student");
 

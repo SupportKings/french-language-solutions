@@ -28,7 +28,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MultiSelect } from "@/components/ui/multi-select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 import { TeacherCohorts } from "@/features/cohorts/components/TeacherCohorts";
 import {
@@ -408,17 +414,12 @@ export default function TeacherDetailsClient({
 										</Badge>
 									)}
 									{teacher.role && teacher.role.length > 0 && (
-										<div className="flex flex-wrap gap-1">
-											{teacher.role.map((r: string) => (
-												<Badge
-													key={r}
-													variant="outline"
-													className="h-4 px-1.5 text-[10px]"
-												>
-													{r}
-												</Badge>
-											))}
-										</div>
+										<Badge
+											variant="outline"
+											className="h-4 px-1.5 text-[10px]"
+										>
+											{teacher.role[0]}
+										</Badge>
 									)}
 								</div>
 							</div>
@@ -431,6 +432,7 @@ export default function TeacherDetailsClient({
 									teacherId={teacher.id}
 									teacherName={fullName}
 									teacherEmail={teacher.email}
+									teacherRoles={teacher.role}
 									onSuccess={refreshTeacher}
 								/>
 							) : teacher.onboarding_status !== "offboarded" ? (
@@ -590,42 +592,34 @@ export default function TeacherDetailsClient({
 									<div className="flex items-start gap-3">
 										<Shield className="mt-0.5 h-4 w-4 text-muted-foreground" />
 										<div className="flex-1 space-y-0.5">
-											<p className="text-muted-foreground text-xs">Role(s):</p>
+											<p className="text-muted-foreground text-xs">Role:</p>
 											{editing ? (
-												<MultiSelect
-													options={[
-														{ label: "Teacher", value: "Teacher" },
-														{ label: "Evaluator", value: "Evaluator" },
-														{
-															label: "Marketing/Admin",
-															value: "Marketing/Admin",
-														},
-														{ label: "Exec", value: "Exec" },
-													]}
-													value={editedTeacher.role || []}
-													onValueChange={(newRoles) => {
-														console.log(
-															"MultiSelect onValueChange called with:",
-															newRoles,
-														);
-														updateEditedField("role", newRoles);
+												<Select
+													value={editedTeacher.role?.[0] || ""}
+													onValueChange={(value) => {
+														console.log("Role changed to:", value);
+														updateEditedField("role", value ? [value] : []);
 													}}
-													placeholder="Select roles..."
-												/>
+												>
+													<SelectTrigger className="w-full">
+														<SelectValue placeholder="Select role..." />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="Super Admin">
+															Super Admin
+														</SelectItem>
+														<SelectItem value="Marketing/Admin">
+															Marketing/Admin
+														</SelectItem>
+														<SelectItem value="Teacher">Teacher</SelectItem>
+													</SelectContent>
+												</Select>
 											) : (
 												<div>
 													{teacher.role && teacher.role.length > 0 ? (
-														<div className="flex flex-wrap gap-1">
-															{teacher.role.map((r: string) => (
-																<Badge
-																	key={r}
-																	variant="outline"
-																	className="h-5 text-xs"
-																>
-																	{r}
-																</Badge>
-															))}
-														</div>
+														<Badge variant="outline" className="h-5 text-xs">
+															{teacher.role[0]}
+														</Badge>
 													) : (
 														<span className="text-muted-foreground text-sm">
 															—

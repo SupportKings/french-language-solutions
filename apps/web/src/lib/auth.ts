@@ -1,4 +1,4 @@
-import { ac, admin, teacher } from "@/lib/permissions";
+import { ac, admin, super_admin, teacher } from "@/lib/permissions";
 
 // import { createClient } from "@/utils/supabase/server";
 
@@ -73,6 +73,7 @@ export const auth = betterAuth({
 			ac,
 			roles: {
 				admin,
+				super_admin,
 				teacher,
 			},
 		}),

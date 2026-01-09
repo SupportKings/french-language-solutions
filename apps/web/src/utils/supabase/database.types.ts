@@ -923,6 +923,42 @@ export type Database = {
           },
         ]
       }
+      message_reads: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
@@ -2311,7 +2347,7 @@ export type Database = {
         | "whatsapp_business"
         | "webhook"
       touchpoint_type: "inbound" | "outbound"
-      user_role: "admin" | "support" | "teacher" | "student"
+      user_role: "admin" | "support" | "teacher" | "student" | "super_admin"
     }
     CompositeTypes: {
       http_header: {
@@ -2533,7 +2569,7 @@ export const Constants = {
         "webhook",
       ],
       touchpoint_type: ["inbound", "outbound"],
-      user_role: ["admin", "support", "teacher", "student"],
+      user_role: ["admin", "support", "teacher", "student", "super_admin"],
     },
   },
 } as const
