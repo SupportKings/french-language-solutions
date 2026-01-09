@@ -1433,22 +1433,16 @@ export function CohortDetailPageClient({
 					className="space-y-4"
 				>
 					<TabsList className="grid w-full grid-cols-3">
-						<TabsTrigger value="enrollments">Enrollments</TabsTrigger>
-						<TabsTrigger value="classes">Classes</TabsTrigger>
 						<TabsTrigger value="attendance">Attendance</TabsTrigger>
+						<TabsTrigger value="classes">Classes</TabsTrigger>
+						<TabsTrigger value="enrollments">Enrollments</TabsTrigger>
 					</TabsList>
 
-					{/* Enrollments Tab */}
-					<TabsContent value="enrollments" className="space-y-4">
-						<CohortEnrollments
+					{/* Attendance Tab */}
+					<TabsContent value="attendance" className="space-y-4">
+						<CohortAttendance
 							cohortId={cohortId}
-							cohortName={cohort?.products?.format || "Cohort"}
-							cohortLevel={formatLevel(
-								cohort?.starting_level_id,
-								languageLevels,
-							)}
-							onEnrollmentUpdate={fetchEnrollmentData}
-							canEnrollStudent={canEditCohort}
+							initialClassId={attendanceClassId}
 						/>
 					</TabsContent>
 
@@ -1462,11 +1456,17 @@ export function CohortDetailPageClient({
 						/>
 					</TabsContent>
 
-					{/* Attendance Tab */}
-					<TabsContent value="attendance" className="space-y-4">
-						<CohortAttendance
+					{/* Enrollments Tab */}
+					<TabsContent value="enrollments" className="space-y-4">
+						<CohortEnrollments
 							cohortId={cohortId}
-							initialClassId={attendanceClassId}
+							cohortName={cohort?.products?.format || "Cohort"}
+							cohortLevel={formatLevel(
+								cohort?.starting_level_id,
+								languageLevels,
+							)}
+							onEnrollmentUpdate={fetchEnrollmentData}
+							canEnrollStudent={canEditCohort}
 						/>
 					</TabsContent>
 				</Tabs>
